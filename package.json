@@ -1,8 +1,8 @@
 {
-  "name": "watercooler-electron-app",
-  "productName": "watercooler-electron-app",
+  "name": "Water-Cooler",
+  "productName": "Water Cooler",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "Bring natural conversation back to remote teams.",
   "main": "src/index.js",
   "scripts": {
     "start": "electron-forge start",
@@ -32,7 +32,7 @@
         "packageManager": "yarn"
       },
       "electronWinstallerConfig": {
-        "name": "watercooler_electron_app"
+        "name": "watercooler"
       },
       "electronInstallerDebian": {},
       "electronInstallerRedhat": {},
@@ -42,7 +42,7 @@
       },
       "windowsStoreConfig": {
         "packageName": "",
-        "name": "watercoolerelectronapp"
+        "name": "watercooler"
       }
     }
   },
@@ -55,6 +55,7 @@
     "electron-compile": "^6.4.4",
     "electron-devtools-installer": "^2.1.0",
     "electron-squirrel-startup": "^1.0.0",
+    "electron-store": "^5.1.1",
     "react": "^16.12.0",
     "react-bootstrap": "^1.0.0-beta.17",
     "react-dom": "^16.12.0",
@@ -63,6 +64,8 @@
     "react-router": "^5.1.2",
     "react-router-dom": "^5.1.2",
     "redux": "^4.0.5",
+    "redux-persist": "^6.0.0",
+    "redux-persist-electron-storage": "^2.1.0",
     "redux-thunk": "^2.3.0"
   },
   "devDependencies": {

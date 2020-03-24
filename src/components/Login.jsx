@@ -48,8 +48,8 @@ class Login extends React.Component {
     render() {
         return (
             <Container data-tid="container" fluid>
-                <h1 className="text-center mt-5">Welcome to Water Cooler</h1>
-            <Card body>
+                <p className="sub-heading text-muted text-center mt-5">Sign in to Water Cooler</p>
+
                 <Form>
                     <Form.Group controlId="formBasicEmail">
                         <Form.Label>Email address</Form.Label>
@@ -71,11 +71,11 @@ class Login extends React.Component {
                             onChange={this.handlePasswordChange}
                         />
                     </Form.Group>
-                    <Button variant="primary" type="submit" onClick={this.handleSubmit}>
+                    <Button variant="primary" className="btn-block" type="submit" onClick={this.handleSubmit}>
                         Submit
                     </Button>
                 </Form>
-            </Card>
+
             </Container>
         );
     }
