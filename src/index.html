@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <link
+  rel="stylesheet"
+  href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+  integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+  crossorigin="anonymous"
+/>
+</head>
+<body style="overflow: hidden; background-color: rgba(0,0,0,0); margin: 0" >
+  <div id="App"></div>
+</body>
+
+<script type="text/jsx">
+import React from 'react';
+import ReactDOM from 'react-dom';
+import {AppContainer} from 'react-hot-loader';
+import { configureStore, history } from './store/store';
+import { Provider } from 'react-redux';
+
+const store = configureStore();
+
+const render = () => {
+  const App = require('./app').default;
+  ReactDOM.render(<AppContainer><App store={store} history={history} /></AppContainer>, document.getElementById('App'));
+}
+
+render();
+if (module.hot) {
+  module.hot.accept(render);
+}
+</script>
+</html>
