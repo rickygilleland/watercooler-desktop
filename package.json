@@ -29,7 +29,9 @@
         ]
       },
       "electronPackagerConfig": {
-        "packageManager": "yarn"
+        "packageManager": "yarn",
+        "icon": "icons/app"
+
       },
       "electronWinstallerConfig": {
         "name": "watercooler"
