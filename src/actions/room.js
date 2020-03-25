@@ -1,9 +1,10 @@
 export const GET_ROOMS_SUCCESS = 'GET_ROOMS_SUCCESS';
 export const GET_ROOMS_FAILURE = 'GET_ROOMS_FAILURE';
 
-export function getRoomsSuccess() {
+export function getRoomsSuccess(response) {
     return {
-        type: GET_ROOMS_SUCCESS
+        type: GET_ROOMS_SUCCESS,
+        response
     }
 } 
 

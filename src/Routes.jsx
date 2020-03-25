@@ -11,8 +11,8 @@ export default function Routes() {
     <Switch>
         <Route path={routes.LOGIN} component={LoginPage} />
         <EnsureLoggedInContainer>
-            <Route path={routes.ROOM} component={RoomPage} />
             <Route exact path={routes.HOME} component={HomePage} />
+            <Route path={routes.ROOM} component={RoomPage} />
         </EnsureLoggedInContainer>
     </Switch>
   );

@@ -1,6 +1,6 @@
 {
     "HOME": "/",
-    "ROOM": "/room",
+    "ROOM": "/room/:roomSlug",
     "LOGIN": "/login"
   }
   
