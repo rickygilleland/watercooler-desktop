@@ -22,7 +22,7 @@ export default function Room() {
             <Row className="justify-content-md-center">
                 <Button variant="light"><FontAwesomeIcon icon={faMicrophone} /></Button>
                 <Button variant="light" className="mx-3"><FontAwesomeIcon icon={faVideo} /></Button>
-                <Button variant="danger"><FontAwesomeIcon icon={faSignOutAlt} /></Button>
+                <Link to={routes.HOME}><Button variant="danger"><FontAwesomeIcon icon={faSignOutAlt} /></Button></Link>
             </Row>
         </div>
         </React.Fragment>

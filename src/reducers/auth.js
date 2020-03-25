@@ -5,7 +5,7 @@ const initialState = {
     isLoggedIn: false,
     authKey: null,
     refreshKey: null,
-    redirectUrl: "/home",
+    redirectUrl: "/",
     user: {}
 }
 

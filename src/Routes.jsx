@@ -9,11 +9,11 @@ import RoomPage from './containers/RoomPage';
 export default function Routes() {
   return (
     <Switch>
-    <Route path={routes.LOGIN} component={LoginPage} />
-    <EnsureLoggedInContainer>
-        <Route path={routes.ROOM} component={RoomPage} />
-        <Route path={routes.HOME} component={HomePage} />
-    </EnsureLoggedInContainer>
+        <Route path={routes.LOGIN} component={LoginPage} />
+        <EnsureLoggedInContainer>
+            <Route path={routes.ROOM} component={RoomPage} />
+            <Route exact path={routes.HOME} component={HomePage} />
+        </EnsureLoggedInContainer>
     </Switch>
   );
 }
