@@ -65,14 +65,9 @@ class Room extends React.Component {
         const { team, room } = this.state;
         return (
             <React.Fragment>
-            <Navbar bg="dark" className="text-light" expand="lg">
+            <Navbar bg="dark" className="text-light pt-3" expand="lg">
                 <Navbar.Brand>
-                    <img
-                        src="https://watercooler.work/img/water_cooler.png"
-                        height="40"
-                        className="d-inline-block align-top"
-                    />
-                    {team.name} / {room.name}
+                    <p className="text-light p-0 m-0"><strong>{team.name} / {room.name}</strong></p>
                 </Navbar.Brand>
             </Navbar>
             <div className="fixed-bottom bg-dark py-2">

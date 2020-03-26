@@ -59,8 +59,7 @@ class Login extends React.Component {
         if (prevProps.auth !== auth) {
             this.setState({ loading: false, loginError: auth.loginError });
         }
-
-
+        
     }
 
     render() {

@@ -53,7 +53,7 @@ class Home extends React.Component {
         );
         return(
             <React.Fragment>
-                <Navbar className="bg-white mb-4 shadow-sm" expand="lg">
+                <Navbar className="bg-white mb-4 shadow-sm pt-4" expand="lg">
                     <Navbar.Brand>
                         <img
                             src="https://watercooler.work/img/water_cooler.png"
@@ -65,7 +65,8 @@ class Home extends React.Component {
                 </Navbar>
                 <Container data-tid="container" fluid>
                     <Card className="mb-3 shadow-sm border-0" body>
-                        <h1 className="h3"><strong>{organization.name}</strong> Teams</h1>
+                        <h1 className="h3">
+                            <strong>{organization.name}</strong> Teams</h1>
                     </Card>
                     {items}
                 </Container>
