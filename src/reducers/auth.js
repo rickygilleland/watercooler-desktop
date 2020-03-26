@@ -5,6 +5,7 @@ const initialState = {
     isLoggedIn: false,
     authKey: null,
     refreshKey: null,
+    loginError: false,
     redirectUrl: "/",
     user: {}
 }
@@ -20,6 +21,11 @@ export default function auth(state = initialState, action = {}) {
                 authKey: action.authKey,
                 refreshKey: action.refreshKey,
                 isLoggedIn: true
+            }
+            break;
+        case AUTHENTICATE_USER_FAILURE:
+            updatedState = {
+                loginError: true
             }
             break;
         case SET_REDIRECT_URL:
