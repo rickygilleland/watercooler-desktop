@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import { GET_USER, AUTHENTICATE_USER_SUCCESS, AUTHENTICATE_USER_FAILURE, SET_REDIRECT_URL } from '../actions/auth';
+import { AUTHENTICATE_USER_SUCCESS, AUTHENTICATE_USER_FAILURE, SET_REDIRECT_URL } from '../actions/auth';
 
 const initialState = {
     isLoggedIn: false,
@@ -7,15 +7,11 @@ const initialState = {
     refreshKey: null,
     loginError: false,
     redirectUrl: "/",
-    user: {}
 }
 
 export default function auth(state = initialState, action = {}) {
     var updatedState = {};
     switch (action.type) {
-        case GET_USER:
-            //do something
-            break;
         case AUTHENTICATE_USER_SUCCESS:
             updatedState = {
                 authKey: action.authKey,

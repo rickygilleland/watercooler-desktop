@@ -1,4 +1,3 @@
-export const GET_USER = 'GET_USER';
 export const AUTHENTICATE_USER_SUCCESS = 'AUTHENTICATE_USER_SUCCESS';
 export const AUTHENTICATE_USER_FAILURE = 'AUTHENTICATE_USER_FAILURE';
 export const SET_REDIRECT_URL = 'SET_REDIRECT_URL';
@@ -9,12 +8,6 @@ export function setRedirectUrl(redirectUrl) {
         redirectUrl
     }
 } 
-
-export function get_user() {
-    return {
-        type: GET_USER
-    };
-}
 
 export function authenticateUserSuccess(authKey, refreshKey) {
     return {
@@ -34,7 +27,6 @@ export function authenticateUser(username, password) {
     return (dispatch, getState, axios) => {
         const state = getState();
         //check if we need a new token or a refresh token
-
         axios.post("https://w.test/oauth/token", {
             grant_type: 'password',
             client_id: '4',

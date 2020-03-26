@@ -2,8 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Container, Image, Button, Navbar, Row } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash } from '@fortawesome/free-solid-svg-icons';
 import routes from '../constants/routes.json';
+import Peer from 'peerjs';
 
 
 class Room extends React.Component {
@@ -12,7 +13,8 @@ class Room extends React.Component {
         super(props);
         this.state = {
             room: {},
-            team: {}
+            team: {},
+            loading: true
         }
     }
 
@@ -27,6 +29,16 @@ class Room extends React.Component {
         if (prevState.room != room && prevState.team != team) {
             this.getCurTeamRoom();
         }
+        
+        var peer = new Peer({
+            host: "peer.watercooler.work",
+            port: 443,
+            secure: true,
+            path: "/peer"
+        });
+
+        console.log(peer);
+
     }
 
     getCurTeamRoom() {
@@ -62,21 +74,27 @@ class Room extends React.Component {
 
     render() {
         const { organization } = this.props;
-        const { team, room } = this.state;
+        const { team, room, loading } = this.state;
         return (
             <React.Fragment>
-            <Navbar bg="dark" className="text-light pt-3" expand="lg">
-                <Navbar.Brand>
-                    <p className="text-light p-0 m-0"><strong>{team.name} / {room.name}</strong></p>
-                </Navbar.Brand>
-            </Navbar>
-            <div className="fixed-bottom bg-dark py-2">
-                <Row className="justify-content-md-center">
-                    <Button variant="light"><FontAwesomeIcon icon={faMicrophone} /></Button>
-                    <Button variant="light" className="mx-3"><FontAwesomeIcon icon={faVideo} /></Button>
-                    <Link to={routes.HOME}><Button variant="danger"><FontAwesomeIcon icon={faSignOutAlt} /></Button></Link>
-                </Row>
-            </div>
+                <Navbar bg="dark" className="text-light pt-3" expand="lg">
+                    <Navbar.Brand>
+                        <p className="text-light p-0 m-0"><strong>{team.name} / {room.name}</strong></p>
+                    </Navbar.Brand>
+                </Navbar>
+                {loading ? 
+                    <React.Fragment>
+                        <h1 className="text-center mt-5">Loading...</h1>
+                        <center><FontAwesomeIcon icon={faCircleNotch} className="mt-3" style={{fontSize:"2.4rem",color:"#6772ef"}} spin /></center> 
+                    </React.Fragment>  
+                : '' }
+                <div className="fixed-bottom bg-dark py-2">
+                    <Row className="justify-content-md-center">
+                        <Button variant="light"><FontAwesomeIcon icon={faMicrophone} /></Button>
+                        <Button variant="light" className="mx-3"><FontAwesomeIcon icon={faVideo} /></Button>
+                        <Link to={routes.HOME}><Button variant="danger"><FontAwesomeIcon icon={faSignOutAlt} /></Button></Link>
+                    </Row>
+                </div>
             </React.Fragment>
         );
     }

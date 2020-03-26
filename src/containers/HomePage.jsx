@@ -6,6 +6,7 @@ import Home from '../components/Home';
 
 function mapStateToProps(state) {
     return {
+        user: state.user,
         organization: state.room.organization,
         teams: state.room.teams
     }

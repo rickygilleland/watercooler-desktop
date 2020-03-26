@@ -1,6 +1,7 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, Menu } from 'electron';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import { enableLiveReload } from 'electron-compile';
+import * as Sentry from '@sentry/electron';
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -8,7 +9,13 @@ let mainWindow;
 
 const isDevMode = process.execPath.match(/[\\/]electron/);
 
+const contextMenu = require('electron-context-menu');
+
 if (isDevMode) enableLiveReload({ strategy: 'react-hmr' });
+
+contextMenu({
+	prepend: (defaultActions, params, browserWindow) => []
+});
 
 const createWindow = async () => {
   // Create the browser window.
@@ -24,8 +31,30 @@ const createWindow = async () => {
   // Open the DevTools.
   if (isDevMode) {
     await installExtension(REACT_DEVELOPER_TOOLS);
-    mainWindow.webContents.openDevTools();
+  } else {
+    Sentry.init({dsn: 'https://20e5d4f5d6d94630a28e5684a3048940@sentry.io/5176374'});
   }
+
+  var template = [{
+    label: "Application",
+    submenu: [
+        { label: "About Application", selector: "orderFrontStandardAboutPanel:" },
+        { type: "separator" },
+        { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); }}
+    ]}, {
+    label: "Edit",
+    submenu: [
+        { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+        { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+        { type: "separator" },
+        { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+        { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+        { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
+        { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
+    ]}
+  ];
+
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 
   // Emitted when the window is closed.
   mainWindow.on('closed', () => {
