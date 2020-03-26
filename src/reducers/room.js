@@ -20,10 +20,10 @@ export default function room(state = initialState, action = {}) {
             }
             break;
         case GET_ROOMS_FAILURE:
-            break;
+            return state;
         default:
             //do nothing
-            break;
+            return state;
     }
     const newState = Object.assign({}, state, updatedState);
     return newState;

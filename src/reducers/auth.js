@@ -31,8 +31,9 @@ export default function auth(state = initialState, action = {}) {
             break;
         default:
             //do nothing
-            break;
+            return state;
     }
+    
 
     const newState = Object.assign({}, state, updatedState);
     return newState;

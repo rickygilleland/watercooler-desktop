@@ -24,6 +24,15 @@ class Login extends React.Component {
     }
 
     componentDidMount() {
+        const { auth, user, push, getUserDetails } = this.props;
+
+        if (auth.isLoggedIn === true) {
+            if (Object.keys(user).length === 0 || typeof user == 'undefined') {
+                return getUserDetails();
+            }
+            push(auth.redirectUrl);
+        }
+
     }
 
     handleUsernameChange(event) {
