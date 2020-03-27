@@ -85,6 +85,8 @@ class Login extends React.Component {
                     <Card className="mt-5 shadow-sm border-0" body>
                         <p className="sub-heading text-muted text-center mt-3">Sign in to Water Cooler</p>
 
+                        {/*<a href="https://slack.com/oauth/authorize?scope=identity.basic,identity.email,identity.team,identity.avatar&client_id=1000366406420.1003032710326&redirect_uri=https://watercooler.work/login/slack/callback"><img alt="Sign in with Slack" height="40" width="172" src="https://platform.slack-edge.com/img/sign_in_with_slack.png" srcset="https://platform.slack-edge.com/img/sign_in_with_slack.png 1x, https://platform.slack-edge.com/img/sign_in_with_slack@2x.png 2x" /></a>*/}
+
                         {missingError ? <Alert variant='danger' className="text-center">Oops! Did you miss a field?</Alert> : ''}
                         {loginError ? <Alert variant='danger' className="text-center">Oops! Looks like your email address or password was incorrect. Please double check them and try again.</Alert> : ''}
 

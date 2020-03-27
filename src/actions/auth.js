@@ -1,6 +1,7 @@
 export const AUTHENTICATE_USER_SUCCESS = 'AUTHENTICATE_USER_SUCCESS';
 export const AUTHENTICATE_USER_FAILURE = 'AUTHENTICATE_USER_FAILURE';
 export const SET_REDIRECT_URL = 'SET_REDIRECT_URL';
+export const USER_LOGOUT = 'USER_LOGOUT';
 
 export function setRedirectUrl(redirectUrl) {
     return {
@@ -42,4 +43,10 @@ export function authenticateUser(username, password) {
             dispatch(authenticateUserFailure(error.message));
         })
     }
+}
+
+export function userLogout() {
+    return {
+        type: 'USER_LOGOUT'
+    };
 }
