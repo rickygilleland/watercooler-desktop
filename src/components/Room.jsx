@@ -1,4 +1,5 @@
 import React from 'react';
+import { systemPreferences } from 'electron';
 import { each } from 'lodash';
 import { Link } from 'react-router-dom';
 import { Container, Image, Button, Navbar, Row } from 'react-bootstrap';
@@ -46,7 +47,7 @@ class Room extends React.Component {
 
         var curTeam = {};
         var curRoom = {};
-        var all_members = [];
+        var remote_streams = [];
         
         if (typeof location.state != 'undefined' 
             && typeof location.state.room != 'undefined'
@@ -73,6 +74,8 @@ class Room extends React.Component {
         var room = curRoom;
         var team = curTeam;
 
+        /* TODO: Manually prompt for camera and microphone access on macos to handle it more gracefully - systemPreferences.getMediaAccessStatus(mediaType) */
+
         const local_stream = await navigator.mediaDevices.getUserMedia({
             video: {
                 width: 1280,
@@ -88,100 +91,123 @@ class Room extends React.Component {
         var that = this;
         
         presence_channel.bind('pusher:subscription_succeeded', function(members) {
-            that.setState({ members: members.members, me: members.me }, () => {
 
-                    /*const peer = new Peer(members.me.info.peer_uuid, {
-                        host: "peer.watercooler.work",
-                        port: 443,
-                        secure: true,
-                        path: "/peer",
-                        config: {'iceServers': [
-                            { url: 'stun:global.stun.twilio.com:3478?transport=udp' },
-                            { url: 'turn:global.turn.twilio.com:3478?transport=udp', username: 'f569e934ed1a75f0ab117bc44433670c463f95eaa2cda85d052baff01763ae61', credential: 'SGrBazWftYv2IHdf3XJ/adpkcMVrMqU81adDJiWDeI0='},
-                            { url: 'turn:global.turn.twilio.com:443?transport=tcp', username: 'f569e934ed1a75f0ab117bc44433670c463f95eaa2cda85d052baff01763ae61', credential: 'SGrBazWftYv2IHdf3XJ/adpkcMVrMqU81adDJiWDeI0='}
-                        ]},
-                        debug: 3
-                    });*/
+            let me = members.me;
 
-                    that.peer = new Peer(members.me.info.peer_uuid, {
-                        host: "peer.watercooler.work",
-                        port: 443,
-                        secure: true,
-                        path: "/peer",
-                        config: {'iceServers': [
-                            { url: 'stun:global.stun.twilio.com:3478?transport=udp' }
-                        ]},
-                        debug: 3
-                    });
+            that.setState({ members: members, me: me });
 
-                    let peer = that.peer;
+                /*const peer = new Peer(members.me.info.peer_uuid, {
+                    host: "peer.watercooler.work",
+                    port: 443,
+                    secure: true,
+                    path: "/peer",
+                    config: {'iceServers': [
+                        { url: 'stun:global.stun.twilio.com:3478?transport=udp' },
+                        { url: 'turn:global.turn.twilio.com:3478?transport=udp', username: 'f569e934ed1a75f0ab117bc44433670c463f95eaa2cda85d052baff01763ae61', credential: 'SGrBazWftYv2IHdf3XJ/adpkcMVrMqU81adDJiWDeI0='},
+                        { url: 'turn:global.turn.twilio.com:443?transport=tcp', username: 'f569e934ed1a75f0ab117bc44433670c463f95eaa2cda85d052baff01763ae61', credential: 'SGrBazWftYv2IHdf3XJ/adpkcMVrMqU81adDJiWDeI0='}
+                    ]},
+                    debug: 3
+                });*/
+
+                that.peer = new Peer(me.info.peer_uuid, {
+                    host: "peer.watercooler.work",
+                    port: 443,
+                    secure: true,
+                    path: "/peer",
+                    config: {'iceServers': [
+                        { url: 'stun:global.stun.twilio.com:3478?transport=udp' }
+                    ]},
+                    debug: 3
+                });
+
+                let peer = that.peer;
+
+                peer.on('open', function(id) {
+
+                    that.setState({ connected: true, loading: false });
+
+                    let local_stream = that.local_stream;
 
                     var me = members.me;
 
-                    peer.on('open', function(id) {
+                    console.log("OPEN");
+                    console.log(members);
 
-                        that.setState({ connected: true, loading: false });
+                    each(members.members, function(member) {
+                        if (member.id != me.id) {
+        
+                            var call = peer.call(member.peer_uuid, local_stream);
+        
+                            call.on('stream', function(member_stream) {
 
-                        let local_stream = that.local_stream;
+                                remote_streams[member.id] = {
+                                    id: member.id,
+                                    name: member.name,
+                                    source: member_stream,
+                                    isMe: false,
+                                    call: call,
+                                    peer_uuid: member.peer_uuid
+                                }
 
-                        var me = members.me;
-
-                        each(members.members, function(member) {
-                            if (member.id != me.id) {
-            
-                                var call = peer.call(member.peer_uuid, local_stream);
-            
-                                call.on('stream', function(member_stream) {
-
-                                    all_members[member.id] = {
-                                        id: member.id,
-                                        name: member.name,
-                                        source: member_stream,
-                                        isMe: false,
-                                        call: call,
-                                        peer_uuid: member.peer_uuid
-                                    }
-
-                                    that.setState({remote_streams: all_members, loading: false });
-                                    
-                                    
-                                });
+                                that.setState({remote_streams: remote_streams, loading: false });
                                 
+                                
+                            });
+                            
+                        }
+                    });
+                    
+                });
+
+                peer.on('call', function(call) {
+
+
+                    console.log("CALL RECEIVED");
+                    console.log(members);
+
+                    let all_members = members.members;
+
+                    call.answer(that.local_stream);
+        
+                    call.on('stream', function(member_stream) {
+                        //save their stream to state
+                        each(members.members, function(member) {
+                            if (member.peer_uuid == call.peer) {
+                                if (typeof remote_streams[member.id] == "undefined") {
+                                    remote_streams[member.id] = {};
+                                }
+                                remote_streams[member.id].source = member_stream;
+                                remote_streams[member.id].isMe = false;
+                                remote_streams[member.id].call = call;
+                                remote_streams[member.id].stopped = false;
                             }
                         });
-                        
 
-                        peer.on('call', function(call) {
-                
-                            call.on('stream', function(member_stream) {
-                                //save their stream to state
-                                all_members.forEach(function(member, key) {
-                                    if (member.peer_uuid == call.peer) {
-                                        all_members[key].source = member_stream;
-                                        all_members[key].isMe = false;
-                                        all_members[key].call = call;
-                                        all_members[key].stopped = false;
-                                    }
-                                });
+                        that.setState({remote_streams: remote_streams, loading: false });
 
-                                that.setState({remote_streams: all_members, loading: false });
-
-                            });
-                        });
-
-  
                     });
+                });
 
-                    peer.on('error', function(error) {
-                        console.log("ERROR");
-                        console.log(error);
-                        console.log(error.type);
-                    });
+                peer.on('error', function(error) {
+                    console.log("ERROR");
+                    console.log(error);
+                    console.log(error.type);
+                });
         
-        
-  
-                
-            });
+     
+        });
+
+        presence_channel.bind('pusher:member_removed', function(member) {
+
+            if (typeof remote_streams[member.id] !== undefined) {
+                remote_streams[member.id].source = null;
+                remote_streams[member.id].isMe = false;
+                remote_streams[member.id].call = null;
+                remote_streams[member.id].stopped = true;
+
+                that.setState({ remote_streams: remote_streams });
+            }
+
         });
 
         this.setState({ room: curRoom, team: curTeam });
@@ -193,6 +219,8 @@ class Room extends React.Component {
 
     componentWillUnmount() {
         const { streams, me } = this.state;
+
+        this.pusher.disconnect();
 
         if (typeof this.peer !== 'undefined') {
             this.peer.destroy();
@@ -230,7 +258,7 @@ class Room extends React.Component {
         } 
     
         each(remote_streams, function(stream) {
-            if (typeof stream !== "undefined" && typeof stream.source !== "undefined") {
+            if (typeof stream !== "undefined" && typeof stream.source !== "undefined" && stream.stopped === false) {
                 videos.push(
                     <div className="col" key={stream.id}>
                         {/* refactor later because inline function will get called twice, once with null */}
