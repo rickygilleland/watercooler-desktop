@@ -10,8 +10,6 @@ export default class App extends React.Component {
 
     const { store, persistor, history } = this.props;
 
-    console.log(persistor);
-
     return(
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>

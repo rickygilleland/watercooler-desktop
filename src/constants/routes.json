@@ -1,6 +1,7 @@
 {
     "HOME": "/",
     "ROOM": "/room/:roomSlug",
-    "LOGIN": "/login"
+    "LOGIN": "/login",
+    "CALLBACK": "/callback/:type/:code"
   }
   

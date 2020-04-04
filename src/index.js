@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu } from 'electron';
+import { app, BrowserWindow, Menu, session, ipcMain } from 'electron';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import { enableLiveReload } from 'electron-compile';
 import * as Sentry from '@sentry/electron';
@@ -16,6 +16,10 @@ if (isDevMode) enableLiveReload({ strategy: 'react-hmr' });
 contextMenu({
 	prepend: (defaultActions, params, browserWindow) => []
 });
+
+const filter = {
+  urls: ['https://watercooler.work/api/login/slack?code=*&state=*', 'https://w.test/api/login/slack?code=*&state=*']
+};
 
 const createWindow = async () => {
   // Create the browser window.
@@ -55,6 +59,19 @@ const createWindow = async () => {
   
     Menu.setApplicationMenu(Menu.buildFromTemplate(template));
   }
+
+  session.defaultSession.webRequest.onBeforeRequest(filter, function (details, callback) {
+    const url = details.url;
+
+    var urlParams = new URLSearchParams(url);
+    var slackCode = urlParams.get('https://watercooler.work/api/login/slack?code');
+
+    mainWindow.loadURL(`file://${__dirname}/index.html#/callback/slack/${slackCode}`);
+
+    callback({
+      cancel: false
+    });
+  });
 
   // Emitted when the window is closed.
   mainWindow.on('closed', () => {

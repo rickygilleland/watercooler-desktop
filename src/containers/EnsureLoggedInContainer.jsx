@@ -6,17 +6,27 @@ import { setRedirectUrl } from '../actions/auth';
 
 class EnsureLoggedInContainer extends React.Component {
     componentDidMount() {
-      const { dispatch, currentURL, isLoggedIn } = this.props
+      const { dispatch, currentURL, auth } = this.props
 
-      if (!isLoggedIn) {
-        dispatch(setRedirectUrl(currentURL));
+      if (!auth.isLoggedIn || auth.loginError) {
+        dispatch(setRedirectUrl({ redirectUrl: currentURL }));
+        dispatch(push("/login"));
+      }
+    }
+
+    componentDidUpdate() {
+      const { dispatch, currentURL, auth } = this.props
+
+
+      if (!auth.isLoggedIn || auth.loginError) {
+        dispatch(setRedirectUrl({ redirectUrl: currentURL }));
         dispatch(push("/login"));
       }
     }
   
     render() {
-        const {isLoggedIn} = this.props;
-      if (isLoggedIn) {
+        const {auth} = this.props;
+      if (auth.isLoggedIn) {
         return this.props.children
       } else {
         return null
@@ -26,7 +36,7 @@ class EnsureLoggedInContainer extends React.Component {
 
   function mapStateToProps(state, ownProps) {
     return {
-      isLoggedIn: state.auth.isLoggedIn,
+      auth: state.auth,
       currentURL: ownProps.location.pathname
     }
   }

@@ -1,16 +1,17 @@
 export const GET_ROOMS_SUCCESS = 'GET_ROOMS_SUCCESS';
 export const GET_ROOMS_FAILURE = 'GET_ROOMS_FAILURE';
 
-export function getRoomsSuccess(response) {
+export function getRoomsSuccess(payload) {
     return {
         type: GET_ROOMS_SUCCESS,
-        response
+        payload
     }
 } 
 
-export function getRoomsFailure() {
+export function getRoomsFailure(payload) {
     return {
-        type: GET_ROOMS_FAILURE
+        type: GET_ROOMS_FAILURE,
+        payload
     }
 } 
 
@@ -19,17 +20,17 @@ export function getRooms() {
         const state = getState();
         //check if we need to do some state stuff
 
-        axios.get("https://w.test/api/organization", {
+        axios.get("https://watercooler.work/api/organization", {
             headers: {
                 'Accept': 'application/json',
                 'Authorization': 'Bearer '+state.auth.authKey,
             }
         })
         .then(response => {
-            dispatch(getRoomsSuccess(response.data));
+            dispatch(getRoomsSuccess({ data: response.data}));
         })
         .catch(error => {
-            dispatch(getRoomsFailure(error.message));
+            dispatch(getRoomsFailure({ error: error.message }));
         })
     }
 }

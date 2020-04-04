@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom';
 import { Container, Image, Button, Card, Navbar, Table } from 'react-bootstrap';
 import routes from '../constants/routes.json';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faCircleNotch, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faSignOutAlt, faDoorOpen } from '@fortawesome/free-solid-svg-icons';
 
 class Home extends React.Component {
 
     componentDidMount() {
-        const { getRooms } = this.props;
+        const { getRooms, auth } = this.props;
         getRooms();
     }
 
@@ -42,7 +42,7 @@ class Home extends React.Component {
                                                 room: roomItem
                                             }
                                         }}>
-                                        <Button variant="success">Enter Room</Button>
+                                        <Button variant="success"><FontAwesomeIcon icon={faDoorOpen} className="mr-2" />Enter Room</Button>
                                     </Link>
                                 </td>
                             </tr>
@@ -62,7 +62,7 @@ class Home extends React.Component {
                         />
                         <span style={{fontWeight:900,fontSize:"1.5rem",color:"#408af8"}}>Water Cooler</span>
                     </Navbar.Brand>
-                    <Button variant="secondary" onClick={() => userLogout() }><FontAwesomeIcon icon={faSignOutAlt} /></Button>
+                    <Button variant="secondary" onClick={() => userLogout() } className="ml-auto"><FontAwesomeIcon icon={faSignOutAlt} /></Button>
                 </Navbar>
                 <Container data-tid="container" fluid>
                     <Card className="mb-3 shadow-sm border-0" body>

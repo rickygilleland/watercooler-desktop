@@ -1,12 +1,12 @@
 import { Action } from 'redux';
-import { AUTHENTICATE_USER_SUCCESS, AUTHENTICATE_USER_FAILURE, SET_REDIRECT_URL } from '../actions/auth';
+import { AUTHENTICATE_USER_START, AUTHENTICATE_USER_SUCCESS, AUTHENTICATE_USER_FAILURE, SET_REDIRECT_URL } from '../actions/auth';
 
 const initialState = {
     isLoggedIn: false,
     authKey: null,
-    refreshKey: null,
     loginError: false,
     redirectUrl: "/",
+    loginStarted: false,
 }
 
 export default function auth(state = initialState, action = {}) {
@@ -14,19 +14,25 @@ export default function auth(state = initialState, action = {}) {
     switch (action.type) {
         case AUTHENTICATE_USER_SUCCESS:
             updatedState = {
-                authKey: action.authKey,
-                refreshKey: action.refreshKey,
-                isLoggedIn: true
+                authKey: action.payload.authKey,
+                isLoggedIn: true,
+                loginError: false
             }
             break;
         case AUTHENTICATE_USER_FAILURE:
             updatedState = {
-                loginError: true
+                loginError: true,
+                isLoggedIn: false
             }
             break;
         case SET_REDIRECT_URL:
             updatedState = {
-                redirectUrl: action.redirectUrl,
+                redirectUrl: action.payload.redirectUrl,
+            }
+            break;
+        case AUTHENTICATE_USER_START:
+            updatedState = {
+                loginStarted: true
             }
             break;
         default:

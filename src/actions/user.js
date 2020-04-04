@@ -1,16 +1,17 @@
 export const GET_USER_DETAILS_SUCCESS = 'GET_USER_DETAILS_SUCCESS';
 export const GET_USER_DETAILS_FAILURE = 'GET_USER_DETAILS_FAILURE';
 
-export function getUserDetailsSuccess(response) {
+export function getUserDetailsSuccess(payload) {
     return {
         type: GET_USER_DETAILS_SUCCESS,
-        response
+        payload
     };
 }
 
-export function getUserDetailsFailure(error) {
+export function getUserDetailsFailure(payload) {
     return {
-        type: GET_USER_DETAILS_FAILURE
+        type: GET_USER_DETAILS_FAILURE,
+        payload
     };
 }
 
@@ -19,17 +20,17 @@ export function getUserDetails() {
         const state = getState();
         //check if we need to do some state stuff
 
-        axios.get("https://w.test/api/user", {
+        axios.get("https://watercooler.work/api/user", {
             headers: {
                 'Accept': 'application/json',
                 'Authorization': 'Bearer '+state.auth.authKey,
             }
         })
         .then(response => {
-            dispatch(getUserDetailsSuccess(response.data));
+            dispatch(getUserDetailsSuccess({ data: response.data }));
         })
         .catch(error => {
-            dispatch(getUserDetailsFailure(error.message));
+            dispatch(getUserDetailsFailure({ error: error.message }));
         })
     }
 }

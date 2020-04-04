@@ -1,10 +1,10 @@
 import React from 'react';
-import { authenticateUserStart, authenticateUser } from '../actions/auth';
+import { authenticateUser } from '../actions/auth';
 import { getUserDetails } from '../actions/user';
 import { connect } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
 import { push } from 'connected-react-router';
-import Login from '../components/Login';
+import LoginCallback from '../components/LoginCallback';
 
 function mapStateToProps(state) {
     return {
@@ -16,7 +16,6 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return bindActionCreators(
       {
-        authenticateUserStart,
         authenticateUser,
         getUserDetails,
         push,
@@ -25,4 +24,4 @@ function mapDispatchToProps(dispatch) {
     );
   }
   
-export default connect(mapStateToProps, mapDispatchToProps)(Login)
+export default connect(mapStateToProps, mapDispatchToProps)(LoginCallback)

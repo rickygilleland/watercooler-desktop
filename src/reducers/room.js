@@ -4,6 +4,7 @@ import { GET_ROOMS_SUCCESS, GET_ROOMS_FAILURE } from '../actions/room';
 const initialState = {
     organization: null,
     teams: [],
+    error: false,
 }
 
 export default function room(state = initialState, action = {}) {
@@ -12,14 +13,17 @@ export default function room(state = initialState, action = {}) {
         case GET_ROOMS_SUCCESS:
             updatedState = {
                 organization: {
-                    id: action.response.id,
-                    name: action.response.name,
-                    slug: action.response.slug
+                    id: action.payload.data.id,
+                    name: action.payload.data.name,
+                    slug: action.payload.data.slug
                 },
-                teams: action.response.teams
+                teams: action.payload.data.teams
             }
             break;
         case GET_ROOMS_FAILURE:
+            updatedState = {
+                error: true
+            }
             return state;
         default:
             //do nothing
