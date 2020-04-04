@@ -38,6 +38,8 @@ class Room extends React.Component {
             },
         });
 
+        this.pusher.logToConsole = true;
+
 
         this.renderVideoBound = this.renderVideo.bind(this);
     }
@@ -88,34 +90,29 @@ class Room extends React.Component {
 
         var presence_channel = this.pusher.subscribe(`presence-peers.${room.channel_id}`);
 
+        console.log(presence_channel);
+
         var that = this;
         
         presence_channel.bind('pusher:subscription_succeeded', function(members) {
 
             let me = members.me;
 
+            console.log("ME");
+            console.log(me);
+
             that.setState({ members: members, me: me });
 
-                /*const peer = new Peer(members.me.info.peer_uuid, {
+                that.peer = new Peer(members.me.info.peer_uuid, {
                     host: "peer.watercooler.work",
                     port: 443,
                     secure: true,
                     path: "/peer",
                     config: {'iceServers': [
                         { url: 'stun:global.stun.twilio.com:3478?transport=udp' },
-                        { url: 'turn:global.turn.twilio.com:3478?transport=udp', username: 'f569e934ed1a75f0ab117bc44433670c463f95eaa2cda85d052baff01763ae61', credential: 'SGrBazWftYv2IHdf3XJ/adpkcMVrMqU81adDJiWDeI0='},
-                        { url: 'turn:global.turn.twilio.com:443?transport=tcp', username: 'f569e934ed1a75f0ab117bc44433670c463f95eaa2cda85d052baff01763ae61', credential: 'SGrBazWftYv2IHdf3XJ/adpkcMVrMqU81adDJiWDeI0='}
-                    ]},
-                    debug: 3
-                });*/
-
-                that.peer = new Peer(me.info.peer_uuid, {
-                    host: "peer.watercooler.work",
-                    port: 443,
-                    secure: true,
-                    path: "/peer",
-                    config: {'iceServers': [
-                        { url: 'stun:global.stun.twilio.com:3478?transport=udp' }
+                        { url: 'turn:global.turn.twilio.com:3478?transport=udp', username: me.nts_username, credential: me.nts_password},
+                        { url: 'turn:global.turn.twilio.com:3478?transport=tcp', username: me.nts_username, credential: me.nts_password},
+                        { url: 'turn:global.turn.twilio.com:443?transport=tcp', username: me.nts_username, credential: me.nts_password}
                     ]},
                     debug: 3
                 });
@@ -215,6 +212,7 @@ class Room extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
+
     }
 
     componentWillUnmount() {
