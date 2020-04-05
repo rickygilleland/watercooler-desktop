@@ -126,7 +126,7 @@ class Room extends React.Component {
                             video => {
                                 if (video != null) { video.srcObject = that.local_stream }
                             }
-                        } style={{height:80}} className="rounded shadow"></video>
+                        } style={{height:80 }} className="rounded shadow"></video>
                     </div>
                 )
             } 
@@ -321,6 +321,7 @@ class Room extends React.Component {
                                         if (video != null) { video.srcObject = stream.source }
                                     }
                                 } className="rounded shadow" style={{height: videoSizes.height, width: videoSizes.width }}></video>
+                 
                             </div>
                         )
                     }
