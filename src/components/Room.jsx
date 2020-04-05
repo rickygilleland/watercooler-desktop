@@ -4,7 +4,7 @@ import { each } from 'lodash';
 import { Link } from 'react-router-dom';
 import { Container, Image, Button, Navbar, Row } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faCircleNotch, faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash, faDoorClosed, faCircle } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash, faDoorClosed, faCircle, faGrin, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
 import routes from '../constants/routes.json';
 import Echo from "laravel-echo";
 import Pusher from 'pusher-js';
@@ -131,7 +131,16 @@ class Room extends React.Component {
                 )
             } 
 
-            that.setState({ members, me, local_video });
+            let remote_videos = [];
+
+            remote_videos.push(
+                <div key={99999}>
+                    <h1 className="pt-5 mt-5 text-center">You are the only one in {team.name} / {room.name}.</h1>
+                    <h2 className="text-center">Waiting for other members to join...</h2>
+                </div>
+            );
+
+            that.setState({ members, me, local_video, remote_videos });
 
                 that.peer = new Peer(members.me.info.peer_uuid, {
                     host: "peer.watercooler.work",
@@ -235,13 +244,13 @@ class Room extends React.Component {
 
     componentDidUpdate(prevProps, prevState) {
 
-        const { videoSizes } = this.state;
+        const { videoSizes, remote_streams, dimensions, room, team } = this.state;
 
-        let width = this.state.dimensions.width;
-        let height = this.state.dimensions.height;
+        let width = dimensions.width;
+        let height = dimensions.height;
 
-        if (prevState.remote_streams.length != this.state.remote_streams.length || prevState.dimensions != this.state.dimensions) {
-            var filteredStreams = this.state.remote_streams.filter(function (item) {
+        if (prevState.remote_streams.length != remote_streams.length || prevState.dimensions != dimensions) {
+            var filteredStreams = remote_streams.filter(function (item) {
                 return item !== undefined;
             });
 
@@ -285,22 +294,39 @@ class Room extends React.Component {
             }
         }
 
-        if (prevState.remote_streams != this.state.remote_streams || prevState.videoSizes != this.state.videoSizes) {
+        if (prevState.remote_streams != remote_streams || prevState.videoSizes != videoSizes) {
             let updated_remote_videos = [];
-            each(this.state.remote_streams, function(stream) {
-                if (typeof stream !== "undefined" && typeof stream.source !== "undefined" && stream.stopped === false) {
-                    updated_remote_videos.push(
-                        <div className="col p-0" key={stream.id}>
-                            {/* refactor later because inline function will get called twice, once with null */}
-                            <video autoPlay ref={
-                                video => {
-                                    if (video != null) { video.srcObject = stream.source }
-                                }
-                            } className="rounded shadow" style={{height: videoSizes.height, width: videoSizes.width }}></video>
-                        </div>
-                    )
-                }
+
+            var filteredStreams = remote_streams.filter(function (item) {
+                return item !== undefined;
             });
+
+            if (filteredStreams.length == 0) {
+                updated_remote_videos.push(
+                    <div key={99999}>
+                        <h1 className="pt-5 mt-5 text-center">You are the only one in {team.name} / {room.name}.</h1>
+                        <h2 className="text-center">Waiting for other members to join...</h2>
+                    </div>
+                );
+
+            } else {
+
+                each(this.state.remote_streams, function(stream) {
+                    if (typeof stream !== "undefined" && typeof stream.source !== "undefined" && stream.stopped === false) {
+                        updated_remote_videos.push(
+                            <div className="col p-0" key={stream.id}>
+                                {/* refactor later because inline function will get called twice, once with null */}
+                                <video autoPlay ref={
+                                    video => {
+                                        if (video != null) { video.srcObject = stream.source }
+                                    }
+                                } className="rounded shadow" style={{height: videoSizes.height, width: videoSizes.width }}></video>
+                            </div>
+                        )
+                    }
+                });
+
+            }   
             
             this.setState({ remote_videos: updated_remote_videos });
         }
@@ -402,13 +428,14 @@ class Room extends React.Component {
 
                 <div className="fixed-bottom bg-dark py-2">
                     <Row className="justify-content-md-center">
-                        <Button variant={audioStatus} onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={faMicrophone} /></Button>
-                        <Button variant={videoStatus} className="mx-3" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={faVideo} /></Button>
-                        <Button variant="light"  onClick={() => this.createDetachedWindow() }>Detach</Button>
+                        <Button variant={audioStatus} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={faMicrophone} /></Button>
+                        <Button variant={videoStatus} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={faVideo} /></Button>
+                        <Button variant="light" className="mx-1"><FontAwesomeIcon icon={faGrin}></FontAwesomeIcon></Button>
+                        <Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>
                         <Link to={{
                             pathname: `/`
                         }}>
-                            <Button variant="danger"><FontAwesomeIcon icon={faDoorClosed} className="mr-2" />Leave</Button>
+                            <Button variant="danger" className="mx-1"><FontAwesomeIcon icon={faDoorClosed} className="mr-2" />Leave</Button>
                         </Link>
                     </Row>
                 </div>
