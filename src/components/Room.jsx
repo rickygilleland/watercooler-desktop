@@ -4,7 +4,7 @@ import { each } from 'lodash';
 import { Link } from 'react-router-dom';
 import { Container, Image, Button, Navbar, Row } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faCircleNotch, faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash, faDoorClosed } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash, faDoorClosed, faCircle } from '@fortawesome/free-solid-svg-icons';
 import routes from '../constants/routes.json';
 import Echo from "laravel-echo";
 import Pusher from 'pusher-js';
@@ -20,9 +20,21 @@ class Room extends React.Component {
             loading: true,
             members: [],
             remote_streams: [],
+            remote_videos: [],
+            local_video: [],
             me: {},
             connected: false,
-            leaving: false
+            leaving: false,
+            dimensions: {
+                width: 0,
+                height: 0
+            },
+            videoSizes: {
+                width: 0,
+                height: 0
+            },
+            videoStatus: "light",
+            audioStatus: "light",
         }
 
         this.pusher = new Pusher('3eb4f9d419966b6e1e0b', {
@@ -42,6 +54,9 @@ class Room extends React.Component {
 
 
         this.renderVideoBound = this.renderVideo.bind(this);
+        this.createDetachedWindowBound = this.createDetachedWindow.bind(this);
+        this.handleResize = this.handleResize.bind(this);
+        this.toggleVideoOrAudio = this.toggleVideoOrAudio.bind(this);
     }
 
     async componentDidMount() {
@@ -73,6 +88,9 @@ class Room extends React.Component {
             push("/");
         }
 
+        this.handleResize();
+        window.addEventListener('resize', this.handleResize);
+
         var room = curRoom;
         var team = curTeam;
 
@@ -81,7 +99,10 @@ class Room extends React.Component {
         const local_stream = await navigator.mediaDevices.getUserMedia({
             video: {
                 width: 1280,
-                height: 720
+                height: 720,
+                frameRate: {
+                    ideal: 24
+                }
             },
             audio: true
         });
@@ -90,18 +111,27 @@ class Room extends React.Component {
 
         var presence_channel = this.pusher.subscribe(`presence-peers.${room.channel_id}`);
 
-        console.log(presence_channel);
-
         var that = this;
         
         presence_channel.bind('pusher:subscription_succeeded', function(members) {
 
             let me = members.me;
 
-            console.log("ME");
-            console.log(me);
+            let local_video = [];
 
-            that.setState({ members: members, me: me });
+            if (me != {} && typeof that.local_stream !== 'undefined') {
+                local_video.push(
+                    <div style={{position:"absolute",right:0,bottom:50}} key={me.id}>
+                        <video autoPlay muted ref={
+                            video => {
+                                if (video != null) { video.srcObject = that.local_stream }
+                            }
+                        } style={{height:80}} className="rounded shadow"></video>
+                    </div>
+                )
+            } 
+
+            that.setState({ members, me, local_video });
 
                 that.peer = new Peer(members.me.info.peer_uuid, {
                     host: "peer.watercooler.work",
@@ -110,11 +140,10 @@ class Room extends React.Component {
                     path: "/peer",
                     config: {'iceServers': [
                         { url: 'stun:global.stun.twilio.com:3478?transport=udp' },
-                        { url: 'turn:global.turn.twilio.com:3478?transport=udp', username: me.nts_username, credential: me.nts_password},
-                        { url: 'turn:global.turn.twilio.com:3478?transport=tcp', username: me.nts_username, credential: me.nts_password},
-                        { url: 'turn:global.turn.twilio.com:443?transport=tcp', username: me.nts_username, credential: me.nts_password}
-                    ]},
-                    debug: 3
+                        { url: 'turn:global.turn.twilio.com:3478?transport=udp', username: me.info.nts_user, credential: me.info.nts_password},
+                        { url: 'turn:global.turn.twilio.com:3478?transport=tcp', username: me.info.nts_user, credential: me.info.nts_password},
+                        { url: 'turn:global.turn.twilio.com:443?transport=tcp', username: me.info.nts_user, credential: me.info.nts_password}
+                    ]}
                 });
 
                 let peer = that.peer;
@@ -127,23 +156,21 @@ class Room extends React.Component {
 
                     var me = members.me;
 
-                    console.log("OPEN");
-                    console.log(members);
-
                     each(members.members, function(member) {
                         if (member.id != me.id) {
         
                             var call = peer.call(member.peer_uuid, local_stream);
         
                             call.on('stream', function(member_stream) {
-
+                                
                                 remote_streams[member.id] = {
                                     id: member.id,
                                     name: member.name,
                                     source: member_stream,
                                     isMe: false,
                                     call: call,
-                                    peer_uuid: member.peer_uuid
+                                    peer_uuid: member.peer_uuid,
+                                    stopped: false
                                 }
 
                                 that.setState({remote_streams: remote_streams, loading: false });
@@ -158,14 +185,8 @@ class Room extends React.Component {
 
                 peer.on('call', function(call) {
 
-
-                    console.log("CALL RECEIVED");
-                    console.log(members);
-
-                    let all_members = members.members;
-
                     call.answer(that.local_stream);
-        
+
                     call.on('stream', function(member_stream) {
                         //save their stream to state
                         each(members.members, function(member) {
@@ -177,6 +198,7 @@ class Room extends React.Component {
                                 remote_streams[member.id].isMe = false;
                                 remote_streams[member.id].call = call;
                                 remote_streams[member.id].stopped = false;
+                                remote_streams[member.id].peer_uuid = call.peer; 
                             }
                         });
 
@@ -196,7 +218,7 @@ class Room extends React.Component {
 
         presence_channel.bind('pusher:member_removed', function(member) {
 
-            if (typeof remote_streams[member.id] !== undefined) {
+            if (typeof remote_streams[member.id] !== "undefined" && typeof remote_streams[member.id].source !== "undefined") {
                 remote_streams[member.id].source = null;
                 remote_streams[member.id].isMe = false;
                 remote_streams[member.id].call = null;
@@ -213,10 +235,84 @@ class Room extends React.Component {
 
     componentDidUpdate(prevProps, prevState) {
 
+        const { videoSizes } = this.state;
+
+        let width = this.state.dimensions.width;
+        let height = this.state.dimensions.height;
+
+        if (prevState.remote_streams.length != this.state.remote_streams.length || prevState.dimensions != this.state.dimensions) {
+            var filteredStreams = this.state.remote_streams.filter(function (item) {
+                return item !== undefined;
+            });
+
+            var remote_streams_count = filteredStreams.length;
+
+            width -= 80;
+           
+            if (remote_streams_count > 0) {
+                 //re-calculate the video height/width
+
+                if (remote_streams_count == 2) {
+                    width /= 2;
+                }
+
+
+                if (width > 620) {    
+                    if (remote_streams_count > 2 && remote_streams_count <= 6) {
+                        width /= 3;
+                    }
+                } else {    
+                    if (remote_streams_count > 2 && remote_streams_count <= 6) {
+                        width /= 2;
+                    }
+                }
+
+                if (remote_streams_count > 6 && remote_streams_count <= 9) {
+                    //3x3
+                    width = width / 3;
+                }
+
+                if (remote_streams_count > 9 && remote_streams_count <= 12) {
+                    //4x4
+                    width = width / 4;
+                }
+
+                let aspectRatio = 1280 / 720;
+
+                height = Math.round( width / aspectRatio );
+
+                this.setState({ videoSizes: { height: height, width: width }});
+            }
+        }
+
+        if (prevState.remote_streams != this.state.remote_streams || prevState.videoSizes != this.state.videoSizes) {
+            let updated_remote_videos = [];
+            each(this.state.remote_streams, function(stream) {
+                if (typeof stream !== "undefined" && typeof stream.source !== "undefined" && stream.stopped === false) {
+                    updated_remote_videos.push(
+                        <div className="col p-0" key={stream.id}>
+                            {/* refactor later because inline function will get called twice, once with null */}
+                            <video autoPlay ref={
+                                video => {
+                                    if (video != null) { video.srcObject = stream.source }
+                                }
+                            } className="rounded shadow" style={{height: videoSizes.height, width: videoSizes.width }}></video>
+                        </div>
+                    )
+                }
+            });
+            
+            this.setState({ remote_videos: updated_remote_videos });
+        }
+
     }
 
     componentWillUnmount() {
-        const { streams, me } = this.state;
+        const { streams, me, room } = this.state;
+
+        if (typeof room.channel_id != 'undefined') {
+            this.pusher.unsubscribe(`presence-peers.${room.channel_id}`);
+        }
 
         this.pusher.disconnect();
 
@@ -231,45 +327,48 @@ class Room extends React.Component {
                 track.stop();
             })
         }
+
+        window.removeEventListener('resize', this.handleResize);
     }
 
     renderVideo() {
         
     }
 
+    createDetachedWindow() {
+
+    }
+
+    toggleVideoOrAudio(type) {
+        if (typeof this.local_stream !== 'undefined') {
+            const tracks = this.local_stream.getTracks();
+
+            var { videoStatus, audioStatus } = this.state;
+            
+            tracks.forEach(function(track) {
+                if (track.kind == type) {
+                    track.enabled = track.enabled ? false : true;
+
+                    if (type == "video") {
+                        videoStatus = track.enabled ? "light" : "danger";
+                    } else {
+                        audioStatus = track.enabled ? "light" : "danger";
+                    }
+                }
+            })
+
+            this.setState({ videoStatus, audioStatus });
+        }
+    }
+
+    handleResize() {
+        this.setState({ dimensions: { width: window.innerWidth, height: window.innerHeight } });
+    }
+
     render() {
         const { organization } = this.props;
-        const { team, room, loading, me, members, remote_streams, connected } = this.state;
-
-        let videos = [];
-
-        if (me != {} && typeof this.local_stream !== 'undefined') {
-            videos.push(
-                <div className="col" key={me.id}>
-                    <video autoPlay muted ref={
-                        video => {
-                            if (video != null) { video.srcObject = this.local_stream }
-                        }
-                    }></video>
-                </div>
-            )
-        } 
-    
-        each(remote_streams, function(stream) {
-            if (typeof stream !== "undefined" && typeof stream.source !== "undefined" && stream.stopped === false) {
-                videos.push(
-                    <div className="col" key={stream.id}>
-                        {/* refactor later because inline function will get called twice, once with null */}
-                        <video autoPlay ref={
-                            video => {
-                                if (video != null) { video.srcObject = stream.source }
-                            }
-                        }></video>
-                    </div>
-                )
-            }
-        })
-
+        const { team, room, loading, remote_videos, local_video, connected, videoStatus, audioStatus } = this.state;
+       
         return (
             <React.Fragment>
                 <Navbar bg="dark" className="text-light pt-3" expand="lg">
@@ -278,28 +377,34 @@ class Room extends React.Component {
                     </Navbar.Brand>
                     <div className="ml-auto">
                         {connected ?
-                            <p>Connected</p>
+                            <p><span style={{color:"green"}}>•</span> Connected</p>
                             :
-                            <p>Connecting...</p>
+                            <p><span style={{color:"red"}}>•</span> Connecting...</p>
                         }
                     </div>
                 </Navbar>
+
                 {loading ? 
                     <React.Fragment>
                         <h1 className="text-center mt-5">Loading...</h1>
                         <center><FontAwesomeIcon icon={faCircleNotch} className="mt-3" style={{fontSize:"2.4rem",color:"#6772ef"}} spin /></center> 
                     </React.Fragment>  
                 : 
-                
                     <React.Fragment>
-                        {videos}
+                        <div className="row align-items-center justify-content-center">
+                            <center>
+                                {remote_videos}
+                            </center>
+                        </div>
+                        {local_video}
                     </React.Fragment>
-                
                 }
+
                 <div className="fixed-bottom bg-dark py-2">
                     <Row className="justify-content-md-center">
-                        <Button variant="light"><FontAwesomeIcon icon={faMicrophone} /></Button>
-                        <Button variant="light" className="mx-3"><FontAwesomeIcon icon={faVideo} /></Button>
+                        <Button variant={audioStatus} onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={faMicrophone} /></Button>
+                        <Button variant={videoStatus} className="mx-3" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={faVideo} /></Button>
+                        <Button variant="light"  onClick={() => this.createDetachedWindow() }>Detach</Button>
                         <Link to={{
                             pathname: `/`
                         }}>
