@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, session, ipcMain } from 'electron';
+import { app, BrowserWindow, Menu, session, ipcMain, autoUpdater, dialog  } from 'electron';
 import installExtension, { REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 import { enableLiveReload } from 'electron-compile';
 import * as Sentry from '@sentry/electron';
@@ -12,6 +12,31 @@ const isDevMode = process.execPath.match(/[\\/]electron/);
 const contextMenu = require('electron-context-menu');
 
 if (isDevMode) enableLiveReload({ strategy: 'react-hmr' });
+
+if (!isDevMode) {
+  const server = 'https://updater.watercooler.work'
+  const feed = `${server}/update/${process.platform}/${app.getVersion()}`
+
+  autoUpdater.setFeedURL(feed);
+
+  setInterval(() => {
+    autoUpdater.checkForUpdates()
+  }, 900000);
+
+  autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+    const dialogOpts = {
+      type: 'info',
+      buttons: ['Restart', 'Later'],
+      title: 'Update available for Water Cooler',
+      message: process.platform === 'win32' ? releaseNotes : releaseName,
+      detail: 'A new version has been downloaded. Restart the application to apply the updates.'
+    }
+
+    dialog.showMessageBox(dialogOpts).then((returnValue) => {
+      if (returnValue.response === 0) autoUpdater.quitAndInstall()
+    })
+  })
+}
 
 contextMenu({
 	prepend: (defaultActions, params, browserWindow) => []

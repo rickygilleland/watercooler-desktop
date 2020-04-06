@@ -431,7 +431,6 @@ class Room extends React.Component {
                     <Row className="justify-content-md-center">
                         <Button variant={audioStatus} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={faMicrophone} /></Button>
                         <Button variant={videoStatus} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={faVideo} /></Button>
-                        <Button variant="light" className="mx-1"><FontAwesomeIcon icon={faGrin}></FontAwesomeIcon></Button>
                         <Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>
                         <Link to={{
                             pathname: `/`
