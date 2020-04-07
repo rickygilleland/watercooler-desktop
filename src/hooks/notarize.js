@@ -18,7 +18,7 @@ module.exports = function () {
     console.log('Notarizing...');
 
     return notarize({
-        appBundleId: process.env.BUNDLE_ID,
+        appBundleId: "com.watercooler.app",
         appPath: buildOutput,
         appleId: process.env.APPLE_ID,
         appleIdPassword: process.env.APPLE_ID_PASSWORD

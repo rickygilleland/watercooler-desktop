@@ -5,8 +5,6 @@ import { Link } from 'react-router-dom';
 import { Container, Image, Button, Navbar, Row } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch, faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash, faDoorClosed, faCircle, faGrin, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
-import routes from '../constants/routes.json';
-import Echo from "laravel-echo";
 import Pusher from 'pusher-js';
 import Peer from 'peerjs';
 

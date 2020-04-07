@@ -16,13 +16,22 @@ module.exports = {
         "packageManager": "yarn",
         "icon": "icons/app",
         "osxSign": {
-          "identity": process.env.SIGNING_IDENTITY
+          "hardened-runtime": true,
+	      "gatekeeper-assess": false,
         },
-        "hardened-runtime": true,
-	    "gatekeeper-assess": false,
 	    "entitlements": "./src/entitlements.plist",
         "entitlement-inherit": "./src/entitlements.plist",
         "appBundleId": "com.watercooler.app",
+        "afterCopy": [
+        ],
+        "ignore": [
+            ".md$",
+            ".cache$",
+            "out$",
+            "env$",
+            "rc$",
+            "test$"
+        ]
       },
       "electronInstallerDMG": {
         "sign": false
@@ -42,7 +51,7 @@ module.exports = {
       },
       "hooks": {
         "postPackage": "./src/hooks/notarize.js"
-    }
+      }
 }
 
 
