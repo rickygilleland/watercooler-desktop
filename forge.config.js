@@ -50,5 +50,18 @@ module.exports = {
       ],
       "hooks": {
         "postPackage": require("./hooks/notarize.js")
-    }
+    },
+    "publishers": [
+        {
+            "name": '@electron-forge/publisher-github',
+            "config": {
+              "repository": {
+                "owner": process.env.GITHUB_REPO_OWNER,
+                "name": process.env.GITHUB_REPO_NAME
+              },
+              "authToken": process.env.GITHUB_TOKEN,
+              "prerelease": true
+            }
+          }
+    ]
 }
