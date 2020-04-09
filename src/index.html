@@ -27,22 +27,4 @@
 <body style="overflow: hidden; margin: 0" >
   <div id="App"></div>
 </body>
-
-<script type="text/jsx">
-import React from 'react';
-import ReactDOM from 'react-dom';
-import {AppContainer} from 'react-hot-loader';
-import { store, persistor, history } from './store';
-import { Provider } from 'react-redux';
-
-const render = () => {
-  const App = require('./app').default;
-  ReactDOM.render(<AppContainer><App store={store} history={history} persistor={persistor} /></AppContainer>, document.getElementById('App'));
-}
-
-render();
-if (module.hot) {
-  module.hot.accept(render);
-}
-</script>
 </html>

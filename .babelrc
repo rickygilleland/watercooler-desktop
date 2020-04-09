@@ -1,0 +1,10 @@
+{
+    "presets": ["@babel/preset-react", ["@babel/preset-env", { 
+      "exclude": [
+        "@babel/plugin-transform-regenerator"
+      ]}]
+    ],
+    "plugins": [
+      "react-hot-loader/babel"
+    ]
+  }

@@ -21,9 +21,9 @@ module.exports = function () {
         appBundleId: "com.watercooler.app",
         appPath: buildOutput,
         appleId: process.env.APPLE_ID,
-        appleIdPassword: process.env.APPLE_ID_PASSWORD
+        appleIdPassword: process.env.APPLE_ID_PASSWORD,
+        ascProvider: process.env.APPLE_PROVIDER
     }).catch((e) => {
-        console.error(e);
         throw e;
     });
 }

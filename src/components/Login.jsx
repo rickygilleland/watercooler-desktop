@@ -5,7 +5,6 @@ import routes from '../constants/routes.json';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
 
-const { ipcRenderer } = require('electron')
 
 class Login extends React.Component {
 

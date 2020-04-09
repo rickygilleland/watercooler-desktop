@@ -96,8 +96,8 @@ class Room extends React.Component {
 
         const local_stream = await navigator.mediaDevices.getUserMedia({
             video: {
-                width: 1280,
-                height: 720,
+                width: 1920,
+                height: 1080,
                 frameRate: {
                     ideal: 24
                 }
@@ -402,9 +402,9 @@ class Room extends React.Component {
                     </Navbar.Brand>
                     <div className="ml-auto">
                         {connected ?
-                            <p><span style={{color:"green"}}>•</span> Connected</p>
+                            <p><span style={{color:"green"}}>&#8226;</span> Connected</p>
                             :
-                            <p><span style={{color:"red"}}>•</span> Connecting...</p>
+                            <p><span style={{color:"red"}}>&#8226;</span> Connecting...</p>
                         }
                     </div>
                 </Navbar>

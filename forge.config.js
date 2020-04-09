@@ -1,58 +1,54 @@
 module.exports = {
-    buildIdentifier: process.env.IS_BETA ? 'beta' : 'prod',
-    "make_targets": {
-        "win32": [
-          "squirrel"
-        ],
-        "darwin": [
-          "dmg"
-        ],
-        "linux": [
-          "deb",
-          "rpm"
-        ]
-      },
-      "electronPackagerConfig": {
-        "packageManager": "yarn",
+    "packagerConfig": {
         "icon": "icons/app",
         "osxSign": {
-          "hardened-runtime": true,
-	      "gatekeeper-assess": false,
+            "hardened-runtime": true,
+            "gatekeeper-assess": false,
+            "entitlements": "./src/entitlements.plist",
+            "entitlements-inherit": "./src/entitlements.plist",
+            "appBundleId": "com.watercooler.app"
         },
-	    "entitlements": "./src/entitlements.plist",
-        "entitlement-inherit": "./src/entitlements.plist",
-        "appBundleId": "com.watercooler.app",
-        "afterCopy": [
-        ],
-        "ignore": [
-            ".md$",
-            ".cache$",
-            "out$",
-            "env$",
-            "rc$",
-            "test$"
+        "appBundleId": "com.watercooler.app"
+    },
+      "makers": [
+        {
+          "name": "@electron-forge/maker-squirrel",
+          "config": {
+            "name": "watercooler"
+          }
+        },
+        {
+            "name": '@electron-forge/maker-dmg',
+            "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-deb",
+          "config": {}
+        },
+        {
+          "name": "@electron-forge/maker-rpm",
+          "config": {}
+        }
+      ],
+      "plugins": [
+        [
+          "@electron-forge/plugin-webpack",
+          {
+            "mainConfig": "./webpack.main.config.js",
+            "renderer": {
+              "config": "./webpack.renderer.config.js",
+              "entryPoints": [
+                {
+                  "html": "./src/index.html",
+                  "js": "./src/renderer.js",
+                  "name": "main_window"
+                }
+              ]
+            }
+          }
         ]
-      },
-      "electronInstallerDMG": {
-        "sign": false
-      },
-      "electronWinstallerConfig": {
-        "name": "watercooler"
-      },
-      "electronInstallerDebian": {},
-      "electronInstallerRedhat": {},
-      "github_repository": {
-        "owner": "",
-        "name": ""
-      },
-      "windowsStoreConfig": {
-        "packageName": "",
-        "name": "watercooler"
-      },
+      ],
       "hooks": {
-        "postPackage": "./src/hooks/notarize.js"
-      }
+        "postPackage": require("./hooks/notarize.js")
+    }
 }
-
-
-     
