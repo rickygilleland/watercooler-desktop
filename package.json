@@ -1,7 +1,7 @@
 {
   "name": "watercooler",
   "productName": "Water Cooler",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "description": "Bring natural conversation back to remote teams",
   "main": ".webpack/main",
   "scripts": {
@@ -11,6 +11,7 @@
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\""
   },
+  "author": "watercooler",
   "keywords": [],
   "config": {
     "forge": "./forge.config.js"
@@ -26,6 +27,7 @@
     "@electron-forge/maker-squirrel": "6.0.0-beta.50",
     "@electron-forge/maker-zip": "6.0.0-beta.50",
     "@electron-forge/plugin-webpack": "6.0.0-beta.50",
+    "@electron-forge/publisher-github": "^6.0.0-beta.50",
     "@marshallofsound/webpack-asset-relocator-loader": "^0.5.0",
     "babel-loader": "^8.1.0",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
@@ -33,6 +35,7 @@
     "electron": "8.2.1",
     "electron-notarize": "^0.3.0",
     "node-loader": "^0.6.0",
+    "rcedit": "^2.1.1",
     "redux-devtools": "^3.5.0",
     "redux-logger": "^3.0.6",
     "style-loader": "^0.23.1"

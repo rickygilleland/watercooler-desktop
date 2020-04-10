@@ -50,7 +50,7 @@ module.exports = {
       ],
       "hooks": {
         "postPackage": require("./hooks/notarize.js")
-    },
+        },
     "publishers": [
         {
             "name": '@electron-forge/publisher-github',

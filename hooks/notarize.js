@@ -1,7 +1,9 @@
 const { notarize } = require('electron-notarize');
+const fs = require('fs');
+const path = require('path');
 
 // Path from here to your build app executable:
-const buildOutput = require('path').resolve(
+const buildOutput = path.resolve(
     __dirname,
     '..',
     'out',
