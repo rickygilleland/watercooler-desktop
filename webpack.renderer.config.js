@@ -1,8 +1,14 @@
 const rules = require('./webpack.rules');
+const webpack = require('webpack');
 
 rules.push({
   test: /\.css$/,
   use: [{ loader: 'style-loader' }, { loader: 'css-loader' }],
+});
+
+rules.push({
+  test: require.resolve('janus-gateway'),
+  use: 'exports-loader?Janus=Janus'
 });
 
 module.exports = {
@@ -12,5 +18,11 @@ module.exports = {
   },
   resolve: {
     extensions: [".js", ".jsx", ".json"],
-  }
+  },
+  plugins: [
+    // janus.js does not use 'import' to access to the functionality of webrtc-adapter,
+    // instead it expects a global object called 'adapter' for that.
+    // Let's make that object available.
+    new webpack.ProvidePlugin({ adapter: 'webrtc-adapter' })
+  ]
 };

@@ -51,7 +51,7 @@ const createWindow = () => {
       webPreferences: {
         nodeIntegration: true,
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-        devTools: false
+        devTools: true
       }
     });
   } else {
