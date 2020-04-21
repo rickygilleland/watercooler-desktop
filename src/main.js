@@ -1,6 +1,8 @@
-import { app, BrowserWindow, session, autoUpdater, dialog } from 'electron';
+import { app, BrowserWindow, Menu, session, autoUpdater, dialog } from 'electron';
 
 var isDevMode = process.execPath.match(/[\\/]electron/);
+
+const contextMenu = require('electron-context-menu');
 
 let mainWindow;
 
@@ -36,13 +38,41 @@ if (!isDevMode) {
 
 }
 
+contextMenu({
+	prepend: (defaultActions, params, browserWindow) => []
+});
+
+
 const filter = {
   urls: ['https://watercooler.work/api/login/slack?code=*&state=*', 'https://w.test/api/login/slack?code=*&state=*']
 };
 
 const createWindow = () => {
+
   // Create the browser window.
   if (!isDevMode) {
+
+    var template = [{
+      label: "Application",
+      submenu: [
+          { label: "About Application", selector: "orderFrontStandardAboutPanel:" },
+          { label: "Check for Updates", click: autoUpdater.checkForUpdates() },
+          { type: "separator" },
+          { label: "Quit", accelerator: "Command+Q", click: function() { app.quit(); }}
+      ]}, {
+      label: "Edit",
+      submenu: [
+          { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
+          { label: "Redo", accelerator: "Shift+CmdOrCtrl+Z", selector: "redo:" },
+          { type: "separator" },
+          { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
+          { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
+          { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
+          { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
+      ]}
+    ];
+  
+    Menu.setApplicationMenu(Menu.buildFromTemplate(template)); 
 
     mainWindow = new BrowserWindow({
       titleBarStyle: 'hidden',
@@ -83,6 +113,8 @@ const createWindow = () => {
     });
   });
 };
+
+app.commandLine.appendSwitch('force-fieldtrials', 'WebRTC-SupportVP9SVC/EnabledByFlag_2SL3TL/');
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

@@ -31,7 +31,9 @@ class Room extends React.Component {
             },
             videoSizes: {
                 width: 0,
-                height: 0
+                height: 0,
+                display: "row align-items-center justify-content-center h-100",
+                containerHeight: window.innerHeight - 114
             },
             videoStatus: "light",
             audioStatus: "light",
@@ -101,8 +103,7 @@ class Room extends React.Component {
         /* TODO: Manually prompt for camera and microphone access on macos to handle it more gracefully - systemPreferences.getMediaAccessStatus(mediaType) */
         const local_stream = await navigator.mediaDevices.getUserMedia({
             video: {
-                width: 720,
-                height: 720,
+                aspectRatio: 1.3333333333
             },
             audio: true
         });
@@ -143,7 +144,7 @@ class Room extends React.Component {
 
             remote_videos.push(
                 <div key={99999}>
-                    <h1 className="pt-5 mt-5 text-center">You are the only one in {team.name} / {room.name}.</h1>
+                    <h1 className="text-center">You are the only one in {team.name} / {room.name}.</h1>
                     <h2 className="text-center">Waiting for other members to join...</h2>
                 </div>
             );
@@ -185,6 +186,8 @@ class Room extends React.Component {
                         },
                         onmessage: function(msg, jsep) {
                             var { streamerHandle } = that.state;
+                            console.log(msg);
+                            console.log(jsep);
 
                             if (jsep != null) {
                                 streamerHandle.handleRemoteJsep({ "jsep": jsep });
@@ -194,14 +197,16 @@ class Room extends React.Component {
                                 //publish our feed
                                 streamerHandle.createOffer({
                                     stream: that.local_stream,
-                                    simulcast: true,
                                     success: function(jsep) {
                                         var request = {
                                             "request": "publish",
                                             "audio": true,
                                             "video": true,
                                             "data": true,
+                                            "videocodec": "vp9"
                                         }
+
+                                        console.log(jsep);
     
                                         streamerHandle.send({ "message": request, "jsep": jsep });
 
@@ -295,7 +300,7 @@ class Room extends React.Component {
                     "ptype": "subscriber",
                     "display": me.info.peer_uuid,
                     "token": me.info.streamer_key,
-                    "feed": remoteStreamId
+                    "feed": remoteStreamId,
                 }
 
                 remoteHandle.send({ "message": request });
@@ -324,6 +329,7 @@ class Room extends React.Component {
             },
             onremotestream: function(remote_stream) {
                 remote_streams[curMember.id] = {
+                    "stream_id": remoteStreamId,
                     "source": remote_stream,
                     "isMe": false,
                     "handle": handle,
@@ -333,15 +339,16 @@ class Room extends React.Component {
 
                 that.setState({ remote_streams });
 
-                that.updateDisplayedVideos();
+                that.updateDisplayedVideos(remote_streams);
             },
             oncleanup: function() {
                 remote_streams.splice(curMember.id, 1);
                 that.setState({ remote_streams });
+                that.updateDisplayedVideos(remote_streams);
             },
             detached: function() {
                 remote_streams.splice(curMember.id, 1);
-                that.setState({ remote_streams });
+                that.updateDisplayedVideos(remote_streams);
             }
         });
     }
@@ -356,8 +363,12 @@ class Room extends React.Component {
 
     }
 
-    updateDisplayedVideos() {
-        var { videoSizes, remote_streams, remote_videos, dimensions, room, team } = this.state;
+    updateDisplayedVideos(remote_streams = null) {
+        var { videoSizes, remote_videos, dimensions, room, team } = this.state;
+
+        if (remote_streams == null) {
+            var { remote_streams } = this.state;
+        }
 
         let width = dimensions.width;
         let height = dimensions.height;
@@ -373,7 +384,7 @@ class Room extends React.Component {
         var remote_streams_count = filteredStreams.length;
 
         width -= 80;
-        height -= 80;
+    
        
         if (remote_streams_count > 0) {
              //re-calculate the video height/width
@@ -382,13 +393,13 @@ class Room extends React.Component {
                 width /= 2;
             }
 
-            if (width > 620) {    
+            if (dimensions.width > 620) {    
                 if (remote_streams_count > 2 && remote_streams_count <= 6) {
                     width /= 3;
                 }
             } else {    
                 if (remote_streams_count > 2 && remote_streams_count <= 6) {
-                    width /= 2;
+                    width /= 4;
                 }
             }
 
@@ -402,41 +413,28 @@ class Room extends React.Component {
                 width = width / 4;
             }
 
-            //now check if the height would be smaller
-            if (remote_streams_count == 2) {
-                height /= 2;
-            }
+            var aspectRatio = 4 / 3;
 
-            if (height > 620) {    
-                if (remote_streams_count > 2 && remote_streams_count <= 6) {
-                    height /= 3;
-                }
-            } else {    
-                if (remote_streams_count > 2 && remote_streams_count <= 6) {
-                    height /= 2;
-                }
-            }
+            height = Math.round( width / aspectRatio );
 
-            if (remote_streams_count > 6 && remote_streams_count <= 9) {
-                //3x3
-                height = height / 3;
+            var i=1;
+            while(height > (dimensions.height - 200)) {
+                width = width - i;
+                height = Math.round( width / aspectRatio );
+                i += 10
             }
+            
+            var display = "row align-items-center justify-content-center h-100";
 
-            if (remote_streams_count > 9 && remote_streams_count <= 12) {
-                //4x4
-                height = height / 4;
-            }
-
-            if (width > height) {
-                width = height - 80;
-                height -= 80;
-            } else {
-                height = width;
+            if (dimensions.width < 620) {
+                display = "row align-items-center justify-content-center flex-column h-100";
             }
 
             videoSizes = {
                 height: height,
-                width: width
+                width: width,
+                display: display,
+                containerHeight: dimensions.height - 104
             }
 
             remote_videos = [];
@@ -446,11 +444,11 @@ class Room extends React.Component {
                     remote_videos.push(
                         <div className="col p-0" key={key}>
                             {/* refactor later because inline function will get called twice, once with null */}
-                            <video autoPlay ref={
+                            <center><video autoPlay ref={
                                 video => {
                                     if (video != null) { video.srcObject = stream.source }
                                 }
-                            } className="rounded shadow" style={{height: videoSizes.height, width: videoSizes.width }}></video>
+                            } className="rounded shadow" style={{height: videoSizes.height, width: videoSizes.width }}></video></center>
              
                         </div>
                     )
@@ -460,9 +458,12 @@ class Room extends React.Component {
             this.setState({ videoSizes, remote_videos });
 
         } else {
+
+            remote_videos = [];
+
             remote_videos.push(
                 <div key={99999}>
-                    <h1 className="pt-5 mt-5 text-center">You are the only one in {team.name} / {room.name}.</h1>
+                    <h1 className="text-center">You are the only one in {team.name} / {room.name}.</h1>
                     <h2 className="text-center">Waiting for other members to join...</h2>
                 </div>
             );
@@ -550,7 +551,7 @@ class Room extends React.Component {
 
     render() {
         const { organization } = this.props;
-        const { team, room, loading, remote_videos, local_video, connected, videoStatus, audioStatus } = this.state;
+        const { team, room, loading, remote_videos, local_video, connected, videoStatus, audioStatus, videoSizes } = this.state;
 
         return (
             <React.Fragment>
@@ -560,28 +561,27 @@ class Room extends React.Component {
                     </Navbar.Brand>
                     <div className="ml-auto">
                         {connected ?
-                            <p><span style={{color:"green"}}>&#8226;</span> Connected</p>
+                            <p><FontAwesomeIcon icon={faCircle} className="mr-2" style={{color:"green",fontSize:8,verticalAlign:"middle"}} />Connected</p>
                             :
-                            <p><span style={{color:"red"}}>&#8226;</span> Connecting...</p>
+                            <p><FontAwesomeIcon icon={faCircle} className="mr-2" style={{color:"red",fontSize:8,verticalAlign:"middle"}} />Connecting...</p>
                         }
                     </div>
                 </Navbar>
-
-                {loading ? 
-                    <React.Fragment>
-                        <h1 className="text-center mt-5">Loading...</h1>
-                        <center><FontAwesomeIcon icon={faCircleNotch} className="mt-3" style={{fontSize:"2.4rem",color:"#6772ef"}} spin /></center> 
-                    </React.Fragment>  
-                : 
-                    <React.Fragment>
-                        <div className="row align-items-center justify-content-center">
-                            <center>
+                <Container fluid style={{height:videoSizes.containerHeight}}>
+                    {loading ? 
+                        <React.Fragment>
+                            <h1 className="text-center mt-5">Loading...</h1>
+                            <center><FontAwesomeIcon icon={faCircleNotch} className="mt-3" style={{fontSize:"2.4rem",color:"#6772ef"}} spin /></center> 
+                        </React.Fragment>  
+                    : 
+                        <React.Fragment>
+                            <div className={videoSizes.display}>
                                 {remote_videos}
-                            </center>
-                        </div>
-                        {local_video}
-                    </React.Fragment>
-                }
+                            </div>
+                            {local_video}
+                        </React.Fragment>
+                    }
+                </Container>
 
                 <div className="fixed-bottom bg-dark py-2">
                     <Row className="justify-content-md-center">
