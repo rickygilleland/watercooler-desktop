@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, session, autoUpdater, dialog } from 'electron';
+import { app, BrowserWindow, Menu, session, autoUpdater, dialog, protocol } from 'electron';
 
 var isDevMode = process.execPath.match(/[\\/]electron/);
 
@@ -71,11 +71,16 @@ const createWindow = () => {
           { label: "Select All", accelerator: "CmdOrCtrl+A", selector: "selectAll:" }
       ]}
     ];
-  
+
     Menu.setApplicationMenu(Menu.buildFromTemplate(template)); 
+
+    if (process.platform != "darwin") {
+      Menu.setApplicationMenu(Menu.buildFromTemplate(null)); 
+    }
 
     mainWindow = new BrowserWindow({
       titleBarStyle: 'hidden',
+      transparent: true,
       width: 900,
       height: 600,
       webPreferences: {
@@ -88,6 +93,7 @@ const createWindow = () => {
     // Create the browser window.
     mainWindow = new BrowserWindow({
       titleBarStyle: 'hidden',
+      transparent:true,
       width: 900,
       height: 600,
       webPreferences: {
