@@ -72,12 +72,6 @@ const createWindow = () => {
       ]}
     ];
 
-    Menu.setApplicationMenu(Menu.buildFromTemplate(template)); 
-
-    if (process.platform != "darwin") {
-      Menu.setApplicationMenu(Menu.buildFromTemplate(null)); 
-    }
-
     mainWindow = new BrowserWindow({
       titleBarStyle: 'hidden',
       transparent: true,
@@ -89,6 +83,13 @@ const createWindow = () => {
         devTools: true
       }
     });
+
+    if (process.platform == "darwin") {
+      Menu.setApplicationMenu(Menu.buildFromTemplate(template)); 
+    } else {
+      mainWindow.removeMenu();
+    }
+
   } else {
     // Create the browser window.
     mainWindow = new BrowserWindow({
