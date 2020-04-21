@@ -1,6 +1,6 @@
 import React from 'react';
 import { systemPreferences } from 'electron';
-import { each, isEqual } from 'lodash';
+import { each, debounce } from 'lodash';
 import { Link } from 'react-router-dom';
 import { Container, Image, Button, Navbar, Row } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
@@ -19,6 +19,7 @@ class Room extends React.Component {
             team: {},
             loading: true,
             members: [],
+            local_stream: null,
             remote_streams: [],
             remote_videos: [],
             local_video: [],
@@ -35,8 +36,8 @@ class Room extends React.Component {
                 display: "row align-items-center justify-content-center h-100",
                 containerHeight: window.innerHeight - 114
             },
-            videoStatus: "light",
-            audioStatus: "light",
+            videoStatus: false,
+            audioStatus: true,
             streamer_server_connected: false,
             streamerHandle: null,
         }
@@ -57,16 +58,23 @@ class Room extends React.Component {
         this.pusher.logToConsole = true;
 
 
+
+
         this.renderVideoBound = this.renderVideo.bind(this);
         this.createDetachedWindowBound = this.createDetachedWindow.bind(this);
         this.handleResize = this.handleResize.bind(this);
         this.toggleVideoOrAudio = this.toggleVideoOrAudio.bind(this);
         this.handleRemoteStream = this.handleRemoteStream.bind(this);
         this.updateDisplayedVideos = this.updateDisplayedVideos.bind(this);
+
+        this.updateDisplayedVideos = debounce(this.updateDisplayedVideos, 200);
+
+
     }
 
     async componentDidMount() {
         const { organization, teams, match, location, auth } = this.props;
+        const { videoStatus, audioStatus } = this.state;
 
         var curTeam = {};
         var curRoom = {};
@@ -100,15 +108,28 @@ class Room extends React.Component {
         var room = curRoom;
         var team = curTeam;
 
+        let streamOptions;
         /* TODO: Manually prompt for camera and microphone access on macos to handle it more gracefully - systemPreferences.getMediaAccessStatus(mediaType) */
-        const local_stream = await navigator.mediaDevices.getUserMedia({
+        streamOptions = {
             video: {
                 aspectRatio: 1.3333333333
             },
             audio: true
-        });
+        }
 
-        this.local_stream = local_stream;
+        const local_stream = await navigator.mediaDevices.getUserMedia(streamOptions);
+
+        const tracks = local_stream.getTracks();
+
+        tracks.forEach(function(track) {
+            if (track.kind == "video") {
+                track.enabled = videoStatus;
+            } else {
+                track.enabled = audioStatus;
+            }
+        })
+
+        this.setState({ local_stream });
 
         Janus.init({
             debug: true,
@@ -128,16 +149,18 @@ class Room extends React.Component {
 
             let local_video = [];
 
-            if (me != {} && typeof that.local_stream !== 'undefined') {
-                local_video.push(
-                    <div style={{position:"absolute",right:0,bottom:50}} key={me.id}>
-                        <video autoPlay muted ref={
-                            video => {
-                                if (video != null) { video.srcObject = that.local_stream }
-                            }
-                        } style={{height:80 }} className="rounded shadow"></video>
-                    </div>
-                )
+            if (me != {} && typeof local_stream !== 'undefined') {
+                if (videoStatus) {
+                    local_video.push(
+                        <div style={{position:"absolute",right:0,bottom:50}} key={me.id}>
+                            <video autoPlay muted ref={
+                                video => {
+                                    if (video != null) { video.srcObject = local_stream }
+                                }
+                            } style={{height:80 }} className="rounded shadow"></video>
+                        </div>
+                    )
+                } 
             } 
 
             var remote_videos = [];
@@ -185,7 +208,7 @@ class Room extends React.Component {
                                 // Couldn't attach to the plugin
                         },
                         onmessage: function(msg, jsep) {
-                            var { streamerHandle } = that.state;
+                            var { streamerHandle, local_stream } = that.state;
                             console.log(msg);
                             console.log(jsep);
 
@@ -196,17 +219,15 @@ class Room extends React.Component {
                             if (msg.videoroom == "joined") {
                                 //publish our feed
                                 streamerHandle.createOffer({
-                                    stream: that.local_stream,
+                                    stream: local_stream,
                                     success: function(jsep) {
                                         var request = {
                                             "request": "publish",
-                                            "audio": true,
-                                            "video": true,
+                                            "audio": audioStatus,
+                                            "video": videoStatus,
                                             "data": true,
                                             "videocodec": "vp9"
                                         }
-
-                                        console.log(jsep);
     
                                         streamerHandle.send({ "message": request, "jsep": jsep });
 
@@ -238,11 +259,6 @@ class Room extends React.Component {
                                     })
                                 }
                             }
-                        },
-                        onremotestream: function(remote_stream) {
-                                // We have a remote stream (working PeerConnection!) to display
-                                console.log("REMOTE STREAM RECEIVED");
-                                console.log(remote_stream);
                         },
                         oncleanup: function() {
                                 // PeerConnection with the plugin closed, clean the UI
@@ -473,7 +489,7 @@ class Room extends React.Component {
     }
 
     componentWillUnmount() {
-        const { streams, me, room , streamerHandle, remote_streams } = this.state;
+        const { streams, me, room , streamerHandle, remote_streams, local_stream } = this.state;
 
         if (typeof room.channel_id != 'undefined') {
             this.pusher.unsubscribe(`presence-peers.${room.channel_id}`);
@@ -504,8 +520,8 @@ class Room extends React.Component {
             }
         })
 
-        if (typeof this.local_stream !== 'undefined') {
-            const tracks = this.local_stream.getTracks();
+        if (typeof local_stream !== 'undefined') {
+            const tracks = local_stream.getTracks();
 
             tracks.forEach(function(track) {
                 track.stop();
@@ -524,24 +540,53 @@ class Room extends React.Component {
     }
 
     toggleVideoOrAudio(type) {
-        if (typeof this.local_stream !== 'undefined') {
-            const tracks = this.local_stream.getTracks();
+        const { streamerHandle, local_stream, me } = this.state;
 
-            var { videoStatus, audioStatus } = this.state;
+        if (typeof local_stream !== 'undefined') {
+            const tracks = local_stream.getTracks();
+
+            var { videoStatus, audioStatus, local_video } = this.state;
             
             tracks.forEach(function(track) {
                 if (track.kind == type) {
                     track.enabled = track.enabled ? false : true;
 
                     if (type == "video") {
-                        videoStatus = track.enabled ? "light" : "danger";
+                        videoStatus = track.enabled ? true : false;
                     } else {
-                        audioStatus = track.enabled ? "light" : "danger";
+                        audioStatus = track.enabled ? true : false;
                     }
                 }
             })
 
-            this.setState({ videoStatus, audioStatus });
+            if (streamerHandle != null) {
+                //update our published stream
+                var request = {
+                    "request": "configure",
+                    "audio": audioStatus,
+                    "video": videoStatus,
+                    "videocodec": "vp9"
+                }
+
+                streamerHandle.send({ "message": request });
+            }
+
+            if (!videoStatus && local_video.length == 1) {
+                local_video = [];
+            } else if (videoStatus && local_video.length == 0) {
+                local_video = [];
+                local_video.push(
+                    <div style={{position:"absolute",right:0,bottom:50}} key={me.id}>
+                        <video autoPlay muted ref={
+                            video => {
+                                if (video != null) { video.srcObject = local_stream }
+                            }
+                        } style={{height:80 }} className="rounded shadow"></video>
+                    </div>
+                )
+            }
+
+            this.setState({ videoStatus, audioStatus, local_video });
         }
     }
 
@@ -584,10 +629,10 @@ class Room extends React.Component {
                 </Container>
 
                 <div className="fixed-bottom bg-dark py-2">
-                    <Row className="justify-content-md-center">
-                        <Button variant={audioStatus} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={faMicrophone} /></Button>
-                        <Button variant={videoStatus} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={faVideo} /></Button>
-                        <Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>
+                    <Row className="justify-content-center">
+                        <Button variant={audioStatus ? "light" : "danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
+                        <Button variant={videoStatus ? "light" : "danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                        {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}
                         <Link to={{
                             pathname: `/`
                         }}>
