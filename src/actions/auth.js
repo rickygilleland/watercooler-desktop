@@ -1,4 +1,4 @@
-export const AUTHENTICATE_USER_START = 'AUTHENTICATE_USER_START';
+export const AUTHENTICATE_USER_STARTED = 'AUTHENTICATE_USER_STARTED';
 export const AUTHENTICATE_USER_SUCCESS = 'AUTHENTICATE_USER_SUCCESS';
 export const AUTHENTICATE_USER_FAILURE = 'AUTHENTICATE_USER_FAILURE';
 export const SET_REDIRECT_URL = 'SET_REDIRECT_URL';
@@ -11,10 +11,10 @@ export function setRedirectUrl(payload) {
     }
 } 
 
-export function authenticateUserStart() {
+export function authenticateUserStarted() {
     return {
-        type: AUTHENTICATE_USER_START
-    }
+        type: AUTHENTICATE_USER_STARTED
+    };
 }
 
 export function authenticateUserSuccess(payload) {
@@ -31,11 +31,20 @@ export function authenticateUserFailure(payload) {
     };
 }
 
-export function authenticateUser(type, code) {
+export function authenticateUser(email, password) {
     return (dispatch, getState, axios) => {
+        dispatch(authenticateUserStarted());
+
         const state = getState();
         //check if we need a new token or a refresh token
-        axios.get(`https://watercooler.work/api/login/${type}?code=${code}`)
+        axios.post(`https://watercooler.work/oauth/token`, {
+            grant_type: "password",
+            client_id: 2,
+            client_secret: "c1bE8I6EMEG8TEHt9PTsLaJwvoyo8L8LtNP25mIv",
+            username: email,
+            password: password,
+            scope: ""
+        })
         .then(response => {
             dispatch(authenticateUserSuccess({ authKey: response.data.access_token }));
         })

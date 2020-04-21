@@ -13,10 +13,13 @@ class Login extends React.Component {
         this.state = {
             username: '',
             password: '',
-            loading: false,
             missingError: false,
             loginError: false,
         };
+
+        this.handleUsernameChange = this.handleUsernameChange.bind(this);
+        this.handlePasswordChange = this.handlePasswordChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
 
     }
 
@@ -48,9 +51,24 @@ class Login extends React.Component {
 
     }
 
+    handleUsernameChange(event) {
+        this.setState({ username: event.target.value });
+    };
+    
+    handlePasswordChange(event) {
+        this.setState({ password: event.target.value });
+    };
+
+    handleSubmit(event) {
+        event.preventDefault();
+        const { authenticateUser } = this.props;
+
+        authenticateUser(this.state.username, this.state.password);
+    };
+
     render() {
-        const { loading, loginError, missingError } = this.state;
-        const { auth, authenticateUserStart } = this.props;
+        const { auth } = this.props;
+        const { loginError, missingError, username, password } = this.state;
 
         return (
             <React.Fragment>
@@ -59,7 +77,37 @@ class Login extends React.Component {
                     <Card className="mt-5 shadow-sm border-0" body>
                         <p className="sub-heading text-muted text-center mt-3">Sign in to Water Cooler</p>
 
-                        <center><a onClick={ () => authenticateUserStart() } href="https://slack.com/oauth/authorize?scope=identity.basic,identity.email,identity.team,identity.avatar&client_id=1000366406420.1003032710326&redirect_uri=https://watercooler.work/api/login/slack"><img alt="Sign in with Slack" height="40" width="172" src="https://platform.slack-edge.com/img/sign_in_with_slack.png" srcSet="https://platform.slack-edge.com/img/sign_in_with_slack.png 1x, https://platform.slack-edge.com/img/sign_in_with_slack@2x.png 2x" /></a></center>
+                        <Form>
+                            <Form.Group controlId="formBasicEmail">
+                                <Form.Label>Email address</Form.Label>
+                                <Form.Control 
+                                    type="email" 
+                                    placeholder="Enter email" 
+                                    value={username}
+                                    onChange={this.handleUsernameChange}
+                                />
+                            </Form.Group>
+
+                            <Form.Group controlId="formBasicPassword">
+                                <Form.Label>Password</Form.Label>
+                                <Form.Control 
+                                    name="password"
+                                    type="password" 
+                                    placeholder="Password" 
+                                    value={password}
+                                    onChange={this.handlePasswordChange}
+                                />
+                            </Form.Group>
+                            {auth.loading ?
+                                <Button variant="primary" className="btn-block" type="submit" disabled>
+                                    <FontAwesomeIcon icon={faCircleNotch} spin /> Submit
+                                </Button>
+                            :
+                                <Button variant="primary" className="btn-block" type="submit" onClick={this.handleSubmit}>
+                                    Submit
+                                </Button>
+                            }
+                        </Form>
 
                     </Card>
                 </Container>

@@ -42,11 +42,6 @@ contextMenu({
 	prepend: (defaultActions, params, browserWindow) => []
 });
 
-
-const filter = {
-  urls: ['https://watercooler.work/api/login/slack?code=*&state=*', 'https://w.test/api/login/slack?code=*&state=*']
-};
-
 const createWindow = () => {
 
   // Create the browser window.
@@ -106,19 +101,6 @@ const createWindow = () => {
 
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
-
-  session.defaultSession.webRequest.onBeforeRequest(filter, function (details, callback) {
-    const url = details.url;
-
-    var urlParams = new URLSearchParams(url);
-    var slackCode = urlParams.get('https://watercooler.work/api/login/slack?code');
-
-    mainWindow.loadURL(`${MAIN_WINDOW_WEBPACK_ENTRY}#/callback/slack/${slackCode}`);
-
-    callback({
-      cancel: false
-    });
-  });
 };
 
 app.commandLine.appendSwitch('force-fieldtrials', 'WebRTC-SupportVP9SVC/EnabledByFlag_2SL3TL/');

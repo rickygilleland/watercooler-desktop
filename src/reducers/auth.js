@@ -1,12 +1,12 @@
 import { Action } from 'redux';
-import { AUTHENTICATE_USER_START, AUTHENTICATE_USER_SUCCESS, AUTHENTICATE_USER_FAILURE, SET_REDIRECT_URL } from '../actions/auth';
+import { AUTHENTICATE_USER_STARTED, AUTHENTICATE_USER_SUCCESS, AUTHENTICATE_USER_FAILURE, SET_REDIRECT_URL } from '../actions/auth';
 
 const initialState = {
     isLoggedIn: false,
     authKey: null,
     loginError: false,
     redirectUrl: "/",
-    loginStarted: false,
+    loading: false,
 }
 
 export default function auth(state = initialState, action = {}) {
@@ -16,13 +16,15 @@ export default function auth(state = initialState, action = {}) {
             updatedState = {
                 authKey: action.payload.authKey,
                 isLoggedIn: true,
-                loginError: false
+                loginError: false,
+                loading: false
             }
             break;
         case AUTHENTICATE_USER_FAILURE:
             updatedState = {
                 loginError: true,
-                isLoggedIn: false
+                isLoggedIn: false,
+                loading: false
             }
             break;
         case SET_REDIRECT_URL:
@@ -30,9 +32,9 @@ export default function auth(state = initialState, action = {}) {
                 redirectUrl: action.payload.redirectUrl,
             }
             break;
-        case AUTHENTICATE_USER_START:
+        case AUTHENTICATE_USER_STARTED:
             updatedState = {
-                loginStarted: true
+                loading: true
             }
             break;
         default:

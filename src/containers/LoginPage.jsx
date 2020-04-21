@@ -1,5 +1,5 @@
 import React from 'react';
-import { authenticateUserStart, authenticateUser } from '../actions/auth';
+import { authenticateUser } from '../actions/auth';
 import { getUserDetails } from '../actions/user';
 import { connect } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
@@ -16,7 +16,6 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return bindActionCreators(
       {
-        authenticateUserStart,
         authenticateUser,
         getUserDetails,
         push,
