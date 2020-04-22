@@ -2,6 +2,8 @@ import { app, BrowserWindow, Menu, session, autoUpdater, dialog, protocol } from
 
 var isDevMode = process.execPath.match(/[\\/]electron/);
 
+if (require('electron-squirrel-startup')) return;
+
 const contextMenu = require('electron-context-menu');
 
 let mainWindow;

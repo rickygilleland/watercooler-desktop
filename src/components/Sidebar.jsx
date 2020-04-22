@@ -50,7 +50,7 @@ class Sidebar extends React.Component {
 
         return (
             <Row>
-                <Col xs={3} md={3} lg={2} style={{overflowY:"scroll",borderRight:"1px solid #555f69",backgroundColor:"#3c434a"}} className="vh-100 pr-0">
+                <Col xs={3} md={3} lg={2} style={{borderRight:"1px solid #555f69",backgroundColor:"#3c434a"}} className="vh-100 pr-0">
                     
                     <Navbar bg="dark" className="text-light pt-5" style={{height:80}}>
                         <Navbar.Brand>
