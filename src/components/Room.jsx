@@ -601,7 +601,7 @@ class Room extends React.Component {
         return (
             <React.Fragment>
                 <Navbar bg="dark" className="text-light pt-3 flex-column" expand="lg" style={{height:80}}>
-                    <div className="justify-content-center">
+                    <div className="ml-auto">
                         <Button variant={audioStatus ? "light" : "danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
                         <Button variant={videoStatus ? "light" : "danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                         {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}

@@ -70,7 +70,7 @@ const createWindow = () => {
     mainWindow = new BrowserWindow({
       titleBarStyle: 'hidden',
       transparent: true,
-      width: 900,
+      width: 1000,
       height: 600,
       webPreferences: {
         nodeIntegration: true,
