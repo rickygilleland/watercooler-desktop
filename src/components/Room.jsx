@@ -450,7 +450,7 @@ class Room extends React.Component {
                 height: height,
                 width: width,
                 display: display,
-                containerHeight: dimensions.height - 104
+                containerHeight: dimensions.height - 80
             }
 
             remote_videos = [];
@@ -600,16 +600,16 @@ class Room extends React.Component {
 
         return (
             <React.Fragment>
-                <Navbar bg="dark" className="text-light pt-3" expand="lg">
-                    <Navbar.Brand>
-                        <p className="text-light p-0 m-0"><strong>{team.name} / {room.name}</strong></p>
-                    </Navbar.Brand>
-                    <div className="ml-auto">
-                        {connected ?
-                            <p><FontAwesomeIcon icon={faCircle} className="mr-2" style={{color:"green",fontSize:8,verticalAlign:"middle"}} />Connected</p>
-                            :
-                            <p><FontAwesomeIcon icon={faCircle} className="mr-2" style={{color:"red",fontSize:8,verticalAlign:"middle"}} />Connecting...</p>
-                        }
+                <Navbar bg="dark" className="text-light pt-3 flex-column" expand="lg" style={{height:80}}>
+                    <div className="justify-content-center">
+                        <Button variant={audioStatus ? "light" : "danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
+                        <Button variant={videoStatus ? "light" : "danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                        {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}
+                        <Link to={{
+                            pathname: `/`
+                        }}>
+                            <Button variant="danger" className="mx-1"><FontAwesomeIcon icon={faDoorClosed} className="mr-2" />Leave</Button>
+                        </Link>
                     </div>
                 </Navbar>
                 <Container fluid style={{height:videoSizes.containerHeight}}>
@@ -627,19 +627,6 @@ class Room extends React.Component {
                         </React.Fragment>
                     }
                 </Container>
-
-                <div className="fixed-bottom bg-dark py-2">
-                    <Row className="justify-content-center">
-                        <Button variant={audioStatus ? "light" : "danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
-                        <Button variant={videoStatus ? "light" : "danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
-                        {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}
-                        <Link to={{
-                            pathname: `/`
-                        }}>
-                            <Button variant="danger" className="mx-1"><FontAwesomeIcon icon={faDoorClosed} className="mr-2" />Leave</Button>
-                        </Link>
-                    </Row>
-                </div>
             </React.Fragment>
         );
     }

@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react'
 import { ConnectedRouter } from 'connected-react-router';
 import { History } from 'history';
-import Routes from './Routes';
+import Sidebar from './containers/Sidebar';
 
 export default class App extends React.Component {
   render() {
@@ -14,7 +14,7 @@ export default class App extends React.Component {
       <Provider store={store}>
         <PersistGate loading={null} persistor={persistor}>
           <ConnectedRouter history={history}>
-            <Routes />
+            <Sidebar />
           </ConnectedRouter>
         </PersistGate>
       </Provider>
