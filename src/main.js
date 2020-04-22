@@ -90,7 +90,7 @@ const createWindow = () => {
     mainWindow = new BrowserWindow({
       titleBarStyle: 'hidden',
       transparent:true,
-      width: 900,
+      width: 1100,
       height: 600,
       webPreferences: {
         nodeIntegration: true,
@@ -101,6 +101,7 @@ const createWindow = () => {
 
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+  mainWindow.setResizable(true) 
 };
 
 app.commandLine.appendSwitch('force-fieldtrials', 'WebRTC-SupportVP9SVC/EnabledByFlag_2SL3TL/');
