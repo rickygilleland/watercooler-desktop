@@ -7,7 +7,6 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch, faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash, faDoorClosed, faCircle, faGrin, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
 import { Janus } from 'janus-gateway';
 import Pusher from 'pusher-js';
-import Peer from 'peerjs';
 
 class Room extends React.Component {
     constructor(props) {
