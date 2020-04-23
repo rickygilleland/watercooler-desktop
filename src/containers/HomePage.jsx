@@ -3,6 +3,7 @@ import { userLogout } from '../actions/auth';
 import { getRooms } from '../actions/room';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
+import { withRouter } from 'react-router-dom'
 import { push } from 'connected-react-router';
 import Home from '../components/Home';
 
@@ -26,4 +27,4 @@ function mapDispatchToProps(dispatch) {
     );
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Home)
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Home))

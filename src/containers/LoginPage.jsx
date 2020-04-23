@@ -3,6 +3,7 @@ import { authenticateUser } from '../actions/auth';
 import { getUserDetails } from '../actions/user';
 import { connect } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
+import { withRouter } from 'react-router-dom'
 import { push } from 'connected-react-router';
 import Login from '../components/Login';
 
@@ -24,4 +25,4 @@ function mapDispatchToProps(dispatch) {
     );
   }
   
-export default connect(mapStateToProps, mapDispatchToProps)(Login)
+  export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Login))

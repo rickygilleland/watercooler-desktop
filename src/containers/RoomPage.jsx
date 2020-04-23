@@ -2,6 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { push } from 'connected-react-router';
+import { withRouter } from 'react-router-dom'
 import Room from '../components/Room';
 
 function mapStateToProps(state) {
@@ -23,4 +24,4 @@ function mapDispatchToProps(dispatch) {
     );
   }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Room)
+  export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Room))

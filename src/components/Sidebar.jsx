@@ -18,7 +18,7 @@ class Sidebar extends React.Component {
     }
 
     render() {
-        const { organization, teams, user, userLogout } = this.props;
+        const { organization, teams, user, userLogout, } = this.props;
 
         const rooms = teams.map((team, teamKey) =>
             <div key={teamKey}>
@@ -49,29 +49,37 @@ class Sidebar extends React.Component {
         )
 
         return (
-            <Row>
-                <Col xs={3} md={3} lg={2} style={{borderRight:"1px solid #555f69",backgroundColor:"#3c434a"}} className="vh-100 pr-0">
-                    
-                    <Navbar bg="dark" className="text-light pt-5" style={{height:80}}>
-                        <Navbar.Brand>
-                            <p className="text-light p-0 m-0" style={{fontSize:"1rem"}}><strong>{organization.name}</strong></p>
-                            <p className="text-light pt-0 pb-1" style={{fontSize:".9rem"}}>{user.name}</p>
-                        </Navbar.Brand>
-                    </Navbar>
-                    <div>
-                        {rooms}
-                    </div>
-                </Col>
-                <Col xs={9} md={9} lg={10} className="pl-0">
-                    <Switch>
-                        <Route path={routes.LOGIN} component={LoginPage} />
-                        <EnsureLoggedInContainer>
+            <>
+                <Switch>
+                    <Route path={routes.LOGIN} component={LoginPage} />
+                </Switch>
+                <Switch>
+                <EnsureLoggedInContainer>
+                    <Row>
+                        <Col xs={3} md={3} lg={2} style={{borderRight:"1px solid #555f69",backgroundColor:"#3c434a"}} className="vh-100 pr-0">
+                            
+                            <Navbar bg="dark" className="text-light pt-5" style={{height:80}}>
+                                <Navbar.Brand>
+                                    {organization != null ? 
+                                        <p className="text-light p-0 m-0" style={{fontSize:"1rem"}}><strong>{organization.name}</strong></p>
+                                    : '' }
+                                    {user != null ? 
+                                        <p className="text-light pt-0 pb-1" style={{fontSize:".9rem"}}>{user.name}</p>
+                                    : '' }
+                                </Navbar.Brand>
+                            </Navbar>
+                            <div>
+                                {rooms}
+                            </div>
+                        </Col>
+                        <Col xs={9} md={9} lg={10} className="pl-0">
                             <Route exact path={routes.HOME} component={HomePage} />
                             <Route path={routes.ROOM} component={RoomPage} />
-                        </EnsureLoggedInContainer>
-                    </Switch>
-                </Col>
-            </Row>
+                        </Col>
+                    </Row>
+                </EnsureLoggedInContainer>
+                </Switch>
+            </>
         );
     }
 

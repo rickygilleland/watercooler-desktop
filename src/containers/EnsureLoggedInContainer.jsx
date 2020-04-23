@@ -8,7 +8,7 @@ class EnsureLoggedInContainer extends React.Component {
     componentDidMount() {
       const { dispatch, currentURL, auth } = this.props
 
-      if (!auth.isLoggedIn || auth.loginError) {
+      if ((!auth.isLoggedIn || auth.loginError) && currentURL != "/login") {
         dispatch(setRedirectUrl({ redirectUrl: currentURL }));
         dispatch(push("/login"));
       }
@@ -18,7 +18,7 @@ class EnsureLoggedInContainer extends React.Component {
       const { dispatch, currentURL, auth } = this.props
 
 
-      if (!auth.isLoggedIn || auth.loginError) {
+      if ((!auth.isLoggedIn || auth.loginError) && currentURL != "/login") {
         dispatch(setRedirectUrl({ redirectUrl: currentURL }));
         dispatch(push("/login"));
       }
