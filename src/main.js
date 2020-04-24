@@ -20,10 +20,11 @@ if (!isDevMode) {
     console.log("UPDATER RAN");
     console.log(autoUpdater);
     console.log(feed);
-    console.log(autoUpdater.checkForUpdates());
-  }, 20000);
+  }, 200000);
 
   autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+    console.log("update-downloaded")
+    console.log(event)
     const dialogOpts = {
       type: 'info',
       buttons: ['Restart', 'Later'],
@@ -35,6 +36,21 @@ if (!isDevMode) {
     dialog.showMessageBox(dialogOpts).then((returnValue) => {
       if (returnValue.response === 0) autoUpdater.quitAndInstall()
     })
+  })
+
+  autoUpdater.on('checking-for-update', event => {
+    console.log("checking-for-update")
+    console.log(event);
+  })
+
+  autoUpdater.on('update-available', event => {
+    console.log("update-available")
+    console.log(event);
+  })
+
+  autoUpdater.on('update-not-available', event => {
+    console.log("update-not-available")
+    console.log(event);
   })
 
   autoUpdater.on('error', message => {
@@ -53,7 +69,7 @@ const createWindow = () => {
   // Create the browser window.
   if (!isDevMode) {
 
-    /*var template = [{
+    var template = [{
       label: "Application",
       submenu: [
           { label: "About Application", selector: "orderFrontStandardAboutPanel:" },
@@ -75,7 +91,7 @@ const createWindow = () => {
 
     if (process.platform != "darwin") {
       template = [];
-    }*/
+    }
 
     mainWindow = new BrowserWindow({
       titleBarStyle: 'hidden',
@@ -90,7 +106,7 @@ const createWindow = () => {
       }
     });
 
-    //Menu.setApplicationMenu(Menu.buildFromTemplate(template)); 
+    Menu.setApplicationMenu(Menu.buildFromTemplate(template)); 
 
   } else {
     // Create the browser window.
