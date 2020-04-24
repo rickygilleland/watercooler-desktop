@@ -2,7 +2,7 @@ import React from 'react';
 import { systemPreferences } from 'electron';
 import { each, debounce } from 'lodash';
 import { Link } from 'react-router-dom';
-import { Container, Image, Button, Navbar, Row } from 'react-bootstrap';
+import { Container, Image, Button, Row, Col } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch, faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash, faDoorClosed, faCircle, faGrin, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
 import { Janus } from 'janus-gateway';
@@ -55,9 +55,6 @@ class Room extends React.Component {
         });
 
         this.pusher.logToConsole = true;
-
-
-
 
         this.renderVideoBound = this.renderVideo.bind(this);
         this.createDetachedWindowBound = this.createDetachedWindow.bind(this);
@@ -151,7 +148,7 @@ class Room extends React.Component {
             if (me != {} && typeof local_stream !== 'undefined') {
                 if (videoStatus) {
                     local_video.push(
-                        <div style={{position:"absolute",right:0,bottom:50}} key={me.id}>
+                        <div key={me.id}>
                             <video autoPlay muted ref={
                                 video => {
                                     if (video != null) { video.srcObject = local_stream }
@@ -575,7 +572,7 @@ class Room extends React.Component {
             } else if (videoStatus && local_video.length == 0) {
                 local_video = [];
                 local_video.push(
-                    <div style={{position:"absolute",right:0,bottom:50}} key={me.id}>
+                    <div key={me.id}>
                         <video autoPlay muted ref={
                             video => {
                                 if (video != null) { video.srcObject = local_stream }
@@ -599,19 +596,33 @@ class Room extends React.Component {
 
         return (
             <React.Fragment>
-                <Navbar bg="dark" className="text-light pt-3 flex-column" expand="lg" style={{height:80}}>
-                    <div className="ml-auto">
-                        <Button variant={audioStatus ? "light" : "danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
-                        <Button variant={videoStatus ? "light" : "danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
-                        {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}
-                        <Link to={{
-                            pathname: `/`
-                        }}>
-                            <Button variant="danger" className="mx-1"><FontAwesomeIcon icon={faDoorClosed} className="mr-2" />Leave</Button>
-                        </Link>
-                    </div>
-                </Navbar>
-                <Container fluid style={{height:videoSizes.containerHeight}}>
+                <Row className="bg-dark text-light pl-0 ml-0" style={{height:80}}>
+                    <Col xs={{span:4, offset:4}}>
+                        <div className="d-flex flex-row justify-content-center">
+                            <div className="align-self-center">
+                                <Link to={{
+                                    pathname: `/`
+                                }}>
+                                    <Button variant="danger" className="mx-1"><FontAwesomeIcon icon={faDoorClosed} className="mr-2" />Leave</Button>
+                                </Link>
+                            </div>
+                            <div style={{height:80}}>&nbsp;</div>
+                        </div>
+                    </Col>
+                    <Col xs={4}>
+                        <div className="d-flex flex-row justify-content-end">
+                            <div className="align-self-center pr-4">
+                                <Button variant={audioStatus ? "light" : "danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
+                                <Button variant={videoStatus ? "light" : "danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                            </div>
+                            {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}
+                            <div style={{width:106.66,height:80}}>
+                                {local_video}   
+                            </div>
+                        </div>
+                    </Col>
+                </Row>
+                <Container className="ml-0" fluid style={{height:videoSizes.containerHeight}}>
                     {loading ? 
                         <React.Fragment>
                             <h1 className="text-center mt-5">Loading...</h1>
@@ -622,7 +633,6 @@ class Room extends React.Component {
                             <div className={videoSizes.display}>
                                 {remote_videos}
                             </div>
-                            {local_video}
                         </React.Fragment>
                     }
                 </Container>

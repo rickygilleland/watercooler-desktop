@@ -72,7 +72,7 @@ class Sidebar extends React.Component {
                                 {rooms}
                             </div>
                         </Col>
-                        <Col xs={9} md={9} lg={10} className="pl-0">
+                        <Col xs={9} md={9} lg={10} className="pl-0" style={{borderLeft:"1px solid #555f69"}}>
                             <Route exact path={routes.HOME} component={HomePage} />
                             <Route path={routes.ROOM} component={RoomPage} />
                         </Col>
