@@ -72,7 +72,7 @@ class Login extends React.Component {
 
         return (
             <React.Fragment>
-                <Navbar className="bg-white mb-4 pt-3" expand="lg"></Navbar>
+                <Navbar className="bg-white mb-4" expand="lg"></Navbar>
                 <Container data-tid="container" fluid>
                     <Card className="mt-5 shadow-sm border-0" body>
                         <p className="sub-heading text-muted text-center mt-3">Sign in to Water Cooler</p>

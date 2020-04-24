@@ -1,4 +1,5 @@
 import { app, BrowserWindow, Menu, session, autoUpdater, dialog, protocol } from 'electron';
+if(require('electron-squirrel-startup')) app.quit();
 
 var isDevMode = process.execPath.match(/[\\/]electron/);
 
@@ -80,11 +81,7 @@ const createWindow = () => {
       }
     });
 
-    if (process.platform == "darwin") {
-      Menu.setApplicationMenu(Menu.buildFromTemplate(template)); 
-    } else {
-      mainWindow.removeMenu();
-    }
+    Menu.setApplicationMenu(Menu.buildFromTemplate(template)); 
 
   } else {
     // Create the browser window.
@@ -107,7 +104,6 @@ const createWindow = () => {
 
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
-  mainWindow.setResizable(true) 
 };
 
 app.commandLine.appendSwitch('force-fieldtrials', 'WebRTC-SupportVP9SVC/EnabledByFlag_2SL3TL/');

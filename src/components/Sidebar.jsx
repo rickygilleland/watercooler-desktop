@@ -45,6 +45,7 @@ class Sidebar extends React.Component {
                         </li>
                     )}
                 </ul>
+                <Button variant="secondary" onClick={() => userLogout() }><FontAwesomeIcon icon={faSignOutAlt} block/></Button>
             </div>
         )
 
