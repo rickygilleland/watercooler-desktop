@@ -1,6 +1,7 @@
 import React from 'react';
 import { Switch, Route, NavLink } from 'react-router-dom';
 import routes from '../constants/routes.json';
+import { each, debounce } from 'lodash';
 import { Row, Col, Button, Navbar, Dropdown } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch, faSignOutAlt, faDoorOpen } from '@fortawesome/free-solid-svg-icons';
@@ -11,14 +12,42 @@ import RoomPage from '../containers/RoomPage';
 
 class Sidebar extends React.Component {
 
+    constructor(props) {
+        super(props);
+
+        this.state = {
+            dimensions: {
+                width: 0,
+                height: 0
+            }
+        }
+
+        this.handleResize = this.handleResize.bind(this);
+        this.handleResize = debounce(this.handleResize, 125);
+    }
+
     componentDidMount() {
+        this.handleResize();
+        window.addEventListener('resize', this.handleResize);
     }
 
     componentDidUpdate() {
     }
 
+    componentWillUnmount() {
+        window.removeEventListener('resize', this.handleResize);
+    }
+
+    handleResize() {
+        var width = window.innerWidth;
+        var sidebarWidth = 255;
+        var mainContainerWidth = width - sidebarWidth;
+        this.setState({ dimensions: { width, height: window.innerHeight, sidebarWidth, mainContainerWidth } });
+    }
+
     render() {
         const { organization, teams, user, userLogout, } = this.props;
+        const { dimensions } = this.state;
 
         const rooms = teams.map((team, teamKey) =>
             <div key={teamKey}>
@@ -55,8 +84,8 @@ class Sidebar extends React.Component {
                 </Switch>
                 <Switch>
                 <EnsureLoggedInContainer>
-                    <Row>
-                        <Col xs={3} md={3} lg={2} style={{backgroundColor:"#1b1e2f"}} className="vh-100 pr-0">
+              
+                        <div style={{backgroundColor:"#1b1e2f",width:this.state.dimensions.sidebarWidth}} className="vh-100 pr-0 float-left">
                             
                             <Navbar className="text-light pt-4" style={{height:80,backgroundColor:"#121422",borderBottom:"2px solid #232533"}}>
                                 <Navbar.Brand>
@@ -71,12 +100,18 @@ class Sidebar extends React.Component {
                             <div>
                                 {rooms}
                             </div>
-                        </Col>
-                        <Col xs={9} md={9} lg={10} className="pl-0" style={{borderLeft:"1px solid #232533"}}>
+                        </div>
+                        <div className="pl-0 float-left" style={{borderLeft:"1px solid #232533",width:this.state.dimensions.mainContainerWidth}}>
                             <Route exact path={routes.HOME} component={HomePage} />
-                            <Route path={routes.ROOM} component={RoomPage} />
-                        </Col>
-                    </Row>
+                            {/*<Route path={routes.ROOM} component={RoomPage} />*/}
+                            <Route 
+                                path={routes.ROOM} 
+                                render={(routeProps) => (
+                                    <RoomPage {...routeProps} dimensions={this.state.dimensions} />
+                                )}
+                            />
+                            
+                        </div>
                 </EnsureLoggedInContainer>
                 </Switch>
             </>

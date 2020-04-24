@@ -21,14 +21,11 @@ class Room extends React.Component {
             local_stream: null,
             remote_streams: [],
             remote_videos: [],
+            hasRemoteVideos: false,
             local_video: [],
             me: {},
             connected: false,
             leaving: false,
-            dimensions: {
-                width: 0,
-                height: 0
-            },
             videoSizes: {
                 width: 0,
                 height: 0,
@@ -40,6 +37,20 @@ class Room extends React.Component {
             streamer_server_connected: false,
             streamerHandle: null,
             participant: false,
+            loadingMessages: [
+                "Waiting for other members to join...",
+                "Grab a cup of coffee while you wait.",
+                "We're never gonna give you up, never gonna let you down, even if you're the only one here."
+            ],
+            currentLoadingMessage: [],
+            containerBackgroundColors: [
+                "#4381ff",
+                "#4F4581",
+                "#6936e3",
+                "#e69a5a",
+                "#205444",
+                "#00DBD7"
+            ]
         }
 
         this.pusher = new Pusher('3eb4f9d419966b6e1e0b', {
@@ -57,21 +68,21 @@ class Room extends React.Component {
 
         this.pusher.logToConsole = true;
 
-        this.renderVideoBound = this.renderVideo.bind(this);
+        this.renderVideo = this.renderVideo.bind(this);
         this.createDetachedWindowBound = this.createDetachedWindow.bind(this);
-        this.handleResize = this.handleResize.bind(this);
+
         this.toggleVideoOrAudio = this.toggleVideoOrAudio.bind(this);
         this.handleRemoteStream = this.handleRemoteStream.bind(this);
         this.updateDisplayedVideos = this.updateDisplayedVideos.bind(this);
 
-        this.updateDisplayedVideos = debounce(this.updateDisplayedVideos, 200);
+        //this.updateDisplayedVideos = debounce(this.updateDisplayedVideos, 200);
 
 
     }
 
     async componentDidMount() {
         const { organization, teams, match, location, auth } = this.props;
-        const { videoStatus, audioStatus } = this.state;
+        const { videoStatus, audioStatus, currentLoadingMessage } = this.state;
 
         var curTeam = {};
         var curRoom = {};
@@ -98,9 +109,6 @@ class Room extends React.Component {
         if (curRoom === {}) {
             push("/");
         }
-
-        this.handleResize();
-        window.addEventListener('resize', this.handleResize);
 
         var room = curRoom;
         var team = curTeam;
@@ -150,26 +158,26 @@ class Room extends React.Component {
                 if (videoStatus) {
                     local_video.push(
                         <div key={me.id}>
-                            <video autoPlay muted ref={
-                                video => {
-                                    if (video != null) { video.srcObject = local_stream }
-                                }
-                            } style={{height:80 }} className="rounded shadow"></video>
+                            <video autoPlay muted ref={that.renderVideo(local_stream)} style={{height:80 }} className="rounded shadow"></video>
                         </div>
                     )
                 } 
             } 
 
             var remote_videos = [];
+            var currentLoadingMessage = [];
 
-            remote_videos.push(
+            let rand = Math.floor(Math.random() * that.state.loadingMessages.length); 
+
+            currentLoadingMessage.push(
                 <div key={99999}>
-                    <h1 className="text-center">You are the only one in {team.name} / {room.name}.</h1>
-                    <h2 className="text-center">Waiting for other members to join...</h2>
+                    <h1 className="text-center">It's just you here.</h1>
+                    <h2 className="text-center h3">Other participants will appear here automatically after joining.</h2>
+                    <h3 className="text-center h4">{that.state.loadingMessages[rand]}</h3>
                 </div>
             );
 
-            that.setState({ members, me, local_video, remote_videos });
+            that.setState({ members: members.members, me, local_video, currentLoadingMessage });
 
             that.streamer = new Janus(
             {
@@ -293,7 +301,7 @@ class Room extends React.Component {
         var curMember;
         var handle;
 
-        each(members.members, function(member) {
+        each(members, function(member) {
             if (member.peer_uuid == remoteStreamDisplayId) {
                curMember = member; 
             }
@@ -323,6 +331,8 @@ class Room extends React.Component {
                     // Couldn't attach to the plugin
             },
             onmessage: function(msg, jsep) {
+                console.log("REMOTE MSG");
+                console.log(msg);
                 if (jsep != null) {
                     if (typeof msg.display != "undefined") {
                         handle.createAnswer({
@@ -341,9 +351,25 @@ class Room extends React.Component {
                 }
             },
             onremotestream: function(remote_stream) {
+                var tracks = remote_stream.getTracks();
+                var hasVideo = false;
+                var hasAudio = false;
+                tracks.forEach(track => {
+                    console.log("TRACK");
+                    console.log(track);
+                    if (track.kind == "video" && track.enabled) {
+                        hasVideo = true;
+                    }
+                    if (track.kind == "audio" && track.enabled) {
+                        hasAudio = true;
+                    }
+                })
+
                 remote_streams[curMember.id] = {
                     "stream_id": remoteStreamId,
                     "source": remote_stream,
+                    "hasVideo": hasVideo,
+                    "hasAudio": hasAudio,
                     "isMe": false,
                     "handle": handle,
                     "stopped": false,
@@ -368,22 +394,24 @@ class Room extends React.Component {
 
     componentDidUpdate(prevProps, prevState) {
 
-        var { dimensions } = this.state;
+        var { dimensions } = this.props;
 
-        if (prevState.dimensions != dimensions) {
-            this.updateDisplayedVideos();
+        if (prevProps.dimensions != dimensions) {
+            this.updateDisplayedVideos(null, true);
         }
 
     }
 
-    updateDisplayedVideos(remote_streams = null) {
-        var { videoSizes, remote_videos, dimensions, room, team } = this.state;
+    updateDisplayedVideos(remote_streams = null, dimensionsOnly = false) {
+        var { videoSizes, remote_videos, room, team, hasRemoteVideos, currentLoadingMessage, members, containerBackgroundColors } = this.state;
+        const { dimensions } = this.props;
 
         if (remote_streams == null) {
             var { remote_streams } = this.state;
         }
 
         let width = dimensions.width;
+        width -= dimensions.sidebarWidth;
         let height = dimensions.height;
 
         var filteredStreams = remote_streams.filter(function (item) {
@@ -393,6 +421,13 @@ class Room extends React.Component {
         filteredStreams = filteredStreams.filter(function (item) {
             return item.stopped === false;
         });
+
+        var currentKeys = [];
+        filteredStreams.forEach(function (stream, key) {
+            if (typeof currentKeys[key] != "undefined") return;
+
+            currentKeys[key] = 1;
+        })
 
         var remote_streams_count = filteredStreams.length;
 
@@ -451,37 +486,70 @@ class Room extends React.Component {
             }
 
             remote_videos = [];
+            var that = this;
 
-            each(remote_streams, function(stream, key) {
-                if (typeof stream !== "undefined" && typeof stream.source !== "undefined" && stream.stopped === false) {
-                    remote_videos.push(
+
+            each(filteredStreams, function(stream, key) {
+                var curMember = null;
+                each(members, function(member) {
+                    if (member.peer_uuid == stream.peer_uuid) {
+                        curMember = member;
+                    }
+                }) 
+                if (stream.hasVideo) {
+                    return remote_videos.push(
                         <div className="col p-0" key={key}>
-                            {/* refactor later because inline function will get called twice, once with null */}
-                            <center><video autoPlay ref={
-                                video => {
-                                    if (video != null) { video.srcObject = stream.source }
-                                }
-                            } className="rounded shadow" style={{height: videoSizes.height, width: videoSizes.width }}></video></center>
-             
+                            <div className="mx-auto position-relative text-light"  style={{height: videoSizes.height, width: videoSizes.width }}>
+                                <video autoPlay ref={that.renderVideo(stream.source)} className="rounded shadow" style={{height: videoSizes.height, width: videoSizes.width }}></video>
+                                <div className="position-absolute overlay" style={{bottom:0,backgroundColor:"rgb(18, 20, 34, .5)",width:"100%"}}>
+                                    <p className="pl-2 mb-1 mt-1 font-weight-bolder">{curMember.name}</p>
+                                </div>
+                            </div>
                         </div>
                     )
                 }
+
+                let rand = Math.floor(Math.random() * containerBackgroundColors.length); 
+
+                remote_videos.push(
+                    <div className="col p-0" key={key}>
+                        <div className="rounded shadow mx-auto d-flex flex-column justify-content-center position-relative text-light" style={{height: videoSizes.height, width: videoSizes.width, backgroundColor:containerBackgroundColors[rand] }}>
+                            <div className="mx-auto align-self-center">
+                                <Image src={curMember.avatar} roundedCircle />
+                                <p className="font-weight-bolder text-center" style={{paddingTop:5,fontSize:"1.5rem"}}><FontAwesomeIcon style={{color:"#f9426c"}} icon={faVideoSlash} /> Audio Only</p>
+                            </div>
+                            <div className="position-absolute overlay" style={{bottom:0,backgroundColor:"rgb(18, 20, 34, .5)",width:"100%"}}>
+                                <p className="pl-2 mb-1 mt-1 font-weight-bolder">{curMember.name}</p>
+                            </div>
+                        </div>
+                    </div>
+                )
             });
 
-            this.setState({ videoSizes, remote_videos });
+            this.setState({ videoSizes, remote_videos, hasRemoteVideos: true });
+             
 
         } else {
 
-            remote_videos = [];
+            if (!hasRemoteVideos) {
+                //don't do anything
+                return;
+            }
 
-            remote_videos.push(
+            remote_videos = [];
+            currentLoadingMessage = [];
+
+            let rand = Math.floor(Math.random() * this.state.loadingMessages.length); 
+
+            currentLoadingMessage.push(
                 <div key={99999}>
-                    <h1 className="text-center">You are the only one in {team.name} / {room.name}.</h1>
-                    <h2 className="text-center">Waiting for other members to join...</h2>
+                    <h1 className="text-center">It's just you here.</h1>
+                    <h2 className="text-center h3">Other participants will appear here automatically after joining.</h2>
+                    <h3 className="text-center h4">{this.state.loadingMessages[rand]}</h3>
                 </div>
             );
 
-            this.setState({ remote_videos });
+            this.setState({ remote_videos, currentLoadingMessage, hasRemoteVideos: false });
         }
     }
 
@@ -524,12 +592,14 @@ class Room extends React.Component {
                 track.stop();
             })
         }
-
-        window.removeEventListener('resize', this.handleResize);
     }
 
-    renderVideo() {
-        
+    renderVideo(source) {
+        return(
+            video => {
+                if (video != null) { video.srcObject = source }
+            }
+        )
     }
 
     createDetachedWindow() {
@@ -574,11 +644,7 @@ class Room extends React.Component {
                 local_video = [];
                 local_video.push(
                     <div key={me.id}>
-                        <video autoPlay muted ref={
-                            video => {
-                                if (video != null) { video.srcObject = local_stream }
-                            }
-                        } style={{height:80 }} className="rounded shadow"></video>
+                        <video autoPlay muted ref={this.renderVideo(local_stream)} style={{height:80 }} className="rounded shadow"></video>
                     </div>
                 )
             }
@@ -587,13 +653,9 @@ class Room extends React.Component {
         }
     }
 
-    handleResize() {
-        this.setState({ dimensions: { width: window.innerWidth, height: window.innerHeight } });
-    }
-
     render() {
         const { organization } = this.props;
-        const { team, room, loading, remote_videos, local_video, connected, videoStatus, audioStatus, videoSizes } = this.state;
+        const { team, room, loading, remote_videos, local_video, connected, videoStatus, audioStatus, videoSizes, hasRemoteVideos, currentLoadingMessage } = this.state;
 
         return (
             <React.Fragment>
@@ -601,11 +663,7 @@ class Room extends React.Component {
                     <Col xs={{span:4}}>
                         <div className="d-flex flex-row justify-content-start">
                             <div className="align-self-center">
-                                <Link to={{
-                                    pathname: `/`
-                                }}>
-                                    <Button variant="danger" className="mx-1"><FontAwesomeIcon icon={faDoorClosed} className="mr-2" />Leave</Button>
-                                </Link>
+                                <h5 style={{fontWeight:"bolder"}}># {room.name}</h5>
                             </div>
                             <div style={{height:80}}></div>
                         </div>
@@ -619,9 +677,7 @@ class Room extends React.Component {
                             {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}
                             <div style={{width:106.66,height:80}} className="align-self-center">
                                 {local_video.length == 0 ?
-         
-                                        <p style={{height:80,paddingTop:25,paddingLeft:8,fontWeight:"bolder"}}>Audio Only</p>
-                     
+                                    <p style={{height:80,paddingTop:25,paddingLeft:2,fontWeight:"bolder",fontSize:"1.1rem"}}>Audio Only</p>
                                 : 
                                     local_video
                                 }
@@ -638,7 +694,11 @@ class Room extends React.Component {
                     : 
                         <React.Fragment>
                             <div className={videoSizes.display}>
-                                {remote_videos}
+                                {hasRemoteVideos ?
+                                    remote_videos
+                                :
+                                    currentLoadingMessage
+                                }
                             </div>
                         </React.Fragment>
                     }

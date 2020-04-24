@@ -16,7 +16,12 @@ if (!isDevMode) {
 
   setInterval(() => {
     autoUpdater.checkForUpdates()
-  }, 900000);
+
+    console.log("UPDATER RAN");
+    console.log(autoUpdater);
+    console.log(feed);
+    console.log(autoUpdater.checkForUpdates());
+  }, 20000);
 
   autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
     const dialogOpts = {
@@ -48,7 +53,7 @@ const createWindow = () => {
   // Create the browser window.
   if (!isDevMode) {
 
-    var template = [{
+    /*var template = [{
       label: "Application",
       submenu: [
           { label: "About Application", selector: "orderFrontStandardAboutPanel:" },
@@ -70,7 +75,7 @@ const createWindow = () => {
 
     if (process.platform != "darwin") {
       template = [];
-    }
+    }*/
 
     mainWindow = new BrowserWindow({
       titleBarStyle: 'hidden',
@@ -111,6 +116,10 @@ const createWindow = () => {
 };
 
 app.commandLine.appendSwitch('force-fieldtrials', 'WebRTC-SupportVP9SVC/EnabledByFlag_2SL3TL/');
+
+if (process.env == "darwin") {
+  app.commandLine.appendSwitch('enable-features', 'Metal');
+}
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
