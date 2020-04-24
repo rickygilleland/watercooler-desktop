@@ -58,7 +58,7 @@ class Sidebar extends React.Component {
                     <Row>
                         <Col xs={3} md={3} lg={2} style={{borderRight:"1px solid #555f69",backgroundColor:"#3c434a"}} className="vh-100 pr-0">
                             
-                            <Navbar bg="dark" className="text-light pt-5" style={{height:80}}>
+                            <Navbar bg="dark" className="text-light pt-4" style={{height:80}}>
                                 <Navbar.Brand>
                                     {organization != null ? 
                                         <p className="text-light p-0 m-0" style={{fontSize:"1rem"}}><strong>{organization.name}</strong></p>

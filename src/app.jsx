@@ -4,6 +4,11 @@ import { PersistGate } from 'redux-persist/integration/react'
 import { ConnectedRouter } from 'connected-react-router';
 import { History } from 'history';
 import Sidebar from './containers/Sidebar';
+const customTitlebar = require('custom-electron-titlebar');
+
+new customTitlebar.Titlebar({
+	backgroundColor: customTitlebar.Color.fromHex('#444')
+});
 
 export default class App extends React.Component {
   render() {

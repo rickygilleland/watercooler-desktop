@@ -620,7 +620,7 @@ class Room extends React.Component {
                             <div style={{width:106.66,height:80}} className="align-self-center">
                                 {local_video.length == 0 ?
          
-                                        <p style={{height:80}}>Audio Only</p>
+                                        <p style={{height:80,paddingTop:25,paddingLeft:8,fontWeight:"bolder"}}>Audio Only</p>
                      
                                 : 
                                     local_video
