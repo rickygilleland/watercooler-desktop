@@ -39,6 +39,7 @@ class Room extends React.Component {
             audioStatus: true,
             streamer_server_connected: false,
             streamerHandle: null,
+            participant: false,
         }
 
         this.pusher = new Pusher('3eb4f9d419966b6e1e0b', {
@@ -597,8 +598,8 @@ class Room extends React.Component {
         return (
             <React.Fragment>
                 <Row className="bg-dark text-light pl-0 ml-0" style={{height:80}}>
-                    <Col xs={{span:4, offset:4}}>
-                        <div className="d-flex flex-row justify-content-center">
+                    <Col xs={{span:4}}>
+                        <div className="d-flex flex-row justify-content-start">
                             <div className="align-self-center">
                                 <Link to={{
                                     pathname: `/`
@@ -609,15 +610,21 @@ class Room extends React.Component {
                             <div style={{height:80}}>&nbsp;</div>
                         </div>
                     </Col>
-                    <Col xs={4}>
+                    <Col xs={{span:4,offset:4}}>
                         <div className="d-flex flex-row justify-content-end">
                             <div className="align-self-center pr-4">
                                 <Button variant={audioStatus ? "light" : "danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
                                 <Button variant={videoStatus ? "light" : "danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                             </div>
                             {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}
-                            <div style={{width:106.66,height:80}}>
-                                {local_video}   
+                            <div style={{width:106.66,height:80}} className="align-self-center">
+                                {local_video.length == 0 ?
+         
+                                        <p style={{height:80}}>Audio Only</p>
+                     
+                                : 
+                                    local_video
+                                }
                             </div>
                         </div>
                     </Col>
