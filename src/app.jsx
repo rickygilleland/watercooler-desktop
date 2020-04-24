@@ -7,7 +7,8 @@ import Sidebar from './containers/Sidebar';
 const customTitlebar = require('custom-electron-titlebar');
 
 new customTitlebar.Titlebar({
-	backgroundColor: customTitlebar.Color.fromHex('#444')
+  backgroundColor: customTitlebar.Color.fromHex('#444'),
+  overflow: "hidden",
 });
 
 export default class App extends React.Component {

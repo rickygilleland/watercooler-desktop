@@ -72,6 +72,7 @@ const createWindow = () => {
       transparent: true,
       width: 1000,
       height: 600,
+      frame: false,
       webPreferences: {
         nodeIntegration: true,
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
@@ -92,6 +93,7 @@ const createWindow = () => {
       transparent:true,
       width: 1100,
       height: 600,
+      frame: false,
       webPreferences: {
         nodeIntegration: true,
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY
