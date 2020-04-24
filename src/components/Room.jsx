@@ -597,7 +597,7 @@ class Room extends React.Component {
 
         return (
             <React.Fragment>
-                <Row className="bg-dark text-light pl-0 ml-0" style={{height:80}}>
+                <Row className="text-light pl-0 ml-0" style={{height:80,backgroundColor:"#121422"}}>
                     <Col xs={{span:4}}>
                         <div className="d-flex flex-row justify-content-start">
                             <div className="align-self-center">

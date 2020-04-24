@@ -1,7 +1,7 @@
 import React from 'react';
 import { Switch, Route, NavLink } from 'react-router-dom';
 import routes from '../constants/routes.json';
-import { Row, Col, Button, Table, Navbar } from 'react-bootstrap';
+import { Row, Col, Button, Navbar, Dropdown } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch, faSignOutAlt, faDoorOpen } from '@fortawesome/free-solid-svg-icons';
 import EnsureLoggedInContainer from '../containers/EnsureLoggedInContainer';
@@ -45,7 +45,6 @@ class Sidebar extends React.Component {
                         </li>
                     )}
                 </ul>
-                <Button variant="secondary" onClick={() => userLogout() }><FontAwesomeIcon icon={faSignOutAlt} block/></Button>
             </div>
         )
 
@@ -57,9 +56,9 @@ class Sidebar extends React.Component {
                 <Switch>
                 <EnsureLoggedInContainer>
                     <Row>
-                        <Col xs={3} md={3} lg={2} style={{borderRight:"1px solid #555f69",backgroundColor:"#3c434a"}} className="vh-100 pr-0">
+                        <Col xs={3} md={3} lg={2} style={{backgroundColor:"#1b1e2f"}} className="vh-100 pr-0">
                             
-                            <Navbar bg="dark" className="text-light pt-4" style={{height:80}}>
+                            <Navbar className="text-light pt-4" style={{height:80,backgroundColor:"#121422",borderBottom:"2px solid #232533"}}>
                                 <Navbar.Brand>
                                     {organization != null ? 
                                         <p className="text-light p-0 m-0" style={{fontSize:"1rem"}}><strong>{organization.name}</strong></p>
@@ -73,7 +72,7 @@ class Sidebar extends React.Component {
                                 {rooms}
                             </div>
                         </Col>
-                        <Col xs={9} md={9} lg={10} className="pl-0" style={{borderLeft:"1px solid #555f69"}}>
+                        <Col xs={9} md={9} lg={10} className="pl-0" style={{borderLeft:"1px solid #232533"}}>
                             <Route exact path={routes.HOME} component={HomePage} />
                             <Route path={routes.ROOM} component={RoomPage} />
                         </Col>
