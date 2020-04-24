@@ -90,7 +90,7 @@ const createWindow = () => {
       }
     });
 
-    Menu.setApplicationMenu(Menu.buildFromTemplate(template)); 
+    //Menu.setApplicationMenu(Menu.buildFromTemplate(template)); 
 
   } else {
     // Create the browser window.
