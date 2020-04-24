@@ -99,6 +99,10 @@ const createWindow = () => {
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY
       }
     });
+
+    if (process.platform != "darwin") {
+      mainWindow.removeMenu();
+    }
   }
 
   // and load the index.html of the app.
