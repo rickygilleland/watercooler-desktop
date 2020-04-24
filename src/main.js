@@ -68,6 +68,10 @@ const createWindow = () => {
       ]}
     ];
 
+    if (process.platform != "darwin") {
+      template = [];
+    }
+
     mainWindow = new BrowserWindow({
       titleBarStyle: 'hidden',
       transparent: true,
