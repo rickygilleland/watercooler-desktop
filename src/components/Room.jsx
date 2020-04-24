@@ -607,7 +607,7 @@ class Room extends React.Component {
                                     <Button variant="danger" className="mx-1"><FontAwesomeIcon icon={faDoorClosed} className="mr-2" />Leave</Button>
                                 </Link>
                             </div>
-                            <div style={{height:80}}>&nbsp;</div>
+                            <div style={{height:80}}></div>
                         </div>
                     </Col>
                     <Col xs={{span:4,offset:4}}>
