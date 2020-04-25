@@ -599,7 +599,7 @@ class Room extends React.Component {
                                 {local_stream === null ?
                                     <Button variant="success" className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join Room</Button>
                                 :
-                                    <Button variant="danger" className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave Room</Button>
+                                    <Button variant="danger" className="mx-1" onClick={() => this.stopPublishingStream() } disabled><FontAwesomeIcon icon={faDoorClosed} /> Leave Room</Button>
                                 }
                             </div>
                             <div style={{height:80}}></div>
