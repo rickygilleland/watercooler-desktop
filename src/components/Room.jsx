@@ -8,7 +8,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch, faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash, faDoorClosed, faDoorOpen, faCircle, faGrin, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
 import { Janus } from 'janus-gateway';
 import Pusher from 'pusher-js';
-import Video from './Video';
+import VideoList from './VideoList';
 
 class Room extends React.Component {
     constructor(props) {
@@ -609,14 +609,11 @@ class Room extends React.Component {
                         <React.Fragment>
                             <div className={videoSizes.display}>
                                 {publishers.length > 0 ?
-                                    publishers.map((publisher, key) => {
-                                        return(<Video
-                                            videoSizes={videoSizes}
-                                            publisher={publisher}
-                                            renderVideo={this.renderVideo}
-                                            key={key}
-                                        ></Video>)
-                                    })
+                                    <VideoList
+                                        videoSizes={videoSizes}
+                                        publishers={publishers}
+                                        renderVideo={this.renderVideo}
+                                    ></VideoList>
                                 :
                                     currentLoadingMessage
                                 }
