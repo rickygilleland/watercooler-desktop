@@ -7,7 +7,6 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch, faSignOutAlt, faDoorOpen } from '@fortawesome/free-solid-svg-icons';
 import EnsureLoggedInContainer from '../containers/EnsureLoggedInContainer';
 import LoginPage from '../containers/LoginPage';
-import HomePage from '../containers/HomePage';
 import RoomPage from '../containers/RoomPage';
 
 class Sidebar extends React.Component {
@@ -120,8 +119,6 @@ class Sidebar extends React.Component {
                             </div>
                         </div>
                         <div className="pl-0 float-left" style={{borderLeft:"1px solid #232533",width:this.state.dimensions.mainContainerWidth}}>
-                            <Route exact path={routes.HOME} component={HomePage} />
-                            {/*<Route path={routes.ROOM} component={RoomPage} />*/}
                             <Route 
                                 path={routes.ROOM} 
                                 render={(routeProps) => (
