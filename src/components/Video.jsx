@@ -4,11 +4,11 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faVideoSlash, faMicrophone, faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons';
 
 function Video(props) {
-    const { videoSizes, publisher, renderVideo } = props;
+    const { videoSizes, publisher, hasVideo, hasAudio, renderVideo } = props;
 
-    if (typeof publisher.stream != "undefined") {
+    if (typeof publisher.stream != "undefined" && publisher.stream != null) {
 
-        if (publisher.hasVideo === true) {
+        if (hasVideo === true) {
             return (
                 <div className="col p-0">
                     <div className="mx-auto position-relative text-light"  style={{height: videoSizes.height, width: videoSizes.width }}>
@@ -41,10 +41,24 @@ function Video(props) {
                 <video autoPlay ref={renderVideo(publisher.stream)} className="rounded shadow" style={{height: 0, width: 0 }}></video>
                     <div className="mx-auto align-self-center">
                         <Image src={publisher.member.avatar} roundedCircle />
-                        <p className="font-weight-bolder text-center" style={{paddingTop:5,fontSize:"1.5rem"}}><FontAwesomeIcon style={{color:"#f9426c"}} icon={faVideoSlash} /> Audio Only</p>
+                        <p className="font-weight-bolder text-center" style={{paddingTop:5,fontSize:"1.4rem"}}><FontAwesomeIcon style={{color:"#f9426c"}} icon={faVideoSlash} /> Audio Only</p>
                     </div>
                     <div className="position-absolute overlay" style={{bottom:0,backgroundColor:"rgb(18, 20, 34, .5)",width:"100%"}}>
-                        <p className="pl-2 mb-1 mt-1 font-weight-bolder">{publisher.member.name}</p>
+                        <Row>
+                            <Col>
+                                <p className="pl-2 mb-1 mt-1 font-weight-bolder">{publisher.member.name}</p>
+                            </Col>
+                            <Col>
+                                <p className="pr-2 mb-1 mt-1 font-weight-bolder text-right">
+                                    {publisher.hasAudio 
+                                        ? 
+                                            <FontAwesomeIcon style={{color:"#2eb97b"}} icon={faMicrophone} /> 
+                                        : 
+                                            <FontAwesomeIcon style={{color:"#f9426c"}} icon={faMicrophoneSlash} /> 
+                                    }
+                                </p>
+                            </Col>
+                        </Row>
                     </div>
                 </div>
             </div>

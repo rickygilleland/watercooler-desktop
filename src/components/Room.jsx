@@ -5,7 +5,7 @@ import { each, debounce } from 'lodash';
 import { Link } from 'react-router-dom';
 import { Container, Image, Button, Row, Col, TabContainer } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faCircleNotch, faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash, faDoorClosed, faDoorOpen, faCircle, faGrin, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash, faDoorClosed, faDoorOpen, faCircle, faGrin, faLayerGroup, faLessThanEqual } from '@fortawesome/free-solid-svg-icons';
 import { Janus } from 'janus-gateway';
 import Pusher from 'pusher-js';
 import VideoList from './VideoList';
@@ -35,7 +35,7 @@ class Room extends React.Component {
             videoStatus: false,
             audioStatus: true,
             streamer_server_connected: false,
-            streamerHandle: null,
+            videoRoomStreamerHandle: null,
             rootStreamerHandle: null,
             loadingMessages: [
                 "Waiting for other members to join...",
@@ -74,6 +74,8 @@ class Room extends React.Component {
         this.handleRemoteStreams = this.handleRemoteStreams.bind(this);
         this.subscribeToRemoteStream = this.subscribeToRemoteStream.bind(this);
         this.updateDisplayedVideosSizes = this.updateDisplayedVideosSizes.bind(this);
+
+        this.stopPublishingStream = this.stopPublishingStream.bind(this);
 
         //this.updateDisplayedVideos = debounce(this.updateDisplayedVideos, 200);
 
@@ -149,7 +151,7 @@ class Room extends React.Component {
     }
     
     componentWillUnmount() {
-        const { me, room , streamerHandle, publishers, local_stream } = this.state;
+        const { me, room , videoRoomStreamerHandle, publishers, local_stream } = this.state;
 
         if (typeof room.channel_id != 'undefined') {
             this.pusher.unsubscribe(`presence-peers.${room.channel_id}`);
@@ -157,36 +159,7 @@ class Room extends React.Component {
 
         this.pusher.disconnect();
 
-        if (streamerHandle != null) {
-            var request = { 
-                "request":  "leave", 
-                "token": me.info.streamer_key
-            }
-    
-            streamerHandle.send({ "message": request });
-
-            streamerHandle.detach();
-        }
-
-        publishers.forEach(publisher => {
-            if (typeof publisher.handle != "undefined") {
-                var request = {
-                    "request": "leave",
-                    "token": me.info.streamer_key
-                }
-
-                publisher.handle.send({ "message": request });
-                publisher.handle.detatch();
-            }
-        })
-
-        if (typeof local_stream !== 'undefined') {
-            const tracks = local_stream.getTracks();
-
-            tracks.forEach(function(track) {
-                track.stop();
-            })
-        }
+        this.stopPublishingStream()
     }
 
     openMediaHandle() {
@@ -208,8 +181,8 @@ class Room extends React.Component {
                 rootStreamerHandle.attach({
                     plugin: "janus.plugin.videoroom",
                     opaqueId: me.info.peer_uuid,
-                    success: function(streamerHandle) {
-                        that.setState({ streamerHandle });
+                    success: function(videoRoomStreamerHandle) {
+                        that.setState({ videoRoomStreamerHandle });
 
                         //register a publisher
                         var request = { 
@@ -220,20 +193,20 @@ class Room extends React.Component {
                             "token": me.info.streamer_key
                         }
 
-                        streamerHandle.send({ "message": request });
+                        videoRoomStreamerHandle.send({ "message": request });
                     
                     },
                     error: function(cause) {
                             // Couldn't attach to the plugin
                     },
                     onmessage: function(msg, jsep) {
-                        var { streamerHandle, currentLoadingMessage, containerBackgroundColors, members } = that.state;
+                        var { videoRoomStreamerHandle, currentLoadingMessage, containerBackgroundColors, members } = that.state;
 
                         console.log("ROOT MSG");
                         console.log(msg);
     
                         if (jsep != null) {
-                            streamerHandle.handleRemoteJsep({ "jsep": jsep });
+                            videoRoomStreamerHandle.handleRemoteJsep({ "jsep": jsep });
                         }
 
                         if (msg.videoroom == "joined") {
@@ -293,7 +266,15 @@ class Room extends React.Component {
                                 })
 
                                 that.setState({ publishers: [ ...newPublishers, ...that.state.publishers ] });
+                            }
 
+                            if (typeof msg.leaving != "undefined") {
+                                const updatedPublishers = that.state.publishers.filter(item => {
+                                    return item.id != msg.leaving;
+                                })
+
+                                that.setState({ publishers: updatedPublishers });
+                
                             }
                         }
                     },
@@ -319,7 +300,7 @@ class Room extends React.Component {
     }
 
     async startPublishingStream() {
-        var  { streamerHandle, audioStatus, videoStatus } = this.state;
+        var  { videoRoomStreamerHandle, audioStatus, videoStatus } = this.state;
         let streamOptions;
         /* TODO: Manually prompt for camera and microphone access on macos to handle it more gracefully - systemPreferences.getMediaAccessStatus(mediaType) */
         streamOptions = {
@@ -346,7 +327,7 @@ class Room extends React.Component {
         var that = this;
 
         //publish our feed
-        streamerHandle.createOffer({
+        videoRoomStreamerHandle.createOffer({
             stream: local_stream,
             success: function(jsep) {
                 var request = {
@@ -357,13 +338,48 @@ class Room extends React.Component {
                     "videocodec": "vp9"
                 }
 
-                streamerHandle.send({ "message": request, "jsep": jsep });
+                videoRoomStreamerHandle.send({ "message": request, "jsep": jsep });
 
                 that.setState({ publishing: true });
 
                 that.handleRemoteStreams();
             }
         })
+    }
+
+    stopPublishingStream() {
+        const { videoRoomStreamerHandle, local_stream, publishers } = this.state;
+
+        if (videoRoomStreamerHandle == null) {
+            return;
+        }
+
+        var request = {
+            "request": "unpublish"
+        }
+
+        videoRoomStreamerHandle.send({ "message": request });
+
+        if (local_stream != null) {
+            const tracks = local_stream.getTracks();
+
+            tracks.forEach(function(track) {
+                track.stop();
+            })
+        }
+
+        publishers.forEach((publisher, key) => {
+            if (typeof publisher.handle != "undefined") {
+                publisher.handle.detach();
+            }
+
+            publishers[key].stream = null;
+            publishers[key].handle = null;
+            publishers[key].active = false;
+        })
+
+        this.setState({ publishing: false, local_stream: null, publishers })
+        
     }
 
     handleRemoteStreams() {
@@ -373,7 +389,7 @@ class Room extends React.Component {
 
         publishers.forEach((publisher, key) => {
             console.log(publisher);
-            if (typeof publisher.handle == "undefined") {
+            if (typeof publisher.handle == "undefined" || publisher.handle == null) {
                 this.subscribeToRemoteStream(publisher, key);
             }
         })
@@ -384,8 +400,6 @@ class Room extends React.Component {
 
         var handle;
         var that = this;
-
-        console.log("SUBSCRIVNG");
 
         rootStreamerHandle.attach({
             plugin: "janus.plugin.videoroom",
@@ -431,10 +445,7 @@ class Room extends React.Component {
                 }
             },
             onremotestream: function(remote_stream) {
-                console.log("REMOTE _STREAM");
                 var tracks = remote_stream.getTracks();
-                console.log(remote_stream);
-                console.log(tracks);
                 var hasVideo = false;
                 var hasAudio = false;
                 tracks.forEach(track => {
@@ -448,31 +459,21 @@ class Room extends React.Component {
 
                 //make sure this publisher still exists
                 if (typeof publishers[key] != "undefined") {
-                    publishers[key] = {
-                        stream: remote_stream,
-                        hasVideo,
-                        hasAudio,
-                        handle,
-                        ...publisher
-                    }
-    
+                    publishers[key].stream = remote_stream;
+                    publishers[key].hasVideo = hasVideo;
+                    publishers[key].hasAudio = hasAudio;
+                    publishers[key].handle = handle;
+                    publishers[key].active = true;
+
                     that.setState({ publishers });
                 }
 
+                console.log(that.state.publishers);
+
             },
             oncleanup: function() {
-                const updatedPublishers = that.state.publishers.filter(item => {
-                    return item.id != publisher.id;
-                })
-
-                that.setState({ publishers: updatedPublishers });
             },
             detached: function() {
-                const updatedPublishers = that.state.publishers.filter(item => {
-                    return item.id != publisher.id;
-                })
-
-                that.setState({ publishers: updatedPublishers });
             }
         });
     }
@@ -562,7 +563,7 @@ class Room extends React.Component {
     }
 
     toggleVideoOrAudio(type) {
-        var { streamerHandle, local_stream, videoStatus, audioStatus } = this.state;
+        var { videoRoomStreamerHandle, local_stream, videoStatus, audioStatus } = this.state;
 
         if (typeof local_stream !== 'undefined') {
             const tracks = local_stream.getTracks();
@@ -579,7 +580,7 @@ class Room extends React.Component {
                 }
             })
 
-            if (streamerHandle != null) {
+            if (videoRoomStreamerHandle != null) {
                 //update our published stream
                 var request = {
                     "request": "configure",
@@ -588,7 +589,7 @@ class Room extends React.Component {
                     "videocodec": "vp9"
                 }
 
-                streamerHandle.send({ "message": request });
+                videoRoomStreamerHandle.send({ "message": request });
             }
 
             this.setState({ videoStatus, audioStatus });
@@ -597,7 +598,6 @@ class Room extends React.Component {
 
     render() {
         const { room, loading, publishers, local_stream, videoStatus, audioStatus, videoSizes, currentLoadingMessage } = this.state;
-
         return (
             <React.Fragment>
                 <Row className="text-light pl-0 ml-0" style={{height:80,backgroundColor:"#121422"}}>
@@ -615,7 +615,7 @@ class Room extends React.Component {
                                 {local_stream === null ?
                                     <Button variant="success" className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join Room</Button>
                                 :
-                                    <Button variant="danger" className="mx-1" onClick={() => this.stopPublishingStream() } disabled><FontAwesomeIcon icon={faDoorClosed} /> Leave Room</Button>
+                                    <Button variant="danger" className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave Room</Button>
                                 }
                             </div>
                             <div style={{height:80}}></div>
