@@ -668,7 +668,7 @@ class Room extends React.Component {
                             <div style={{height:80}}></div>
                         </div>
                     </Col>
-                    <Col xs={{span:4,offset:4}}>
+                    <Col xs={{span:8}}>
                         <div className="d-flex flex-row justify-content-end">
                             <div className="align-self-center pr-4">
                                 <Button variant={audioStatus ? "light" : "danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>

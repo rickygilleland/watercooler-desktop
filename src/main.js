@@ -16,15 +16,9 @@ if (!isDevMode) {
 
   setInterval(() => {
     autoUpdater.checkForUpdates()
-
-    console.log("UPDATER RAN");
-    console.log(autoUpdater);
-    console.log(feed);
-  }, 200000);
+  }, 900000);
 
   autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
-    console.log("update-downloaded")
-    console.log(event)
     const dialogOpts = {
       type: 'info',
       buttons: ['Restart', 'Later'],
@@ -37,27 +31,6 @@ if (!isDevMode) {
       if (returnValue.response === 0) autoUpdater.quitAndInstall()
     })
   })
-
-  autoUpdater.on('checking-for-update', event => {
-    console.log("checking-for-update")
-    console.log(event);
-  })
-
-  autoUpdater.on('update-available', event => {
-    console.log("update-available")
-    console.log(event);
-  })
-
-  autoUpdater.on('update-not-available', event => {
-    console.log("update-not-available")
-    console.log(event);
-  })
-
-  autoUpdater.on('error', message => {
-    console.error('There was a problem updating the application')
-    console.error(message)
-  })
-
 }
 
 contextMenu({
@@ -98,11 +71,13 @@ const createWindow = () => {
       transparent: true,
       width: 1000,
       height: 600,
+      minWidth: 650,
+      minHeight: 500,
       frame: false,
       webPreferences: {
         nodeIntegration: true,
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-        devTools: true
+        devTools: false
       }
     });
 
@@ -115,6 +90,8 @@ const createWindow = () => {
       transparent:true,
       width: 1100,
       height: 600,
+      minWidth: 650,
+      minHeight: 500,
       frame: false,
       webPreferences: {
         nodeIntegration: true,

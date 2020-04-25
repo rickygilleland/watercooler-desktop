@@ -1,5 +1,5 @@
 import React from 'react';
-import { Switch, Route, NavLink } from 'react-router-dom';
+import { Switch, Route, NavLink, Redirect } from 'react-router-dom';
 import routes from '../constants/routes.json';
 import { each, debounce } from 'lodash';
 import { Row, Col, Button, Navbar, Dropdown } from 'react-bootstrap';
@@ -77,6 +77,17 @@ class Sidebar extends React.Component {
             </div>
         )
 
+        var firstRoom = {};
+        teams.forEach(team => {
+            team.rooms.forEach(room => {
+                firstRoom = {
+                    slug: room.slug,
+                    team: team,
+                    room: room
+                }
+            })
+        })
+
         return (
             <>
                 <Switch>
@@ -84,6 +95,13 @@ class Sidebar extends React.Component {
                 </Switch>
                 <Switch>
                 <EnsureLoggedInContainer>
+                    <Redirect from="/" exact to={{
+                        pathname: `/room/${firstRoom.slug}`,
+                        state: {
+                            team: firstRoom.team,
+                            room: firstRoom.room
+                        }
+                    }} />
               
                         <div style={{backgroundColor:"#1b1e2f",width:this.state.dimensions.sidebarWidth}} className="vh-100 pr-0 float-left">
                             
