@@ -3,7 +3,7 @@ import { systemPreferences } from 'electron';
 import update from 'immutability-helper';
 import { each, debounce } from 'lodash';
 import { Link } from 'react-router-dom';
-import { Container, Image, Button, Row, Col } from 'react-bootstrap';
+import { Container, Image, Button, Row, Col, TabContainer } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch, faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash, faDoorClosed, faDoorOpen, faCircle, faGrin, faLayerGroup } from '@fortawesome/free-solid-svg-icons';
 import { Janus } from 'janus-gateway';
@@ -141,7 +141,7 @@ class Room extends React.Component {
     }
     
     componentWillUnmount() {
-        const { streams, me, room , streamerHandle, remote_streams, local_stream } = this.state;
+        const { me, room , streamerHandle, publishers, local_stream } = this.state;
 
         if (typeof room.channel_id != 'undefined') {
             this.pusher.unsubscribe(`presence-peers.${room.channel_id}`);
@@ -160,17 +160,17 @@ class Room extends React.Component {
             streamerHandle.detach();
         }
 
-        /*each(remote_streams, function(stream) {
-            if (typeof stream != "undefined" && typeof stream.handle != "undefined") {
-                var request = { 
-                    "request":  "leave", 
+        publishers.forEach(publisher => {
+            if (typeof publisher.handle != "undefined") {
+                var request = {
+                    "request": "leave",
                     "token": me.info.streamer_key
                 }
-        
-                stream.handle.send({ "message": request });
-                stream.handle.detach();
+
+                publisher.handle.send({ "message": request });
+                publisher.handle.detatch();
             }
-        })*/
+        })
 
         if (typeof local_stream !== 'undefined') {
             const tracks = local_stream.getTracks();
@@ -182,7 +182,7 @@ class Room extends React.Component {
     }
 
     openMediaHandle() {
-        var { me, room, team } = this.state;
+        var { me, room, team, local_stream } = this.state;
         var that = this;
 
         var rootStreamerHandle = new Janus(
@@ -244,6 +244,10 @@ class Room extends React.Component {
                                         }
                                     }) 
                                     publisher.containerBackgroundColor = containerBackgroundColors[rand];
+
+                                    if (typeof publisher.loading == "undefined") {
+                                        publisher.loading = false;
+                                    }
                                 })
 
                                 that.setState({ connected: true, loading: false, publishers });
@@ -275,6 +279,10 @@ class Room extends React.Component {
                                         }
                                     }) 
                                     publisher.containerBackgroundColor = containerBackgroundColors[rand];
+
+                                    if (typeof publisher.loading == "undefined") {
+                                        publisher.loading = true;
+                                    }
                                 })
 
                                 that.setState({ publishers: { ...publishers, ...that.state.publishers } });
@@ -357,6 +365,14 @@ class Room extends React.Component {
         var handle;
 
         publishers.forEach((publisher, key) => {
+
+            publishers[key] = {
+                loading: true,
+                ...publisher
+            }
+
+            that.setState({ publishers })
+
             rootStreamerHandle.attach({
                 plugin: "janus.plugin.videoroom",
                 opaqueId: me.info.peer_uuid,
@@ -373,7 +389,7 @@ class Room extends React.Component {
                         "token": me.info.streamer_key,
                         "feed": publisher.id,
                     }
-    
+
                     remoteHandle.send({ "message": request });
     
                 },
@@ -401,8 +417,9 @@ class Room extends React.Component {
                     }
                 },
                 onremotestream: function(remote_stream) {
-                    console.log("REMOTE STREAM");
                     var tracks = remote_stream.getTracks();
+                    console.log(remote_stream);
+                    console.log(tracks);
                     var hasVideo = false;
                     var hasAudio = false;
                     tracks.forEach(track => {
@@ -418,19 +435,27 @@ class Room extends React.Component {
                         stream: remote_stream,
                         hasVideo,
                         hasAudio,
+                        handle,
                         ...publisher
                     }
 
                     that.setState({ publishers });
+
                 },
                 oncleanup: function() {
-                    remote_streams.splice(curMember.id, 1);
-                    that.setState({ remote_streams });
-                    that.updateDisplayedVideosSizes(remote_streams);
+
+                    delete publishers[key].stream;
+                    publishers[key].hasVideo = false;
+                    publishers[key].hasAudio = false;
+
+                    that.setState({ publishers });
                 },
                 detached: function() {
-                    remote_streams.splice(curMember.id, 1);
-                    that.updateDisplayedVideosSizes(remote_streams);
+                    delete publishers[key].stream;
+                    publishers[key].hasVideo = false;
+                    publishers[key].hasAudio = false;
+                    
+                    that.setState({ publishers });
                 }
             });
         })
