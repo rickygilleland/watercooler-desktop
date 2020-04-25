@@ -24,6 +24,7 @@ class Room extends React.Component {
             publishers: [],
             me: {},
             connected: false,
+            publishing: false,
             leaving: false,
             videoSizes: {
                 width: 0,
@@ -35,6 +36,7 @@ class Room extends React.Component {
             audioStatus: true,
             streamer_server_connected: false,
             streamerHandle: null,
+            rootStreamerHandle: null,
             loadingMessages: [
                 "Waiting for other members to join...",
                 "Grab a cup of coffee while you wait.",
@@ -70,6 +72,7 @@ class Room extends React.Component {
 
         this.toggleVideoOrAudio = this.toggleVideoOrAudio.bind(this);
         this.handleRemoteStreams = this.handleRemoteStreams.bind(this);
+        this.subscribeToRemoteStream = this.subscribeToRemoteStream.bind(this);
         this.updateDisplayedVideosSizes = this.updateDisplayedVideosSizes.bind(this);
 
         //this.updateDisplayedVideos = debounce(this.updateDisplayedVideos, 200);
@@ -129,13 +132,18 @@ class Room extends React.Component {
 
     componentDidUpdate(prevProps, prevState) {
         const { dimensions } = this.props;
-        const { publishers, local_stream } = this.state;
+        const { publishers, publishing } = this.state;
+
+        if (prevState.publishers != publishers) {
+            console.log(`publishers changed`)
+            console.log(publishers);
+        }
 
         if (prevProps.dimensions != dimensions || prevState.publishers.length != publishers.length) {
             this.updateDisplayedVideosSizes(null, true);
         }
 
-        if ((prevState.publishers != publishers) && local_stream != null) {
+        if ((prevState.publishers != publishers && publishers.length > 0) && publishing) {
             this.handleRemoteStreams();
         }
     }
@@ -233,11 +241,10 @@ class Room extends React.Component {
                             console.log(msg);
 
                             if (msg.publishers.length > 0) {
-                                var publishers = msg.publishers;
 
                                 let rand = Math.floor(Math.random() * containerBackgroundColors.length); 
                                 
-                                publishers.forEach(publisher => {
+                                msg.publishers.forEach(publisher => {
                                     each(members, function(member) {
                                         if (member.peer_uuid == publisher.display) {
                                             publisher.member = member;
@@ -250,7 +257,7 @@ class Room extends React.Component {
                                     }
                                 })
 
-                                that.setState({ connected: true, loading: false, publishers });
+                                that.setState({ connected: true, loading: false, publishers: msg.publishers });
                             } else {
                                 currentLoadingMessage = [];
 
@@ -268,11 +275,11 @@ class Room extends React.Component {
                         if (msg.videoroom == "event") {
                             //check if we have new publishers to subscribe to
                             if (typeof msg.publishers != "undefined") {
-                                let publishers = msg.publishers;
+                                let newPublishers = msg.publishers;
 
                                 let rand = Math.floor(Math.random() * containerBackgroundColors.length); 
 
-                                publishers.forEach(publisher => {
+                                newPublishers.forEach(publisher => {
                                     each(members, function(member) {
                                         if (member.peer_uuid == publisher.display) {
                                             publisher.member = member;
@@ -285,7 +292,7 @@ class Room extends React.Component {
                                     }
                                 })
 
-                                that.setState({ publishers: { ...publishers, ...that.state.publishers } });
+                                that.setState({ publishers: [ ...newPublishers, ...that.state.publishers ] });
 
                             }
                         }
@@ -352,85 +359,95 @@ class Room extends React.Component {
 
                 streamerHandle.send({ "message": request, "jsep": jsep });
 
+                that.setState({ publishing: true });
+
                 that.handleRemoteStreams();
             }
         })
     }
 
     handleRemoteStreams() {
-        var { me, publishers, room, rootStreamerHandle } = this.state;
+        var { publishers } = this.state;
 
-        var that = this;
-        var curMember;
-        var handle;
+        console.log("HANDLE REMOTE CALLED");
 
         publishers.forEach((publisher, key) => {
-
-            publishers[key] = {
-                loading: true,
-                ...publisher
+            console.log(publisher);
+            if (typeof publisher.handle == "undefined") {
+                this.subscribeToRemoteStream(publisher, key);
             }
+        })
+    }
 
-            that.setState({ publishers })
+    subscribeToRemoteStream(publisher, key) {
+        const { me, room, publishers, rootStreamerHandle } = this.state;
 
-            rootStreamerHandle.attach({
-                plugin: "janus.plugin.videoroom",
-                opaqueId: me.info.peer_uuid,
-                success: function(remoteHandle) {
-    
-                    handle = remoteHandle;
-    
-                    //subscribe to the feed
-                    var request = { 
-                        "request":  "join", 
-                        "room": room.channel_id, 
-                        "ptype": "subscriber",
-                        "display": me.info.peer_uuid,
-                        "token": me.info.streamer_key,
-                        "feed": publisher.id,
-                    }
+        var handle;
+        var that = this;
 
-                    remoteHandle.send({ "message": request });
-    
-                },
-                error: function(cause) {
-                        // Couldn't attach to the plugin
-                },
-                onmessage: function(msg, jsep) {
-                    console.log("REMOTE MSG");
-                    console.log(msg);
-                    if (jsep != null) {
-                        if (typeof msg.display != "undefined") {
-                            handle.createAnswer({
-                                jsep: jsep,
-                                media: { audioSend: false, videoSend: false},
-                                success: function(jsep) {
-                                    var request = {
-                                        "request": "start",
-                                        "room": msg.room
-                                    }
-    
-                                    handle.send({ "message": request, "jsep": jsep });
+        console.log("SUBSCRIVNG");
+
+        rootStreamerHandle.attach({
+            plugin: "janus.plugin.videoroom",
+            opaqueId: me.info.peer_uuid,
+            success: function(remoteHandle) {
+
+                handle = remoteHandle;
+
+                //subscribe to the feed
+                var request = { 
+                    "request":  "join", 
+                    "room": room.channel_id, 
+                    "ptype": "subscriber",
+                    "display": me.info.peer_uuid,
+                    "token": me.info.streamer_key,
+                    "feed": publisher.id,
+                }
+
+                remoteHandle.send({ "message": request });
+
+            },
+            error: function(cause) {
+                    // Couldn't attach to the plugin
+            },
+            onmessage: function(msg, jsep) {
+                console.log("REMOTE MSG");
+                console.log(msg);
+                if (jsep != null) {
+                    if (typeof msg.display != "undefined") {
+                        handle.createAnswer({
+                            jsep: jsep,
+                            media: { audioSend: false, videoSend: false},
+                            success: function(jsep) {
+                                var request = {
+                                    "request": "start",
+                                    "room": msg.room
                                 }
-                            })
-                        }
-                    }
-                },
-                onremotestream: function(remote_stream) {
-                    var tracks = remote_stream.getTracks();
-                    console.log(remote_stream);
-                    console.log(tracks);
-                    var hasVideo = false;
-                    var hasAudio = false;
-                    tracks.forEach(track => {
-                        if (track.kind == "video" && track.enabled) {
-                            hasVideo = true;
-                        }
-                        if (track.kind == "audio" && track.enabled) {
-                            hasAudio = true;
-                        }
-                    })
 
+                                handle.send({ "message": request, "jsep": jsep });
+                            }
+                        })
+                    }
+                }
+            },
+            onremotestream: function(remote_stream) {
+                console.log("REMOTE _STREAM");
+                var tracks = remote_stream.getTracks();
+                console.log(remote_stream);
+                console.log(tracks);
+                var hasVideo = false;
+                var hasAudio = false;
+                tracks.forEach(track => {
+                    if (track.kind == "video" && track.enabled) {
+                        hasVideo = true;
+                    }
+                    if (track.kind == "audio" && track.enabled) {
+                        hasAudio = true;
+                    }
+                })
+
+                //make sure this publisher still exists
+                if (typeof publishers[key] != "undefined") {
                     publishers[key] = {
                         stream: remote_stream,
                         hasVideo,
@@ -438,27 +455,26 @@ class Room extends React.Component {
                         handle,
                         ...publisher
                     }
-
-                    that.setState({ publishers });
-
-                },
-                oncleanup: function() {
-
-                    delete publishers[key].stream;
-                    publishers[key].hasVideo = false;
-                    publishers[key].hasAudio = false;
-
-                    that.setState({ publishers });
-                },
-                detached: function() {
-                    delete publishers[key].stream;
-                    publishers[key].hasVideo = false;
-                    publishers[key].hasAudio = false;
-                    
+    
                     that.setState({ publishers });
                 }
-            });
-        })
+
+            },
+            oncleanup: function() {
+                const updatedPublishers = that.state.publishers.filter(item => {
+                    return item.id != publisher.id;
+                })
+
+                that.setState({ publishers: updatedPublishers });
+            },
+            detached: function() {
+                const updatedPublishers = that.state.publishers.filter(item => {
+                    return item.id != publisher.id;
+                })
+
+                that.setState({ publishers: updatedPublishers });
+            }
+        });
     }
 
     updateDisplayedVideosSizes() {
