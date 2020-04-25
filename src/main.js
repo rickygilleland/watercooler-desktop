@@ -71,7 +71,7 @@ const createWindow = () => {
       transparent: true,
       width: 1000,
       height: 600,
-      minWidth: 650,
+      minWidth: 900,
       minHeight: 500,
       frame: false,
       webPreferences: {
@@ -90,7 +90,7 @@ const createWindow = () => {
       transparent:true,
       width: 1100,
       height: 600,
-      minWidth: 650,
+      minWidth: 900,
       minHeight: 500,
       frame: false,
       webPreferences: {

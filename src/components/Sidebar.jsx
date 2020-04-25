@@ -23,7 +23,7 @@ class Sidebar extends React.Component {
         }
 
         this.handleResize = this.handleResize.bind(this);
-        this.handleResize = debounce(this.handleResize, 125);
+        //this.handleResize = debounce(this.handleResize, 2);
     }
 
     componentDidMount() {
