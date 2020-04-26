@@ -3,6 +3,7 @@
     "ROOM": "/room/:roomSlug",
     "LOGIN": "/login",
     "CALLBACK": "/callback/:type/:code",
-    "LOADING": "/loading"
+    "LOADING": "/loading",
+    "REDIRECT": "/redirect"
   }
   

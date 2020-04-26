@@ -7,12 +7,13 @@ import { push } from 'connected-react-router';
 import { withRouter } from 'react-router-dom'
 import Sidebar from '../components/Sidebar';
 
-function mapStateToProps(state) {
+function mapStateToProps(state, ownProps) {
     return {
         user: state.user,
         organization: state.room.organization,
         teams: state.room.teams,
         auth: state.auth,
+        currentURL: ownProps.location.pathname
     }
 }
 

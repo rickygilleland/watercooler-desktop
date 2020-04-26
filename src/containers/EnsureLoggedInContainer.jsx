@@ -28,8 +28,9 @@ class EnsureLoggedInContainer extends React.Component {
     }
   
     render() {
-        const {auth} = this.props;
-      if (auth.isLoggedIn) {
+      const {auth,currentURL} = this.props;
+      console.log(this.props.children);
+      if (auth.isLoggedIn && currentURL != "/" && currentURL != "/loading") {
         return this.props.children
       } else {
         return null

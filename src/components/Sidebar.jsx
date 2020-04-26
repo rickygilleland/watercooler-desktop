@@ -4,7 +4,7 @@ import routes from '../constants/routes.json';
 import { each, debounce } from 'lodash';
 import { Row, Col, Button, Navbar, Dropdown } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faCircleNotch, faSignOutAlt, faDoorOpen } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faSignOutAlt, faDoorOpen, faPlusSquare } from '@fortawesome/free-solid-svg-icons';
 import EnsureLoggedInContainer from '../containers/EnsureLoggedInContainer';
 import LoginPage from '../containers/LoginPage';
 import LoadingPage from '../containers/LoadingPage';
@@ -46,13 +46,19 @@ class Sidebar extends React.Component {
     }
 
     render() {
-        const { organization, teams, user, userLogout, } = this.props;
+        const { organization, teams, user, auth, userLogout, currentUrl } = this.props;
         const { dimensions } = this.state;
 
         const rooms = teams.map((team, teamKey) =>
             <div key={teamKey}>
-                <h3 className="font-weight-bold h4 text-light pl-2 pt-3">{team.name} <small>Rooms</small></h3>
-                <hr/>
+                <Row>
+                    <Col xs={6}>
+                        <p className="font-weight-bold text-light pl-2 pt-1" style={{fontSize:"1.2rem"}}><small>Rooms</small></p>
+                    </Col>
+                    <Col xs={6}>
+                        <p className="text-right text-light pr-2 pt-1" style={{fontSize:"1.2rem"}}><Button><FontAwesomeIcon icon={faPlusSquare} /></Button></p>
+                    </Col>
+                </Row>
                 <ul className="nav flex-column">
                     {team.rooms.map((room, roomKey) => 
                         <li key={roomKey} className="nav-item">
@@ -93,12 +99,14 @@ class Sidebar extends React.Component {
                 <Switch>
                     <Route path={routes.LOGIN} component={LoginPage} />
                     <Route path={routes.LOADING} component={LoadingPage} />
+                    <Redirect from="/" exact to={{
+                            pathname: routes.LOADING,
+                    }} />
                 </Switch>
                 <Switch>
                 <EnsureLoggedInContainer>
-                    {typeof firstRoom.slug != "undefined" ?
-                    
-                        <Redirect from="/" exact to={{
+                    {typeof firstRoom != "undefined" && typeof firstRoom.slug != "undefined" ?
+                        <Redirect from="/redirect" exact to={{
                             pathname: `/room/${firstRoom.slug}`,
                             state: {
                                 team: firstRoom.team,
@@ -108,33 +116,32 @@ class Sidebar extends React.Component {
 
                         : ""
                     }
-              
-                        <div style={{backgroundColor:"#1b1e2f",width:this.state.dimensions.sidebarWidth}} className="vh-100 pr-0 float-left">
-                            
-                            <Navbar className="text-light pt-4" style={{height:80,backgroundColor:"#121422",borderBottom:"2px solid #232533"}}>
-                                <Navbar.Brand>
-                                    {organization != null ? 
-                                        <p className="text-light p-0 m-0" style={{fontSize:"1rem"}}><strong>{organization.name}</strong></p>
-                                    : '' }
-                                    {user != null ? 
-                                        <p className="text-light pt-0 pb-1" style={{fontSize:".9rem"}}>{user.name}</p>
-                                    : '' }
-                                </Navbar.Brand>
-                            </Navbar>
-                            <div>
-                                {rooms}
-                            </div>
-                            <Button className="mt-5" variant="secondary" onClick={() => userLogout() } block><FontAwesomeIcon icon={faSignOutAlt}/></Button>
+                    <div style={{backgroundColor:"#1b1e2f",width:this.state.dimensions.sidebarWidth}} className="vh-100 pr-0 float-left">
+                        
+                        <Navbar className="text-light pt-4" style={{height:80,backgroundColor:"#121422",borderBottom:"2px solid #232533"}}>
+                            <Navbar.Brand>
+                                {organization != null ? 
+                                    <p className="text-light p-0 m-0" style={{fontSize:"1rem"}}><strong>{organization.name}</strong></p>
+                                : '' }
+                                {user != null ? 
+                                    <p className="text-light pt-0 pb-1" style={{fontSize:".9rem"}}>{user.name}</p>
+                                : '' }
+                            </Navbar.Brand>
+                        </Navbar>
+                        <div>
+                            {rooms}
                         </div>
-                        <div className="pl-0 float-left" style={{borderLeft:"1px solid #232533",width:this.state.dimensions.mainContainerWidth}}>
-                            <Route 
-                                path={routes.ROOM} 
-                                render={(routeProps) => (
-                                    <RoomPage {...routeProps} dimensions={this.state.dimensions} />
-                                )}
-                            />
-                            
-                        </div>
+                        <Button className="mt-5" variant="secondary" onClick={() => userLogout() } block><FontAwesomeIcon icon={faSignOutAlt}/></Button>
+                    </div>
+                    <div className="pl-0 float-left" style={{borderLeft:"1px solid #232533",width:this.state.dimensions.mainContainerWidth}}>
+                        <Route 
+                            path={routes.ROOM} 
+                            render={(routeProps) => (
+                                <RoomPage {...routeProps} dimensions={this.state.dimensions} />
+                            )}
+                        />
+                        
+                    </div>
                 </EnsureLoggedInContainer>
                 </Switch>
             </>

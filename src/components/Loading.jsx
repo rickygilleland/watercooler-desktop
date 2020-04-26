@@ -1,36 +1,53 @@
 import React from 'react';
+import routes from '../constants/routes.json';
 import { Link } from 'react-router-dom';
 import { Container, Image, Button, Card, Navbar, Table } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch, faSignOutAlt, faDoorOpen } from '@fortawesome/free-solid-svg-icons';
-import { push } from 'connected-react-router';
 
 class Loading extends React.Component {
 
+    constructor(props) {
+        super(props);
+        this.state = {
+            redirect: false,
+        };
+    }
+
     componentDidMount() {
-        const { getRooms, getUserDetails, user, auth, organization } = this.props;
-        console.log("loading");
+        const { getRooms, getUserDetails, push, user, auth, organization } = this.props;
 
         if (Object.keys(user).length === 0 || typeof user == 'undefined') {
-            getUserDetails();
+            return getUserDetails();
         }
 
         if (organization == null) {
-            getRooms();
+            return getRooms();
+        }
+
+        if (this.state.redirect === false) {
+            this.setState({ redirect: true });
+            push(routes.REDIRECT)
         }
     
     }
 
     componentDidUpdate() {
-        const { organization, user, teams, getUserDetails, getRooms } = this.props;
+        const { organization, user, push, teams, getUserDetails, getRooms } = this.props;
 
         if (Object.keys(user).length === 0 || typeof user == 'undefined') {
-            getUserDetails();
+            return getUserDetails();
         }
 
         if (organization == null) {
-            getRooms();
+            return getRooms();
         }
+
+        if (this.state.redirect === false) {
+            this.setState({ redirect: true });
+            push(routes.REDIRECT)
+        }
+    
     }
 
     render() {

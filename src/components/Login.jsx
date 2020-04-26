@@ -28,7 +28,7 @@ class Login extends React.Component {
         const { auth, user, organization, push, getUserDetails } = this.props;
 
         if (auth.isLoggedIn === true) {
-            push("/loading");
+            push(routes.LOADING);
         }
 
     }
@@ -37,7 +37,7 @@ class Login extends React.Component {
         const { auth, user, organization, push } = this.props;
 
         if (auth.isLoggedIn === true) {
-            push("/loading");
+            push(routes.LOADING);
         }
 
         if (prevProps.auth !== auth) {
