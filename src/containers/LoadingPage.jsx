@@ -1,31 +1,30 @@
 import React from 'react';
-import { authenticateUser } from '../actions/auth';
-import { getUserDetails } from '../actions/user';
 import { getRooms } from '../actions/room';
+import { getUserDetails } from '../actions/user';
 import { connect } from 'react-redux';
-import { bindActionCreators, Dispatch } from 'redux';
-import { withRouter } from 'react-router-dom'
+import { bindActionCreators } from 'redux';
 import { push } from 'connected-react-router';
-import Login from '../components/Login';
+import { withRouter } from 'react-router-dom'
+import Loading from '../components/Loading';
 
 function mapStateToProps(state) {
     return {
-        auth: state.auth,
         user: state.user,
         organization: state.room.organization,
+        teams: state.room.teams,
+        auth: state.auth,
     }
 }
 
 function mapDispatchToProps(dispatch) {
     return bindActionCreators(
       {
-        authenticateUser,
-        getUserDetails,
         getRooms,
+        getUserDetails,
         push,
       },
       dispatch
     );
-  }
-  
-  export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Login))
+}
+
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Loading))

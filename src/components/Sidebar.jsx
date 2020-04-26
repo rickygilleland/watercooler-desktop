@@ -7,6 +7,7 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch, faSignOutAlt, faDoorOpen } from '@fortawesome/free-solid-svg-icons';
 import EnsureLoggedInContainer from '../containers/EnsureLoggedInContainer';
 import LoginPage from '../containers/LoginPage';
+import LoadingPage from '../containers/LoadingPage';
 import RoomPage from '../containers/RoomPage';
 
 class Sidebar extends React.Component {
@@ -91,16 +92,22 @@ class Sidebar extends React.Component {
             <>
                 <Switch>
                     <Route path={routes.LOGIN} component={LoginPage} />
+                    <Route path={routes.LOADING} component={LoadingPage} />
                 </Switch>
                 <Switch>
                 <EnsureLoggedInContainer>
-                    <Redirect from="/" exact to={{
-                        pathname: `/room/${firstRoom.slug}`,
-                        state: {
-                            team: firstRoom.team,
-                            room: firstRoom.room
-                        }
-                    }} />
+                    {typeof firstRoom.slug != "undefined" ?
+                    
+                        <Redirect from="/" exact to={{
+                            pathname: `/room/${firstRoom.slug}`,
+                            state: {
+                                team: firstRoom.team,
+                                room: firstRoom.room
+                            }
+                        }} />
+
+                        : ""
+                    }
               
                         <div style={{backgroundColor:"#1b1e2f",width:this.state.dimensions.sidebarWidth}} className="vh-100 pr-0 float-left">
                             
@@ -117,7 +124,7 @@ class Sidebar extends React.Component {
                             <div>
                                 {rooms}
                             </div>
-                            <Button className="mt-5" variant="secondary" onClick={() => userLogout() }><FontAwesomeIcon icon={faSignOutAlt} block/></Button>
+                            <Button className="mt-5" variant="secondary" onClick={() => userLogout() } block><FontAwesomeIcon icon={faSignOutAlt}/></Button>
                         </div>
                         <div className="pl-0 float-left" style={{borderLeft:"1px solid #232533",width:this.state.dimensions.mainContainerWidth}}>
                             <Route 

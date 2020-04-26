@@ -2,6 +2,7 @@
     "HOME": "/",
     "ROOM": "/room/:roomSlug",
     "LOGIN": "/login",
-    "CALLBACK": "/callback/:type/:code"
+    "CALLBACK": "/callback/:type/:code",
+    "LOADING": "/loading"
   }
   

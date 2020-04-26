@@ -4,6 +4,7 @@ import { Container, Image, Button, Form, Card, Alert, Navbar } from 'react-boots
 import routes from '../constants/routes.json';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
+import { getRooms } from '../actions/room';
 
 
 class Login extends React.Component {
@@ -24,25 +25,19 @@ class Login extends React.Component {
     }
 
     componentDidMount() {
-        const { auth, user, push, getUserDetails } = this.props;
+        const { auth, user, organization, push, getUserDetails } = this.props;
 
         if (auth.isLoggedIn === true) {
-            if (Object.keys(user).length === 0 || typeof user == 'undefined') {
-                return getUserDetails();
-            }
-            push(auth.redirectUrl);
+            push("/loading");
         }
 
     }
 
     componentDidUpdate(prevProps, prevState) {
-        const { auth, user, push, getUserDetails } = this.props;
+        const { auth, user, organization, push } = this.props;
 
         if (auth.isLoggedIn === true) {
-            if (Object.keys(user).length === 0 || typeof user == 'undefined') {
-                return getUserDetails();
-            }
-            push(auth.redirectUrl);
+            push("/loading");
         }
 
         if (prevProps.auth !== auth) {
