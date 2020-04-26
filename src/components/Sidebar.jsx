@@ -117,6 +117,7 @@ class Sidebar extends React.Component {
                             <div>
                                 {rooms}
                             </div>
+                            <Button className="mt-5" variant="secondary" onClick={() => userLogout() }><FontAwesomeIcon icon={faSignOutAlt} block/></Button>
                         </div>
                         <div className="pl-0 float-left" style={{borderLeft:"1px solid #232533",width:this.state.dimensions.mainContainerWidth}}>
                             <Route 
