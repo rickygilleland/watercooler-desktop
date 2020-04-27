@@ -21,6 +21,8 @@ export default (history) => {
             state = undefined;
         }
 
+        //state = undefined;
+
         if (typeof action.payload !== 'undefined' 
             && (typeof action.payload.error !== 'undefined' && action.payload.error == "Request failed with status code 401")) {
             state = undefined;

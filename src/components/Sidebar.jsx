@@ -5,12 +5,14 @@ import { debounce } from 'lodash';
 import { Row, Col, Button, Navbar, Dropdown, Modal } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch, faSignOutAlt, faUserFriends, faPlusSquare, faCog } from '@fortawesome/free-solid-svg-icons';
+import { getOrganizationUsers } from '../actions/organization';
 import EnsureLoggedInContainer from '../containers/EnsureLoggedInContainer';
 import LoginPage from '../containers/LoginPage';
 import LoadingPage from '../containers/LoadingPage';
 import RoomPage from '../containers/RoomPage';
 import UsersModal from './UsersModal';
 import RoomsModal from './RoomsModal';
+
 
 class Sidebar extends React.Component {
 
@@ -27,7 +29,6 @@ class Sidebar extends React.Component {
         }
 
         this.handleResize = this.handleResize.bind(this);
-        this.handleResize = debounce(this.handleResize, 100);
     }
 
     componentDidMount() {
@@ -36,6 +37,7 @@ class Sidebar extends React.Component {
     }
 
     componentDidUpdate() {
+        const { getOrganizations, organization } = this.props;
     }
 
     componentWillUnmount() {
@@ -50,7 +52,7 @@ class Sidebar extends React.Component {
     }
 
     render() {
-        const { organization, teams, user, auth, userLogout, currentUrl } = this.props;
+        const { organization, teams, user, auth, userLogout, currentUrl, getOrganizationUsers, organizationUsers, organizationLoading } = this.props;
         const { dimensions, showUsersModal, showRoomsModal } = this.state;
 
         const rooms = teams.map((team, teamKey) =>
@@ -105,14 +107,6 @@ class Sidebar extends React.Component {
 
         return (
             <>
-                <UsersModal 
-                    show={showUsersModal}
-                    onHide={() => this.setState({ showUsersModal: false })}
-                />
-                <RoomsModal 
-                    show={showRoomsModal}
-                    onHide={() => this.setState({ showRoomsModal: false })}
-                />
                 <Switch>
                     <Route path={routes.LOGIN} component={LoginPage} />
                     <Route path={routes.LOADING} component={LoadingPage} />
@@ -122,6 +116,17 @@ class Sidebar extends React.Component {
                 </Switch>
                 <Switch>
                 <EnsureLoggedInContainer>
+                    <UsersModal 
+                        users={organizationUsers}
+                        loading={organizationLoading.toString()}
+                        show={showUsersModal}
+                        onShow={() => getOrganizationUsers(organization.id)}
+                        onHide={() => this.setState({ showUsersModal: false })}
+                    />
+                    <RoomsModal 
+                        show={showRoomsModal}
+                        onHide={() => this.setState({ showRoomsModal: false })}
+                    />
                     {typeof firstRoom != "undefined" && typeof firstRoom.slug != "undefined" ?
                         <Redirect from="/redirect" exact to={{
                             pathname: `/room/${firstRoom.slug}`,
@@ -164,7 +169,7 @@ class Sidebar extends React.Component {
                             {rooms}
                         </div>
                     </div>
-                    <div className="pl-0 float-left" style={{borderLeft:"1px solid #1c2046",width:this.state.dimensions.mainContainerWidth}}>
+                    <div className="pl-0 ml-auto" style={{borderLeft:"1px solid #1c2046",width:this.state.dimensions.mainContainerWidth}}>
                         <Route 
                             path={routes.ROOM} 
                             render={(routeProps) => (

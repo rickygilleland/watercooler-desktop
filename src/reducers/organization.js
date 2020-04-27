@@ -1,10 +1,18 @@
 import { Action } from 'redux';
-import { GET_ORGANIZATIONS_SUCCESS, GET_ORGANIZATIONS_FAILURE } from '../actions/organization';
+import { 
+    GET_ORGANIZATIONS_SUCCESS, 
+    GET_ORGANIZATIONS_FAILURE, 
+    GET_ORGANIZATION_USERS_STARTED,
+    GET_ORGANIZATION_USERS_SUCCESS,
+    GET_ORGANIZATION_USERS_FAILURE 
+} from '../actions/organization';
 
 const initialState = {
     organization: null,
     teams: [],
+    users: [],
     error: false,
+    loading: false
 }
 
 export default function organization(state = initialState, action = {}) {
@@ -24,7 +32,21 @@ export default function organization(state = initialState, action = {}) {
             updatedState = {
                 error: true
             }
+            break;
+        case GET_ORGANIZATION_USERS_STARTED:
+            updatedState = {
+                loading: true
+            }
+            break;
+        case GET_ORGANIZATION_USERS_SUCCESS:
+            updatedState = {
+                users: action.payload.data,
+                loading: false
+            }
+            break;
+        case GET_ORGANIZATION_USERS_FAILURE:
             return state;
+            break;
         default:
             //do nothing
             return state;
