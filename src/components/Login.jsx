@@ -14,7 +14,8 @@ class Login extends React.Component {
         this.state = {
             username: '',
             password: '',
-            missingError: false,
+            missingUsername: false,
+            missingPassword: false,
             loginError: false,
         };
 
@@ -58,19 +59,49 @@ class Login extends React.Component {
         event.preventDefault();
         const { authenticateUser } = this.props;
 
+        if (this.state.username == '') {
+            return this.setState({ missingUsername: true, missingPassword: false });
+        }
+
+        if (this.state.password == '') {
+            return this.setState({ missingUsername: false, missingPassword: true });
+        }
+
+        this.setState({ missingUsername: false, missingPassword: false });
+
         authenticateUser(this.state.username, this.state.password);
     };
 
     render() {
         const { auth } = this.props;
-        const { loginError, missingError, username, password } = this.state;
+        const { loginError, missingUsername, missingPassword, username, password } = this.state;
 
         return (
             <React.Fragment>
-                <Navbar className="bg-white mb-4" expand="lg"></Navbar>
-                <Container data-tid="container" fluid>
-                    <Card className="mt-5 shadow-sm border-0" body>
-                        <p className="sub-heading text-muted text-center mt-3">Sign in to Water Cooler</p>
+                <div className="w-100 vh-100">
+                    <Card className="mt-5 shadow-sm mx-auto" style={{width:600}} body>
+                        <h1 className="h2 text-center mt-3 mb-3 font-weight-bolder">Sign in to Water Cooler</h1>
+
+                        {loginError ?
+                            <Alert variant="danger" className="text-center">
+                                Oops! Your email address or password was incorrect. Please double check them and try again.
+                            </Alert>
+                            : ''
+                        }
+
+                        {missingUsername ?
+                            <Alert variant="danger" className="text-center">
+                                Oops! You forgot to enter your email address.
+                            </Alert>
+                            : ''
+                        }
+
+                        {missingPassword ?
+                            <Alert variant="danger" className="text-center">
+                                Oops! You forgot to enter your password.
+                            </Alert>
+                            : ''
+                        }
 
                         <Form>
                             <Form.Group controlId="formBasicEmail">
@@ -80,6 +111,8 @@ class Login extends React.Component {
                                     placeholder="Enter email" 
                                     value={username}
                                     onChange={this.handleUsernameChange}
+                                    size="lg"
+                                    
                                 />
                             </Form.Group>
 
@@ -91,21 +124,22 @@ class Login extends React.Component {
                                     placeholder="Password" 
                                     value={password}
                                     onChange={this.handlePasswordChange}
+                                    size="lg"
                                 />
                             </Form.Group>
                             {auth.loading ?
-                                <Button variant="primary" className="btn-block" type="submit" disabled>
+                                <Button variant="primary" className="btn-block btn-lg mt-4" type="submit" disabled>
                                     <FontAwesomeIcon icon={faCircleNotch} spin /> Submit
                                 </Button>
                             :
-                                <Button variant="primary" className="btn-block" type="submit" onClick={this.handleSubmit}>
+                                <Button variant="primary" className="btn-block btn-lg mt-4" type="submit" onClick={this.handleSubmit}>
                                     Submit
                                 </Button>
                             }
                         </Form>
 
                     </Card>
-                </Container>
+                </div>
             </React.Fragment>
         );
     }

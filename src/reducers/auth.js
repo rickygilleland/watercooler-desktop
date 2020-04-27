@@ -34,7 +34,8 @@ export default function auth(state = initialState, action = {}) {
             break;
         case AUTHENTICATE_USER_STARTED:
             updatedState = {
-                loading: true
+                loading: true,
+                loginError: false
             }
             break;
         default:

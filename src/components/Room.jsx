@@ -5,7 +5,7 @@ import { each, debounce } from 'lodash';
 import { Link } from 'react-router-dom';
 import { Container, Image, Button, Row, Col, TabContainer } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faCircleNotch, faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash, faDoorClosed, faDoorOpen, faCircle, faGrin, faLayerGroup, faLessThanEqual } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash, faDoorClosed, faDoorOpen, faCircle, faGrin, faLayerGroup, faLessThanEqual, faUser } from '@fortawesome/free-solid-svg-icons';
 import { Janus } from 'janus-gateway';
 import Pusher from 'pusher-js';
 import VideoList from './VideoList';
@@ -601,32 +601,33 @@ class Room extends React.Component {
         return (
             <React.Fragment>
                 <Row className="text-light pl-0 ml-0" style={{height:80,backgroundColor:"#121422"}}>
-                    <Col xs={{span:4}}>
+                    <Col xs={{span:4}} md={{span:5}}>
                         <div className="d-flex flex-row justify-content-start">
                             <div className="align-self-center">
-                                <h5 style={{fontWeight:"bolder"}}># {room.name}</h5>
+                                <h5 style={{fontWeight:"bolder"}} className="pb-0 mb-0"># {room.name}</h5>
+                                <Button variant="link" className="pl-0" style={{color:"#fff",fontSize:".7rem"}}><FontAwesomeIcon icon={faUser} /> 8</Button>
                             </div>
                             <div style={{height:80}}></div>
                         </div>
                     </Col>
-                    <Col xs={{span:4}}>
+                    <Col xs={{span:4}} md={{span:2}}>
                         <div className="d-flex flex-row justify-content-center">
                             <div className="align-self-center pr-4">
                                 {local_stream === null ?
-                                    <Button variant="success" className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join Room</Button>
+                                    <Button variant="outline-success" className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
                                 :
-                                    <Button variant="danger" className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave Room</Button>
+                                    <Button variant="outline-danger" className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
                                 }
                             </div>
                             <div style={{height:80}}></div>
                         </div>
                     </Col>
-                    <Col xs={{span:4}}>
+                    <Col xs={{span:4}} md={{span:5}}>
                         {local_stream ?
                             <div className="d-flex flex-row justify-content-end">
                                 <div className="align-self-center pr-4">
-                                    <Button variant={audioStatus ? "light" : "danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
-                                    <Button variant={videoStatus ? "light" : "danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                    <Button variant={audioStatus ? "outline-light" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
+                                    <Button variant={videoStatus ? "outline-light" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                 </div>
                                 {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}
                                 <div style={{width:106.66,height:80}} className="align-self-center">
@@ -643,7 +644,7 @@ class Room extends React.Component {
                 <Container className="ml-0" fluid style={{height:videoSizes.containerHeight}}>
                     {loading ? 
                         <React.Fragment>
-                            <h1 className="text-center mt-5">Loading...</h1>
+                            <h1 className="text-center mt-5">Loading Room...</h1>
                             <center><FontAwesomeIcon icon={faCircleNotch} className="mt-3" style={{fontSize:"2.4rem",color:"#6772ef"}} spin /></center> 
                         </React.Fragment>  
                     : 

@@ -1,4 +1,5 @@
 import { app, BrowserWindow, Menu, session, autoUpdater, dialog, protocol } from 'electron';
+import { debounce } from 'lodash';
 if(require('electron-squirrel-startup')) app.quit();
 
 var isDevMode = process.execPath.match(/[\\/]electron/);
@@ -71,7 +72,7 @@ const createWindow = () => {
       transparent: true,
       width: 1000,
       height: 600,
-      minWidth: 900,
+      minWidth: 700,
       minHeight: 500,
       frame: false,
       webPreferences: {
@@ -90,7 +91,7 @@ const createWindow = () => {
       transparent:true,
       width: 1100,
       height: 600,
-      minWidth: 900,
+      minWidth: 700,
       minHeight: 500,
       frame: false,
       webPreferences: {
@@ -102,6 +103,7 @@ const createWindow = () => {
     if (process.platform != "darwin") {
       mainWindow.removeMenu();
     }
+
   }
 
   // and load the index.html of the app.
@@ -111,7 +113,8 @@ const createWindow = () => {
 app.commandLine.appendSwitch('force-fieldtrials', 'WebRTC-SupportVP9SVC/EnabledByFlag_2SL3TL/');
 
 if (process.env == "darwin") {
-  app.commandLine.appendSwitch('enable-features', 'Metal');
+  app.commandLine.appendSwitch('enable-oop-rasterization');
+  app.commandLine.appendSwitch('enable-features', 'metal');
 }
 
 // This method will be called when Electron has finished

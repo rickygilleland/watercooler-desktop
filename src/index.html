@@ -18,10 +18,33 @@
     transform:rotateY(180deg);
   }
   .titlebar {
-    border-bottom: 1px solid #232533 !important;
+    border-bottom: 1px solid #1c2046 !important;
+  }
+  .btn-link:hover {
+    text-decoration:none;
+    opacity: ".5";
+  }
+  .dropdownSettings > .dropdown-toggle {
+    background-color: transparent !important;
+  }
+  .dropdownSettings > .dropdown-toggle::after {
+    display:none !important
+  }
+  .dropdownSettings > .dropdown-menu {
+    margin-top: 10px
+  }
+  .dropdown-menu {
+    background-color: #1b1e2f!important;
+    border-color: #6772ef!important;
+  }
+  .card-body-dark {
+    background-color: #1b1e2f;
+    color: #fff;
   }
 </style>
 <body style="overflow: hidden; margin: 0" >
-  <div id="App"></div>
+  <div id="App">
+    <h1 class="text-center mt-5">Loading Water Cooler...</h1>
+  </div>
 </body>
 </html>
