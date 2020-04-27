@@ -609,8 +609,8 @@ class Room extends React.Component {
                     <Col xs={{span:4}} md={{span:5}}>
                         <div className="d-flex flex-row justify-content-start">
                             <div className="align-self-center">
-                                <h5 style={{fontWeight:"bolder"}} className="pb-0 mb-0"># {room.name}</h5>
-                                <Button variant="link" className="pl-0" style={{color:"#fff",fontSize:".7rem"}}><FontAwesomeIcon icon={faUser} /> 8</Button>
+                                <p style={{fontWeight:"bolder",fontSize:"1rem"}} className="pb-0 mb-0"># {room.name}</p>
+                                <Button variant="link" className="pl-0 pt-0" style={{color:"#fff",fontSize:".7rem"}}><FontAwesomeIcon icon={faUser} /> 8</Button>
                             </div>
                             <div style={{height:80}}></div>
                         </div>
