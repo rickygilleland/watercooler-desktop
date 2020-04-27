@@ -5,6 +5,7 @@ import { push } from 'connected-react-router';
 import auth from './auth';
 import user from './user';
 import room from './room';
+import organization from './organization';
 
 export default (history) => {
     const appReducer = combineReducers({
@@ -12,6 +13,7 @@ export default (history) => {
         auth,
         user,
         room,
+        organization,
     });
 
     const rootReducer = (state, action) => {

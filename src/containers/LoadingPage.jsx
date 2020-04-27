@@ -1,5 +1,5 @@
 import React from 'react';
-import { getRooms } from '../actions/room';
+import { getOrganizations } from '../actions/organization';
 import { getUserDetails } from '../actions/user';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -10,8 +10,8 @@ import Loading from '../components/Loading';
 function mapStateToProps(state) {
     return {
         user: state.user,
-        organization: state.room.organization,
-        teams: state.room.teams,
+        organization: state.organization.organization,
+        teams: state.organization.teams,
         auth: state.auth,
     }
 }
@@ -19,7 +19,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return bindActionCreators(
       {
-        getRooms,
+        getOrganizations,
         getUserDetails,
         push,
       },

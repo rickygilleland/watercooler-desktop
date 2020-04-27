@@ -1,7 +1,7 @@
 import React from 'react';
 import { authenticateUser } from '../actions/auth';
 import { getUserDetails } from '../actions/user';
-import { getRooms } from '../actions/room';
+import { getOrganizations } from '../actions/organization';
 import { connect } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
 import { withRouter } from 'react-router-dom'
@@ -12,7 +12,7 @@ function mapStateToProps(state) {
     return {
         auth: state.auth,
         user: state.user,
-        organization: state.room.organization,
+        organization: state.organization.organization,
     }
 }
 
@@ -21,7 +21,7 @@ function mapDispatchToProps(dispatch) {
       {
         authenticateUser,
         getUserDetails,
-        getRooms,
+        getOrganizations,
         push,
       },
       dispatch

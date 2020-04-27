@@ -10,7 +10,7 @@ function UsersModal(props) {
         centered
       >
         <Modal.Header closeButton>
-          <Modal.Title id="contained-modal-title-vcenter">
+          <Modal.Title className="font-weight-bolder">
             Manage Users
           </Modal.Title>
         </Modal.Header>
@@ -18,9 +18,6 @@ function UsersModal(props) {
 
          
         </Modal.Body>
-        <Modal.Footer>
-          <Button onClick={props.onHide}>Close</Button>
-        </Modal.Footer>
       </Modal>
     );
 }

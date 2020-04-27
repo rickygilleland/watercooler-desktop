@@ -15,14 +15,14 @@ class Loading extends React.Component {
     }
 
     componentDidMount() {
-        const { getRooms, getUserDetails, push, user, auth, organization } = this.props;
+        const { getOrganizations, getUserDetails, push, user, auth, organization } = this.props;
 
         if (Object.keys(user).length === 0 || typeof user == 'undefined') {
             return getUserDetails();
         }
 
         if (organization == null) {
-            return getRooms();
+            return getOrganizations();
         }
 
         if (this.state.redirect === false) {
@@ -33,14 +33,14 @@ class Loading extends React.Component {
     }
 
     componentDidUpdate() {
-        const { organization, user, push, teams, getUserDetails, getRooms } = this.props;
+        const { organization, user, push, teams, getUserDetails, getOrganizations } = this.props;
 
         if (Object.keys(user).length === 0 || typeof user == 'undefined') {
             return getUserDetails();
         }
 
         if (organization == null) {
-            return getRooms();
+            return getOrganizations();
         }
 
         if (this.state.redirect === false) {

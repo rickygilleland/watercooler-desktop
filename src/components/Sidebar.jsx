@@ -98,6 +98,11 @@ class Sidebar extends React.Component {
             })
         })
 
+        if (organization != null && organization.name.length > 19) {
+            organization.name = organization.name.slice(0, 18);
+            organization.name = organization.name.trim() + "...";
+        }
+
         return (
             <>
                 <UsersModal 
@@ -133,10 +138,10 @@ class Sidebar extends React.Component {
                         <Navbar className="text-light pt-4" style={{height:80,backgroundColor:"#121422",borderBottom:"1px solid #1c2046"}}>
                             <Navbar.Brand>
                                 {organization != null ? 
-                                    <p className="text-light p-0 m-0" style={{fontSize:"1rem"}}><strong>{organization.name}</strong></p>
+                                    <p className="text-light p-0 m-0" style={{fontSize:".9rem"}}><strong>{organization.name}</strong></p>
                                 : '' }
                                 {user != null ? 
-                                    <p className="text-light pt-0 pb-1" style={{fontSize:".9rem"}}>{user.name}</p>
+                                    <p className="text-light pt-0 pb-1" style={{fontSize:".8rem"}}>{user.name}</p>
                                 : '' }
                             </Navbar.Brand>
                             <div className="ml-auto" style={{height:60}}>

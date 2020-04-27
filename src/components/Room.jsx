@@ -136,11 +136,6 @@ class Room extends React.Component {
         const { dimensions } = this.props;
         const { publishers, publishing } = this.state;
 
-        if (prevState.publishers != publishers) {
-            console.log(`publishers changed`)
-            console.log(publishers);
-        }
-
         if (prevProps.dimensions != dimensions || prevState.publishers.length != publishers.length) {
             this.updateDisplayedVideosSizes(null, true);
         }
@@ -251,6 +246,7 @@ class Room extends React.Component {
                                 let newPublishers = msg.publishers;
 
                                 let rand = Math.floor(Math.random() * containerBackgroundColors.length); 
+                                var currentPublishers = that.state.publishers;
 
                                 newPublishers.forEach(publisher => {
                                     each(members, function(member) {
@@ -265,7 +261,19 @@ class Room extends React.Component {
                                     }
                                 })
 
-                                that.setState({ publishers: [ ...newPublishers, ...that.state.publishers ] });
+                                currentPublishers.filter(publisher => {
+                                    var keep = true;
+                                    newPublishers.forEach(newPublisher => {
+                                        if (newPublisher.member.id == publisher.member.id) {
+                                            keep = false;
+                                        }
+                                    })
+
+                                    return keep;
+
+                                })
+
+                                that.setState({ publishers: [ ...newPublishers, ...currentPublishers ] });
                             }
 
                             if (typeof msg.leaving != "undefined") {
@@ -385,10 +393,7 @@ class Room extends React.Component {
     handleRemoteStreams() {
         var { publishers } = this.state;
 
-        console.log("HANDLE REMOTE CALLED");
-
         publishers.forEach((publisher, key) => {
-            console.log(publisher);
             if (typeof publisher.handle == "undefined" || publisher.handle == null) {
                 this.subscribeToRemoteStream(publisher, key);
             }

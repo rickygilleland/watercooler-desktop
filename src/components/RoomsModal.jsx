@@ -10,7 +10,7 @@ function RoomsModal(props) {
         centered
       >
         <Modal.Header closeButton>
-          <Modal.Title id="contained-modal-title-vcenter">
+          <Modal.Title>
             Manage Rooms
           </Modal.Title>
         </Modal.Header>
@@ -18,9 +18,6 @@ function RoomsModal(props) {
 
          
         </Modal.Body>
-        <Modal.Footer>
-          <Button onClick={props.onHide}>Close</Button>
-        </Modal.Footer>
       </Modal>
     );
 }

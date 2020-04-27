@@ -4,7 +4,7 @@ import { Container, Image, Button, Form, Card, Alert, Navbar } from 'react-boots
 import routes from '../constants/routes.json';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
-import { getRooms } from '../actions/room';
+import { getOrganizations } from '../actions/organization';
 
 
 class Login extends React.Component {

@@ -1,7 +1,7 @@
 import React, { ReactNode } from 'react';
 import { bindActionCreators, dispatch } from 'redux';
 import { push } from 'connected-react-router'
-import { getRooms } from '../actions/room';
+import { getOrganizations } from '../actions/organization';
 import { connect } from 'react-redux';
 import { setRedirectUrl } from '../actions/auth';
 
@@ -40,7 +40,7 @@ class EnsureLoggedInContainer extends React.Component {
   function mapStateToProps(state, ownProps) {
     return {
       auth: state.auth,
-      organization: state.room.organization,
+      organization: state.organization.organization,
       currentURL: ownProps.location.pathname
     }
   }

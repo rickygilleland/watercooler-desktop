@@ -2,8 +2,7 @@ import { Action } from 'redux';
 import { GET_ROOMS_SUCCESS, GET_ROOMS_FAILURE } from '../actions/room';
 
 const initialState = {
-    organization: null,
-    teams: [],
+    rooms: [],
     error: false,
 }
 
@@ -12,12 +11,7 @@ export default function room(state = initialState, action = {}) {
     switch (action.type) {
         case GET_ROOMS_SUCCESS:
             updatedState = {
-                organization: {
-                    id: action.payload.data.id,
-                    name: action.payload.data.name,
-                    slug: action.payload.data.slug
-                },
-                teams: action.payload.data.teams
+                rooms: action.payload.data.teams
             }
             break;
         case GET_ROOMS_FAILURE:

@@ -9,9 +9,8 @@ function mapStateToProps(state) {
     return {
         auth: state.auth,
         user: state.user,
-        organization: state.room.organization,
-        teams: state.room.teams,
-        rooms: state.room.rooms,
+        organization: state.organization.organization,
+        teams: state.organization.teams,
     }
 }
 

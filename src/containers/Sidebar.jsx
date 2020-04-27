@@ -1,6 +1,6 @@
 import React from 'react';
 import { userLogout } from '../actions/auth';
-import { getRooms } from '../actions/room';
+import { getOrganizations } from '../actions/organization';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { push } from 'connected-react-router';
@@ -10,8 +10,8 @@ import Sidebar from '../components/Sidebar';
 function mapStateToProps(state, ownProps) {
     return {
         user: state.user,
-        organization: state.room.organization,
-        teams: state.room.teams,
+        organization: state.organization.organization,
+        teams: state.organization.teams,
         auth: state.auth,
         currentURL: ownProps.location.pathname
     }
@@ -21,7 +21,7 @@ function mapDispatchToProps(dispatch) {
     return bindActionCreators(
       {
         userLogout,
-        getRooms,
+        getOrganizations,
         push,
       },
       dispatch
