@@ -55,17 +55,24 @@ class Sidebar extends React.Component {
         const { organization, teams, user, auth, userLogout, currentUrl, getOrganizationUsers, organizationUsers, organizationLoading } = this.props;
         const { dimensions, showUsersModal, showRoomsModal } = this.state;
 
+        teams.forEach(team => {
+            if (team.name.length > 20) {
+                team.name = team.name.slice(0, 16);
+                team.name = team.name.trim() + "...";
+            }
+        })
+
         const rooms = teams.map((team, teamKey) =>
-            <div key={teamKey}>
+            <div key={teamKey} className="mt-2">
                 <Row>
-                    <Col xs={6}>
-                        <p className="font-weight-bold text-light pt-1 mb-0" style={{fontSize:"1.2rem",paddingLeft:"1.3rem"}}><small>Rooms</small></p>
+                    <Col xs={9}>
+                        <p className="text-light pt-1 mb-0 pl-2" style={{fontSize:"1rem",fontWeight:600}}>{team.name}</p>
                     </Col>
-                    <Col xs={6}>
-                        <p className="text-right text-light pr-2 pt-1 mb-0" style={{fontSize:"1.2rem"}}><Button variant="link" style={{color:"#fff"}} onClick={() => this.setState({ showRoomsModal: true })}><FontAwesomeIcon icon={faPlusSquare} /></Button></p>
+                    <Col xs={3}>
+                        <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} onClick={() => this.setState({ showRoomsModal: true })}><FontAwesomeIcon icon={faPlusSquare} /></Button>
                     </Col>
                 </Row>
-                <ul className="nav flex-column">
+                <ul className="nav flex-column mt-1">
                     {team.rooms.map((room, roomKey) => 
                         <li key={roomKey} className="nav-item">
                             <NavLink exact={true} 
@@ -81,7 +88,7 @@ class Sidebar extends React.Component {
                                             room: room
                                         }
                                     }}>
-                                <strong className="pl-2 text-light"># {room.name}</strong>
+                                <p className="pl-2 text-light mb-0"># {room.name}</p>
                             </NavLink>
                         </li>
                     )}
