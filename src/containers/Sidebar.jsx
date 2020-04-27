@@ -1,6 +1,6 @@
 import React from 'react';
 import { userLogout } from '../actions/auth';
-import { getOrganizations, getOrganizationUsers } from '../actions/organization';
+import { getOrganizations, getOrganizationUsers, inviteUsers } from '../actions/organization';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { push } from 'connected-react-router';
@@ -25,6 +25,7 @@ function mapDispatchToProps(dispatch) {
         userLogout,
         getOrganizations,
         getOrganizationUsers,
+        inviteUsers,
         push,
       },
       dispatch

@@ -4,13 +4,14 @@ import routes from '../constants/routes.json';
 import { debounce } from 'lodash';
 import { Row, Col, Button, Navbar, Dropdown, Modal } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faCircleNotch, faSignOutAlt, faUserFriends, faPlusSquare, faCog } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faSignOutAlt, faUserFriends, faPlusSquare, faCog, faUserPlus, faLock } from '@fortawesome/free-solid-svg-icons';
 import { getOrganizationUsers } from '../actions/organization';
 import EnsureLoggedInContainer from '../containers/EnsureLoggedInContainer';
 import LoginPage from '../containers/LoginPage';
 import LoadingPage from '../containers/LoadingPage';
 import RoomPage from '../containers/RoomPage';
-import UsersModal from './UsersModal';
+import ManageUsersModal from './ManageUsersModal';
+import InviteUsersModal from './InviteUsersModal';
 import RoomsModal from './RoomsModal';
 
 
@@ -24,7 +25,8 @@ class Sidebar extends React.Component {
                 width: 0,
                 height: 0
             },
-            showUsersModal: false,
+            showInviteUsersModal: false,
+            showManageUsersModal: false,
             showRoomsModal: false,
         }
 
@@ -52,8 +54,8 @@ class Sidebar extends React.Component {
     }
 
     render() {
-        const { organization, teams, user, auth, userLogout, currentUrl, getOrganizationUsers, organizationUsers, organizationLoading } = this.props;
-        const { dimensions, showUsersModal, showRoomsModal } = this.state;
+        const { organization, teams, user, auth, userLogout, currentUrl, getOrganizationUsers, organizationUsers, organizationLoading, inviteUsers } = this.props;
+        const { dimensions, showInviteUsersModal, showManageUsersModal, showRoomsModal } = this.state;
 
         teams.forEach(team => {
             if (team.name.length > 20) {
@@ -62,11 +64,35 @@ class Sidebar extends React.Component {
             }
         })
 
+        /*
+        if (typeof teams[0] != "undefined" && teams[0].rooms.length == 1) {
+            teams[0].rooms.push({
+                id: 99,
+                name: "Daily Standup"
+            })
+    
+            teams[0].rooms.push({
+                id: 100,
+                name: "Team Lead Chat"
+            })
+    
+            teams[0].rooms.push({
+                id: 101,
+                name: "Sprint Planning"
+            })
+
+            teams[0].rooms.push({
+                id: 102,
+                name: "Foodies"
+            })
+        }*/
+
+       
         const rooms = teams.map((team, teamKey) =>
             <div key={teamKey} className="mt-2">
                 <Row>
                     <Col xs={9}>
-                        <p className="text-light pt-1 mb-0 pl-2" style={{fontSize:"1rem",fontWeight:600}}>{team.name}</p>
+                        <p className="text-light pt-1 mb-0 pl-2" style={{fontSize:"1rem",fontWeight:600}}>Rooms</p>
                     </Col>
                     <Col xs={3}>
                         <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} onClick={() => this.setState({ showRoomsModal: true })}><FontAwesomeIcon icon={faPlusSquare} /></Button>
@@ -88,7 +114,7 @@ class Sidebar extends React.Component {
                                             room: room
                                         }
                                     }}>
-                                <p className="pl-2 text-light mb-0"># {room.name}</p>
+                                <p className="pl-2 text-light mb-0">{room.id == 100 ? <FontAwesomeIcon icon={faLock} style={{fontSize:".65rem"}} /> : '#'} {room.name}</p>
                             </NavLink>
                         </li>
                     )}
@@ -123,12 +149,17 @@ class Sidebar extends React.Component {
                 </Switch>
                 <Switch>
                 <EnsureLoggedInContainer>
-                    <UsersModal 
+                    <InviteUsersModal 
+                        show={showInviteUsersModal}
+                        handleSubmit={inviteUsers}
+                        onHide={() => this.setState({ showInviteUsersModal: false })}
+                    />
+                    <ManageUsersModal 
                         users={organizationUsers}
                         loading={organizationLoading.toString()}
-                        show={showUsersModal}
+                        show={showManageUsersModal}
                         onShow={() => getOrganizationUsers(organization.id)}
-                        onHide={() => this.setState({ showUsersModal: false })}
+                        onHide={() => this.setState({ showManageUsersModal: false })}
                     />
                     <RoomsModal 
                         show={showRoomsModal}
@@ -161,7 +192,10 @@ class Sidebar extends React.Component {
                                 <Dropdown className="dropdownSettings text-light">
                                     <Dropdown.Toggle><FontAwesomeIcon icon={faCog} style={{color:"#fff"}} /></Dropdown.Toggle>
                                     <Dropdown.Menu>
-                                        <Dropdown.Item onClick={() => this.setState({ showUsersModal: true })}>
+                                        <Dropdown.Item onClick={() => this.setState({ showInviteUsersModal: true })}>
+                                            <FontAwesomeIcon icon={faUserPlus} /> Invite People to {organization != null ? organization.name : ''}
+                                        </Dropdown.Item>
+                                        <Dropdown.Item onClick={() => this.setState({ showManageUsersModal: true })}>
                                             <FontAwesomeIcon icon={faUserFriends} /> Manage Users
                                         </Dropdown.Item>
                                         <Dropdown.Item onClick={() => userLogout() }>

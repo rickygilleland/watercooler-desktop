@@ -4,7 +4,10 @@ import {
     GET_ORGANIZATIONS_FAILURE, 
     GET_ORGANIZATION_USERS_STARTED,
     GET_ORGANIZATION_USERS_SUCCESS,
-    GET_ORGANIZATION_USERS_FAILURE 
+    GET_ORGANIZATION_USERS_FAILURE,
+    INVITE_USERS_STARTED,
+    INVITE_USERS_SUCCESS,
+    INVITE_USERS_FAILURE
 } from '../actions/organization';
 
 const initialState = {
@@ -45,6 +48,15 @@ export default function organization(state = initialState, action = {}) {
             }
             break;
         case GET_ORGANIZATION_USERS_FAILURE:
+            return state;
+            break;
+        case INVITE_USERS_STARTED:
+            return state;
+            break;
+        case INVITE_USERS_SUCCESS:
+            return state;
+            break;
+        case INVITE_USERS_FAILURE: 
             return state;
             break;
         default:

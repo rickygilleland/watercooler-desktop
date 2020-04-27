@@ -40,7 +40,7 @@ function Video(props) {
                 <div className="rounded shadow mx-auto d-flex flex-column justify-content-center position-relative text-light" style={{height: videoSizes.height, width: videoSizes.width, backgroundColor:publisher.containerBackgroundColor }}>
                 <video autoPlay ref={renderVideo(publisher.stream)} className="rounded shadow" style={{height: 0, width: 0 }}></video>
                     <div className="mx-auto align-self-center">
-                        <Image src={publisher.member.avatar} roundedCircle />
+                        <Image src={publisher.member.avatar} fluid roundedCircle />
                         <p className="font-weight-bolder text-center" style={{paddingTop:5,fontSize:"1.4rem"}}><FontAwesomeIcon style={{color:"#f9426c"}} icon={faVideoSlash} /> Audio Only</p>
                     </div>
                     <div className="position-absolute overlay" style={{bottom:0,backgroundColor:"rgb(18, 20, 34, .5)",width:"100%"}}>
