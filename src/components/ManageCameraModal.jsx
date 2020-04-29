@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Row, Col, Button, Navbar, Dropdown, Modal, Card, Image, Form } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faWindowClose } from '@fortawesome/free-solid-svg-icons';
 
 function ManageCameraModal(props) {
     const { loading, users, settings } = props;
@@ -36,10 +36,11 @@ function ManageCameraModal(props) {
         aria-labelledby="contained-modal-title-vcenter"
         centered
       >
-        <Modal.Header closeButton>
+        <Modal.Header>
           <Modal.Title className="font-weight-bolder">
             Camera Settings
           </Modal.Title>
+          <Button variant="outline-secondary" onClick={() => props.onHide()}><FontAwesomeIcon icon={faWindowClose}></FontAwesomeIcon></Button>
         </Modal.Header>
         <Modal.Body>
 

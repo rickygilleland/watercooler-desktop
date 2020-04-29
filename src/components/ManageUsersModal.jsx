@@ -1,7 +1,7 @@
 import React from 'react';
 import { Row, Col, Button, Navbar, Dropdown, Modal, Card, Image } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faWindowClose } from '@fortawesome/free-solid-svg-icons';
 
 function ManageUsersModal(props) {
     const { loading, users } = props;
@@ -13,10 +13,11 @@ function ManageUsersModal(props) {
         aria-labelledby="contained-modal-title-vcenter"
         centered
       >
-        <Modal.Header closeButton>
+        <Modal.Header>
           <Modal.Title className="font-weight-bolder">
             Manage Team
           </Modal.Title>
+          <Button variant="outline-secondary" onClick={() => props.onHide()}><FontAwesomeIcon icon={faWindowClose}></FontAwesomeIcon></Button>
         </Modal.Header>
         <Modal.Body>
         {loading == "true" ?
