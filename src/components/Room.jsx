@@ -682,7 +682,7 @@ class Room extends React.Component {
                         : '' }
                     </Col>
                 </Row>
-                <Container className="ml-0" fluid style={{height:videoSizes.containerHeight}}>
+                <Container className="ml-0 stage-container" fluid style={{height:videoSizes.containerHeight}}>
                     {loading ? 
                         <React.Fragment>
                             <h1 className="text-center mt-5">Loading Room...</h1>
