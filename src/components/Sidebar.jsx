@@ -66,30 +66,6 @@ class Sidebar extends React.Component {
                 team.name = team.name.trim() + "...";
             }
         })
-
-        
-        if (typeof teams[0] != "undefined" && teams[0].rooms.length == 1) {
-            teams[0].rooms.push({
-                id: 99,
-                name: "Daily Standup"
-            })
-    
-            teams[0].rooms.push({
-                id: 100,
-                name: "Team Lead Chat"
-            })
-    
-            teams[0].rooms.push({
-                id: 101,
-                name: "Sprint Planning"
-            })
-
-            teams[0].rooms.push({
-                id: 102,
-                name: "Foodies"
-            })
-        }
-
        
         const rooms = teams.map((team, teamKey) =>
             <div key={teamKey} className="mt-2">
