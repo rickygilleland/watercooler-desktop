@@ -20,6 +20,7 @@ class Room extends React.Component {
             team: {},
             loading: true,
             members: [],
+            server: null,
             local_stream: null,
             publishers: [],
             me: {},
@@ -126,7 +127,8 @@ class Room extends React.Component {
         var that = this;
         
         presence_channel.bind('pusher:subscription_succeeded', function(members) {
-            that.setState({ members: members.members, me: members.me });
+            console.log(members.me);
+            that.setState({ members: members.members, me: members.me, server: members.me.info.media_server });
             that.openMediaHandle();
         });
 
@@ -158,18 +160,12 @@ class Room extends React.Component {
     }
 
     openMediaHandle() {
-        var { me, room, team, local_stream } = this.state;
+        var { me, room, team, local_stream, server } = this.state;
         var that = this;
 
         var rootStreamerHandle = new Janus(
         {
-            server: ['wss://streamer.watercooler.work:4443/', 'https://streamer.watercooler.work/streamer'],
-            iceServers: [
-                { url: 'stun:global.stun.twilio.com:3478?transport=udp' },
-                { url: 'turn:global.turn.twilio.com:3478?transport=udp', username: me.info.nts_user, credential: me.info.nts_password},
-                { url: 'turn:global.turn.twilio.com:3478?transport=tcp', username: me.info.nts_user, credential: me.info.nts_password},
-                { url: 'turn:global.turn.twilio.com:443?transport=tcp', username: me.info.nts_user, credential: me.info.nts_password}
-            ],
+            server: [`wss://${server}:4443/`, `https://${server}/streamer`],
             success: function(handle) {
                 that.setState({ rootStreamerHandle });
 
@@ -199,6 +195,7 @@ class Room extends React.Component {
 
                         console.log("ROOT MSG");
                         console.log(msg);
+                        console.log(jsep);
     
                         if (jsep != null) {
                             videoRoomStreamerHandle.handleRemoteJsep({ "jsep": jsep });
@@ -208,11 +205,10 @@ class Room extends React.Component {
                             console.log("JOINED");
                             console.log(msg);
 
-                            if (msg.publishers.length > 0) {
-
-                                let rand = Math.floor(Math.random() * containerBackgroundColors.length); 
+                            if (msg.publishers.length > 0) { 
                                 
                                 msg.publishers.forEach(publisher => {
+                                    var rand = Math.floor(Math.random() * containerBackgroundColors.length);
                                     each(members, function(member) {
                                         if (member.peer_uuid == publisher.display) {
                                             publisher.member = member;
@@ -284,6 +280,15 @@ class Room extends React.Component {
                                 that.setState({ publishers: updatedPublishers });
                 
                             }
+
+                            if (typeof msg.unpublished != "undefined") {
+                                const updatedPublishers = that.state.publishers.filter(item => {
+                                    return item.id != msg.unpublished;
+                                })
+
+                                that.setState({ publishers: updatedPublishers });
+                
+                            }
                         }
                     },
                     oncleanup: function() {
@@ -308,19 +313,41 @@ class Room extends React.Component {
     }
 
     async startPublishingStream() {
-        var  { videoRoomStreamerHandle, audioStatus, videoStatus } = this.state;
+        const { settings } = this.props;
+        var { videoRoomStreamerHandle, audioStatus, videoStatus } = this.state;
+
+
         let streamOptions;
         /* TODO: Manually prompt for camera and microphone access on macos to handle it more gracefully - systemPreferences.getMediaAccessStatus(mediaType) */
-        streamOptions = {
-            video: {
-                aspectRatio: 1.3333333333
-            },
-            audio: true
+        if (settings.defaultDevices != null) {
+            streamOptions = {
+                video: {
+                    aspectRatio: 1.3333333333,
+                    deviceId: settings.defaultDevices.videoInput
+                },
+                audio: {
+                    deviceId: settings.defaultDevices.audioInput
+                }
+            }
+        } else {
+            streamOptions = {
+                video: {
+                    aspectRatio: 1.3333333333,
+                },
+                audio: true
+            }
         }
+
+        console.log(streamOptions);
 
         const local_stream = await navigator.mediaDevices.getUserMedia(streamOptions);
 
+        console.log("STREAM");
+        console.log(local_stream);
+
         const tracks = local_stream.getTracks();
+
+        console.log(tracks);
 
         tracks.forEach(function(track) {
             if (track.kind == "video") {
@@ -377,13 +404,17 @@ class Room extends React.Component {
         }
 
         publishers.forEach((publisher, key) => {
-            if (typeof publisher.handle != "undefined") {
+            if (typeof publisher.handle != "undefined" && publisher.handle != null) {
                 publisher.handle.detach();
             }
 
             publishers[key].stream = null;
             publishers[key].handle = null;
             publishers[key].active = false;
+        })
+
+        publishers.filter(publisher => {
+            return publisher.active;
         })
 
         this.setState({ publishing: false, local_stream: null, publishers })
@@ -432,6 +463,7 @@ class Room extends React.Component {
             onmessage: function(msg, jsep) {
                 console.log("REMOTE MSG");
                 console.log(msg);
+                console.log(jsep);
                 if (jsep != null) {
                     if (typeof msg.display != "undefined") {
                         handle.createAnswer({
@@ -454,6 +486,7 @@ class Room extends React.Component {
                 var hasVideo = false;
                 var hasAudio = false;
                 tracks.forEach(track => {
+                    console.log(track);
                     if (track.kind == "video" && track.enabled) {
                         hasVideo = true;
                     }
@@ -571,7 +604,7 @@ class Room extends React.Component {
         var { videoRoomStreamerHandle, local_stream, videoStatus, audioStatus } = this.state;
 
         if (typeof local_stream !== 'undefined') {
-            const tracks = local_stream.getTracks();
+            var tracks = local_stream.getTracks();
             
             tracks.forEach(function(track) {
                 if (track.kind == type) {
@@ -594,6 +627,8 @@ class Room extends React.Component {
                     "videocodec": "vp9"
                 }
 
+                console.log(request);
+
                 videoRoomStreamerHandle.send({ "message": request });
             }
 
@@ -603,6 +638,7 @@ class Room extends React.Component {
 
     render() {
         const { room, loading, publishers, local_stream, videoStatus, audioStatus, videoSizes, currentLoadingMessage } = this.state;
+
         return (
             <React.Fragment>
                 <Row className="text-light pl-0 ml-0" style={{height:80,backgroundColor:"#121422"}}>

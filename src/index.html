@@ -11,7 +11,7 @@
 <link href="https://watercooler.work/css/app.css" rel="stylesheet">
 </head>
 <style>
-  -webkit-scrollbar {
+  ::-webkit-scrollbar {
       display: none;
   }
   video {
@@ -55,6 +55,12 @@
   }
   .modal-header {
     border-bottom: 1px solid #1c2046 !important;
+  }
+  .overlay {
+    display:none
+  }
+  .video-container:hover > .overlay {
+    display:block;
   }
 </style>
 <body style="overflow: hidden; margin: 0" >

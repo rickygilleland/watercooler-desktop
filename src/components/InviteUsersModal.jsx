@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Row, Col, Button, Navbar, Dropdown, Modal, Card, Image, Form } from 'react-bootstrap';
+import { Row, Col, Button, Navbar, Dropdown, Modal, Card, Image, Form, Alert } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
 
 
 function InviteUsersModal(props) {
     const [ emails, setEmails ] = useState("");
+    const [ formSubmitted, setFormSubmitted ] = useState(false);
 
     function handleEmailChange(event) {
         setEmails(event.target.value);
@@ -13,6 +14,8 @@ function InviteUsersModal(props) {
     
     function handleSubmit(event) {
         event.preventDefault();
+
+        setFormSubmitted(true);
         
         props.handleSubmit(emails);
     }
@@ -31,11 +34,20 @@ function InviteUsersModal(props) {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-            <Form onSubmit={handleSubmit}>
-                <Form.Label>Enter the email address of each person you want to invite, separated by commas.</Form.Label>
-                <Form.Control type="text" value={emails} onChange={handleEmailChange} />
-                <Button className="mt-3" variant="primary" type="submit">Send Invites</Button>
-            </Form>
+
+          {props.inviteuserssuccess && formSubmitted ? 
+
+            <Alert variant="success" className="text-center">
+              Your invites were successfully sent. Let them know to check their email to get started with Water Cooler!
+            </Alert>
+
+          : ''}
+
+          <Form onSubmit={handleSubmit}>
+              <Form.Label>Enter the email address of each person you want to invite. Feel free to enter multiple addresses, separated by commas.</Form.Label>
+              <Form.Control type="text" value={emails} onChange={handleEmailChange} />
+              <Button className="mt-3" variant="primary" type="submit">Send Invites</Button>
+          </Form>
          
         </Modal.Body>
       </Modal>

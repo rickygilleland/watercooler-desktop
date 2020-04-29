@@ -15,7 +15,8 @@ const initialState = {
     teams: [],
     users: [],
     error: false,
-    loading: false
+    loading: false,
+    inviteUsersSuccess: false
 }
 
 export default function organization(state = initialState, action = {}) {
@@ -51,13 +52,22 @@ export default function organization(state = initialState, action = {}) {
             return state;
             break;
         case INVITE_USERS_STARTED:
-            return state;
+            updatedState = {
+                inviteUsersSuccess: false,
+                loading: true
+            }
             break;
         case INVITE_USERS_SUCCESS:
-            return state;
+            updatedState = {
+                inviteUsersSuccess: true,
+                loading: false
+            }
             break;
         case INVITE_USERS_FAILURE: 
-            return state;
+            updatedState = {
+                inviteUsersSuccess: false,
+                loading: false
+            }
             break;
         default:
             //do nothing

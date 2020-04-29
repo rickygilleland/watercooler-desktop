@@ -15,13 +15,13 @@ function ManageUsersModal(props) {
       >
         <Modal.Header closeButton>
           <Modal.Title className="font-weight-bolder">
-            Manage Users
+            Manage Team
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
         {loading == "true" ?
             <>
-                <h1 className="text-center h5">Loading Users...</h1>
+                <h1 className="text-center h5">Loading Team...</h1>
                 <center><FontAwesomeIcon icon={faCircleNotch} className="mt-3" style={{fontSize:"2.4rem",color:"#6772ef"}} spin /></center> 
             </>
         : 

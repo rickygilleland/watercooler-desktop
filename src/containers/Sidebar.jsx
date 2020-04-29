@@ -1,6 +1,7 @@
 import React from 'react';
 import { userLogout } from '../actions/auth';
 import { getOrganizations, getOrganizationUsers, inviteUsers } from '../actions/organization';
+import { getAvailableDevices, updateDefaultDevices } from '../actions/settings';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { push } from 'connected-react-router';
@@ -13,9 +14,11 @@ function mapStateToProps(state, ownProps) {
         organization: state.organization.organization,
         organizationUsers: state.organization.users,
         organizationLoading: state.organization.loading,
+        inviteUsersSuccess: state.organization.inviteUsersSuccess,
         teams: state.organization.teams,
         auth: state.auth,
-        currentURL: ownProps.location.pathname
+        currentURL: ownProps.location.pathname,
+        settings: state.settings
     }
 }
 
@@ -26,6 +29,8 @@ function mapDispatchToProps(dispatch) {
         getOrganizations,
         getOrganizationUsers,
         inviteUsers,
+        getAvailableDevices,
+        updateDefaultDevices,
         push,
       },
       dispatch

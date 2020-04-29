@@ -4,14 +4,16 @@ import routes from '../constants/routes.json';
 import { debounce } from 'lodash';
 import { Row, Col, Button, Navbar, Dropdown, Modal } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faCircleNotch, faSignOutAlt, faUserFriends, faPlusSquare, faCog, faUserPlus, faLock } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faSignOutAlt, faUserFriends, faPlusSquare, faCog, faUserPlus, faUsers, faLock, faCamera } from '@fortawesome/free-solid-svg-icons';
 import { getOrganizationUsers } from '../actions/organization';
 import EnsureLoggedInContainer from '../containers/EnsureLoggedInContainer';
 import LoginPage from '../containers/LoginPage';
 import LoadingPage from '../containers/LoadingPage';
 import RoomPage from '../containers/RoomPage';
+import TeamPage from '../containers/TeamPage';
 import ManageUsersModal from './ManageUsersModal';
 import InviteUsersModal from './InviteUsersModal';
+import ManageCameraModal from './ManageCameraModal';
 import RoomsModal from './RoomsModal';
 
 
@@ -27,6 +29,7 @@ class Sidebar extends React.Component {
             },
             showInviteUsersModal: false,
             showManageUsersModal: false,
+            showManageCameraModal: false,
             showRoomsModal: false,
         }
 
@@ -54,8 +57,8 @@ class Sidebar extends React.Component {
     }
 
     render() {
-        const { organization, teams, user, auth, userLogout, currentUrl, getOrganizationUsers, organizationUsers, organizationLoading, inviteUsers } = this.props;
-        const { dimensions, showInviteUsersModal, showManageUsersModal, showRoomsModal } = this.state;
+        const { organization, teams, user, auth, userLogout, currentUrl, getOrganizationUsers, organizationUsers, organizationLoading, inviteUsers, inviteUsersSuccess, getAvailableDevices, settings, updateDefaultDevices } = this.props;
+        const { dimensions, showInviteUsersModal, showManageUsersModal, showRoomsModal, showManageCameraModal } = this.state;
 
         teams.forEach(team => {
             if (team.name.length > 20) {
@@ -64,7 +67,7 @@ class Sidebar extends React.Component {
             }
         })
 
-        /*
+        
         if (typeof teams[0] != "undefined" && teams[0].rooms.length == 1) {
             teams[0].rooms.push({
                 id: 99,
@@ -85,14 +88,14 @@ class Sidebar extends React.Component {
                 id: 102,
                 name: "Foodies"
             })
-        }*/
+        }
 
        
         const rooms = teams.map((team, teamKey) =>
             <div key={teamKey} className="mt-2">
                 <Row>
                     <Col xs={9}>
-                        <p className="text-light pt-1 mb-0 pl-2" style={{fontSize:"1rem",fontWeight:600}}>Rooms</p>
+                        <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:600}}>Rooms</p>
                     </Col>
                     <Col xs={3}>
                         <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} onClick={() => this.setState({ showRoomsModal: true })}><FontAwesomeIcon icon={faPlusSquare} /></Button>
@@ -114,7 +117,7 @@ class Sidebar extends React.Component {
                                             room: room
                                         }
                                     }}>
-                                <p className="pl-2 text-light mb-0">{room.id == 100 ? <FontAwesomeIcon icon={faLock} style={{fontSize:".65rem"}} /> : '#'} {room.name}</p>
+                                <p className="text-light mb-0 pl-3">{room.id == 100 ? <FontAwesomeIcon icon={faLock} style={{fontSize:".65rem"}} /> : '# '} {room.name}</p>
                             </NavLink>
                         </li>
                     )}
@@ -152,6 +155,7 @@ class Sidebar extends React.Component {
                     <InviteUsersModal 
                         show={showInviteUsersModal}
                         handleSubmit={inviteUsers}
+                        inviteuserssuccess={inviteUsersSuccess}
                         onHide={() => this.setState({ showInviteUsersModal: false })}
                     />
                     <ManageUsersModal 
@@ -164,6 +168,13 @@ class Sidebar extends React.Component {
                     <RoomsModal 
                         show={showRoomsModal}
                         onHide={() => this.setState({ showRoomsModal: false })}
+                    />
+                    <ManageCameraModal 
+                        show={showManageCameraModal}
+                        settings={settings}
+                        handleSubmit={updateDefaultDevices}
+                        onShow={() => getAvailableDevices()}
+                        onHide={() => this.setState({ showManageCameraModal: false })}
                     />
                     {typeof firstRoom != "undefined" && typeof firstRoom.slug != "undefined" ?
                         <Redirect from="/redirect" exact to={{
@@ -196,7 +207,10 @@ class Sidebar extends React.Component {
                                             <FontAwesomeIcon icon={faUserPlus} /> Invite People to {organization != null ? organization.name : ''}
                                         </Dropdown.Item>
                                         <Dropdown.Item onClick={() => this.setState({ showManageUsersModal: true })}>
-                                            <FontAwesomeIcon icon={faUserFriends} /> Manage Users
+                                            <FontAwesomeIcon icon={faUserFriends} /> Manage Team
+                                        </Dropdown.Item>
+                                        <Dropdown.Item onClick={() => this.setState({ showManageCameraModal: true })}>
+                                            <FontAwesomeIcon icon={faCamera} /> Camera Settings
                                         </Dropdown.Item>
                                         <Dropdown.Item onClick={() => userLogout() }>
                                             <FontAwesomeIcon icon={faSignOutAlt}/> Sign Out
@@ -206,6 +220,23 @@ class Sidebar extends React.Component {
 
                             </div>
                         </Navbar>
+                        <div>
+                            <ul className="nav flex-column mt-1">
+                                <li key="people-nav-button" className="nav-item">
+                                    <NavLink exact={true} 
+                                        activeStyle={{
+                                            fontWeight: "bold",
+                                            backgroundColor:"#4381ff"
+                                        }} 
+                                        className="d-block py-1"
+                                        to={{
+                                            pathname: `/team`
+                                        }}>
+                                            <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faUsers} style={{fontSize:".65rem"}} />  Team</p>
+                                    </NavLink>
+                                </li>
+                            </ul>
+                        </div>
                         <div>
                             {rooms}
                         </div>
@@ -217,7 +248,12 @@ class Sidebar extends React.Component {
                                 <RoomPage {...routeProps} dimensions={this.state.dimensions} />
                             )}
                         />
-                        
+                        <Route 
+                            path={routes.TEAM} 
+                            render={(routeProps) => (
+                                <TeamPage {...routeProps} />
+                            )}
+                        />
                     </div>
                 </EnsureLoggedInContainer>
                 </Switch>

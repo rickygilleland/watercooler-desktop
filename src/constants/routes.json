@@ -4,6 +4,7 @@
     "LOGIN": "/login",
     "CALLBACK": "/callback/:type/:code",
     "LOADING": "/loading",
-    "REDIRECT": "/redirect"
+    "REDIRECT": "/redirect",
+    "TEAM": "/team"
   }
   

@@ -6,6 +6,7 @@ import auth from './auth';
 import user from './user';
 import room from './room';
 import organization from './organization';
+import settings from './settings';
 
 export default (history) => {
     const appReducer = combineReducers({
@@ -14,6 +15,7 @@ export default (history) => {
         user,
         room,
         organization,
+        settings
     });
 
     const rootReducer = (state, action) => {
