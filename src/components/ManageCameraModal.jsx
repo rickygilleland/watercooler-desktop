@@ -25,8 +25,6 @@ function ManageCameraModal(props) {
         props.onHide();
     }
 
-    console.log(props);
-
     return (
       <Modal
         show={props.show}

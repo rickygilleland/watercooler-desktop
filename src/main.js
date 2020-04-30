@@ -1,5 +1,6 @@
 import { app, BrowserWindow, Menu, session, autoUpdater, dialog, protocol } from 'electron';
-import { debounce } from 'lodash';
+import { init } from '@sentry/electron/dist/main';
+import * as Sentry from '@sentry/electron';
 if(require('electron-squirrel-startup')) app.quit();
 
 var isDevMode = process.execPath.match(/[\\/]electron/);
@@ -9,6 +10,10 @@ const contextMenu = require('electron-context-menu');
 let mainWindow;
 
 if (!isDevMode) {
+
+  init({
+    dsn: 'https://20e5d4f5d6d94630a28e5684a3048940@o281199.ingest.sentry.io/5176374'
+  });  
 
   const server = 'https://updater.watercooler.work'
   const feed = `${server}/update/${process.platform}/${app.getVersion()}`
