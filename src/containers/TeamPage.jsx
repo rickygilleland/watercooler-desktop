@@ -13,6 +13,7 @@ function mapStateToProps(state) {
         organization: state.organization.organization,
         organizationUsers: state.organization.users,
         organizationLoading: state.organization.loading,
+        inviteUsersSuccess: state.organization.inviteUsersSuccess,
         teams: state.organization.teams,
     }
 }

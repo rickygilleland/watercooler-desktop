@@ -26,13 +26,16 @@ class Team extends React.Component {
     }
 
     render() {
-        const { organizationLoading, inviteUsers, organizationUsers } = this.props;
-        const { showInviteUsersModal } = this.props;
+        const { organizationLoading, inviteUsers, inviteUsersSuccess } = this.props;
+        var { organizationUsers } = this.props;
+        const { showInviteUsersModal } = this.state;
+
         return(
             <>
                 <InviteUsersModal 
                     show={showInviteUsersModal}
                     handleSubmit={inviteUsers}
+                    inviteuserssuccess={inviteUsersSuccess}
                     onHide={() => this.setState({ showInviteUsersModal: false })}
                 />
                 <Row className="text-light pl-0 ml-0" style={{height:80,backgroundColor:"#121422"}}>
@@ -47,7 +50,7 @@ class Team extends React.Component {
                     <Col xs={{span:4,offset:4}}>
                         <div className="d-flex flex-row justify-content-end">
                             <div className="align-self-center pr-4">
-                                <Button variant="success" onClick={() => console.log("sure")}><FontAwesomeIcon icon={faUserPlus} /> Invite</Button>
+                                <Button variant="success" onClick={() => this.setState({ showInviteUsersModal: true })}><FontAwesomeIcon icon={faUserPlus} /> Invite</Button>
                             </div>
                             <div style={{height:80}}></div>
                         </div>
@@ -63,9 +66,9 @@ class Team extends React.Component {
                         {organizationUsers.map((user) =>
                             <Col xs={6} md={4} lg={3} key={user.id}>
                                 <Card className="mb-3">
-                                    <Card.Img variant="top" src={user.avatar_url}  />
+                                    <Card.Img variant="top" src={user.avatar_url} className="border-bottom" />
                                     <Card.Body>
-                                        <p className="font-bold" style={{fontSize:"1.3rem"}}>{user.name}</p>
+                                        <p className="font-weight-bold" style={{fontSize:"1rem"}}>{user.name}</p>
                                     </Card.Body>
                                 </Card>
                             </Col>
