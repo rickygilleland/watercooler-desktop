@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, session, autoUpdater, dialog, protocol } from 'electron';
+import { app, BrowserWindow, Menu, autoUpdater, dialog, protocol, ipcMain, webContents } from 'electron';
 import { init } from '@sentry/electron/dist/main';
 import * as Sentry from '@sentry/electron';
 if(require('electron-squirrel-startup')) app.quit();
@@ -147,3 +147,10 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
+app.setAsDefaultProtocolClient("watercooler");
+
+app.on('open-url', (ev, url) => {
+  ev.preventDefault();
+
+  mainWindow.webContents.send('url_update', url)
+});

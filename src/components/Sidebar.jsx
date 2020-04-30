@@ -16,6 +16,8 @@ import InviteUsersModal from './InviteUsersModal';
 import ManageCameraModal from './ManageCameraModal';
 import RoomsModal from './RoomsModal';
 
+const { ipcRenderer } = require('electron')
+
 
 class Sidebar extends React.Component {
 
@@ -37,8 +39,13 @@ class Sidebar extends React.Component {
     }
 
     componentDidMount() {
+        const { push } = this.props;
         this.handleResize();
         window.addEventListener('resize', this.handleResize);
+
+        ipcRenderer.on('url_update', (event, arg) => {
+            push(arg.slice(13));
+        })
     }
 
     componentDidUpdate() {
