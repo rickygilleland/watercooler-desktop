@@ -8,6 +8,7 @@ import { faCircleNotch, faSignOutAlt, faUserFriends, faPlusSquare, faCog, faUser
 import { getOrganizationUsers } from '../actions/organization';
 import EnsureLoggedInContainer from '../containers/EnsureLoggedInContainer';
 import LoginPage from '../containers/LoginPage';
+import MagicLoginPage from '../containers/MagicLoginPage';
 import LoadingPage from '../containers/LoadingPage';
 import RoomPage from '../containers/RoomPage';
 import TeamPage from '../containers/TeamPage';
@@ -44,7 +45,11 @@ class Sidebar extends React.Component {
         window.addEventListener('resize', this.handleResize);
 
         ipcRenderer.on('url_update', (event, arg) => {
-            push(arg.slice(13));
+            let pushUrl = arg.slice(13);
+
+            if (pushUrl.includes('magic')) {
+                push(arg.slice(13));
+            }
         })
     }
 
@@ -128,6 +133,7 @@ class Sidebar extends React.Component {
             <>
                 <Switch>
                     <Route path={routes.LOGIN} component={LoginPage} />
+                    <Route path={routes.MAGIC_LOGIN} component={MagicLoginPage} />
                     <Route path={routes.LOADING} component={LoadingPage} />
                     <Redirect from="/" exact to={{
                             pathname: routes.LOADING,

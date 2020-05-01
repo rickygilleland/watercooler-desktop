@@ -9,7 +9,7 @@ class EnsureLoggedInContainer extends React.Component {
     componentDidMount() {
       const { dispatch, currentURL, auth, organization } = this.props
 
-      if ((!auth.isLoggedIn || auth.loginError) && currentURL != "/login") {
+      if ((!auth.isLoggedIn || auth.loginError) && (currentURL != "/login" && !currentURL.includes("/magic/login"))) {
 
         dispatch(setRedirectUrl({ redirectUrl: currentURL }));
         dispatch(push("/login"));
@@ -20,7 +20,7 @@ class EnsureLoggedInContainer extends React.Component {
     componentDidUpdate() {
       const { dispatch, currentURL, auth, organization } = this.props
 
-      if ((!auth.isLoggedIn || auth.loginError) && currentURL != "/login") {
+      if ((!auth.isLoggedIn || auth.loginError) && (currentURL != "/login" && !currentURL.includes("/magic/login"))) {
         dispatch(setRedirectUrl({ redirectUrl: currentURL }));
         dispatch(push("/login"));
       }

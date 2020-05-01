@@ -54,6 +54,24 @@ export function authenticateUser(email, password) {
     }
 }
 
+export function authenticateUserMagicLink(code) {
+    return (dispatch, getState, axios) => {
+        dispatch(authenticateUserStarted());
+
+        const state = getState();
+        //check if we need a new token or a refresh token
+        axios.post(`https://watercooler.work/api/magic/auth`, {
+            code: code
+        })
+        .then(response => {
+            dispatch(authenticateUserSuccess({ authKey: response.data.access_token }));
+        })
+        .catch(error => {
+            dispatch(authenticateUserFailure({ error: error.message }));
+        });
+    }
+}
+
 export function userLogout() {
     return {
         type: 'USER_LOGOUT'

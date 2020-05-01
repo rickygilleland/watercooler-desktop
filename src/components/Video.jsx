@@ -19,7 +19,7 @@ function Video(props) {
                                     <p className="pl-2 mb-1 mt-1 font-weight-bolder"><span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>{publisher.member.name}</span></p>
                                 </Col>
                                 <Col>
-                                    <p className="pr-2 mb-1 mt-1 font-weight-bolder text-right">
+                                    {/*<p className="pr-2 mb-1 mt-1 font-weight-bolder text-right">
                                         <span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>
                                             {publisher.hasAudio 
                                                 ? 
@@ -28,7 +28,7 @@ function Video(props) {
                                                     <FontAwesomeIcon style={{color:"#f9426c"}} icon={faMicrophoneSlash} /> 
                                             }
                                         </span>
-                                    </p>
+                                    </p>*/}
                                 </Col>
                             </Row>
                         </div>
@@ -53,7 +53,7 @@ function Video(props) {
                                 <p className="pl-2 mb-1 mt-1 font-weight-bolder"><span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>{publisher.member.name}</span></p>
                             </Col>
                             <Col>
-                                <p className="pr-2 mb-1 mt-1 font-weight-bolder text-right">
+                                {/*<p className="pr-2 mb-1 mt-1 font-weight-bolder text-right">
                                     <span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>
                                         {publisher.hasAudio 
                                             ? 
@@ -62,7 +62,7 @@ function Video(props) {
                                                 <FontAwesomeIcon style={{color:"#f9426c"}} icon={faMicrophoneSlash} /> 
                                         }
                                     </span>
-                                </p>
+                                </p>*/}
                             </Col>
                         </Row>
                     </div>

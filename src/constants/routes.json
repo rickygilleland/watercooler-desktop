@@ -2,6 +2,7 @@
     "HOME": "/",
     "ROOM": "/room/:roomSlug",
     "LOGIN": "/login",
+    "MAGIC_LOGIN": "/magic/login/:code",
     "CALLBACK": "/callback/:type/:code",
     "LOADING": "/loading",
     "REDIRECT": "/redirect",
