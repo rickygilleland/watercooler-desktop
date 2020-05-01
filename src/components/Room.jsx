@@ -206,6 +206,8 @@ class Room extends React.Component {
                             console.log(msg);
 
                             if (msg.publishers.length > 0) { 
+
+                                let updatedPublishers = [];
                                 
                                 msg.publishers.forEach(publisher => {
                                     var rand = Math.floor(Math.random() * containerBackgroundColors.length);
@@ -219,9 +221,11 @@ class Room extends React.Component {
                                     if (typeof publisher.loading == "undefined") {
                                         publisher.loading = false;
                                     }
+
+                                    updatedPublishers.push(publisher);
                                 })
 
-                                that.setState({ connected: true, loading: false, publishers: msg.publishers });
+                                that.setState({ connected: true, loading: false, publishers: updatedPublishers });
                             } else {
                                 currentLoadingMessage = [];
 
