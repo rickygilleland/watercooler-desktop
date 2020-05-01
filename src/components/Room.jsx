@@ -1,5 +1,5 @@
 import React from 'react';
-import { systemPreferences } from 'electron';
+import { ipcRenderer } from 'electron';
 import update from 'immutability-helper';
 import { each, debounce } from 'lodash';
 import { Link } from 'react-router-dom';
@@ -54,21 +54,6 @@ class Room extends React.Component {
             ]
         }
 
-        this.pusher = new Pusher('3eb4f9d419966b6e1e0b', {
-            forceTLS: true,
-            cluster: 'mt1',
-            authEndpoint: 'https://watercooler.work/broadcasting/auth',
-            authTransport: "ajax",
-            auth: {
-                headers: {
-                    Authorization: `Bearer ${this.props.auth.authKey}`,
-                    Accept: 'application/json'
-                }
-            },
-        });
-
-        this.pusher.logToConsole = true;
-
         this.createDetachedWindowBound = this.createDetachedWindow.bind(this);
 
         this.toggleVideoOrAudio = this.toggleVideoOrAudio.bind(this);
@@ -82,6 +67,9 @@ class Room extends React.Component {
 
         this.openMediaHandle = this.openMediaHandle.bind(this);
         this.renderVideo = this.renderVideo.bind(this);
+
+        this.reconnectNetworkConnections = this.reconnectNetworkConnections.bind(this);
+        this.disconnectNetworkConnections = this.disconnectNetworkConnections.bind(this);
 
     }
 
@@ -114,6 +102,31 @@ class Room extends React.Component {
         }
 
         this.setState({ room: curRoom, team: curTeam });
+
+        window.addEventListener('online',  this.reconnectNetworkConnections);
+        window.addEventListener('offline',  this.disconnectNetworkConnections);
+
+        ipcRenderer.on('power_update', (event, arg) => {
+            if (arg == "suspend" || arg == "lock-screen") {
+                this.disconnectNetworkConnections();
+            }
+            if (arg == "unlock-screen" || arg == "resume") {
+                this.reconnectNetworkConnections();
+            }
+        })
+
+        this.pusher = new Pusher('3eb4f9d419966b6e1e0b', {
+            forceTLS: true,
+            cluster: 'mt1',
+            authEndpoint: 'https://watercooler.work/broadcasting/auth',
+            authTransport: "ajax",
+            auth: {
+                headers: {
+                    Authorization: `Bearer ${this.props.auth.authKey}`,
+                    Accept: 'application/json'
+                }
+            },
+        });
 
         Janus.init({
             debug: true,
@@ -148,7 +161,7 @@ class Room extends React.Component {
     }
     
     componentWillUnmount() {
-        const { me, room , videoRoomStreamerHandle, publishers, local_stream } = this.state;
+        const { me, room, rootStreamerHandle, publishers, local_stream } = this.state;
 
         if (typeof room.channel_id != 'undefined') {
             this.pusher.unsubscribe(`presence-peers.${room.channel_id}`);
@@ -157,11 +170,66 @@ class Room extends React.Component {
         this.pusher.disconnect();
 
         this.stopPublishingStream()
+        rootStreamerHandle.destroy();
+
+        window.removeEventListener('online',  this.reconnectNetworkConnections);
+        window.removeEventListener('offline',  this.disconnectNetworkConnections);
+    }
+
+    reconnectNetworkConnections() {
+        const { room } = this.state;
+        this.pusher = new Pusher('3eb4f9d419966b6e1e0b', {
+            forceTLS: true,
+            cluster: 'mt1',
+            authEndpoint: 'https://watercooler.work/broadcasting/auth',
+            authTransport: "ajax",
+            auth: {
+                headers: {
+                    Authorization: `Bearer ${this.props.auth.authKey}`,
+                    Accept: 'application/json'
+                }
+            },
+        });
+
+        Janus.init({
+            debug: true,
+            dependencies: Janus.useDefaultDependencies(),
+            callback: function() {
+            }
+        });
+
+        var presence_channel = this.pusher.subscribe(`presence-peers.${room.channel_id}`);
+        var that = this;
+        
+        presence_channel.bind('pusher:subscription_succeeded', function(members) {
+            that.setState({ members: members.members, me: members.me, server: members.me.info.media_server });
+            console.log("open");
+            that.openMediaHandle();
+        });
+    }
+
+    disconnectNetworkConnections() {
+        const { me, room , rootStreamerHandle, publishers, local_stream } = this.state;
+        if (typeof room.channel_id != 'undefined') {
+            this.pusher.unsubscribe(`presence-peers.${room.channel_id}`);
+        }
+
+        this.pusher.disconnect();
+        this.stopPublishingStream();
+
+        var that = this;
+        rootStreamerHandle.destroy({
+            success: function() {
+                that.setState({ publishers: [] })
+            }
+        });
     }
 
     openMediaHandle() {
         var { me, room, team, local_stream, server } = this.state;
         var that = this;
+
+        console.log("OPEN MEDIA HANDLE");
 
         var rootStreamerHandle = new Janus(
         {
@@ -320,7 +388,6 @@ class Room extends React.Component {
         const { settings } = this.props;
         var { videoRoomStreamerHandle, audioStatus, videoStatus } = this.state;
 
-
         let streamOptions;
         /* TODO: Manually prompt for camera and microphone access on macos to handle it more gracefully - systemPreferences.getMediaAccessStatus(mediaType) */
         if (settings.defaultDevices != null) {
@@ -342,12 +409,7 @@ class Room extends React.Component {
             }
         }
 
-        console.log(streamOptions);
-
         const local_stream = await navigator.mediaDevices.getUserMedia(streamOptions);
-
-        console.log("STREAM");
-        console.log(local_stream);
 
         const tracks = local_stream.getTracks();
 

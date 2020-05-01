@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, autoUpdater, dialog, protocol, ipcMain, webContents } from 'electron';
+import { app, BrowserWindow, Menu, autoUpdater, dialog, protocol, ipcMain, webContents, powerMonitor } from 'electron';
 import { init } from '@sentry/electron/dist/main';
 import * as Sentry from '@sentry/electron';
 if(require('electron-squirrel-startup')) app.quit();
@@ -126,7 +126,18 @@ if (process.env == "darwin") {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.on('ready', () => {
+  createWindow();
+
+  powerMonitor.on('suspend', () => {
+    mainWindow.webContents.send('power_update', 'suspend');
+  })
+
+  powerMonitor.on('lock-screen', () => {
+    mainWindow.webContents.send('power_update', 'lock-screen');
+  })
+
+});
 
 // Quit when all windows are closed.
 app.on('window-all-closed', () => {
