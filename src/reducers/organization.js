@@ -26,8 +26,7 @@ export default function organization(state = initialState, action = {}) {
             updatedState = {
                 organization: {
                     id: action.payload.data.id,
-                    first_name: action.payload.data.first_name,
-                    last_name: action.payload.data.last_name,
+                    name: action.payload.data.name,
                     slug: action.payload.data.slug
                 },
                 teams: action.payload.data.teams
