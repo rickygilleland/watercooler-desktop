@@ -22,7 +22,11 @@ if (!isDevMode) {
   autoUpdater.setFeedURL(feed);
 
   setInterval(() => {
-    autoUpdater.checkForUpdates()
+    try {
+      autoUpdater.checkForUpdates()
+    } catch (error) {
+      //internet connection might be down
+    }
   }, 900000);
 
   autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
