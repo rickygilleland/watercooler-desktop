@@ -68,7 +68,7 @@ class Team extends React.Component {
                                 <Card className="mb-3">
                                     <Card.Img variant="top" src={user.avatar_url} className="border-bottom" />
                                     <Card.Body>
-                                        <p className="font-weight-bold" style={{fontSize:"1rem"}}>{user.name}</p>
+                                        <p className="font-weight-bold" style={{fontSize:"1rem"}}>{user.first_name} {user.last_name}</p>
                                     </Card.Body>
                                 </Card>
                             </Col>

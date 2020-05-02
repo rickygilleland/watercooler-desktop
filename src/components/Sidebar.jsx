@@ -184,7 +184,7 @@ class Sidebar extends React.Component {
                                     <p className="text-light p-0 m-0" style={{fontSize:".9rem"}}><strong>{organization.name}</strong></p>
                                 : '' }
                                 {user != null ? 
-                                    <p className="text-light pt-0 pb-1" style={{fontSize:".8rem"}}>{user.name}</p>
+                                    <p className="text-light pt-0 pb-1" style={{fontSize:".8rem"}}>{user.first_name}</p>
                                 : '' }
                             </Navbar.Brand>
                             <div className="ml-auto" style={{height:60}}>

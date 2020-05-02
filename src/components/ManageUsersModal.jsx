@@ -34,7 +34,7 @@ function ManageUsersModal(props) {
                       <Image src={user.avatar_url} fluid roundedCircle style={{maxHeight:40}} />
                     </Col>
                     <Col xs={4} className="pl-0">
-                      <p className="text-left" style={{fontWeight:600}}>{user.name}</p>
+                      <p className="text-left" style={{fontWeight:600}}>{user.first_name} {user.last_name}</p>
                     </Col>
                     <Col xs={{span:4,offset:2}}>
                       <Button size="sm">Manage User</Button>

@@ -16,7 +16,7 @@ function Video(props) {
                         <div className="position-absolute overlay" style={{bottom:5,width:"100%"}}>
                             <Row>
                                 <Col>
-                                    <p className="pl-2 mb-1 mt-1 font-weight-bolder"><span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>{publisher.member.name}</span></p>
+                                    <p className="pl-2 mb-1 mt-1 font-weight-bolder"><span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>{publisher.member.first_name}</span></p>
                                 </Col>
                                 <Col>
                                     {/*<p className="pr-2 mb-1 mt-1 font-weight-bolder text-right">
@@ -50,7 +50,7 @@ function Video(props) {
                     <div className="position-absolute overlay" style={{bottom:5,width:"100%"}}>
                         <Row>
                             <Col>
-                                <p className="pl-2 mb-1 mt-1 font-weight-bolder"><span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>{publisher.member.name}</span></p>
+                                <p className="pl-2 mb-1 mt-1 font-weight-bolder"><span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>{publisher.member.first_name}</span></p>
                             </Col>
                             <Col>
                                 {/*<p className="pr-2 mb-1 mt-1 font-weight-bolder text-right">
@@ -78,7 +78,7 @@ function Video(props) {
                     <Image src={publisher.member.avatar} style={{maxHeight:100}} fluid roundedCircle />
                 </div>
                 <div className="position-absolute overlay" style={{bottom:5,width:"100%"}}>
-                    <p className="pl-2 mb-1 mt-1 font-weight-bolder"><span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>{publisher.member.name}</span></p>
+                    <p className="pl-2 mb-1 mt-1 font-weight-bolder"><span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>{publisher.member.first_name}</span></p>
                 </div>
             </div>
         </div>
