@@ -25,19 +25,6 @@ class Sidebar extends React.Component {
     constructor(props) {
         super(props);
 
-        let pusherInstance = new Pusher('3eb4f9d419966b6e1e0b', {
-            forceTLS: true,
-            cluster: 'mt1',
-            authEndpoint: 'https://watercooler.work/broadcasting/auth',
-            authTransport: "ajax",
-            auth: {
-                headers: {
-                    Authorization: `Bearer ${this.props.auth.authKey}`,
-                    Accept: 'application/json'
-                }
-            },
-        });
-
         this.state = {
             dimensions: {
                 width: 0,
@@ -47,7 +34,7 @@ class Sidebar extends React.Component {
             showManageUsersModal: false,
             showManageCameraModal: false,
             showRoomsModal: false,
-            pusherInstance,
+            pusherInstance: null,
             organizationPresenceChannel: false,
         }
 
@@ -55,7 +42,7 @@ class Sidebar extends React.Component {
     }
 
     componentDidMount() {
-        const { pusherInstance, organizationPresenceChannel } = this.state;
+        var { pusherInstance, organizationPresenceChannel } = this.state;
         const { push, auth, organization } = this.props;
         this.handleResize();
         window.addEventListener('resize', this.handleResize);
@@ -69,6 +56,24 @@ class Sidebar extends React.Component {
         })
 
         if (auth.isLoggedIn && organization != null && !organizationPresenceChannel) {
+
+            if (pusherInstance == null) {
+                pusherInstance = new Pusher('3eb4f9d419966b6e1e0b', {
+                    forceTLS: true,
+                    cluster: 'mt1',
+                    authEndpoint: 'https://watercooler.work/broadcasting/auth',
+                    authTransport: "ajax",
+                    auth: {
+                        headers: {
+                            Authorization: `Bearer ${this.props.auth.authKey}`,
+                            Accept: 'application/json'
+                        }
+                    },
+                });
+
+                this.setState({ pusherInstance });
+            }
+
             var presence_channel = pusherInstance.subscribe(`presence-organization.${organization.id}`);
             var that = this;
             
@@ -78,13 +83,35 @@ class Sidebar extends React.Component {
                 that.setState({ organizationPresenceChannel: true })
             });
         }
+
+        if (organizationPresenceChannel && !auth.isLoggedIn) {
+            this.setState({ organizationPresenceChannel: false, pusherInstance: null });
+        }
     }
 
     componentDidUpdate() {
-        const { pusherInstance, organizationPresenceChannel } = this.state;
+        var { pusherInstance, organizationPresenceChannel } = this.state;
         const { organization, auth } = this.props;
 
         if (auth.isLoggedIn && organization != null && !organizationPresenceChannel) {
+
+            if (pusherInstance == null) {
+                pusherInstance = new Pusher('3eb4f9d419966b6e1e0b', {
+                    forceTLS: true,
+                    cluster: 'mt1',
+                    authEndpoint: 'https://watercooler.work/broadcasting/auth',
+                    authTransport: "ajax",
+                    auth: {
+                        headers: {
+                            Authorization: `Bearer ${this.props.auth.authKey}`,
+                            Accept: 'application/json'
+                        }
+                    },
+                });
+
+                this.setState({ pusherInstance });
+            }
+
             var presence_channel = pusherInstance.subscribe(`presence-organization.${organization.id}`);
             var that = this;
             
@@ -93,11 +120,19 @@ class Sidebar extends React.Component {
 
                 that.setState({ organizationPresenceChannel: true })
             });
+        }
+
+        if (organizationPresenceChannel && !auth.isLoggedIn) {
+            this.setState({ organizationPresenceChannel: false, pusherInstance: null });
         }
     }
 
     componentWillUnmount() {
         window.removeEventListener('resize', this.handleResize);
+
+        if (organizationPresenceChannel) {
+            pusherInstance.unsubscribe(`presence-room.${organization.id}`);
+        }
     }
 
     handleResize() {
@@ -110,6 +145,10 @@ class Sidebar extends React.Component {
     render() {
         const { organization, teams, user, auth, userLogout, currentUrl, getOrganizationUsers, organizationUsers, organizationLoading, inviteUsers, inviteUsersSuccess, getAvailableDevices, settings, updateDefaultDevices } = this.props;
         const { dimensions, showInviteUsersModal, showManageUsersModal, showRoomsModal, showManageCameraModal, pusherInstance } = this.state;
+
+        console.log("PRESENCE");
+        console.log(this.state.organizationPresenceChannel);
+
 
         teams.forEach(team => {
             if (team.name.length > 20) {

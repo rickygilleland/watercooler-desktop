@@ -153,12 +153,16 @@ class Room extends React.Component {
         const { pusherInstance } = this.props;
         const { me, room, rootStreamerHandle, publishers, local_stream } = this.state;
 
-        if (typeof room.channel_id != 'undefined') {
+        if (typeof room.channel_id != 'undefined' && pusherInstance != null) {
             pusherInstance.unsubscribe(`presence-room.${room.channel_id}`);
         }
 
-        this.stopPublishingStream()
-        rootStreamerHandle.destroy();
+        try {
+            this.stopPublishingStream()
+            rootStreamerHandle.destroy();
+        } catch (error) {
+            //do something
+        }
 
         window.removeEventListener('online',  this.reconnectNetworkConnections);
         window.removeEventListener('offline',  this.disconnectNetworkConnections);
@@ -188,18 +192,23 @@ class Room extends React.Component {
     disconnectNetworkConnections() {
         const { pusherInstance } = this.props;
         const { me, room , rootStreamerHandle, publishers, local_stream } = this.state;
-        if (typeof room.channel_id != 'undefined') {
+        if (typeof room.channel_id != 'undefined' && pusherInstance != null) {
             pusherInstance.unsubscribe(`presence-room.${room.channel_id}`);
         }
 
         this.stopPublishingStream();
 
         var that = this;
-        rootStreamerHandle.destroy({
-            success: function() {
-                that.setState({ publishers: [] })
-            }
-        });
+
+        try {
+            rootStreamerHandle.destroy({
+                success: function() {
+                    that.setState({ publishers: [] })
+                }
+            });
+        } catch (error) {
+            //do something
+        }
     }
 
     openMediaHandle() {
