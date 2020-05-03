@@ -598,47 +598,83 @@ class Room extends React.Component {
         var remote_streams_count = publishers.length;
 
         width -= 80;
+
+        var rows = 1;
+        var columns = 1;
     
         if (remote_streams_count > 0) {
-            if (remote_streams_count == 2) {
-                width /= 2;
-            }
+            if (remote_streams_count >= 2) {
 
-            if (dimensions.width > 620) {    
-                if (remote_streams_count > 2 && remote_streams_count <= 6) {
-                    width /= 3;
+                if (dimensions.width > 1080) {
+                    
+                    if (remote_streams_count > 2) {
+                        rows = 2;
+                    }
+    
+                    if (remote_streams_count >= 2 && remote_streams_count <= 4) {
+                        columns = 2;
+                    }
+    
+                    if (remote_streams_count > 4 && remote_streams_count <= 6) {
+                        columns = 3;
+                    }
+    
+                    if (remote_streams_count > 6 && remote_streams_count <= 8) {
+                        columns = 4;
+                    }
+
+                    if (remote_streams_count > 8 && remote_streams_count <= 12) {
+                        rows = 3;
+                        columns = 4;
+                    }
+
+                    if (remote_streams_count > 12 && remote_streams_count <= 16) {
+                        rows = 4;
+                        columns = 4;
+                    }
+
+                    if (remote_streams_count > 16 && remote_streams_count <= 20) {
+                        rows = 4;
+                        columns = 5;
+                    }
+
+                    if (remote_streams_count > 20 && remote_streams_count <= 25) {
+                        rows = 5;
+                        columns = 5;
+                    }
+
+                } else {
+                    if (remote_streams_count > 2) {
+                        columns = 2;
+                        rows = 2;
+                    }
+    
+                    if (remote_streams_count > 2 && remote_streams_count <= 4) {
+                        rows = remote_streams_count;
+                        columns = 1;
+                    }
+    
+                    if (remote_streams_count > 4) {
+                        rows = Math.floor(remote_streams_count / 2);
+                        columns = 2;
+                    }
                 }
-            } else {    
-                if (remote_streams_count > 2 && remote_streams_count <= 6) {
-                    width /= 4;
-                }
-            }
 
-            if (remote_streams_count > 6 && remote_streams_count <= 9) {
-                //3x3
-                width = width / 3;
-            }
-
-            if (remote_streams_count > 9 && remote_streams_count <= 12) {
-                //4x4
-                width = width / 4;
             }
 
             var aspectRatio = 4 / 3;
 
             height = Math.round( width / aspectRatio );
 
-            var i=1;
-            while(height > (dimensions.height - 200)) {
-                width = width - i;
+            while(((height * rows) > (dimensions.height - 250)) || ((width * columns) > (dimensions.width - 375))) {
+                width = width - 5;
                 height = Math.round( width / aspectRatio );
-                i += 10
             }
-            
+
             var display = "row align-items-center justify-content-center h-100";
 
-            if (dimensions.width < 620) {
-                display = "row align-items-center justify-content-center flex-column h-100";
+            if (dimensions.width < 1080) {
+                display = "row align-items-center justify-content-center h-100";
             }
 
             videoSizes = {
