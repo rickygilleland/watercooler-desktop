@@ -3,6 +3,7 @@ import { GET_ROOMS_SUCCESS, GET_ROOMS_FAILURE } from '../actions/room';
 
 const initialState = {
     rooms: [],
+    loading: false,
     error: false,
 }
 

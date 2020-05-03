@@ -144,8 +144,32 @@ class Sidebar extends React.Component {
     }
 
     render() {
-        const { organization, teams, user, auth, userLogout, currentUrl, getOrganizationUsers, organizationUsers, organizationLoading, inviteUsers, inviteUsersSuccess, getAvailableDevices, settings, updateDefaultDevices } = this.props;
-        const { dimensions, showInviteUsersModal, showManageUsersModal, showRoomsModal, showManageCameraModal, pusherInstance } = this.state;
+        const { 
+            organization, 
+            teams, 
+            user, 
+            auth, 
+            userLogout, 
+            currentUrl, 
+            getOrganizationUsers, 
+            organizationUsers, 
+            organizationLoading, 
+            inviteUsers, 
+            inviteUsersSuccess, 
+            getAvailableDevices, 
+            settings, 
+            updateDefaultDevices, 
+            roomsLoading, 
+            createRoom 
+        } = this.props;
+        const { 
+            dimensions, 
+            showInviteUsersModal, 
+            showManageUsersModal, 
+            showRoomsModal, 
+            showManageCameraModal, 
+            pusherInstance 
+        } = this.state;
 
         teams.forEach(team => {
             if (team.name.length > 20) {
@@ -232,6 +256,8 @@ class Sidebar extends React.Component {
                     />
                     <RoomsModal 
                         show={showRoomsModal}
+                        loading={roomsLoading.toString()}
+                        handleSubmit={createRoom}
                         onHide={() => this.setState({ showRoomsModal: false })}
                     />
                     <ManageCameraModal 
