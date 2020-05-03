@@ -20,10 +20,16 @@ function InviteUsersModal(props) {
         props.handleSubmit(emails);
     }
 
+    function handleHide() {
+      setFormSubmitted(false);
+      setEmails("");
+      props.onHide();
+    }
+
     return (
       <Modal
         show={props.show}
-        onHide={props.onHide}
+        onHide={handleHide}
         size="lg"
         aria-labelledby="contained-modal-title-vcenter"
         centered
@@ -32,7 +38,7 @@ function InviteUsersModal(props) {
           <Modal.Title className="font-weight-bolder">
             Invite Someone New
           </Modal.Title>
-          <Button variant="outline-secondary" onClick={() => props.onHide()}><FontAwesomeIcon icon={faWindowClose}></FontAwesomeIcon></Button>
+          <Button variant="outline-secondary" onClick={() => handleHide()}><FontAwesomeIcon icon={faWindowClose}></FontAwesomeIcon></Button>
         </Modal.Header>
         <Modal.Body>
 

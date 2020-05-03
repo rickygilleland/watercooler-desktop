@@ -125,15 +125,16 @@ class Room extends React.Component {
             }
         });
 
-        var presence_channel = pusherInstance.subscribe(`presence-room.${curRoom.channel_id}`);
-        var that = this;
-        
-        presence_channel.bind('pusher:subscription_succeeded', function(members) {
-            console.log(members.me);
-            that.setState({ members: members.members, me: members.me, server: members.me.info.media_server });
-            that.openMediaHandle();
-        });
-
+        if (pusherInstance != null) {
+            var presence_channel = pusherInstance.subscribe(`presence-room.${curRoom.channel_id}`);
+            var that = this;
+            
+            presence_channel.bind('pusher:subscription_succeeded', function(members) {
+                console.log(members.me);
+                that.setState({ members: members.members, me: members.me, server: members.me.info.media_server });
+                that.openMediaHandle();
+            });
+        }
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -599,8 +600,6 @@ class Room extends React.Component {
         width -= 80;
     
         if (remote_streams_count > 0) {
-             //re-calculate the video height/width
-
             if (remote_streams_count == 2) {
                 width /= 2;
             }

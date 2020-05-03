@@ -128,6 +128,7 @@ class Sidebar extends React.Component {
     }
 
     componentWillUnmount() {
+        var { organizationPresenceChannel } = this.state;
         window.removeEventListener('resize', this.handleResize);
 
         if (organizationPresenceChannel) {
@@ -145,10 +146,6 @@ class Sidebar extends React.Component {
     render() {
         const { organization, teams, user, auth, userLogout, currentUrl, getOrganizationUsers, organizationUsers, organizationLoading, inviteUsers, inviteUsersSuccess, getAvailableDevices, settings, updateDefaultDevices } = this.props;
         const { dimensions, showInviteUsersModal, showManageUsersModal, showRoomsModal, showManageCameraModal, pusherInstance } = this.state;
-
-        console.log("PRESENCE");
-        console.log(this.state.organizationPresenceChannel);
-
 
         teams.forEach(team => {
             if (team.name.length > 20) {
@@ -310,18 +307,22 @@ class Sidebar extends React.Component {
                         </div>
                     </div>
                     <div className="pl-0 ml-auto" style={{borderLeft:"1px solid #1c2046",width:this.state.dimensions.mainContainerWidth}}>
-                        <Route 
-                            path={routes.ROOM} 
-                            render={(routeProps) => (
-                                <RoomPage {...routeProps} dimensions={this.state.dimensions} pusherInstance={pusherInstance} />
-                            )}
-                        />
-                        <Route 
-                            path={routes.TEAM} 
-                            render={(routeProps) => (
-                                <TeamPage {...routeProps} />
-                            )}
-                        />
+                        {pusherInstance != null ?
+                            <>
+                                <Route 
+                                    path={routes.ROOM} 
+                                    render={(routeProps) => (
+                                        <RoomPage {...routeProps} dimensions={this.state.dimensions} pusherInstance={pusherInstance} />
+                                    )}
+                                />
+                                <Route 
+                                    path={routes.TEAM} 
+                                    render={(routeProps) => (
+                                        <TeamPage {...routeProps} />
+                                    )}
+                                />
+                            </>
+                        : '' }
                     </div>
                 </EnsureLoggedInContainer>
                 </Switch>
