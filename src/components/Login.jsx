@@ -116,7 +116,7 @@ class Login extends React.Component {
                             : ''
                         }
 
-                        {loginCodeRequested && !codeError ?
+                        {loginCodeRequested && !codeError && !loginError ?
                             <Alert variant="success" className="text-center">
                                 We sent a tempoary login code to {username}. Enter the temporary code below to sign in.
                             </Alert>

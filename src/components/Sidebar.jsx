@@ -48,13 +48,14 @@ class Sidebar extends React.Component {
             showManageCameraModal: false,
             showRoomsModal: false,
             pusherInstance,
+            organizationPresenceChannel: false,
         }
 
         this.handleResize = this.handleResize.bind(this);
     }
 
     componentDidMount() {
-        const { pusherInstance } = this.state;
+        const { pusherInstance, organizationPresenceChannel } = this.state;
         const { push, auth, organization } = this.props;
         this.handleResize();
         window.addEventListener('resize', this.handleResize);
@@ -67,26 +68,30 @@ class Sidebar extends React.Component {
             }
         })
 
-        if (auth.isLoggedIn && organization.id != null) {
+        if (auth.isLoggedIn && organization != null && !organizationPresenceChannel) {
             var presence_channel = pusherInstance.subscribe(`presence-organization.${organization.id}`);
             var that = this;
             
             presence_channel.bind('pusher:subscription_succeeded', function(members) {
                 console.log(members);
+
+                that.setState({ organizationPresenceChannel: true })
             });
         }
     }
 
     componentDidUpdate() {
-        const { pusherInstance } = this.state;
+        const { pusherInstance, organizationPresenceChannel } = this.state;
         const { organization, auth } = this.props;
 
-        if (auth.isLoggedIn && organization.id != null) {
+        if (auth.isLoggedIn && organization != null && !organizationPresenceChannel) {
             var presence_channel = pusherInstance.subscribe(`presence-organization.${organization.id}`);
             var that = this;
             
             presence_channel.bind('pusher:subscription_succeeded', function(members) {
                 console.log(members);
+
+                that.setState({ organizationPresenceChannel: true })
             });
         }
     }
