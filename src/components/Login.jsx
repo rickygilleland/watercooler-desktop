@@ -13,15 +13,16 @@ class Login extends React.Component {
         super(props);
         this.state = {
             username: '',
-            password: '',
             missingUsername: false,
-            missingPassword: false,
             loginError: false,
+            codeError: false,
+            loginCodeRequested: false
         };
 
         this.handleUsernameChange = this.handleUsernameChange.bind(this);
         this.handlePasswordChange = this.handlePasswordChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.requestNewCode = this.requestNewCode.bind(this);
 
     }
 
@@ -42,7 +43,10 @@ class Login extends React.Component {
         }
 
         if (prevProps.auth !== auth) {
-            this.setState({ loading: false, loginError: auth.loginError });
+            if (prevProps.auth.loading == true && auth.loading == false && auth.loginError == false && auth.codeError == false) {
+                this.setState({ loading: false, loginError: auth.loginError, loginCodeRequested: true });
+            }
+            this.setState({ loading: false, loginError: auth.loginError, codeError: auth.codeError });
         }
 
     }
@@ -57,24 +61,40 @@ class Login extends React.Component {
 
     handleSubmit(event) {
         event.preventDefault();
-        const { authenticateUser } = this.props;
+        const { requestLoginCode, authenticateUser, auth } = this.props;
+        const { loginCodeRequested, username, password } = this.state;
 
-        if (this.state.username == '') {
+        if (username == '') {
             return this.setState({ missingUsername: true, missingPassword: false });
         }
 
-        if (this.state.password == '') {
-            return this.setState({ missingUsername: false, missingPassword: true });
+        if (loginCodeRequested == true) {
+            if (password == '') {
+                return this.setState({ missingUsername: false, missingPassword: true });
+            }
+    
+            this.setState({ missingUsername: false, missingPassword: false });
+    
+            return authenticateUser(username, password);
         }
 
-        this.setState({ missingUsername: false, missingPassword: false });
-
-        authenticateUser(this.state.username, this.state.password);
+        requestLoginCode(username);
     };
+    
+    requestNewCode() {
+        const { requestLoginCode } = this.props;
+        const { username } = this.state;
+
+        if (username == '') {
+            return this.setState({ missingUsername: true, missingPassword: false });
+        }
+
+        requestLoginCode(username);
+    }
 
     render() {
         const { auth } = this.props;
-        const { loginError, missingUsername, missingPassword, username, password } = this.state;
+        const { loginCodeRequested, loginError, codeError, missingUsername, missingPassword, username, password } = this.state;
 
         return (
             <React.Fragment>
@@ -84,7 +104,21 @@ class Login extends React.Component {
 
                         {loginError ?
                             <Alert variant="danger" className="text-center">
-                                Oops! Your email address or password was incorrect. Please double check them and try again.
+                                Oops! The login code you entered was incorrect, has already been used, or is expired.
+                            </Alert>
+                            : ''
+                        }
+
+                        {codeError ?
+                            <Alert variant="danger" className="text-center">
+                                Oops! We couldn't find an account under that email address.
+                            </Alert>
+                            : ''
+                        }
+
+                        {loginCodeRequested && !codeError ?
+                            <Alert variant="success" className="text-center">
+                                We sent a tempoary login code to {username}. Enter the temporary code below to sign in.
                             </Alert>
                             : ''
                         }
@@ -105,38 +139,62 @@ class Login extends React.Component {
 
                         <Form>
                             <Form.Group controlId="formBasicEmail">
-                                <Form.Label>Email address</Form.Label>
-                                <Form.Control 
-                                    type="email" 
-                                    placeholder="Enter email" 
-                                    value={username}
-                                    onChange={this.handleUsernameChange}
-                                    size="lg"
-                                    
-                                />
+                                {loginCodeRequested ?
+                                    <Form.Control 
+                                        type="hidden" 
+                                        placeholder="eleanor@yourworkemail.com" 
+                                        value={username}
+                                        onChange={this.handleUsernameChange}
+                                        size="lg"
+                                    />
+                                :
+                                    <>
+                                        <Form.Label>Work Email address</Form.Label>
+                                        <Form.Control 
+                                            type="text" 
+                                            placeholder="eleanor@yourworkemail.com" 
+                                            value={username}
+                                            onChange={this.handleUsernameChange}
+                                            size="lg"
+                                        />
+                                    </>
+                                }
                             </Form.Group>
 
-                            <Form.Group controlId="formBasicPassword">
-                                <Form.Label>Password</Form.Label>
-                                <Form.Control 
-                                    name="password"
-                                    type="password" 
-                                    placeholder="Password" 
-                                    value={password}
-                                    onChange={this.handlePasswordChange}
-                                    size="lg"
-                                />
-                            </Form.Group>
+                            {loginCodeRequested ?
+                                <Form.Group controlId="formBasicPassword">
+                                    <Form.Label>Login Code</Form.Label>
+                                    <Form.Control 
+                                        name="password"
+                                        type="text" 
+                                        placeholder="Code" 
+                                        value={password}
+                                        onChange={this.handlePasswordChange}
+                                        size="lg"
+                                    />
+                                </Form.Group>
+                            : "" }
+
                             {auth.loading ?
                                 <Button variant="primary" className="btn-block btn-lg mt-4" type="submit" disabled>
-                                    <FontAwesomeIcon icon={faCircleNotch} spin /> Submit
+                                    <FontAwesomeIcon icon={faCircleNotch} spin /> {loginCodeRequested ? "Log In" : "Continue" }
                                 </Button>
                             :
                                 <Button variant="primary" className="btn-block btn-lg mt-4" type="submit" onClick={this.handleSubmit}>
-                                    Submit
+                                    {loginCodeRequested ? "Log In" : "Continue" }
                                 </Button>
                             }
                         </Form>
+
+
+                        {loginCodeRequested ?
+                            <>
+                            <hr/>
+                                <Button variant="secondary" className="btn-block btn-lg mt-4" type="submit" onClick={this.requestNewCode}>
+                                    Request a New Code
+                                </Button>
+                            </>
+                        : '' }
 
                     </Card>
                 </div>

@@ -48,7 +48,7 @@ function InviteUsersModal(props) {
               <Form.Label>Enter the email address of each person you want to invite. Feel free to enter multiple addresses, separated by commas.</Form.Label>
               <Form.Control as="textarea" rows={4} value={emails} onChange={handleEmailChange} />
               {props.loading == "true" ?
-                <Button className="mt-3" variant="primary" type="submit"><FontAwesomeIcon icon={faCircleNotch} spin /> Sending Invites</Button>
+                <Button className="mt-3" variant="primary" type="submit" disabled><FontAwesomeIcon icon={faCircleNotch} spin /> Sending Invites</Button>
               :
                 <Button className="mt-3" variant="primary" type="submit">Send Invites</Button>
               }

@@ -1,5 +1,5 @@
 import React from 'react';
-import { authenticateUser } from '../actions/auth';
+import { requestLoginCode, authenticateUser } from '../actions/auth';
 import { getUserDetails } from '../actions/user';
 import { getOrganizations } from '../actions/organization';
 import { connect } from 'react-redux';
@@ -19,6 +19,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return bindActionCreators(
       {
+        requestLoginCode,
         authenticateUser,
         getUserDetails,
         getOrganizations,
