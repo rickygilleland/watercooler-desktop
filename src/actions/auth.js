@@ -60,7 +60,7 @@ export function requestLoginCode(email) {
 
         const state = getState();
         //check if we need a new token or a refresh token
-        axios.post(`https://w.test/api/login_code`, {
+        axios.post(`https://watercooler.work/api/login_code`, {
             email: email
         })
         .then(response => {
@@ -78,7 +78,7 @@ export function authenticateUser(email, password) {
 
         const state = getState();
         //check if we need a new token or a refresh token
-        axios.post(`https://w.test/oauth/token`, {
+        axios.post(`https://watercooler.work/oauth/token`, {
             grant_type: "password",
             client_id: 2,
             client_secret: "c1bE8I6EMEG8TEHt9PTsLaJwvoyo8L8LtNP25mIv",
