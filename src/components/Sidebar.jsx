@@ -25,6 +25,19 @@ class Sidebar extends React.Component {
     constructor(props) {
         super(props);
 
+        let pusherInstance = new Pusher('3eb4f9d419966b6e1e0b', {
+            forceTLS: true,
+            cluster: 'mt1',
+            authEndpoint: 'https://watercooler.work/broadcasting/auth',
+            authTransport: "ajax",
+            auth: {
+                headers: {
+                    Authorization: `Bearer ${this.props.auth.authKey}`,
+                    Accept: 'application/json'
+                }
+            },
+        });
+
         this.state = {
             dimensions: {
                 width: 0,
@@ -34,13 +47,15 @@ class Sidebar extends React.Component {
             showManageUsersModal: false,
             showManageCameraModal: false,
             showRoomsModal: false,
+            pusherInstance,
         }
 
         this.handleResize = this.handleResize.bind(this);
     }
 
     componentDidMount() {
-        const { push } = this.props;
+        const { pusherInstance } = this.state;
+        const { push, auth, organization } = this.props;
         this.handleResize();
         window.addEventListener('resize', this.handleResize);
 
@@ -51,10 +66,29 @@ class Sidebar extends React.Component {
                 push(arg.slice(13));
             }
         })
+
+        if (auth.isLoggedIn && organization.id != null) {
+            var presence_channel = pusherInstance.subscribe(`presence-organization.${organization.id}`);
+            var that = this;
+            
+            presence_channel.bind('pusher:subscription_succeeded', function(members) {
+                console.log(members);
+            });
+        }
     }
 
     componentDidUpdate() {
-        const { getOrganizations, organization } = this.props;
+        const { pusherInstance } = this.state;
+        const { organization, auth } = this.props;
+
+        if (auth.isLoggedIn && organization.id != null) {
+            var presence_channel = pusherInstance.subscribe(`presence-organization.${organization.id}`);
+            var that = this;
+            
+            presence_channel.bind('pusher:subscription_succeeded', function(members) {
+                console.log(members);
+            });
+        }
     }
 
     componentWillUnmount() {
@@ -70,7 +104,7 @@ class Sidebar extends React.Component {
 
     render() {
         const { organization, teams, user, auth, userLogout, currentUrl, getOrganizationUsers, organizationUsers, organizationLoading, inviteUsers, inviteUsersSuccess, getAvailableDevices, settings, updateDefaultDevices } = this.props;
-        const { dimensions, showInviteUsersModal, showManageUsersModal, showRoomsModal, showManageCameraModal } = this.state;
+        const { dimensions, showInviteUsersModal, showManageUsersModal, showRoomsModal, showManageCameraModal, pusherInstance } = this.state;
 
         teams.forEach(team => {
             if (team.name.length > 20) {
@@ -144,6 +178,7 @@ class Sidebar extends React.Component {
                     <InviteUsersModal 
                         show={showInviteUsersModal}
                         handleSubmit={inviteUsers}
+                        loading={organizationLoading.toString()}
                         inviteuserssuccess={inviteUsersSuccess}
                         onHide={() => this.setState({ showInviteUsersModal: false })}
                     />
@@ -234,7 +269,7 @@ class Sidebar extends React.Component {
                         <Route 
                             path={routes.ROOM} 
                             render={(routeProps) => (
-                                <RoomPage {...routeProps} dimensions={this.state.dimensions} />
+                                <RoomPage {...routeProps} dimensions={this.state.dimensions} pusherInstance={pusherInstance} />
                             )}
                         />
                         <Route 

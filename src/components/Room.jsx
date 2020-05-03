@@ -74,7 +74,7 @@ class Room extends React.Component {
     }
 
     componentDidMount() {
-        const { teams, match, location } = this.props;
+        const { teams, match, location, pusherInstance } = this.props;
 
         var curTeam = {};
         var curRoom = {};
@@ -101,6 +101,8 @@ class Room extends React.Component {
             push("/");
         }
 
+        var timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
         this.setState({ room: curRoom, team: curTeam });
 
         window.addEventListener('online',  this.reconnectNetworkConnections);
@@ -115,19 +117,6 @@ class Room extends React.Component {
             }
         })
 
-        this.pusher = new Pusher('3eb4f9d419966b6e1e0b', {
-            forceTLS: true,
-            cluster: 'mt1',
-            authEndpoint: 'https://watercooler.work/broadcasting/auth',
-            authTransport: "ajax",
-            auth: {
-                headers: {
-                    Authorization: `Bearer ${this.props.auth.authKey}`,
-                    Accept: 'application/json'
-                }
-            },
-        });
-
         Janus.init({
             debug: true,
             dependencies: Janus.useDefaultDependencies(),
@@ -136,7 +125,7 @@ class Room extends React.Component {
             }
         });
 
-        var presence_channel = this.pusher.subscribe(`presence-peers.${curRoom.channel_id}`);
+        var presence_channel = pusherInstance.subscribe(`presence-room.${curRoom.channel_id}`);
         var that = this;
         
         presence_channel.bind('pusher:subscription_succeeded', function(members) {
@@ -161,13 +150,12 @@ class Room extends React.Component {
     }
     
     componentWillUnmount() {
+        const { pusherInstance } = this.props;
         const { me, room, rootStreamerHandle, publishers, local_stream } = this.state;
 
         if (typeof room.channel_id != 'undefined') {
-            this.pusher.unsubscribe(`presence-peers.${room.channel_id}`);
+            pusherInstance.unsubscribe(`presence-room.${room.channel_id}`);
         }
-
-        this.pusher.disconnect();
 
         this.stopPublishingStream()
         rootStreamerHandle.destroy();
@@ -177,19 +165,8 @@ class Room extends React.Component {
     }
 
     reconnectNetworkConnections() {
-        const { room } = this.state;
-        this.pusher = new Pusher('3eb4f9d419966b6e1e0b', {
-            forceTLS: true,
-            cluster: 'mt1',
-            authEndpoint: 'https://watercooler.work/broadcasting/auth',
-            authTransport: "ajax",
-            auth: {
-                headers: {
-                    Authorization: `Bearer ${this.props.auth.authKey}`,
-                    Accept: 'application/json'
-                }
-            },
-        });
+        const { pusherInstance } = this.props;
+        const { room } = this.state
 
         Janus.init({
             debug: true,
@@ -198,7 +175,7 @@ class Room extends React.Component {
             }
         });
 
-        var presence_channel = this.pusher.subscribe(`presence-peers.${room.channel_id}`);
+        var presence_channel = pusherInstance.subscribe(`presence-room.${room.channel_id}`);
         var that = this;
         
         presence_channel.bind('pusher:subscription_succeeded', function(members) {
@@ -209,12 +186,12 @@ class Room extends React.Component {
     }
 
     disconnectNetworkConnections() {
+        const { pusherInstance } = this.props;
         const { me, room , rootStreamerHandle, publishers, local_stream } = this.state;
         if (typeof room.channel_id != 'undefined') {
-            this.pusher.unsubscribe(`presence-peers.${room.channel_id}`);
+            pusherInstance.unsubscribe(`presence-room.${room.channel_id}`);
         }
 
-        this.pusher.disconnect();
         this.stopPublishingStream();
 
         var that = this;
@@ -362,6 +339,13 @@ class Room extends React.Component {
                 
                             }
                         }
+                    },
+                    ondataopen: function(data) {
+                        console.log("open");
+                        console.log(data);
+                    },
+                    ondata: function(data) {
+                        
                     },
                     oncleanup: function() {
                             // PeerConnection with the plugin closed, clean the UI
@@ -574,6 +558,13 @@ class Room extends React.Component {
 
                 console.log(that.state.publishers);
 
+            },
+            ondataopen: function(data) {
+                console.log("open");
+                console.log(data);
+            },
+            ondata: function(data) {
+                
             },
             oncleanup: function() {
             },
