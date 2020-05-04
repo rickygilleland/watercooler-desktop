@@ -204,7 +204,7 @@ class Sidebar extends React.Component {
                                             room: room
                                         }
                                     }}>
-                                <p className="text-light mb-0 pl-3">{room.id == 100 ? <FontAwesomeIcon icon={faLock} style={{fontSize:".65rem"}} /> : '# '} {room.name}</p>
+                                <p className="text-light mb-0 pl-3">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".65rem"}} /> : '# '} {room.name}</p>
                             </NavLink>
                         </li>
                     )}
@@ -339,7 +339,7 @@ class Sidebar extends React.Component {
                                 <Route 
                                     path={routes.ROOM} 
                                     render={(routeProps) => (
-                                        <RoomPage {...routeProps} dimensions={this.state.dimensions} pusherInstance={pusherInstance} />
+                                        <RoomPage {...routeProps} dimensions={this.state.dimensions} pusherInstance={pusherInstance} key={routeProps.match.params.roomSlug} />
                                     )}
                                 />
                                 <Route 

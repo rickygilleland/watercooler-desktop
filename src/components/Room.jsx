@@ -3,9 +3,9 @@ import { ipcRenderer } from 'electron';
 import update from 'immutability-helper';
 import { each, debounce } from 'lodash';
 import { Link } from 'react-router-dom';
-import { Container, Image, Button, Row, Col, TabContainer } from 'react-bootstrap';
+import { Container, Image, Button, Row, Col, TabContainer, OverlayTrigger, Overlay, Popover, Tooltip } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faCircleNotch, faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash, faDoorClosed, faDoorOpen, faCircle, faGrin, faLayerGroup, faLessThanEqual, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash, faDoorClosed, faDoorOpen, faCircle, faGrin, faLayerGroup, faLessThanEqual, faUser, faLock } from '@fortawesome/free-solid-svg-icons';
 import { Janus } from 'janus-gateway';
 import Pusher from 'pusher-js';
 import VideoList from './VideoList';
@@ -274,6 +274,10 @@ class Room extends React.Component {
     openMediaHandle() {
         var { me, room, team, local_stream, server } = this.state;
         var that = this;
+
+        if (server == null) {
+            return false;
+        }
 
         /*if (rootStreamerHandle != null && rootStreamerHandle.isConnected()) {
             console.log("STILL CONNECTED");
@@ -847,12 +851,23 @@ class Room extends React.Component {
                             <div className="d-flex flex-row justify-content-end">
                                 <div className="align-self-center pr-4">
                                     <Button variant={audioStatus ? "outline-light" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
-                                    <Button variant={videoStatus ? "outline-light" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                    {room.videoEnabled ?
+                                        <Button variant={videoStatus ? "outline-light" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                    :
+                                    <OverlayTrigger overlay={<Tooltip id="tooltip-disabled">Video is disabled in this room.</Tooltip>}>
+                                        <span className="d-inline-block">
+                                       
+                                        <Button variant={videoStatus ? "outline-light" : "outline-danger"} className="mx-1" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                        </span>
+                                    </OverlayTrigger>
+                                        
+                                        
+                                    }
                                 </div>
                                 {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}
                                 <div style={{width:106.66,height:80}} className="align-self-center">
                                     {!videoStatus ?
-                                        <p style={{height:80,paddingTop:25,paddingLeft:2,fontWeight:"bolder",fontSize:"1.1rem"}}>Audio Only</p>
+                                        <p style={{height:80,paddingTop:25,paddingLeft:2,fontWeight:"bolder",fontSize:"1.1rem"}}>Video Off</p>
                                     : 
                                         <video autoPlay muted ref={this.renderVideo(local_stream)} style={{height:80 }} className="rounded shadow"></video>
                                     }
