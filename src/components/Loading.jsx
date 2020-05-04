@@ -27,7 +27,13 @@ class Loading extends React.Component {
 
         if (this.state.redirect === false) {
             this.setState({ redirect: true });
-            push(routes.REDIRECT)
+
+            if (teams[0].rooms.length > 0 && typeof teams[0].rooms[0].slug != "undefined") {
+                var slug = teams[0].rooms[0].slug;
+                return push(`/room/${teams[0].rooms[0].slug}`);
+            }
+
+            push(routes.TEAM);
         }
     
     }
@@ -45,7 +51,13 @@ class Loading extends React.Component {
 
         if (this.state.redirect === false) {
             this.setState({ redirect: true });
-            push(routes.REDIRECT)
+
+            if (teams[0].rooms.length > 0 && typeof teams[0].rooms[0].slug != "undefined") {
+                var slug = teams[0].rooms[0].slug;
+                return push(`/room/${teams[0].rooms[0].slug}`);
+            }
+
+            push(routes.TEAM);
         }
     
     }

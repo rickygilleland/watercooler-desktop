@@ -43,7 +43,7 @@ class Sidebar extends React.Component {
 
     componentDidMount() {
         var { pusherInstance, organizationPresenceChannel } = this.state;
-        const { push, auth, organization } = this.props;
+        const { push, auth, organization, getOrganizations } = this.props;
         this.handleResize();
         window.addEventListener('resize', this.handleResize);
 
@@ -55,35 +55,6 @@ class Sidebar extends React.Component {
             }
         })
 
-        if (auth.isLoggedIn && organization != null && !organizationPresenceChannel) {
-
-            if (pusherInstance == null) {
-                pusherInstance = new Pusher('3eb4f9d419966b6e1e0b', {
-                    forceTLS: true,
-                    cluster: 'mt1',
-                    authEndpoint: 'https://watercooler.work/broadcasting/auth',
-                    authTransport: "ajax",
-                    auth: {
-                        headers: {
-                            Authorization: `Bearer ${this.props.auth.authKey}`,
-                            Accept: 'application/json'
-                        }
-                    },
-                });
-
-                this.setState({ pusherInstance });
-            }
-
-            var presence_channel = pusherInstance.subscribe(`presence-organization.${organization.id}`);
-            var that = this;
-            
-            presence_channel.bind('pusher:subscription_succeeded', function(members) {
-                console.log(members);
-
-                that.setState({ organizationPresenceChannel: true })
-            });
-        }
-
         if (organizationPresenceChannel && !auth.isLoggedIn) {
             this.setState({ organizationPresenceChannel: false, pusherInstance: null });
         }
@@ -91,7 +62,7 @@ class Sidebar extends React.Component {
 
     componentDidUpdate() {
         var { pusherInstance, organizationPresenceChannel } = this.state;
-        const { organization, auth } = this.props;
+        const { organization, auth, getOrganizations } = this.props;
 
         if (auth.isLoggedIn && organization != null && !organizationPresenceChannel) {
 
@@ -115,10 +86,19 @@ class Sidebar extends React.Component {
             var presence_channel = pusherInstance.subscribe(`presence-organization.${organization.id}`);
             var that = this;
             
-            presence_channel.bind('pusher:subscription_succeeded', function(members) {
-                console.log(members);
+            presence_channel.bind_global(function(event, data) {
+                if (event == 'pusher:subscription_succeeded') {
+                    that.setState({ organizationPresenceChannel: true });
+                }
 
-                that.setState({ organizationPresenceChannel: true })
+                if (event == 'App\Events\NewRoomCreated') {
+                    return getOrganizations();
+                }
+
+                if (typeof data.organization != "undefined") {
+                    return getOrganizations();
+                }
+
             });
         }
 
@@ -268,17 +248,6 @@ class Sidebar extends React.Component {
                         onShow={() => getAvailableDevices()}
                         onHide={() => this.setState({ showManageCameraModal: false })}
                     />
-                    {typeof firstRoom != "undefined" && typeof firstRoom.slug != "undefined" ?
-                        <Redirect from="/redirect" exact to={{
-                            pathname: `/room/${firstRoom.slug}`,
-                            state: {
-                                team: firstRoom.team,
-                                room: firstRoom.room
-                            }
-                        }} />
-
-                        : ""
-                    }
                     <div style={{backgroundColor:"#1b1e2f",width:this.state.dimensions.sidebarWidth}} className="vh-100 pr-0 float-left">
                         
                         <Navbar className="text-light pt-4" style={{height:80,backgroundColor:"#121422",borderBottom:"1px solid #1c2046"}}>
