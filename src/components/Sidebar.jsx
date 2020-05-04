@@ -298,9 +298,6 @@ class Sidebar extends React.Component {
                                         <Dropdown.Item onClick={() => this.setState({ showInviteUsersModal: true })}>
                                             <FontAwesomeIcon icon={faUserPlus} /> Invite People to {organization != null ? organization.name : ''}
                                         </Dropdown.Item>
-                                        <Dropdown.Item onClick={() => this.setState({ showManageUsersModal: true })}>
-                                            <FontAwesomeIcon icon={faUserFriends} /> Manage Team
-                                        </Dropdown.Item>
                                         <Dropdown.Item onClick={() => this.setState({ showManageCameraModal: true })}>
                                             <FontAwesomeIcon icon={faCamera} /> Camera Settings
                                         </Dropdown.Item>
