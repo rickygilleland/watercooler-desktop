@@ -364,7 +364,7 @@ class Room extends React.Component {
                                 currentLoadingMessage.push(
                                     <div key={99999}>
                                         <h1 className="text-center">This room is empty.</h1>
-                                        <h2 className="text-center h3">Participants will appear here automatically after joining.</h2>
+                                        <h2 className="text-center h3">Your teammates will appear here automatically after joining.</h2>
                                     </div>
                                 );
 

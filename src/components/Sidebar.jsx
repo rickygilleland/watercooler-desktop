@@ -168,27 +168,29 @@ class Sidebar extends React.Component {
                         <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} onClick={() => this.setState({ showRoomsModal: true })}><FontAwesomeIcon icon={faPlusSquare} /></Button>
                     </Col>
                 </Row>
-                <ul className="nav flex-column mt-1">
-                    {team.rooms.map((room, roomKey) => 
-                        <li key={roomKey} className="nav-item">
-                            <NavLink exact={true} 
-                                    activeStyle={{
-                                        fontWeight: "bold",
-                                        backgroundColor:"#4381ff"
-                                    }} 
-                                    className="d-block py-1"
-                                    to={{
-                                        pathname: `/room/${room.slug}`,
-                                        state: {
-                                            team: team,
-                                            room: room
-                                        }
-                                    }}>
-                                <p className="text-light mb-0 pl-3">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".65rem"}} /> : '# '} {room.name}</p>
-                            </NavLink>
-                        </li>
-                    )}
-                </ul>
+                <div className="vh-100" style={{overflowY:"scroll",paddingBottom:215}}>
+                    <ul className="nav flex-column mt-1">
+                        {team.rooms.map((room, roomKey) => 
+                            <li key={roomKey} className="nav-item">
+                                <NavLink exact={true} 
+                                        activeStyle={{
+                                            fontWeight: "bold",
+                                            backgroundColor:"#4381ff"
+                                        }} 
+                                        className="d-block py-1"
+                                        to={{
+                                            pathname: `/room/${room.slug}`,
+                                            state: {
+                                                team: team,
+                                                room: room
+                                            }
+                                        }}>
+                                    <p className="text-light mb-0 pl-3">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".65rem"}} /> : '# '} {room.name}</p>
+                                </NavLink>
+                            </li>
+                        )}
+                    </ul>
+                </div>
             </div>
         )
 
