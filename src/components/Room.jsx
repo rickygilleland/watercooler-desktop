@@ -54,6 +54,8 @@ class Room extends React.Component {
             ]
         }
 
+        this.initializeRoom = this.initializeRoom.bind(this);
+
         this.createDetachedWindowBound = this.createDetachedWindow.bind(this);
 
         this.toggleVideoOrAudio = this.toggleVideoOrAudio.bind(this);
@@ -74,6 +76,113 @@ class Room extends React.Component {
     }
 
     componentDidMount() {
+        const { teams, match, location, pusherInstance } = this.props;
+
+        var timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+        window.addEventListener('online',  this.reconnectNetworkConnections);
+        window.addEventListener('offline',  this.disconnectNetworkConnections);
+
+        ipcRenderer.on('power_update', (event, arg) => {
+            if (arg == "suspend" || arg == "lock-screen") {
+                this.disconnectNetworkConnections();
+            }
+            if (arg == "unlock-screen" || arg == "resume") {
+                this.reconnectNetworkConnections();
+            }
+        })
+
+        Janus.init({
+            debug: true,
+            dependencies: Janus.useDefaultDependencies(),
+            callback: function() {
+                    // Done!
+            }
+        });
+
+        if (pusherInstance != null) {
+            this.initializeRoom();
+        }
+
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        const { dimensions, match, location } = this.props;
+        const { publishers, publishing, rootStreamerHandle } = this.state;
+
+        var that = this;
+
+        //check if our room changed
+        if (prevProps.match.params.roomSlug != match.params.roomSlug) {
+            if (rootStreamerHandle != null) {
+                /*if (publishing) {
+                    this.stopPublishingStream();
+                }  */
+
+                console.log(Janus.sessions);
+
+                for(var s in Janus.sessions) {
+                    Janus.sessions[s].destroy({
+                        unload: true, 
+                        notifyDestroyed: false,
+                        success: function() {
+                            //Janus.sessions.splice(s, 1);
+                            delete Janus.sessions[s];
+                            console.log(Janus.sessions);
+                        }
+                    });
+                }
+
+                this.setState({
+                    loading: true,
+                    members: [],
+                    server: null,
+                    local_stream: null,
+                    publishers: [],
+                    me: {},
+                    connected: false,
+                    publishing: false,
+                }, () => {
+                    this.initializeRoom();
+                });
+            }
+        }
+
+        if (prevProps.dimensions != dimensions || prevState.publishers.length != publishers.length) {
+            this.updateDisplayedVideosSizes(null, true);
+        }
+
+        if ((prevState.publishers != publishers && publishers.length > 0) && publishing) {
+            this.handleRemoteStreams();
+        }
+    }
+    
+    componentWillUnmount() {
+        const { pusherInstance } = this.props;
+        const { me, room, rootStreamerHandle, publishers, local_stream, publishing } = this.state;
+
+        if (typeof room.channel_id != 'undefined' && typeof pusherInstance != "undefined" &&  pusherInstance != null) {
+            pusherInstance.unsubscribe(`presence-room.${room.channel_id}`);
+        }
+
+        try {
+            if (publishing) {
+                this.stopPublishingStream();
+            }
+            rootStreamerHandle.destroy({
+                success: function() {
+
+                }
+            });
+        } catch (error) {
+            //do something
+        }
+
+        window.removeEventListener('online',  this.reconnectNetworkConnections);
+        window.removeEventListener('offline',  this.disconnectNetworkConnections);
+    }
+
+    initializeRoom() {
         const { teams, match, location, pusherInstance } = this.props;
 
         var curTeam = {};
@@ -105,26 +214,6 @@ class Room extends React.Component {
 
         this.setState({ room: curRoom, team: curTeam });
 
-        window.addEventListener('online',  this.reconnectNetworkConnections);
-        window.addEventListener('offline',  this.disconnectNetworkConnections);
-
-        ipcRenderer.on('power_update', (event, arg) => {
-            if (arg == "suspend" || arg == "lock-screen") {
-                this.disconnectNetworkConnections();
-            }
-            if (arg == "unlock-screen" || arg == "resume") {
-                this.reconnectNetworkConnections();
-            }
-        })
-
-        Janus.init({
-            debug: true,
-            dependencies: Janus.useDefaultDependencies(),
-            callback: function() {
-                    // Done!
-            }
-        });
-
         if (pusherInstance != null) {
             var presence_channel = pusherInstance.subscribe(`presence-room.${curRoom.channel_id}`);
             var that = this;
@@ -135,38 +224,6 @@ class Room extends React.Component {
                 that.openMediaHandle();
             });
         }
-    }
-
-    componentDidUpdate(prevProps, prevState) {
-        const { dimensions } = this.props;
-        const { publishers, publishing } = this.state;
-
-        if (prevProps.dimensions != dimensions || prevState.publishers.length != publishers.length) {
-            this.updateDisplayedVideosSizes(null, true);
-        }
-
-        if ((prevState.publishers != publishers && publishers.length > 0) && publishing) {
-            this.handleRemoteStreams();
-        }
-    }
-    
-    componentWillUnmount() {
-        const { pusherInstance } = this.props;
-        const { me, room, rootStreamerHandle, publishers, local_stream } = this.state;
-
-        if (typeof room.channel_id != 'undefined' && pusherInstance != null) {
-            pusherInstance.unsubscribe(`presence-room.${room.channel_id}`);
-        }
-
-        try {
-            this.stopPublishingStream()
-            rootStreamerHandle.destroy();
-        } catch (error) {
-            //do something
-        }
-
-        window.removeEventListener('online',  this.reconnectNetworkConnections);
-        window.removeEventListener('offline',  this.disconnectNetworkConnections);
     }
 
     reconnectNetworkConnections() {
@@ -192,12 +249,14 @@ class Room extends React.Component {
 
     disconnectNetworkConnections() {
         const { pusherInstance } = this.props;
-        const { me, room , rootStreamerHandle, publishers, local_stream } = this.state;
+        const { me, room, rootStreamerHandle, publishers, local_stream, publishing } = this.state;
         if (typeof room.channel_id != 'undefined' && pusherInstance != null) {
             pusherInstance.unsubscribe(`presence-room.${room.channel_id}`);
         }
 
-        this.stopPublishingStream();
+        if (publishing) {
+            this.stopPublishingStream();
+        }
 
         var that = this;
 
@@ -216,12 +275,26 @@ class Room extends React.Component {
         var { me, room, team, local_stream, server } = this.state;
         var that = this;
 
-        console.log("OPEN MEDIA HANDLE");
+        /*if (rootStreamerHandle != null && rootStreamerHandle.isConnected()) {
+            console.log("STILL CONNECTED");
+            console.log(rootStreamerHandle)
+            rootStreamerHandle.destroy({
+                success: function() {
+                    console.log("CALLING AGAIN");
+                    return that.openMediaHandle();
+                }
+            });
+        }*/
 
         var rootStreamerHandle = new Janus(
         {
             server: [`wss://${server}:4443/`, `https://${server}/streamer`],
             success: function(handle) {
+
+                console.log("CONNECTED");
+                console.log(handle);
+                console.log(rootStreamerHandle);
+
                 that.setState({ rootStreamerHandle });
 
                 rootStreamerHandle.attach({
@@ -364,12 +437,17 @@ class Room extends React.Component {
                     detached: function() {
                             // Connection with the plugin closed, get rid of its features
                             // The plugin handle is not valid anymore
+                    },
+                    destroyed: function() {
+
                     }
                 })
 
             },
             error: function(cause) {
                     // Error, can't go on...
+                    console.log("ERRR");
+                    console.log(cause);
             },
             destroyed: function() {
                     // I should get rid of this

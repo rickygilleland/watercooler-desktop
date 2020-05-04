@@ -7,7 +7,10 @@ import {
     GET_ORGANIZATION_USERS_FAILURE,
     INVITE_USERS_STARTED,
     INVITE_USERS_SUCCESS,
-    INVITE_USERS_FAILURE
+    INVITE_USERS_FAILURE,
+    CREATE_ROOM_STARTED,
+    CREATE_ROOM_SUCCESS,
+    CREATE_ROOM_FAILURE,
 } from '../actions/organization';
 
 const initialState = {
@@ -16,7 +19,8 @@ const initialState = {
     users: [],
     error: false,
     loading: false,
-    inviteUsersSuccess: false
+    inviteUsersSuccess: false,
+    createRoomSuccess: false
 }
 
 export default function organization(state = initialState, action = {}) {
@@ -67,6 +71,32 @@ export default function organization(state = initialState, action = {}) {
             updatedState = {
                 inviteUsersSuccess: false,
                 loading: false
+            }
+            break;
+        case CREATE_ROOM_STARTED:
+            updatedState = {
+                loading: true,
+                createRoomSuccess: false
+            }
+            break;
+        case CREATE_ROOM_SUCCESS:
+            var updatedTeams = state.teams;
+            updatedTeams.forEach(team => {
+                if (team.id == action.payload.data.team_id) {
+                    team.rooms.push(action.payload.data);
+                }
+            });
+            
+            updatedState = {
+                teams: updatedTeams,
+                loading:false,
+                createRoomSuccess: true
+            }
+            break;
+        case CREATE_ROOM_FAILURE:
+            updatedState = {
+                loading: false,
+                createRoomSuccess: false
             }
             break;
         default:

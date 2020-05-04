@@ -9,7 +9,7 @@ function ManageUsersModal(props) {
     return (
       <Modal
         {...props}
-        size="lg"
+        size="md"
         aria-labelledby="contained-modal-title-vcenter"
         centered
       >
@@ -17,7 +17,7 @@ function ManageUsersModal(props) {
           <Modal.Title className="font-weight-bolder">
             Manage Team
           </Modal.Title>
-          <Button variant="outline-secondary" onClick={() => props.onHide()}><FontAwesomeIcon icon={faWindowClose}></FontAwesomeIcon></Button>
+          <Button variant="outline-secondary" style={{borderColor:"transparent"}} onClick={() => props.onHide()}><FontAwesomeIcon icon={faWindowClose}></FontAwesomeIcon></Button>
         </Modal.Header>
         <Modal.Body>
         {loading == "true" ?

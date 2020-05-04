@@ -6,6 +6,9 @@ export const GET_ORGANIZATION_USERS_FAILURE = 'GET_ORGANIZATION_USERS_FAILURE';
 export const INVITE_USERS_STARTED = 'INVITE_USERS_STARTED';
 export const INVITE_USERS_SUCCESS = 'INVITE_USERS_SUCCESS';
 export const INVITE_USERS_FAILURE = 'INVITE_USERS_FAILURE';
+export const CREATE_ROOM_STARTED = 'CREATE_ROOM_STARTED';
+export const CREATE_ROOM_SUCCESS = 'CREATE_ROOM_SUCCESS';
+export const CREATE_ROOM_FAILURE = 'CREATE_ROOM_FAILURE';
 
 export function getOrganizationsSuccess(payload) {
     return {
@@ -57,6 +60,26 @@ export function inviteUsersSuccess(payload) {
 export function inviteUsersFailure(payload) {
     return {
         type: INVITE_USERS_FAILURE,
+        payload
+    }
+}
+
+export function createRoomStarted() {
+    return {
+        type: CREATE_ROOM_STARTED
+    }
+}
+
+export function createRoomSuccess(payload) {
+    return {
+        type: CREATE_ROOM_SUCCESS,
+        payload
+    }
+}
+
+export function createRoomFailure(payload) {
+    return {
+        type: CREATE_ROOM_FAILURE,
         payload
     }
 }
@@ -124,6 +147,35 @@ export function inviteUsers(emails) {
         })
         .catch(error => {
             dispatch(inviteUsersFailure({ error: error.message }));
+        })
+    }
+}
+
+export function createRoom(name, videoEnabled, isPrivate) {
+    return (dispatch, getState, axios) => {
+        dispatch(createRoomStarted());
+        const state = getState();
+
+        axios({
+            method: 'post',
+            url: `https://watercooler.work/api/room`,
+            data: { 
+                name: name,
+                video_enabled: videoEnabled,
+                is_private: isPrivate,
+                organization_id: state.organization.organization.id,
+                team_id: state.organization.teams[0].id
+            },
+            headers: {
+                'Accept': 'application/json',
+                'Authorization': 'Bearer '+state.auth.authKey,
+            }
+        })
+        .then(response => {
+            dispatch(createRoomSuccess({ data: response.data}));
+        })
+        .catch(error => {
+            dispatch(createRoomFailure({ error: error.message }));
         })
     }
 }

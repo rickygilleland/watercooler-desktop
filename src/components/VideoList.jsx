@@ -6,7 +6,6 @@ function VideoList(props) {
 
     return(publishers.map(publisher => {
         return(
-            <>
             <Video
                 videoSizes={videoSizes}
                 publisher={publisher}
@@ -16,7 +15,6 @@ function VideoList(props) {
                 hasAudio={typeof publisher.hasAudio != "undefined" ? publisher.hasAudio : false}
                 key={publisher.id}
             ></Video>
-            </>
         )
     }))
 

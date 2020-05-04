@@ -30,7 +30,7 @@ function ManageCameraModal(props) {
         show={props.show}
         onShow={props.onShow}
         onHide={props.onHide}
-        size="lg"
+        size="md"
         aria-labelledby="contained-modal-title-vcenter"
         centered
       >
@@ -38,7 +38,7 @@ function ManageCameraModal(props) {
           <Modal.Title className="font-weight-bolder">
             Camera Settings
           </Modal.Title>
-          <Button variant="outline-secondary" onClick={() => props.onHide()}><FontAwesomeIcon icon={faWindowClose}></FontAwesomeIcon></Button>
+          <Button variant="outline-secondary" style={{borderColor:"transparent"}} onClick={() => props.onHide()}><FontAwesomeIcon icon={faWindowClose}></FontAwesomeIcon></Button>
         </Modal.Header>
         <Modal.Body>
 

@@ -159,8 +159,8 @@ class Sidebar extends React.Component {
             getAvailableDevices, 
             settings, 
             updateDefaultDevices, 
-            roomsLoading, 
-            createRoom 
+            createRoom,
+            createRoomSuccess
         } = this.props;
         const { 
             dimensions, 
@@ -256,7 +256,8 @@ class Sidebar extends React.Component {
                     />
                     <RoomsModal 
                         show={showRoomsModal}
-                        loading={roomsLoading.toString()}
+                        loading={organizationLoading.toString()}
+                        createroomsuccess={createRoomSuccess}
                         handleSubmit={createRoom}
                         onHide={() => this.setState({ showRoomsModal: false })}
                     />

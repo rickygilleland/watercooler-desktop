@@ -30,7 +30,7 @@ function InviteUsersModal(props) {
       <Modal
         show={props.show}
         onHide={handleHide}
-        size="lg"
+        size="md"
         aria-labelledby="contained-modal-title-vcenter"
         centered
       >
@@ -38,7 +38,7 @@ function InviteUsersModal(props) {
           <Modal.Title className="font-weight-bolder">
             Invite Someone New
           </Modal.Title>
-          <Button variant="outline-secondary" onClick={() => handleHide()}><FontAwesomeIcon icon={faWindowClose}></FontAwesomeIcon></Button>
+          <Button variant="outline-secondary" style={{borderColor:"transparent"}} onClick={() => handleHide()}><FontAwesomeIcon icon={faWindowClose}></FontAwesomeIcon></Button>
         </Modal.Header>
         <Modal.Body>
 
@@ -51,7 +51,7 @@ function InviteUsersModal(props) {
           : ''}
 
           <Form onSubmit={handleSubmit}>
-              <Form.Label>Enter the email address of each person you want to invite. Feel free to enter multiple addresses, separated by commas.</Form.Label>
+              <Form.Label className="mb-4">Enter the email address of each person you want to invite. Feel free to enter multiple addresses, separated by commas.</Form.Label>
               <Form.Control as="textarea" rows={4} value={emails} onChange={handleEmailChange} />
               {props.loading == "true" ?
                 <Button className="mt-3" variant="primary" type="submit" disabled><FontAwesomeIcon icon={faCircleNotch} spin /> Sending Invites</Button>
