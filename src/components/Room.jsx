@@ -851,10 +851,10 @@ class Room extends React.Component {
                             <div className="d-flex flex-row justify-content-end">
                                 <div className="align-self-center pr-4">
                                     <Button variant={audioStatus ? "outline-light" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
-                                    {room.videoEnabled ?
+                                    {room.video_enabled ?
                                         <Button variant={videoStatus ? "outline-light" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                     :
-                                    <OverlayTrigger overlay={<Tooltip id="tooltip-disabled">Video is disabled in this room.</Tooltip>}>
+                                    <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Video is disabled in this room.</Tooltip>}>
                                         <span className="d-inline-block">
                                        
                                         <Button variant={videoStatus ? "outline-light" : "outline-danger"} className="mx-1" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
