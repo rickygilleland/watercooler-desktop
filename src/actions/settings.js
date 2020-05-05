@@ -28,13 +28,17 @@ export function getAvailableDevices() {
     return (dispatch, getState) => {
         const state = getState();
 
-        navigator.mediaDevices.enumerateDevices()
-        .then(devices => {
-            dispatch(getAvailableDevicesSuccess(devices));
-        })
-        .catch(error => {
-            dispatch(getAvailableDevicesFailure(error.message));
-        });
+        try {
+            navigator.mediaDevices.enumerateDevices()
+            .then(devices => {
+                dispatch(getAvailableDevicesSuccess(devices));
+            })
+            .catch(error => {
+                dispatch(getAvailableDevicesFailure(error.message));
+            });
+        } catch (error) {
+            dispatch(getAvailableDevicesFailure(error));
+        }
     }
 }
 
@@ -42,12 +46,17 @@ export function updateDefaultDevices(defaultVideoInput, defaultAudioInput, defau
     return (dispatch, getState) => {
         const state = getState();
 
-        var payload = {
-            videoInput: defaultVideoInput,
-            audioInput: defaultAudioInput,
-            audioOutput: defaultAudioOutput
+        try {
+            var payload = {
+                videoInput: defaultVideoInput,
+                audioInput: defaultAudioInput,
+                audioOutput: defaultAudioOutput
+            }
+    
+            dispatch(updateDefaultDevicesSuccess(payload));        
+        } catch (error) {
+            //silently fail
         }
 
-        dispatch(updateDefaultDevicesSuccess(payload));        
     }
 }

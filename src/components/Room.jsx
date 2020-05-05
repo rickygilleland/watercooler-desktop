@@ -131,12 +131,6 @@ class Room extends React.Component {
         //check if our room changed
         if (prevProps.match.params.roomSlug != match.params.roomSlug) {
             if (rootStreamerHandle != null) {
-                /*if (publishing) {
-                    this.stopPublishingStream();
-                }  */
-
-                console.log(Janus.sessions);
-
                 for(var s in Janus.sessions) {
                     Janus.sessions[s].destroy({
                         unload: true, 
@@ -484,6 +478,12 @@ class Room extends React.Component {
                     ondata: function(data) {
                         
                     },
+                    slowLink: function(slowLink) {
+                        console.log("root slowlink message", slowLink);
+                    },
+                    mediaState: function(mediaState) {
+                        console.log("root media state message", mediaState);
+                    },
                     oncleanup: function() {
                             // PeerConnection with the plugin closed, clean the UI
                             // The plugin handle is still valid so we can create a new one
@@ -541,8 +541,6 @@ class Room extends React.Component {
         const local_stream = await navigator.mediaDevices.getUserMedia(streamOptions);
 
         const tracks = local_stream.getTracks();
-
-        console.log(tracks);
 
         tracks.forEach(function(track) {
             if (track.kind == "video") {
@@ -713,6 +711,12 @@ class Room extends React.Component {
             ondata: function(data) {
                 
             },
+            slowLink: function(slowLink) {
+                console.log("remote slowlink message", slowLink);
+            },
+            mediaState: function(mediaState) {
+                console.log("remote media state message", mediaState);
+            },
             oncleanup: function() {
             },
             detached: function() {
@@ -742,7 +746,7 @@ class Room extends React.Component {
         if (remote_streams_count > 0) {
             if (remote_streams_count >= 2) {
 
-                if (dimensions.width > 1080) {
+                if (dimensions.width > 980) {
                     
                     if (remote_streams_count > 2) {
                         rows = 2;
@@ -781,6 +785,10 @@ class Room extends React.Component {
                     }
 
                 } else {
+                    if (remote_streams_count == 2) {
+                        rows = 2;
+                    }
+
                     if (remote_streams_count > 2) {
                         columns = 2;
                         rows = 2;
@@ -889,6 +897,7 @@ class Room extends React.Component {
             room, 
             loading, 
             publishers, 
+            publishing,
             local_stream, 
             videoStatus, 
             audioStatus, 
@@ -950,18 +959,16 @@ class Room extends React.Component {
                         {local_stream ?
                             <div className="d-flex flex-row justify-content-end">
                                 <div className="align-self-center pr-4">
-                                    <Button variant={audioStatus ? "outline-light" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
+                                    <Button variant={audioStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
                                     {room.video_enabled ?
-                                        <Button variant={videoStatus ? "outline-light" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                        <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                     :
                                     <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Video is disabled in this room.</Tooltip>}>
                                         <span className="d-inline-block">
                                        
-                                        <Button variant={videoStatus ? "outline-light" : "outline-danger"} className="mx-1" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                        <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                         </span>
-                                    </OverlayTrigger>
-                                        
-                                        
+                                    </OverlayTrigger> 
                                     }
                                 </div>
                                 {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}
@@ -989,6 +996,8 @@ class Room extends React.Component {
                                     <VideoList
                                         videoSizes={videoSizes}
                                         publishers={publishers}
+                                        publishing={publishing}
+                                        user={user}
                                         renderVideo={this.renderVideo}
                                     ></VideoList>
                                 :

@@ -90,18 +90,22 @@ export function getOrganizations() {
         const state = getState();
         //check if we need to do some state stuff
 
-        axios.get("https://watercooler.work/api/organization", {
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': 'Bearer '+state.auth.authKey,
-            }
-        })
-        .then(response => {
-            dispatch(getOrganizationsSuccess({ data: response.data}));
-        })
-        .catch(error => {
-            dispatch(getOrganizationsFailure({ error: error.message }));
-        })
+        try {
+            axios.get("https://watercooler.work/api/organization", {
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer '+state.auth.authKey,
+                }
+            })
+            .then(response => {
+                dispatch(getOrganizationsSuccess({ data: response.data}));
+            })
+            .catch(error => {
+                dispatch(getOrganizationsFailure({ error: error.message }));
+            })
+        } catch (error) {
+            dispatch(getOrganizationsFailure({ error: error }));
+        }
     }
 }
 
@@ -111,18 +115,22 @@ export function getOrganizationUsers(organization_id) {
         const state = getState();
         //check if we need to do some state stuff
 
-        axios.get(`https://watercooler.work/api/organization/${organization_id}/users`, {
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': 'Bearer '+state.auth.authKey,
-            }
-        })
-        .then(response => {
-            dispatch(getOrganizationUsersSuccess({ data: response.data}));
-        })
-        .catch(error => {
-            dispatch(getOrganizationUsersFailure({ error: error.message }));
-        })
+        try {
+            axios.get(`https://watercooler.work/api/organization/${organization_id}/users`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer '+state.auth.authKey,
+                }
+            })
+            .then(response => {
+                dispatch(getOrganizationUsersSuccess({ data: response.data}));
+            })
+            .catch(error => {
+                dispatch(getOrganizationUsersFailure({ error: error.message }));
+            })
+        } catch (error) {
+            dispatch(getOrganizationUsersFailure({ error: error }));
+        }
     }
 }
 
@@ -133,21 +141,25 @@ export function inviteUsers(emails) {
 
         const organization_id = state.organization.organization.id;
   
-        axios({
-            method: 'post',
-            url: `https://watercooler.work/api/organization/${organization_id}/users/invite`,
-            data: { emails: emails },
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': 'Bearer '+state.auth.authKey,
-            }
-        })
-        .then(response => {
-            dispatch(inviteUsersSuccess({ data: response.data}));
-        })
-        .catch(error => {
-            dispatch(inviteUsersFailure({ error: error.message }));
-        })
+        try {
+            axios({
+                method: 'post',
+                url: `https://watercooler.work/api/organization/${organization_id}/users/invite`,
+                data: { emails: emails },
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer '+state.auth.authKey,
+                }
+            })
+            .then(response => {
+                dispatch(inviteUsersSuccess({ data: response.data}));
+            })
+            .catch(error => {
+                dispatch(inviteUsersFailure({ error: error.message }));
+            })
+        } catch (error) {
+            dispatch(inviteUsersFailure({ error: error }));
+        }
     }
 }
 
@@ -156,26 +168,30 @@ export function createRoom(name, videoEnabled, isPrivate) {
         dispatch(createRoomStarted());
         const state = getState();
 
-        axios({
-            method: 'post',
-            url: `https://watercooler.work/api/room`,
-            data: { 
-                name: name,
-                video_enabled: videoEnabled,
-                is_private: isPrivate,
-                organization_id: state.organization.organization.id,
-                team_id: state.organization.teams[0].id
-            },
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': 'Bearer '+state.auth.authKey,
-            }
-        })
-        .then(response => {
-            dispatch(createRoomSuccess({ data: response.data}));
-        })
-        .catch(error => {
-            dispatch(createRoomFailure({ error: error.message }));
-        })
+        try {
+            axios({
+                method: 'post',
+                url: `https://watercooler.work/api/room`,
+                data: { 
+                    name: name,
+                    video_enabled: videoEnabled,
+                    is_private: isPrivate,
+                    organization_id: state.organization.organization.id,
+                    team_id: state.organization.teams[0].id
+                },
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer '+state.auth.authKey,
+                }
+            })
+            .then(response => {
+                dispatch(createRoomSuccess({ data: response.data}));
+            })
+            .catch(error => {
+                dispatch(createRoomFailure({ error: error.message }));
+            })
+        } catch (error) {
+            dispatch(createRoomFailure({ error: error }));
+        }
     }
 }

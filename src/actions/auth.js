@@ -59,16 +59,20 @@ export function requestLoginCode(email) {
         dispatch(requestLoginCodeStarted());
 
         const state = getState();
-        //check if we need a new token or a refresh token
-        axios.post(`https://watercooler.work/api/login_code`, {
-            email: email
-        })
-        .then(response => {
-            dispatch(requestLoginCodeSuccess({ authKey: response.data.access_token }));
-        })
-        .catch(error => {
-            dispatch(requestLoginCodeFailure({ error: error.message }));
-        });
+
+        try {
+            axios.post(`https://watercooler.work/api/login_code`, {
+                email: email
+            })
+            .then(response => {
+                dispatch(requestLoginCodeSuccess({ authKey: response.data.access_token }));
+            })
+            .catch(error => {
+                dispatch(requestLoginCodeFailure({ error: error.message }));
+            });
+        } catch (error) {
+            dispatch(requestLoginCodeFailure({ error: error }));
+        }
     }
 }
 
@@ -77,21 +81,24 @@ export function authenticateUser(email, password) {
         dispatch(authenticateUserStarted());
 
         const state = getState();
-        //check if we need a new token or a refresh token
-        axios.post(`https://watercooler.work/oauth/token`, {
-            grant_type: "password",
-            client_id: 2,
-            client_secret: "c1bE8I6EMEG8TEHt9PTsLaJwvoyo8L8LtNP25mIv",
-            username: email,
-            password: password,
-            scope: ""
-        })
-        .then(response => {
-            dispatch(authenticateUserSuccess({ authKey: response.data.access_token }));
-        })
-        .catch(error => {
-            dispatch(authenticateUserFailure({ error: error.message }));
-        });
+        try {
+            axios.post(`https://watercooler.work/oauth/token`, {
+                grant_type: "password",
+                client_id: 2,
+                client_secret: "c1bE8I6EMEG8TEHt9PTsLaJwvoyo8L8LtNP25mIv",
+                username: email,
+                password: password,
+                scope: ""
+            })
+            .then(response => {
+                dispatch(authenticateUserSuccess({ authKey: response.data.access_token }));
+            })
+            .catch(error => {
+                dispatch(authenticateUserFailure({ error: error.message }));
+            });
+        } catch (error) {
+            dispatch(authenticateUserFailure({ error: error }));
+        }
     }
 }
 
@@ -100,16 +107,20 @@ export function authenticateUserMagicLink(code) {
         dispatch(authenticateUserStarted());
 
         const state = getState();
-        //check if we need a new token or a refresh token
-        axios.post(`https://watercooler.work/api/magic/auth`, {
-            code: code
-        })
-        .then(response => {
-            dispatch(authenticateUserSuccess({ authKey: response.data.access_token }));
-        })
-        .catch(error => {
-            dispatch(authenticateUserFailure({ error: error.message }));
-        });
+        
+        try {
+            axios.post(`https://watercooler.work/api/magic/auth`, {
+                code: code
+            })
+            .then(response => {
+                dispatch(authenticateUserSuccess({ authKey: response.data.access_token }));
+            })
+            .catch(error => {
+                dispatch(authenticateUserFailure({ error: error.message }));
+            });
+        } catch (error) {
+            dispatch(authenticateUserFailure({ error: error }));
+        }
     }
 }
 

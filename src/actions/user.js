@@ -43,18 +43,22 @@ export function getUserDetails() {
         const state = getState();
         //check if we need to do some state stuff
 
-        axios.get("https://watercooler.work/api/user", {
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': 'Bearer '+state.auth.authKey,
-            }
-        })
-        .then(response => {
-            dispatch(getUserDetailsSuccess({ data: response.data }));
-        })
-        .catch(error => {
-            dispatch(getUserDetailsFailure({ error: error.message }));
-        })
+        try {
+            axios.get("https://watercooler.work/api/user", {
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer '+state.auth.authKey,
+                }
+            })
+            .then(response => {
+                dispatch(getUserDetailsSuccess({ data: response.data }));
+            })
+            .catch(error => {
+                dispatch(getUserDetailsFailure({ error: error.message }));
+            })
+        } catch (error) {
+            dispatch(getUserDetailsFailure({ error: error }));
+        }
     }
 }
 
@@ -63,23 +67,27 @@ export function updateUserDetails(timezone) {
         const state = getState();
         dispatch(updateUserDetailsStarted());
 
-        axios({
-            method: 'patch',
-            url: `https://watercooler.work/api/user/${state.user.id}`,
-            data: { 
-                timezone
-            },
-            headers: {
-                'Accept': 'application/json',
-                'Authorization': 'Bearer '+state.auth.authKey,
-            }
-        })
-        .then(response => {
-            dispatch(updateUserDetailsSuccess({ data: response.data}));
-        })
-        .catch(error => {
-            dispatch(updateUserDetailsFailure({ error: error.message }));
-        })
+        try {
+            axios({
+                method: 'patch',
+                url: `https://watercooler.work/api/user/${state.user.id}`,
+                data: { 
+                    timezone
+                },
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer '+state.auth.authKey,
+                }
+            })
+            .then(response => {
+                dispatch(updateUserDetailsSuccess({ data: response.data}));
+            })
+            .catch(error => {
+                dispatch(updateUserDetailsFailure({ error: error.message }));
+            })
+        } catch (error) {
+            dispatch(updateUserDetailsFailure({ error: error }));
+        }
 
     }
 }

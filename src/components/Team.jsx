@@ -2,7 +2,7 @@ import React from 'react';
 import routes from '../constants/routes.json';
 import { Link } from 'react-router-dom';
 import { DateTime } from 'luxon';
-import { Container, Image, Button, Card, CardColumns, Navbar, Row, Col } from 'react-bootstrap';
+import { Container, Image, Button, Card, CardColumns, Navbar, Row, Col, OverlayTrigger, Overlay, Popover, Tooltip } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch, faUserPlus, faCircle } from '@fortawesome/free-solid-svg-icons';
 import InviteUsersModal from './InviteUsersModal';
@@ -23,11 +23,10 @@ class Team extends React.Component {
     }
 
     componentDidUpdate() {
-        console.log(DateTime.local());
     }
 
     render() {
-        const { organizationLoading, inviteUsers, inviteUsersSuccess, organizationUsersOnline } = this.props;
+        const { currentTime, user, organizationLoading, inviteUsers, inviteUsersSuccess, organizationUsersOnline } = this.props;
         var { organizationUsers } = this.props;
         const { showInviteUsersModal } = this.state;
 
@@ -64,14 +63,17 @@ class Team extends React.Component {
                     </>
                 :   
                     <Row className="pt-3 px-3 vh-100" style={{overflowY:"scroll",paddingBottom:100}}>
-                        {organizationUsers.map((user) =>
-                            <Col xs={6} md={4} lg={3} key={user.id}>
+                        {organizationUsers.map((organizationUser) =>
+                            <Col xs={6} md={4} lg={3} xl={2} key={organizationUser.id}>
                                 <Card className="mb-3">
-                                    <Card.Img variant="top" src={user.avatar_url} className="border-bottom" />
-                                    <Card.Body>
-                                        <p className="font-weight-bold" style={{fontSize:"1rem"}}>
-                                            {user.first_name} {user.last_name} {organizationUsersOnline.includes(user.id) ? <FontAwesomeIcon icon={faCircle} className="ml-1" style={{color:"#3ecf8e",fontSize:".6rem",verticalAlign:'middle'}} /> : <FontAwesomeIcon icon={faCircle} className="ml-1" style={{color:"#f9426c",fontSize:".6rem",verticalAlign:'middle'}} />}
+                                    <Card.Img variant="top" src={organizationUser.avatar_url} className="border-bottom" />
+                                    <Card.Body style={{whiteSpace:'nowrap'}}>
+                                        <p className="font-weight-bold mb-0" style={{fontSize:".9rem"}}>
+                                            {organizationUser.first_name} {organizationUser.last_name} {user.id == organizationUser.id ? "(you)" : ''} {organizationUsersOnline.includes(organizationUser.id) ? <FontAwesomeIcon icon={faCircle} className="ml-1" style={{color:"#3ecf8e",fontSize:".5rem",verticalAlign:'middle'}} /> : <FontAwesomeIcon icon={faCircle} className="ml-1" style={{color:"#f9426c",fontSize:".6rem",verticalAlign:'middle'}} />}
                                         </p>
+                                        {organizationUser.timezone != null ?
+                                            <p><strong>Local Time:</strong> {currentTime.setZone(organizationUser.timezone).toLocaleString(DateTime.TIME_SIMPLE)}</p>
+                                        : '' }
                                     </Card.Body>
                                 </Card>
                             </Col>
