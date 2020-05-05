@@ -89,13 +89,12 @@ class Room extends React.Component {
 
         this.reconnectNetworkConnections = this.reconnectNetworkConnections.bind(this);
         this.disconnectNetworkConnections = this.disconnectNetworkConnections.bind(this);
+        this.getNewServer = this.getNewServer.bind(this);
 
     }
 
     componentDidMount() {
         const { teams, match, location, pusherInstance } = this.props;
-
-        var timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         window.addEventListener('online',  this.reconnectNetworkConnections);
         window.addEventListener('offline',  this.disconnectNetworkConnections);
@@ -251,8 +250,21 @@ class Room extends React.Component {
                     getRoomUsers(curRoom.id);
                 }
 
+                if (event == "room.server.updated" && data.triggered_by != that.state.me.id) {
+                    that.getNewServer();
+                }
+
             });
             
+        }
+    }
+
+    getNewServer() {
+        this.disconnectNetworkConnections();
+        this.reconnectNetworkConnections();
+
+        if (this.state.publishing) {
+            this.startPublishingStream();
         }
     }
 
@@ -358,6 +370,9 @@ class Room extends React.Component {
                     },
                     error: function(cause) {
                             // Couldn't attach to the plugin
+                            if (that.props.pusherInstance.connection.state == "connected") {
+                                that.getNewServer();
+                            }
                     },
                     onmessage: function(msg, jsep) {
                         var { videoRoomStreamerHandle, currentLoadingMessage, containerBackgroundColors, members } = that.state;
@@ -487,8 +502,11 @@ class Room extends React.Component {
             },
             error: function(cause) {
                     // Error, can't go on...
-                    console.log("ERRR");
-                    console.log(cause);
+
+                    //sanity check to make sure we still have an internet connection
+                    if (that.props.pusherInstance.connection.state == "connected") {
+                        that.getNewServer();
+                    }
             },
             destroyed: function() {
                     // I should get rid of this
@@ -637,6 +655,9 @@ class Room extends React.Component {
             },
             error: function(cause) {
                     // Couldn't attach to the plugin
+                    if (that.props.pusherInstance.connection.state == "connected") {
+                        that.getNewServer();
+                    }
             },
             onmessage: function(msg, jsep) {
                 console.log("REMOTE MSG");

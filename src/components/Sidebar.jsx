@@ -44,7 +44,7 @@ class Sidebar extends React.Component {
 
     componentDidMount() {
         var { pusherInstance, organizationPresenceChannel } = this.state;
-        const { push, auth, organization, getOrganizations } = this.props;
+        const { push, auth, organization, getOrganizations, updateUserDetails } = this.props;
         this.handleResize();
         window.addEventListener('resize', this.handleResize);
 
@@ -59,6 +59,9 @@ class Sidebar extends React.Component {
         if (organizationPresenceChannel && !auth.isLoggedIn) {
             this.setState({ organizationPresenceChannel: false, pusherInstance: null });
         }
+
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        updateUserDetails(timezone);
     }
 
     componentDidUpdate() {
@@ -153,9 +156,6 @@ class Sidebar extends React.Component {
                 team.name = team.name.slice(0, 16);
                 team.name = team.name.trim() + "...";
             }
-
-            console.log("ROOMS");
-            console.log(team.rooms);
         })
        
         const rooms = teams.map((team, teamKey) =>

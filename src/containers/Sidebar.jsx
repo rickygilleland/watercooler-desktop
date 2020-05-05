@@ -1,5 +1,6 @@
 import React from 'react';
 import { userLogout } from '../actions/auth';
+import { updateUserDetails } from '../actions/user';
 import { 
   getOrganizations, 
   getOrganizationUsers, 
@@ -32,6 +33,7 @@ function mapDispatchToProps(dispatch) {
     return bindActionCreators(
       {
         userLogout,
+        updateUserDetails,
         getOrganizations,
         getOrganizationUsers,
         inviteUsers,
