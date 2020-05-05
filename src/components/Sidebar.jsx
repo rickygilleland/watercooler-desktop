@@ -111,11 +111,11 @@ class Sidebar extends React.Component {
                 if (event == "pusher:member_added") {
                     var updatedOnlineUsers = [];
 
-                    that.state.onlineUsers.forEach(user => {
+                    that.state.organizationUsersOnline.forEach(user => {
                         updatedOnlineUsers.push(user);
                     }) 
 
-                    updatedOnlineUsers.push(data.member.id);
+                    updatedOnlineUsers.push(data.id);
 
                     that.setState({ organizationUsersOnline: updatedOnlineUsers });
                 }
@@ -123,8 +123,8 @@ class Sidebar extends React.Component {
                 if (event == "pusher:member_removed") {
                     var updatedOnlineUsers = [];
 
-                    that.state.onlineUsers.forEach(user => {
-                        if (user != data.member.id) {
+                    that.state.organizationUsersOnline.forEach(user => {
+                        if (user != data.id) {
                             updatedOnlineUsers.push(user);
                         }
                     }) 
