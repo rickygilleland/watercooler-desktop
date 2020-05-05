@@ -58,8 +58,8 @@ class Loading extends React.Component {
             return getOrganizations();
         }
 
-        if (organizationUsers.length == 0) {
-            return getOrganizationUsers();
+        if (organizationUsers.length == 0 && typeof organization.id != "undefined") {
+            return getOrganizationUsers(organization.id);
         }
 
         if (this.state.redirect === false) {

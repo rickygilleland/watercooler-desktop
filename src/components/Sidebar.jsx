@@ -1,7 +1,7 @@
 import React from 'react';
 import { Switch, Route, NavLink, Redirect } from 'react-router-dom';
 import routes from '../constants/routes.json';
-import { debounce } from 'lodash';
+import { each } from 'lodash';
 import { Row, Col, Button, Navbar, Dropdown, Modal } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch, faSignOutAlt, faUserFriends, faPlusSquare, faCog, faUserPlus, faUsers, faLock, faCamera } from '@fortawesome/free-solid-svg-icons';
@@ -37,6 +37,7 @@ class Sidebar extends React.Component {
             showRoomsModal: false,
             pusherInstance: null,
             organizationPresenceChannel: false,
+            organizationUsersOnline: []
         }
 
         this.handleResize = this.handleResize.bind(this);
@@ -44,7 +45,7 @@ class Sidebar extends React.Component {
 
     componentDidMount() {
         var { pusherInstance, organizationPresenceChannel } = this.state;
-        const { push, auth, organization, getOrganizations, updateUserDetails } = this.props;
+        const { push, auth, user, organization, getOrganizations, updateUserDetails } = this.props;
         this.handleResize();
         window.addEventListener('resize', this.handleResize);
 
@@ -61,7 +62,10 @@ class Sidebar extends React.Component {
         }
 
         var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        updateUserDetails(timezone);
+
+        if (user.timezone != timezone) {
+            updateUserDetails(timezone);
+        }
     }
 
     componentDidUpdate() {
@@ -93,6 +97,40 @@ class Sidebar extends React.Component {
             this.setState({ organizationPresenceChannel: true });
 
             presence_channel.bind_global(function(event, data) {
+
+                if (event == "pusher:subscription_succeeded") {
+                    var onlineUsers = [];
+
+                    each(data.members, member => {
+                        onlineUsers.push(member.id);
+                    })
+
+                    that.setState({ organizationUsersOnline: onlineUsers });
+                }
+
+                if (event == "pusher:member_added") {
+                    var updatedOnlineUsers = [];
+
+                    that.state.onlineUsers.forEach(user => {
+                        updatedOnlineUsers.push(user);
+                    }) 
+
+                    updatedOnlineUsers.push(data.member.id);
+
+                    that.setState({ organizationUsersOnline: updatedOnlineUsers });
+                }
+
+                if (event == "pusher:member_removed") {
+                    var updatedOnlineUsers = [];
+
+                    that.state.onlineUsers.forEach(user => {
+                        if (user != data.member.id) {
+                            updatedOnlineUsers.push(user);
+                        }
+                    }) 
+
+                    that.setState({ organizationUsersOnline: updatedOnlineUsers });
+                }
 
                 if (event == "room.created" && data.created_by != user.id && !data.room.is_private) {
                     return getOrganizations();
@@ -148,7 +186,8 @@ class Sidebar extends React.Component {
             showManageUsersModal, 
             showRoomsModal, 
             showManageCameraModal, 
-            pusherInstance 
+            pusherInstance,
+            organizationUsersOnline
         } = this.state;
 
         teams.forEach(team => {
@@ -331,7 +370,7 @@ class Sidebar extends React.Component {
                                 <Route 
                                     path={routes.TEAM} 
                                     render={(routeProps) => (
-                                        <ErrorBoundary showError={true}><TeamPage {...routeProps} /></ErrorBoundary>
+                                        <ErrorBoundary showError={true}><TeamPage {...routeProps} organizationUsersOnline={organizationUsersOnline} /></ErrorBoundary>
                                     )}
                                 />
                             </>

@@ -3,7 +3,7 @@ import routes from '../constants/routes.json';
 import { Link } from 'react-router-dom';
 import { Container, Image, Button, Card, CardColumns, Navbar, Row, Col } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faCircleNotch, faUserPlus } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faUserPlus, faCircle } from '@fortawesome/free-solid-svg-icons';
 import InviteUsersModal from './InviteUsersModal';
 
 class Team extends React.Component {
@@ -26,7 +26,7 @@ class Team extends React.Component {
     }
 
     render() {
-        const { organizationLoading, inviteUsers, inviteUsersSuccess } = this.props;
+        const { organizationLoading, inviteUsers, inviteUsersSuccess, organizationUsersOnline } = this.props;
         var { organizationUsers } = this.props;
         const { showInviteUsersModal } = this.state;
 
@@ -68,7 +68,9 @@ class Team extends React.Component {
                                 <Card className="mb-3">
                                     <Card.Img variant="top" src={user.avatar_url} className="border-bottom" />
                                     <Card.Body>
-                                        <p className="font-weight-bold" style={{fontSize:"1rem"}}>{user.first_name} {user.last_name}</p>
+                                        <p className="font-weight-bold" style={{fontSize:"1rem"}}>
+                                            {user.first_name} {user.last_name} {organizationUsersOnline.includes(user.id) ? <FontAwesomeIcon icon={faCircle} className="ml-1" style={{color:"#3ecf8e",fontSize:".6rem",verticalAlign:'middle'}} /> : <FontAwesomeIcon icon={faCircle} className="ml-1" style={{color:"#f9426c",fontSize:".6rem",verticalAlign:'middle'}} />}
+                                        </p>
                                     </Card.Body>
                                 </Card>
                             </Col>
