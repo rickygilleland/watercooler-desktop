@@ -245,8 +245,6 @@ class Room extends React.Component {
                 }
 
                 if (event == "room.user.invited" && that.state.showAddUserToRoomModal == false) {
-                    console.log("REFRESH");
-                    console.log(that.state.showAddUserToRoomModal);
                     getRoomUsers(curRoom.id);
                 }
 

@@ -136,6 +136,12 @@ class Sidebar extends React.Component {
                     return getOrganizations();
                 }
 
+                console.log(event,data);
+
+                if (event == "room.user.invited" && data.user == user.id) {
+                    return getOrganizations();
+                }
+
             });
 
         }
