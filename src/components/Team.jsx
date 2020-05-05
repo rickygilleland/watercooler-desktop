@@ -1,6 +1,7 @@
 import React from 'react';
 import routes from '../constants/routes.json';
 import { Link } from 'react-router-dom';
+import { DateTime } from 'luxon';
 import { Container, Image, Button, Card, CardColumns, Navbar, Row, Col } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch, faUserPlus, faCircle } from '@fortawesome/free-solid-svg-icons';
@@ -22,7 +23,7 @@ class Team extends React.Component {
     }
 
     componentDidUpdate() {
-    
+        console.log(DateTime.local());
     }
 
     render() {
