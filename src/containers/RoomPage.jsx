@@ -1,5 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
+import { getRoomUsers, addUserToRoom } from '../actions/room';
 import { bindActionCreators } from 'redux';
 import { push } from 'connected-react-router';
 import { withRouter } from 'react-router-dom'
@@ -10,7 +11,11 @@ function mapStateToProps(state) {
         auth: state.auth,
         user: state.user,
         organization: state.organization.organization,
+        organizationUsers: state.organization.users,
         teams: state.organization.teams,
+        roomLoading: state.room.loading,
+        addUserLoading: state.room.addUserLoading,
+        roomUsers: state.room.users,
         settings: state.settings,
     }
 }
@@ -18,6 +23,8 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return bindActionCreators(
       {
+        getRoomUsers,
+        addUserToRoom,
         push
       },
       dispatch

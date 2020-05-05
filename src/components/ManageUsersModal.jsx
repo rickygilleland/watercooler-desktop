@@ -12,6 +12,7 @@ function ManageUsersModal(props) {
         size="md"
         aria-labelledby="contained-modal-title-vcenter"
         centered
+        scrollable={true}
       >
         <Modal.Header>
           <Modal.Title className="font-weight-bolder">

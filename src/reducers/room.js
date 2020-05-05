@@ -1,10 +1,22 @@
 import { Action } from 'redux';
-import { GET_ROOMS_SUCCESS, GET_ROOMS_FAILURE } from '../actions/room';
+import { 
+    GET_ROOMS_SUCCESS, 
+    GET_ROOMS_FAILURE,
+    GET_ROOM_USERS_STARTED,
+    GET_ROOM_USERS_SUCCESS,
+    GET_ROOM_USERS_FAILURE,
+    ADD_USER_TO_ROOM_STARTED,
+    ADD_USER_TO_ROOM_SUCCESS,
+    ADD_USER_TO_ROOM_FAILURE
+} from '../actions/room';
 
 const initialState = {
     rooms: [],
+    users: [],
+    curRoom: null,
     loading: false,
-    error: false,
+    addUserLoading: false,
+    error: false
 }
 
 export default function room(state = initialState, action = {}) {
@@ -19,7 +31,45 @@ export default function room(state = initialState, action = {}) {
             updatedState = {
                 error: true
             }
-            return state;
+            break;
+        case GET_ROOM_USERS_STARTED:
+            updatedState = {
+                loading: true,
+                error: false
+            }
+            break;
+        case GET_ROOM_USERS_SUCCESS:
+            updatedState = {
+                loading: false,
+                error: false,
+                users: action.payload.data
+            }
+            break;
+        case GET_ROOM_USERS_FAILURE:
+            updatedState = {
+                loading: false,
+                error: true,
+                users: []
+            }
+            break;
+        case ADD_USER_TO_ROOM_STARTED:
+            updatedState = {
+                addUserLoading: true,
+                error: false
+            }
+            break;
+        case ADD_USER_TO_ROOM_SUCCESS:
+            updatedState = {
+                addUserLoading: false,
+                error: false
+            }
+            break;
+        case ADD_USER_TO_ROOM_FAILURE:
+            updatedState = {
+                addUserLoading: false,
+                error: true
+            }
+            break;
         default:
             //do nothing
             return state;

@@ -12,6 +12,7 @@ import MagicLoginPage from '../containers/MagicLoginPage';
 import LoadingPage from '../containers/LoadingPage';
 import RoomPage from '../containers/RoomPage';
 import TeamPage from '../containers/TeamPage';
+import ErrorBoundary from './ErrorBoundary';
 import ManageUsersModal from './ManageUsersModal';
 import InviteUsersModal from './InviteUsersModal';
 import ManageCameraModal from './ManageCameraModal';
@@ -62,7 +63,7 @@ class Sidebar extends React.Component {
 
     componentDidUpdate() {
         var { pusherInstance, organizationPresenceChannel } = this.state;
-        const { organization, auth, getOrganizations } = this.props;
+        const { organization, auth, user, getOrganizations } = this.props;
 
         if (auth.isLoggedIn && organization != null && !organizationPresenceChannel) {
 
@@ -85,21 +86,17 @@ class Sidebar extends React.Component {
 
             var presence_channel = pusherInstance.subscribe(`presence-organization.${organization.id}`);
             var that = this;
-            
+
+            this.setState({ organizationPresenceChannel: true });
+
             presence_channel.bind_global(function(event, data) {
-                if (event == 'pusher:subscription_succeeded') {
-                    that.setState({ organizationPresenceChannel: true });
-                }
 
-                if (event == 'App\Events\NewRoomCreated') {
-                    return getOrganizations();
-                }
-
-                if (typeof data.organization != "undefined") {
+                if (event == "room.created" && data.created_by != user.id && !data.room.is_private) {
                     return getOrganizations();
                 }
 
             });
+
         }
 
         if (organizationPresenceChannel && !auth.isLoggedIn) {
@@ -156,6 +153,9 @@ class Sidebar extends React.Component {
                 team.name = team.name.slice(0, 16);
                 team.name = team.name.trim() + "...";
             }
+
+            console.log("ROOMS");
+            console.log(team.rooms);
         })
        
         const rooms = teams.map((team, teamKey) =>
@@ -169,116 +169,134 @@ class Sidebar extends React.Component {
                     </Col>
                 </Row>
                 <div className="vh-100" style={{overflowY:"scroll",paddingBottom:215}}>
-                    <ul className="nav flex-column mt-1">
-                        {team.rooms.map((room, roomKey) => 
-                            <li key={roomKey} className="nav-item">
-                                <NavLink exact={true} 
-                                        activeStyle={{
-                                            fontWeight: "bold",
-                                            backgroundColor:"#4381ff"
-                                        }} 
-                                        className="d-block py-1"
-                                        to={{
-                                            pathname: `/room/${room.slug}`,
-                                            state: {
-                                                team: team,
-                                                room: room
-                                            }
-                                        }}>
-                                    <p className="text-light mb-0 pl-3">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".65rem"}} /> : '# '} {room.name}</p>
-                                </NavLink>
-                            </li>
-                        )}
-                    </ul>
+                    {team.rooms.length > 0 ?
+                        <ul className="nav flex-column mt-1">
+                            {team.rooms.map((room, roomKey) => 
+                                <li key={roomKey} className="nav-item">
+                                    <NavLink exact={true} 
+                                            activeStyle={{
+                                                fontWeight: "bold",
+                                                backgroundColor:"#4381ff"
+                                            }} 
+                                            className="d-block py-1"
+                                            to={{
+                                                pathname: `/room/${room.slug}`,
+                                                state: {
+                                                    team: team,
+                                                    room: room
+                                                }
+                                            }}>
+                                        <p className="text-light mb-0 pl-3">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".65rem"}} /> : '# '} {room.name}</p>
+                                    </NavLink>
+                                </li>
+                            )}
+                        </ul>
+                    : '' }
                 </div>
             </div>
         )
-
+                                        
         var firstRoom = {};
-        teams.forEach(team => {
-            team.rooms.forEach(room => {
-                firstRoom = {
-                    slug: room.slug,
-                    team: team,
-                    room: room
+        try {
+            teams.forEach(team => {
+                if (team.rooms.length > 0) {
+                    team.rooms.forEach(room => {
+                        firstRoom = {
+                            slug: room.slug,
+                            team: team,
+                            room: room
+                        }
+                    })
                 }
             })
-        })
+        } catch(error) {
+            //silently fail
+        }
 
-        if (organization != null && organization.name.length > 19) {
-            organization.name = organization.name.slice(0, 18);
-            organization.name = organization.name.trim() + "...";
+        try {
+            if (organization != null && organization.name.length > 19) {
+                organization.name = organization.name.slice(0, 18);
+                organization.name = organization.name.trim() + "...";
+            }
+        } catch(error) {
+            //silently fail
         }
 
         return (
             <>
-                <Switch>
-                    <Route path={routes.LOGIN} component={LoginPage} />
-                    <Route path={routes.MAGIC_LOGIN} component={MagicLoginPage} />
-                    <Route path={routes.LOADING} component={LoadingPage} />
-                    <Redirect from="/" exact to={{
-                            pathname: routes.LOADING,
-                    }} />
-                </Switch>
+                <ErrorBoundary showError={true}>
+                    <Switch>
+                        <Route path={routes.LOGIN} component={LoginPage} />
+                        <Route path={routes.MAGIC_LOGIN} component={MagicLoginPage} />
+                        <Route path={routes.LOADING} component={LoadingPage} />
+                        <Redirect from="/" exact to={{
+                                pathname: routes.LOADING,
+                        }} />
+                    </Switch>
+                </ErrorBoundary>
                 <Switch>
                 <EnsureLoggedInContainer>
-                    <InviteUsersModal 
-                        show={showInviteUsersModal}
-                        handleSubmit={inviteUsers}
-                        loading={organizationLoading.toString()}
-                        inviteuserssuccess={inviteUsersSuccess}
-                        onHide={() => this.setState({ showInviteUsersModal: false })}
-                    />
-                    <ManageUsersModal 
-                        users={organizationUsers}
-                        loading={organizationLoading.toString()}
-                        show={showManageUsersModal}
-                        onShow={() => getOrganizationUsers(organization.id)}
-                        onHide={() => this.setState({ showManageUsersModal: false })}
-                    />
-                    <RoomsModal 
-                        show={showRoomsModal}
-                        loading={organizationLoading.toString()}
-                        createroomsuccess={createRoomSuccess}
-                        handleSubmit={createRoom}
-                        onHide={() => this.setState({ showRoomsModal: false })}
-                    />
-                    <ManageCameraModal 
-                        show={showManageCameraModal}
-                        settings={settings}
-                        handleSubmit={updateDefaultDevices}
-                        onShow={() => getAvailableDevices()}
-                        onHide={() => this.setState({ showManageCameraModal: false })}
-                    />
+                    <ErrorBoundary showError={false}>
+                        <InviteUsersModal 
+                            show={showInviteUsersModal}
+                            handleSubmit={inviteUsers}
+                            loading={organizationLoading.toString()}
+                            inviteuserssuccess={inviteUsersSuccess}
+                            onHide={() => this.setState({ showInviteUsersModal: false })}
+                        />
+                        <ManageUsersModal 
+                            users={organizationUsers}
+                            loading={organizationLoading.toString()}
+                            show={showManageUsersModal}
+                            onShow={() => getOrganizationUsers(organization.id)}
+                            onHide={() => this.setState({ showManageUsersModal: false })}
+                        />
+                        <RoomsModal 
+                            show={showRoomsModal}
+                            loading={organizationLoading.toString()}
+                            createroomsuccess={createRoomSuccess}
+                            handleSubmit={createRoom}
+                            onHide={() => this.setState({ showRoomsModal: false })}
+                        />
+                        <ManageCameraModal 
+                            show={showManageCameraModal}
+                            settings={settings}
+                            handleSubmit={updateDefaultDevices}
+                            onShow={() => getAvailableDevices()}
+                            onHide={() => this.setState({ showManageCameraModal: false })}
+                        />
+                    </ErrorBoundary>
                     <div style={{backgroundColor:"#1b1e2f",width:this.state.dimensions.sidebarWidth}} className="vh-100 pr-0 float-left">
                         
                         <Navbar className="text-light pt-4" style={{height:80,backgroundColor:"#121422",borderBottom:"1px solid #1c2046"}}>
-                            <Navbar.Brand>
-                                {organization != null ? 
-                                    <p className="text-light p-0 m-0" style={{fontSize:".9rem"}}><strong>{organization.name}</strong></p>
-                                : '' }
-                                {user != null ? 
-                                    <p className="text-light pt-0 pb-1" style={{fontSize:".8rem"}}>{user.first_name}</p>
-                                : '' }
-                            </Navbar.Brand>
-                            <div className="ml-auto" style={{height:60}}>
-                        
-                                <Dropdown className="dropdownSettings text-light">
-                                    <Dropdown.Toggle><FontAwesomeIcon icon={faCog} style={{color:"#fff"}} /></Dropdown.Toggle>
-                                    <Dropdown.Menu>
-                                        <Dropdown.Item onClick={() => this.setState({ showInviteUsersModal: true })}>
-                                            <FontAwesomeIcon icon={faUserPlus} /> Invite People to {organization != null ? organization.name : ''}
-                                        </Dropdown.Item>
-                                        <Dropdown.Item onClick={() => this.setState({ showManageCameraModal: true })}>
-                                            <FontAwesomeIcon icon={faCamera} /> Camera Settings
-                                        </Dropdown.Item>
-                                        <Dropdown.Item onClick={() => userLogout() }>
-                                            <FontAwesomeIcon icon={faSignOutAlt}/> Sign Out
-                                        </Dropdown.Item>
-                                    </Dropdown.Menu>
-                                </Dropdown>
+                            <ErrorBoundary showError={false}>
+                                <Navbar.Brand>
+                                    {organization != null ? 
+                                        <p className="text-light p-0 m-0" style={{fontSize:".9rem"}}><strong>{organization.name}</strong></p>
+                                    : '' }
+                                    {user != null ? 
+                                        <p className="text-light pt-0 pb-1" style={{fontSize:".8rem"}}>{user.first_name}</p>
+                                    : '' }
+                                </Navbar.Brand>
+                                <div className="ml-auto" style={{height:60}}>
+                            
+                                    <Dropdown className="dropdownSettings text-light">
+                                        <Dropdown.Toggle><FontAwesomeIcon icon={faCog} style={{color:"#fff"}} /></Dropdown.Toggle>
+                                        <Dropdown.Menu>
+                                            <Dropdown.Item onClick={() => this.setState({ showInviteUsersModal: true })}>
+                                                <FontAwesomeIcon icon={faUserPlus} /> Invite People to {organization != null ? organization.name : ''}
+                                            </Dropdown.Item>
+                                            <Dropdown.Item onClick={() => this.setState({ showManageCameraModal: true })}>
+                                                <FontAwesomeIcon icon={faCamera} /> Camera Settings
+                                            </Dropdown.Item>
+                                            <Dropdown.Item onClick={() => userLogout() }>
+                                                <FontAwesomeIcon icon={faSignOutAlt}/> Sign Out
+                                            </Dropdown.Item>
+                                        </Dropdown.Menu>
+                                    </Dropdown>
 
-                            </div>
+                                </div>
+                            </ErrorBoundary>
                         </Navbar>
                         <div>
                             <ul className="nav flex-column mt-1">
@@ -307,13 +325,13 @@ class Sidebar extends React.Component {
                                 <Route 
                                     path={routes.ROOM} 
                                     render={(routeProps) => (
-                                        <RoomPage {...routeProps} dimensions={this.state.dimensions} pusherInstance={pusherInstance} key={routeProps.match.params.roomSlug} />
+                                        <ErrorBoundary showError={true}><RoomPage {...routeProps} dimensions={this.state.dimensions} pusherInstance={pusherInstance} key={routeProps.match.params.roomSlug} /></ErrorBoundary>
                                     )}
                                 />
                                 <Route 
                                     path={routes.TEAM} 
                                     render={(routeProps) => (
-                                        <TeamPage {...routeProps} />
+                                        <ErrorBoundary showError={true}><TeamPage {...routeProps} /></ErrorBoundary>
                                     )}
                                 />
                             </>

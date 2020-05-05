@@ -5,10 +5,26 @@ import { each, debounce } from 'lodash';
 import { Link } from 'react-router-dom';
 import { Container, Image, Button, Row, Col, TabContainer, OverlayTrigger, Overlay, Popover, Tooltip } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faCircleNotch, faSignOutAlt, faMicrophone, faMicrophoneSlash, faVideo, faVideoSlash, faDoorClosed, faDoorOpen, faCircle, faGrin, faLayerGroup, faLessThanEqual, faUser, faLock } from '@fortawesome/free-solid-svg-icons';
+import { 
+    faCircleNotch, 
+    faSignOutAlt, 
+    faMicrophone, 
+    faMicrophoneSlash, 
+    faVideo, 
+    faVideoSlash, 
+    faDoorClosed, 
+    faDoorOpen, 
+    faCircle, 
+    faGrin, 
+    faLayerGroup, 
+    faLessThanEqual, 
+    faUser, 
+    faLock 
+} from '@fortawesome/free-solid-svg-icons';
 import { Janus } from 'janus-gateway';
 import Pusher from 'pusher-js';
 import VideoList from './VideoList';
+import AddUserToRoomModal from './AddUserToRoomModal';
 
 class Room extends React.Component {
     constructor(props) {
@@ -51,7 +67,8 @@ class Room extends React.Component {
                 "#e69a5a",
                 "#205444",
                 "#00DBD7"
-            ]
+            ],
+            showAddUserToRoomModal: false,
         }
 
         this.initializeRoom = this.initializeRoom.bind(this);
@@ -183,7 +200,7 @@ class Room extends React.Component {
     }
 
     initializeRoom() {
-        const { teams, match, location, pusherInstance } = this.props;
+        const { teams, match, location, pusherInstance, getRoomUsers } = this.props;
 
         var curTeam = {};
         var curRoom = {};
@@ -210,6 +227,9 @@ class Room extends React.Component {
             push("/");
         }
 
+        //refresh the count of users in this room
+        getRoomUsers(curRoom.id);
+
         var timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         this.setState({ room: curRoom, team: curTeam });
@@ -217,18 +237,28 @@ class Room extends React.Component {
         if (pusherInstance != null) {
             var presence_channel = pusherInstance.subscribe(`presence-room.${curRoom.channel_id}`);
             var that = this;
-            
-            presence_channel.bind('pusher:subscription_succeeded', function(members) {
-                console.log(members.me);
-                that.setState({ members: members.members, me: members.me, server: members.me.info.media_server });
-                that.openMediaHandle();
+
+            presence_channel.bind_global(function(event, data) {
+
+                if (event == "pusher:subscription_succeeded") {
+                    that.setState({ members: data.members, me: data.me, server: data.me.info.media_server  });
+                    that.openMediaHandle();
+                }
+
+                if (event == "room.user.invited" && that.state.showAddUserToRoomModal == false) {
+                    console.log("REFRESH");
+                    console.log(that.state.showAddUserToRoomModal);
+                    getRoomUsers(curRoom.id);
+                }
+
             });
+            
         }
     }
 
     reconnectNetworkConnections() {
         const { pusherInstance } = this.props;
-        const { room } = this.state
+        const { room, showAddUserToRoomModal } = this.state
 
         Janus.init({
             debug: true,
@@ -240,10 +270,17 @@ class Room extends React.Component {
         var presence_channel = pusherInstance.subscribe(`presence-room.${room.channel_id}`);
         var that = this;
         
-        presence_channel.bind('pusher:subscription_succeeded', function(members) {
-            that.setState({ members: members.members, me: members.me, server: members.me.info.media_server });
-            console.log("open");
-            that.openMediaHandle();
+        presence_channel.bind_global(function(event, data) {
+
+            if (event == "pusher:subscription_succeeded") {
+                that.setState({ members: data.members, me: data.me, server: data.me.info.media_server  });
+                that.openMediaHandle();
+            }
+
+            if (event == "room.user.invited" && that.state.showAddUserToRoomModal == false) {
+                getRoomUsers(curRoom.id);
+            }
+
         });
     }
 
@@ -511,7 +548,6 @@ class Room extends React.Component {
                     "request": "publish",
                     "audio": audioStatus,
                     "video": videoStatus,
-                    "data": true,
                     "videocodec": "vp9"
                 }
 
@@ -820,16 +856,61 @@ class Room extends React.Component {
     }
 
     render() {
-        const { room, loading, publishers, local_stream, videoStatus, audioStatus, videoSizes, currentLoadingMessage } = this.state;
+        const { 
+            getRoomUsers, 
+            roomUsers, 
+            roomLoading, 
+            user, 
+            organizationUsers,
+            addUserToRoom,
+            addUserLoading
+        } = this.props;
+
+        const { 
+            room, 
+            loading, 
+            publishers, 
+            local_stream, 
+            videoStatus, 
+            audioStatus, 
+            videoSizes, 
+            currentLoadingMessage,
+            showAddUserToRoomModal 
+        } = this.state;
 
         return (
             <React.Fragment>
+                <AddUserToRoomModal 
+                    users={roomUsers}
+                    organizationUsers={organizationUsers}
+                    me={user}
+                    room={room}
+                    loading={roomLoading.toString()}
+                    addUserLoading={addUserLoading}
+                    show={showAddUserToRoomModal}
+                    handleSubmit={addUserToRoom}
+                    getRoomUsers={getRoomUsers}
+                    onShow={() => getRoomUsers(room.id)}
+                    onHide={() => this.setState({ showAddUserToRoomModal: false })}
+                />
                 <Row className="text-light pl-0 ml-0" style={{height:80,backgroundColor:"#121422"}}>
                     <Col xs={{span:4}} md={{span:5}}>
                         <div className="d-flex flex-row justify-content-start">
                             <div className="align-self-center">
-                                <p style={{fontWeight:"bolder",fontSize:"1rem"}} className="pb-0 mb-0"># {room.name}</p>
-                                <Button variant="link" className="pl-0 pt-0" style={{color:"#fff",fontSize:".7rem"}}><FontAwesomeIcon icon={faUser} /> 8</Button>
+                                <p style={{fontWeight:"bolder",fontSize:"1rem"}} className="pb-0 mb-0">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".65rem"}} /> : '# '} {room.name}</p>
+                                {room.is_private ?
+                                    <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-view-members">View current members of this private room and add new ones.</Tooltip>}>
+                                        <span className="d-inline-block">
+                                        <Button variant="link" className="pl-0 pt-0" style={{color:"#fff",fontSize:".7rem"}} onClick={() => this.setState({ showAddUserToRoomModal: true })}><FontAwesomeIcon icon={faUser} /> {roomUsers.length > 0 ? roomUsers.length : '' }</Button>
+                                        </span>
+                                    </OverlayTrigger>
+                                :
+                                <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-view-members">This room is visible to everyone on your team.</Tooltip>}>
+                                    <span className="d-inline-block">
+                                    <Button variant="link" className="pl-0 pt-0" style={{color:"#fff",fontSize:".7rem", pointerEvents: 'none'}}><FontAwesomeIcon icon={faUser} /></Button>
+                                    </span>
+                                </OverlayTrigger>
+                                }
                             </div>
                             <div style={{height:80}}></div>
                         </div>

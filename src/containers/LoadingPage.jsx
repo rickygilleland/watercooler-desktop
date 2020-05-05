@@ -1,5 +1,5 @@
 import React from 'react';
-import { getOrganizations } from '../actions/organization';
+import { getOrganizations, getOrganizationUsers } from '../actions/organization';
 import { getUserDetails } from '../actions/user';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -11,6 +11,7 @@ function mapStateToProps(state) {
     return {
         user: state.user,
         organization: state.organization.organization,
+        organizationUsers: state.organization.users,
         teams: state.organization.teams,
         auth: state.auth,
     }
@@ -20,6 +21,7 @@ function mapDispatchToProps(dispatch) {
     return bindActionCreators(
       {
         getOrganizations,
+        getOrganizationUsers,
         getUserDetails,
         push,
       },

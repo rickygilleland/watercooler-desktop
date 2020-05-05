@@ -1,4 +1,5 @@
 import { Action } from 'redux';
+import { orderBy } from 'lodash';
 import { 
     GET_ORGANIZATIONS_SUCCESS, 
     GET_ORGANIZATIONS_FAILURE, 
@@ -27,13 +28,19 @@ export default function organization(state = initialState, action = {}) {
     var updatedState = {};
     switch (action.type) {
         case GET_ORGANIZATIONS_SUCCESS:
+            var updatedTeams = action.payload.data.teams;
+
+            updatedTeams.forEach(team => {
+                team.rooms = orderBy(team.rooms, ['name', 'created_at'], ['asc']);
+            })
+
             updatedState = {
                 organization: {
                     id: action.payload.data.id,
                     name: action.payload.data.name,
                     slug: action.payload.data.slug
                 },
-                teams: action.payload.data.teams
+                teams: updatedTeams
             }
             break;
         case GET_ORGANIZATIONS_FAILURE:
@@ -47,8 +54,9 @@ export default function organization(state = initialState, action = {}) {
             }
             break;
         case GET_ORGANIZATION_USERS_SUCCESS:
+            var updatedOrganizationUsers = orderBy(action.payload.data, ['first_name', 'last_name'], ['asc']);
             updatedState = {
-                users: action.payload.data,
+                users: updatedOrganizationUsers,
                 loading: false
             }
             break;
@@ -85,6 +93,8 @@ export default function organization(state = initialState, action = {}) {
                 if (team.id == action.payload.data.team_id) {
                     team.rooms.push(action.payload.data);
                 }
+
+                team.rooms = orderBy(team.rooms, ['name', 'created_at'], ['asc']);
             });
             
             updatedState = {
