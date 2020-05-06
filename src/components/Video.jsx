@@ -1,10 +1,11 @@
 import React from 'react';
 import { Image, Col, Row } from 'react-bootstrap';
+import { DateTime } from 'luxon';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faVideoSlash, faMicrophone, faMicrophoneSlash, faCircleNotch } from '@fortawesome/free-solid-svg-icons';
 
 function Video(props) {
-    const { videoSizes, publisher, publishing, hasVideo, hasAudio, renderVideo } = props;
+    const { videoSizes, publisher, localTimezone, currentTime, publishing, hasVideo, hasAudio, renderVideo } = props;
 
     if (typeof publisher.stream != "undefined" && publisher.stream != null) {
 
@@ -32,6 +33,11 @@ function Video(props) {
             return (
                 <div className="col p-0">
                     <div className="video-container mx-auto position-relative text-light"  style={{height: videoSizes.height, width: videoSizes.width }}>
+                        <div className="position-absolute overlay" style={{top:5,width:"100%"}}>
+                            {publisher.member.timezone != null && publisher.member.timezone != localTimezone ? 
+                            <p className="pl-2 mb-1 mt-1 font-weight-bolder"><span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>{currentTime.setZone(publisher.member.timezone).toLocaleString(DateTime.TIME_SIMPLE)}</span></p>
+                            : ''}
+                        </div>
                         <video autoPlay ref={renderVideo(publisher.stream)} className="rounded shadow" style={{height: videoSizes.height, width: videoSizes.width }}></video>
                         <div className="position-absolute overlay" style={{bottom:5,width:"100%"}}>
                             <Row>
@@ -62,6 +68,11 @@ function Video(props) {
                 <div className="col p-0">
                     <div className="video-container rounded shadow mx-auto d-flex flex-column justify-content-center position-relative text-light" style={{height: videoSizes.height, width: videoSizes.width, backgroundColor:publisher.containerBackgroundColor }}>
                     <video autoPlay ref={renderVideo(publisher.stream)} className="rounded shadow" style={{height: 0, width: 0 }}></video>
+                        <div className="position-absolute overlay" style={{top:5,width:"100%"}}>
+                            {publisher.member.timezone != null && publisher.member.timezone != localTimezone ? 
+                            <p className="pl-2 mb-1 mt-1 font-weight-bolder"><span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>{currentTime.setZone(publisher.member.timezone).toLocaleString(DateTime.TIME_SIMPLE)}</span></p>
+                            : ''}
+                        </div>
                         <div className="mx-auto align-self-center">
                             <Image src={publisher.member.avatar} style={{maxHeight:75}} fluid roundedCircle />
                         </div>
@@ -96,6 +107,11 @@ function Video(props) {
     return(
         <div className="col p-0">
             <div className="video-container rounded shadow mx-auto d-flex flex-column justify-content-center position-relative text-light" style={{height: videoSizes.height, width: videoSizes.width, backgroundColor:publisher.containerBackgroundColor }}>
+                <div className="position-absolute overlay" style={{top:5,width:"100%"}}>
+                    {publisher.member.timezone != null && publisher.member.timezone != localTimezone ? 
+                    <p className="pl-2 mb-1 mt-1 font-weight-bolder"><span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>{currentTime.setZone(publisher.member.timezone).toLocaleString(DateTime.TIME_SIMPLE)}</span></p>
+                    : ''}
+                </div>
                 <div className="mx-auto align-self-center">
                     <Image src={publisher.member.avatar} style={{maxHeight:75}} fluid roundedCircle />
                 </div>

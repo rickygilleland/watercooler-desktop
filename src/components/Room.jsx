@@ -890,7 +890,8 @@ class Room extends React.Component {
             user, 
             organizationUsers,
             addUserToRoom,
-            addUserLoading
+            addUserLoading,
+            currentTime
         } = this.props;
 
         const { 
@@ -998,6 +999,7 @@ class Room extends React.Component {
                                         publishers={publishers}
                                         publishing={publishing}
                                         user={user}
+                                        currentTime={currentTime}
                                         renderVideo={this.renderVideo}
                                     ></VideoList>
                                 :
