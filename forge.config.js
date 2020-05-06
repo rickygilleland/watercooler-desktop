@@ -65,7 +65,7 @@ module.exports = {
                 "name": process.env.GITHUB_REPO_NAME
               },
               "authToken": process.env.GITHUB_TOKEN,
-              "prerelease": true
+              "prerelease": false
             }
           }
     ]
