@@ -380,7 +380,7 @@ class Sidebar extends React.Component {
                                 <Route 
                                     path={routes.ROOM} 
                                     render={(routeProps) => (
-                                        <ErrorBoundary showError={true}><RoomPage {...routeProps} dimensions={this.state.dimensions} pusherInstance={pusherInstance} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
+                                        <ErrorBoundary showError={true}><RoomPage {...routeProps} dimensions={this.state.dimensions} pusherInstance={pusherInstance} key={routeProps.match.params.roomSlug} /></ErrorBoundary>
                                     )}
                                 />
                                 <Route 

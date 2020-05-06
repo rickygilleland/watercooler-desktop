@@ -50,6 +50,7 @@ class Room extends React.Component {
                 containerHeight: window.innerHeight - 114
             },
             talking: [],
+            local_video_container: [],
             videoStatus: false,
             audioStatus: true,
             streamer_server_connected: false,
@@ -593,7 +594,22 @@ class Room extends React.Component {
 
                 videoRoomStreamerHandle.send({ "message": request, "jsep": jsep });
 
-                that.setState({ publishing: true });
+                var local_video_container = [];
+                if (videoStatus) {
+                    local_video_container.push(
+                        <div style={{width:106.66,height:80}} key={999} className="align-self-center">
+                            <video autoPlay muted ref={that.renderVideo(that.state.local_stream)} style={{height:80 }} className="rounded shadow"></video>
+                        </div>
+                    )
+                } else {
+                    local_video_container.push(
+                        <div style={{width:106.66,height:80}} key={999} className="align-self-center">
+                            <p style={{height:80,paddingTop:25,paddingLeft:2,fontWeight:"bolder",fontSize:"1.1rem"}}>Video Off</p>
+                        </div>
+                    )
+                }
+
+                that.setState({ publishing: true, local_video_container });
 
                 that.handleRemoteStreams();
             }
@@ -904,6 +920,27 @@ class Room extends React.Component {
                 videoRoomStreamerHandle.send({ "message": request });
             }
 
+            if (type == "video") {
+                var local_video_container = [];
+                if (videoStatus) {
+                    local_video_container.push(
+                        <div style={{width:106.66,height:80}} key={999} className="align-self-center">
+                            <video autoPlay muted ref={this.renderVideo(this.state.local_stream)} style={{height:80 }} className="rounded shadow"></video>
+                        </div>
+                    )
+                } else {
+                    local_video_container.push(
+                        <div style={{width:106.66,height:80}} key={999} className="align-self-center">
+                            <p style={{height:80,paddingTop:25,paddingLeft:2,fontWeight:"bolder",fontSize:"1.1rem"}}>Video Off</p>
+                        </div>
+                    )
+                }
+            }
+
+            if (typeof local_video_container != "undefined") {
+                return this.setState({ local_video_container, videoStatus, audioStatus });
+            }
+
             this.setState({ videoStatus, audioStatus });
         }
     }
@@ -917,7 +954,6 @@ class Room extends React.Component {
             organizationUsers,
             addUserToRoom,
             addUserLoading,
-            currentTime
         } = this.props;
 
         const { 
@@ -927,6 +963,7 @@ class Room extends React.Component {
             publishing,
             talking,
             local_stream, 
+            local_video_container,
             videoStatus, 
             audioStatus, 
             videoSizes, 
@@ -1000,13 +1037,7 @@ class Room extends React.Component {
                                     }
                                 </div>
                                 {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}
-                                <div style={{width:106.66,height:80}} className="align-self-center">
-                                    {!videoStatus ?
-                                        <p style={{height:80,paddingTop:25,paddingLeft:2,fontWeight:"bolder",fontSize:"1.1rem"}}>Video Off</p>
-                                    : 
-                                        <video autoPlay muted ref={this.renderVideo(local_stream)} style={{height:80 }} className="rounded shadow"></video>
-                                    }
-                                </div>
+                                {local_video_container}
                             </div>
                         : '' }
                     </Col>
@@ -1027,7 +1058,6 @@ class Room extends React.Component {
                                         publishing={publishing}
                                         user={user}
                                         talking={talking}
-                                        currentTime={currentTime}
                                         renderVideo={this.renderVideo}
                                     ></VideoList>
                                 :
