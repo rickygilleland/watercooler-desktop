@@ -57,7 +57,7 @@ function InviteUsersModal(props) {
               {props.loading == "true" ?
                 <Button className="mt-3" variant="primary" type="submit" disabled><FontAwesomeIcon icon={faCircleNotch} spin /> Sending Invites</Button>
               :
-                <Button className="mt-3" variant="primary" type="submit">Send Invites</Button>
+                <Button className="mt-3" variant="primary" type="submit">Send Invite</Button>
               }
           </Form>
          

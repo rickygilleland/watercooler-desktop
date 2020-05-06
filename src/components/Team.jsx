@@ -67,12 +67,12 @@ class Team extends React.Component {
                             <Col xs={6} md={4} lg={3} xl={2} key={organizationUser.id}>
                                 <Card className="mb-3">
                                     <Card.Img variant="top" src={organizationUser.avatar_url} className="border-bottom" />
-                                    <Card.Body style={{whiteSpace:'nowrap'}}>
-                                        <p className="font-weight-bold mb-0" style={{fontSize:".9rem"}}>
-                                            {organizationUser.first_name} {organizationUser.last_name} {user.id == organizationUser.id ? "(you)" : ''} {organizationUsersOnline.includes(organizationUser.id) ? <FontAwesomeIcon icon={faCircle} className="ml-1" style={{color:"#3ecf8e",fontSize:".5rem",verticalAlign:'middle'}} /> : <FontAwesomeIcon icon={faCircle} className="ml-1" style={{color:"#f9426c",fontSize:".6rem",verticalAlign:'middle'}} />}
+                                    <Card.Body style={{padding:".7rem"}}>
+                                        <p className="font-weight-bold mb-0" style={{fontSize:".95rem"}}>
+                                        {organizationUsersOnline.includes(organizationUser.id) ? <FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#3ecf8e",fontSize:".5rem",verticalAlign:'middle'}} /> : <FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#f9426c",fontSize:".5rem",verticalAlign:'middle'}} />} {organizationUser.first_name} {organizationUser.last_name} {user.id == organizationUser.id ? "(you)" : ''}
                                         </p>
                                         {organizationUser.timezone != null ?
-                                            <p><strong>Local Time:</strong> {currentTime.setZone(organizationUser.timezone).toLocaleString(DateTime.TIME_SIMPLE)}</p>
+                                            <p style={{fontSize:".8rem"}}><strong>Local Time:</strong> {currentTime.setZone(organizationUser.timezone).toLocaleString(DateTime.TIME_SIMPLE)}</p>
                                         : '' }
                                     </Card.Body>
                                 </Card>
