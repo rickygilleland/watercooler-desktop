@@ -49,6 +49,7 @@ class Room extends React.Component {
                 display: "row align-items-center justify-content-center h-100",
                 containerHeight: window.innerHeight - 114
             },
+            talking: [],
             videoStatus: false,
             audioStatus: true,
             streamer_server_connected: false,
@@ -304,7 +305,7 @@ class Room extends React.Component {
         try {
             rootStreamerHandle.destroy({
                 success: function() {
-                    that.setState({ publishers: [] })
+                    that.setState({ publishers: [], talking: [] })
                 }
             });
         } catch (error) {
@@ -414,6 +415,31 @@ class Room extends React.Component {
 
                                 that.setState({ connected: true, loading: false, currentLoadingMessage }); 
                             }
+                        }
+
+                        if (msg.videoroom == "talking") {
+                            var updatedTalking = [];
+
+                            updatedTalking.push(msg.id);
+
+                            that.state.talking.forEach(talking => {
+                                updatedTalking.push(talking);
+                            })
+
+                            that.setState({ talking: updatedTalking });
+
+                        }
+
+                        if (msg.videoroom == "stopped-talking") {
+                            var updatedTalking = [];
+
+                            that.state.talking.forEach(talking => {
+                                if (talking != msg.id) {
+                                    updatedTalking.push(talking);
+                                }
+                            })
+
+                            that.setState({ talking: updatedTalking });
                         }
 
                         if (msg.videoroom == "event") {
@@ -899,6 +925,7 @@ class Room extends React.Component {
             loading, 
             publishers, 
             publishing,
+            talking,
             local_stream, 
             videoStatus, 
             audioStatus, 
@@ -999,6 +1026,7 @@ class Room extends React.Component {
                                         publishers={publishers}
                                         publishing={publishing}
                                         user={user}
+                                        talking={talking}
                                         currentTime={currentTime}
                                         renderVideo={this.renderVideo}
                                     ></VideoList>
