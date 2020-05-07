@@ -15,14 +15,12 @@ class Loading extends React.Component {
     }
 
     componentDidMount() {
-        const { getOrganizations, getUserDetails, push, user, auth, organization, teams } = this.props;
+        const { getOrganizations, getUserDetails, push, user, auth, organization, organizationLoading, teams } = this.props;
+
+        getOrganizations();
 
         if (Object.keys(user).length === 0 || typeof user == 'undefined') {
             return getUserDetails();
-        }
-
-        if (organization == null) {
-            return getOrganizations();
         }
 
         if (this.state.redirect === false) {
@@ -30,10 +28,10 @@ class Loading extends React.Component {
 
             if (teams[0].rooms.length > 0 && typeof teams[0].rooms[0].slug != "undefined") {
                 var slug = teams[0].rooms[0].slug;
-                return push(`/room/${teams[0].rooms[0].slug}`);
+                return push(`/room/${slug}`);
             }
 
-            push(routes.TEAM);
+            return push(routes.TEAM);
         }
     
     }
@@ -70,7 +68,7 @@ class Loading extends React.Component {
                 return push(`/room/${teams[0].rooms[0].slug}`);
             }
 
-            push(routes.TEAM);
+            return push(routes.TEAM);
         }
     
     }
