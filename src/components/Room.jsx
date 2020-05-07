@@ -140,7 +140,6 @@ class Room extends React.Component {
                         success: function() {
                             //Janus.sessions.splice(s, 1);
                             delete Janus.sessions[s];
-                            console.log(Janus.sessions);
                         }
                     });
                 }
@@ -338,10 +337,6 @@ class Room extends React.Component {
             server: [`wss://${server}:4443/`, `https://${server}/streamer`],
             success: function(handle) {
 
-                console.log("CONNECTED");
-                console.log(handle);
-                console.log(rootStreamerHandle);
-
                 that.setState({ rootStreamerHandle });
 
                 rootStreamerHandle.attach({
@@ -371,17 +366,11 @@ class Room extends React.Component {
                     onmessage: function(msg, jsep) {
                         var { videoRoomStreamerHandle, currentLoadingMessage, containerBackgroundColors, members } = that.state;
 
-                        console.log("ROOT MSG");
-                        console.log(msg);
-                        console.log(jsep);
-    
                         if (jsep != null) {
                             videoRoomStreamerHandle.handleRemoteJsep({ "jsep": jsep });
                         }
 
                         if (msg.videoroom == "joined") {
-                            console.log("JOINED");
-                            console.log(msg);
 
                             if (msg.publishers.length > 0) { 
 
@@ -499,17 +488,16 @@ class Room extends React.Component {
                         }
                     },
                     ondataopen: function(data) {
-                        console.log("open");
-                        console.log(data);
+
                     },
                     ondata: function(data) {
                         
                     },
                     slowLink: function(slowLink) {
-                        console.log("root slowlink message", slowLink);
+
                     },
                     mediaState: function(mediaState) {
-                        console.log("root media state message", mediaState);
+
                     },
                     oncleanup: function() {
                             // PeerConnection with the plugin closed, clean the UI
@@ -692,9 +680,6 @@ class Room extends React.Component {
                     }
             },
             onmessage: function(msg, jsep) {
-                console.log("REMOTE MSG");
-                console.log(msg);
-                console.log(jsep);
                 if (jsep != null) {
                     if (typeof msg.display != "undefined") {
                         handle.createAnswer({
@@ -717,7 +702,6 @@ class Room extends React.Component {
                 var hasVideo = false;
                 var hasAudio = false;
                 tracks.forEach(track => {
-                    console.log(track);
                     if (track.kind == "video" && track.enabled) {
                         hasVideo = true;
                     }
@@ -737,21 +721,18 @@ class Room extends React.Component {
                     that.setState({ publishers });
                 }
 
-                console.log(that.state.publishers);
-
             },
             ondataopen: function(data) {
-                console.log("open");
-                console.log(data);
+
             },
             ondata: function(data) {
                 
             },
             slowLink: function(slowLink) {
-                console.log("remote slowlink message", slowLink);
+
             },
             mediaState: function(mediaState) {
-                console.log("remote media state message", mediaState);
+
             },
             oncleanup: function() {
             },
@@ -908,8 +889,6 @@ class Room extends React.Component {
                     "video": videoStatus,
                     "videocodec": "vp9"
                 }
-
-                console.log(request);
 
                 videoRoomStreamerHandle.send({ "message": request });
             }

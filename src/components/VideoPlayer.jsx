@@ -17,8 +17,6 @@ class VideoPlayer extends React.PureComponent {
 
     render() {
 
-        console.log("RE-RENDER");
-
         const { renderVideo, stream } = this.props;
 
         return(
