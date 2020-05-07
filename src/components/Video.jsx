@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image, Col, Row } from 'react-bootstrap';
 import { DateTime } from 'luxon';
+import VideoPlayer from './VideoPlayer';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faVideoSlash, faMicrophone, faMicrophoneSlash, faCircleNotch } from '@fortawesome/free-solid-svg-icons';
 
@@ -53,7 +54,7 @@ function Video(props) {
                             <p className="pl-2 mb-1 mt-1 font-weight-bolder"><span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>{currentTime.setZone(publisher.member.timezone).toLocaleString(DateTime.TIME_SIMPLE)}</span></p>	
                             : ''}	
                         </div>
-                        <video autoPlay ref={renderVideo(publisher.stream)} className="rounded shadow" style={{height: videoSizes.height, width: videoSizes.width }}></video>
+                        <VideoPlayer renderVideo={renderVideo} stream={publisher.stream} />
                         <div className="position-absolute overlay" style={{bottom:5,width:"100%"}}>
                             <Row>
                                 <Col>
