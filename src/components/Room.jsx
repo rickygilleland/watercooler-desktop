@@ -601,17 +601,7 @@ class Room extends React.Component {
                             <video autoPlay muted ref={that.renderVideo(that.state.local_stream)} style={{height:80 }} className="rounded shadow"></video>
                         </div>
                     )
-                } else {
-                    local_video_container.push(
-                        <div key={999} style={{height:80}}>
-                            <div className="d-none d-md-block">
-                                <div style={{width:106.66,height:80}} className="align-self-center">
-                                    <p style={{height:80,paddingTop:25,paddingLeft:2,fontWeight:"bolder",fontSize:"1.1rem"}}>Video Off</p>
-                                </div>
-                            </div>
-                        </div>
-                    )
-                }
+                } 
 
                 that.setState({ publishing: true, local_video_container });
 
@@ -932,13 +922,7 @@ class Room extends React.Component {
                             <video autoPlay muted ref={this.renderVideo(this.state.local_stream)} style={{height:80 }} className="rounded shadow"></video>
                         </div>
                     )
-                } else {
-                    local_video_container.push(
-                        <div style={{width:106.66,height:80}} key={999} className="align-self-center">
-                            <p style={{height:80,paddingTop:25,paddingLeft:2,fontWeight:"bolder",fontSize:"1.1rem"}}>Video Off</p>
-                        </div>
-                    )
-                }
+                } 
             }
 
             if (typeof local_video_container != "undefined") {
@@ -1041,6 +1025,7 @@ class Room extends React.Component {
                                     </OverlayTrigger> 
                                     }
                                 </div>
+                                <div style={{height:80}}></div>
                                 {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}
                                 {local_video_container}
                             </div>
