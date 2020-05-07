@@ -72,7 +72,13 @@ class Sidebar extends React.Component {
         window.setInterval(function () {
 
             var currentTime = DateTime.local();
-            this.setState({ currentTime })
+
+            if (currentTime.setZone(user.timezone).toLocaleString(DateTime.TIME_SIMPLE) 
+                != this.state.currentTime.setZone(user.timezone).toLocaleString(DateTime.TIME_SIMPLE)) {
+
+                this.setState({ currentTime })
+                
+            }
 
         }.bind(this), 1000);
     }
