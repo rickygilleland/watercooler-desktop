@@ -958,6 +958,7 @@ class Room extends React.Component {
             organizationUsers,
             addUserToRoom,
             addUserLoading,
+            currentTime
         } = this.props;
 
         const { 
@@ -1060,6 +1061,7 @@ class Room extends React.Component {
                                         videoSizes={videoSizes}
                                         publishers={publishers}
                                         publishing={publishing}
+                                        currentTime={currentTime}
                                         user={user}
                                         talking={talking}
                                         renderVideo={this.renderVideo}

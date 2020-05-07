@@ -2,7 +2,7 @@ import React from 'react';
 import Video from './Video';
 
 function VideoList(props) {
-    const { publishing, user, publishers, talking, videoSizes, renderVideo } = props;
+    const { publishing, user, publishers, talking, videoSizes, renderVideo, currentTime } = props;
 
     return(publishers.map(publisher => {
         if (publisher.member.id != user.id) {
@@ -13,6 +13,8 @@ function VideoList(props) {
                     renderVideo={renderVideo}
                     publishing={publishing}
                     talking={talking}
+                    currentTime={currentTime}
+                    localTimezone={user.timezone}
                     active={typeof publisher.active != "undefined" ? publisher.active : false}
                     hasVideo={typeof publisher.hasVideo != "undefined" ? publisher.hasVideo : false}
                     hasAudio={typeof publisher.hasAudio != "undefined" ? publisher.hasAudio : false}
