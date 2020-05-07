@@ -1012,9 +1012,9 @@ class Room extends React.Component {
                         <div className="d-flex flex-row justify-content-center">
                             <div className="align-self-center pr-4">
                                 {local_stream === null ?
-                                    <Button variant="outline-success" className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                    <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
                                 :
-                                    <Button variant="outline-danger" className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
+                                    <Button variant="outline-danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
                                 }
                             </div>
                             <div style={{height:80}}></div>
