@@ -1,4 +1,5 @@
 const rules = require('./webpack.rules');
+const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   /**
@@ -10,4 +11,7 @@ module.exports = {
   module: {
     rules: rules
   },
+  plugins: [
+    new CopyPlugin([{ from: "src/sentry.js", to: "sentry.js" }])
+  ]
 };
