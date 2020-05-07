@@ -12,6 +12,7 @@ function Video(props) {
         localTimezone, 
         currentTime,
         publishing, 
+        talking,
         hasVideo, 
         hasAudio, 
         renderVideo 
@@ -19,10 +20,10 @@ function Video(props) {
 
     var classAppend = '';
 
-    /*if (talking.includes(publisher.id)) {
+    if (talking.includes(publisher.id)) {
         classAppend = "border border-success";
-    }*/
-
+    }
+    
     if (typeof publisher.stream != "undefined" && publisher.stream != null) {
 
         var videoLoading = false;
@@ -48,7 +49,7 @@ function Video(props) {
         if (hasVideo === true && !videoLoading) {
             return (
                 <div className="col p-0 video-col">
-                    <div className={`video-container mx-auto position-relative text-light ${classAppend}`}  style={{height: videoSizes.height, width: videoSizes.width }}>
+                    <div className={`video-container mx-auto position-relative rounded text-light ${classAppend}`}  style={{height: videoSizes.height, width: videoSizes.width }}>
                         <VideoPlayer renderVideo={renderVideo} stream={publisher.stream} />
                         <div className="position-absolute overlay" style={{top:5,width:"100%"}}>	
                             {publisher.member.timezone != null && publisher.member.timezone != localTimezone ? 	

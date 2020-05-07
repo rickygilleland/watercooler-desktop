@@ -12,6 +12,7 @@ function VideoList(props) {
                     publisher={publisher}
                     renderVideo={renderVideo}
                     publishing={publishing}
+                    talking={talking}
                     currentTime={currentTime}
                     localTimezone={user.timezone}
                     active={typeof publisher.active != "undefined" ? publisher.active : false}
