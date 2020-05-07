@@ -49,12 +49,12 @@ function Video(props) {
             return (
                 <div className="col p-0 video-col">
                     <div className={`video-container mx-auto position-relative text-light ${classAppend}`}  style={{height: videoSizes.height, width: videoSizes.width }}>
+                        <VideoPlayer renderVideo={renderVideo} stream={publisher.stream} />
                         <div className="position-absolute overlay" style={{top:5,width:"100%"}}>	
                             {publisher.member.timezone != null && publisher.member.timezone != localTimezone ? 	
                             <p className="pl-2 mb-1 mt-1 font-weight-bolder"><span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>{currentTime.setZone(publisher.member.timezone).toLocaleString(DateTime.TIME_SIMPLE)}</span></p>	
                             : ''}	
                         </div>
-                        <VideoPlayer renderVideo={renderVideo} stream={publisher.stream} />
                         <div className="position-absolute overlay" style={{bottom:5,width:"100%"}}>
                             <Row>
                                 <Col>
