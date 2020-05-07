@@ -2,6 +2,7 @@ import { app, BrowserWindow, Menu, autoUpdater, dialog, protocol, ipcMain, webCo
 import { init } from '@sentry/electron/dist/main';
 import * as Sentry from '@sentry/electron';
 if(require('electron-squirrel-startup')) app.quit();
+var path = require("path");
 
 var isDevMode = process.execPath.match(/[\\/]electron/);
 
@@ -123,7 +124,8 @@ const createWindow = () => {
       frame: false,
       webPreferences: {
         nodeIntegration: true,
-        preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY
+        preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+        preload: path.join(__dirname, 'sentry.js')
       }
     });
 
