@@ -603,8 +603,12 @@ class Room extends React.Component {
                     )
                 } else {
                     local_video_container.push(
-                        <div style={{width:106.66,height:80}} key={999} className="align-self-center">
-                            <p style={{height:80,paddingTop:25,paddingLeft:2,fontWeight:"bolder",fontSize:"1.1rem"}}>Video Off</p>
+                        <div key={999} style={{height:80}}>
+                            <div className="d-none d-md-block">
+                                <div style={{width:106.66,height:80}} className="align-self-center">
+                                    <p style={{height:80,paddingTop:25,paddingLeft:2,fontWeight:"bolder",fontSize:"1.1rem"}}>Video Off</p>
+                                </div>
+                            </div>
                         </div>
                     )
                 }
@@ -1022,7 +1026,7 @@ class Room extends React.Component {
                     </Col>
                     <Col xs={{span:4}} md={{span:5}}>
                         {local_stream ?
-                            <div className="d-flex flex-row justify-content-end">
+                            <div className="d-flex flex-row flex-nowrap justify-content-end">
                                 <div className="align-self-center pr-4">
                                     <Button variant={audioStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
                                     {room.video_enabled ?
