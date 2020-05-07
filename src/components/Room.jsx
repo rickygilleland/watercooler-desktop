@@ -1063,7 +1063,7 @@ class Room extends React.Component {
                                         publishing={publishing}
                                         currentTime={currentTime}
                                         user={user}
-                                        talking={talking}
+                             
                                         renderVideo={this.renderVideo}
                                     ></VideoList>
                                 :

@@ -8,7 +8,6 @@ function Video(props) {
     const { 
         videoSizes, 
         publisher, 
-        talking,
         localTimezone, 
         currentTime,
         publishing, 
@@ -19,9 +18,9 @@ function Video(props) {
 
     var classAppend = '';
 
-    if (talking.includes(publisher.id)) {
+    /*if (talking.includes(publisher.id)) {
         classAppend = "border border-success";
-    }
+    }*/
 
     if (typeof publisher.stream != "undefined" && publisher.stream != null) {
 
