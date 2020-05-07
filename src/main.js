@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, autoUpdater, dialog, protocol, ipcMain, webContents, powerMonitor } from 'electron';
+import { app, BrowserWindow, Menu, autoUpdater, dialog, protocol, ipcMain, webContents, powerMonitor, Notification } from 'electron';
 import { init } from '@sentry/electron/dist/main';
 import * as Sentry from '@sentry/electron';
 if(require('electron-squirrel-startup')) app.quit();
@@ -27,21 +27,38 @@ if (!isDevMode) {
     } catch (error) {
       //internet connection might be down
     }
-  }, 900000);
+  }, 3600000);
 
   autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
-    const dialogOpts = {
-      type: 'info',
-      buttons: ['Restart', 'Later'],
-      title: 'Update available for Water Cooler',
-      message: process.platform === 'win32' ? releaseNotes : releaseName,
-      detail: 'A new version has been downloaded. Restart the application to apply the updates.'
+
+    if (Notification.isSupported()) {
+      const updateNotification = new Notification({
+        title: 'An Update is Available',
+        body: 'Click on this notification to restart Water Cooler and update now.',
+        closeButtonText: 'Later'
+      });
+
+      updateNotification.show();
+
+      updateNotification.on('click', event => {
+        autoUpdater.quitAndInstall()
+      })
+    } else {
+      const dialogOpts = {
+        type: 'info',
+        buttons: ['Restart', 'Later'],
+        title: 'Update available for Water Cooler',
+        message: process.platform === 'win32' ? releaseNotes : releaseName,
+        detail: 'A new version has been downloaded. Click the Restart button to apply the updates.'
+      }
+  
+      dialog.showMessageBox(dialogOpts).then((returnValue) => {
+        if (returnValue.response === 0) autoUpdater.quitAndInstall()
+      })
     }
 
-    dialog.showMessageBox(dialogOpts).then((returnValue) => {
-      if (returnValue.response === 0) autoUpdater.quitAndInstall()
-    })
   })
+  
 }
 
 contextMenu({
