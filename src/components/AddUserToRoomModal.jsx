@@ -13,9 +13,7 @@ function AddUserToRoomModal(props) {
 
     function addUser(userId) {
         setLoadingUser(userId);
-
-        //keep track of the users added via this array, use these values to show a checkmark and a differnet button when a user has been added
-        //combine this with the api response to show when they were successfully added
+        
         var updatedUsersAdded = [];
 
         usersAdded.forEach(user => {
