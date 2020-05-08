@@ -49,6 +49,10 @@ class Room extends React.Component {
                 display: "row align-items-center justify-content-center h-100",
                 containerHeight: window.innerHeight - 114
             },
+            dimensions: {
+                width: window.innerWidth,
+                height: window.innerHeight
+            },
             talking: [],
             local_video_container: [],
             videoStatus: false,
@@ -93,10 +97,15 @@ class Room extends React.Component {
         this.disconnectNetworkConnections = this.disconnectNetworkConnections.bind(this);
         this.getNewServer = this.getNewServer.bind(this);
 
+        this.handleResize = this.handleResize.bind(this);
+
     }
 
     componentDidMount() {
         const { teams, match, location, pusherInstance } = this.props;
+
+        window.addEventListener('resize', this.handleResize);
+        this.handleResize();
 
         window.addEventListener('online',  this.reconnectNetworkConnections);
         window.addEventListener('offline',  this.disconnectNetworkConnections);
@@ -125,8 +134,8 @@ class Room extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        const { dimensions, match, location } = this.props;
-        const { publishers, publishing, rootStreamerHandle } = this.state;
+        const { match, location } = this.props;
+        const { dimensions, publishers, publishing, rootStreamerHandle } = this.state;
 
         var that = this;
 
@@ -159,7 +168,7 @@ class Room extends React.Component {
             }
         }
 
-        if (prevProps.dimensions != dimensions || prevState.publishers.length != publishers.length) {
+        if (prevState.dimensions != dimensions || prevState.publishers.lenght != publishers.length) {
             this.updateDisplayedVideosSizes(null, true);
         }
 
@@ -189,8 +198,9 @@ class Room extends React.Component {
             //do something
         }
 
-        window.removeEventListener('online',  this.reconnectNetworkConnections);
-        window.removeEventListener('offline',  this.disconnectNetworkConnections);
+        window.removeEventListener('resize', this.handleResize);
+        window.removeEventListener('online', this.reconnectNetworkConnections);
+        window.removeEventListener('offline', this.disconnectNetworkConnections);
     }
 
     initializeRoom() {
@@ -741,9 +751,22 @@ class Room extends React.Component {
         });
     }
 
+    handleResize() {
+        const { dimensions, publishers } = this.state;
+
+        var newWidth = window.innerWidth;
+        var newHeight = window.innerHeight;
+
+        if (publishers.length > 0) {
+            if ((dimensions.width - newWidth) > 20 || (dimensions.height - newHeight) > 20) {
+                this.setState({ dimensions: { width: newWidth, height: newHeight } });
+            }
+        }
+
+    }
+
     updateDisplayedVideosSizes() {
-        var { videoSizes, publishers} = this.state;
-        const { dimensions } = this.props;
+        var { dimensions, videoSizes, publishers} = this.state;
 
         if (remote_streams == null) {
             var { remote_streams } = this.state;
@@ -978,7 +1001,7 @@ class Room extends React.Component {
                     </Col>
                     <Col xs={{span:4}} md={{span:2}}>
                         <div className="d-flex flex-row justify-content-center">
-                            <div className="align-self-center pr-4">
+                            <div className="align-self-center">
                                 {local_stream === null ?
                                     <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
                                 :

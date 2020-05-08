@@ -1,7 +1,7 @@
 import React from 'react';
 import { Switch, Route, NavLink, Redirect } from 'react-router-dom';
 import routes from '../constants/routes.json';
-import { each } from 'lodash';
+import { each, debounce } from 'lodash';
 import { DateTime } from 'luxon';
 import { Row, Col, Button, Navbar, Dropdown, Modal } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
@@ -42,14 +42,11 @@ class Sidebar extends React.Component {
             currentTime: DateTime.local()
         }
 
-        this.handleResize = this.handleResize.bind(this);
     }
 
     componentDidMount() {
         var { pusherInstance, organizationPresenceChannel } = this.state;
         const { push, auth, user, organization, getOrganizations, updateUserDetails } = this.props;
-        this.handleResize();
-        window.addEventListener('resize', this.handleResize);
 
         ipcRenderer.on('url_update', (event, arg) => {
             let pushUrl = arg.slice(13);
@@ -175,13 +172,6 @@ class Sidebar extends React.Component {
         }
     }
 
-    handleResize() {
-        var width = window.innerWidth;
-        var sidebarWidth = 240;
-        var mainContainerWidth = width - sidebarWidth;
-        this.setState({ dimensions: { width, height: window.innerHeight, sidebarWidth, mainContainerWidth } });
-    }
-
     render() {
         const { 
             organization, 
@@ -202,7 +192,6 @@ class Sidebar extends React.Component {
             createRoomSuccess
         } = this.props;
         const { 
-            dimensions, 
             currentTime,
             showInviteUsersModal, 
             showManageUsersModal, 
@@ -219,6 +208,8 @@ class Sidebar extends React.Component {
             }
         })
        
+        console.log("RENDER");
+
         const rooms = teams.map((team, teamKey) =>
             <div key={teamKey} className="mt-2">
                 <Row>
@@ -327,7 +318,7 @@ class Sidebar extends React.Component {
                             onHide={() => this.setState({ showManageCameraModal: false })}
                         />
                     </ErrorBoundary>
-                    <div style={{backgroundColor:"#1b1e2f",width:this.state.dimensions.sidebarWidth}} className="vh-100 pr-0 float-left">
+                    <div style={{backgroundColor:"#1b1e2f",width:240}} className="vh-100 pr-0 float-left">
                         
                         <Navbar className="text-light pt-4" style={{height:80,backgroundColor:"#121422",borderBottom:"1px solid #1c2046"}}>
                             <ErrorBoundary showError={false}>
@@ -380,13 +371,13 @@ class Sidebar extends React.Component {
                             {rooms}
                         </div>
                     </div>
-                    <div className="pl-0 ml-auto" style={{borderLeft:"1px solid #1c2046",width:this.state.dimensions.mainContainerWidth}}>
+                    <div className="pl-0 ml-auto" style={{borderLeft:"1px solid #1c2046",width:"100%"}}>
                         {pusherInstance != null ?
                             <>
                                 <Route 
                                     path={routes.ROOM} 
                                     render={(routeProps) => (
-                                        <ErrorBoundary showError={true}><RoomPage {...routeProps} dimensions={this.state.dimensions} pusherInstance={pusherInstance} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
+                                        <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
                                     )}
                                 />
                                 <Route 
