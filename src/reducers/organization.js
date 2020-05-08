@@ -13,6 +13,7 @@ import {
     CREATE_ROOM_SUCCESS,
     CREATE_ROOM_FAILURE,
 } from '../actions/organization';
+import { faAudioDescription } from '@fortawesome/free-solid-svg-icons';
 
 const initialState = {
     organization: null,
@@ -21,7 +22,8 @@ const initialState = {
     error: false,
     loading: false,
     inviteUsersSuccess: false,
-    createRoomSuccess: false
+    createRoomSuccess: false,
+    lastCreatedRoomSlug: null,
 }
 
 export default function organization(state = initialState, action = {}) {
@@ -84,7 +86,8 @@ export default function organization(state = initialState, action = {}) {
         case CREATE_ROOM_STARTED:
             updatedState = {
                 loading: true,
-                createRoomSuccess: false
+                createRoomSuccess: false,
+                lastCreatedRoomSlug: null
             }
             break;
         case CREATE_ROOM_SUCCESS:
@@ -100,7 +103,8 @@ export default function organization(state = initialState, action = {}) {
             updatedState = {
                 teams: updatedTeams,
                 loading:false,
-                createRoomSuccess: true
+                createRoomSuccess: true,
+                lastCreatedRoomSlug: action.payload.data.slug
             }
             break;
         case CREATE_ROOM_FAILURE:

@@ -10,6 +10,13 @@ function RoomsModal(props) {
     const [ isPrivate, setIsPrivate ] = useState(false);
     const [ formSubmitted, setFormSubmitted ] = useState(false);
 
+    if (props.roomsModalReset && formSubmitted == true) {
+      setFormSubmitted(false);
+      setName("");
+      setVideoEnabled(false);
+      setIsPrivate(false);
+    }
+
     function handleNameChange(event) {
         setName(event.target.value);
     }

@@ -36,6 +36,7 @@ class Sidebar extends React.Component {
             showManageUsersModal: false,
             showManageCameraModal: false,
             showRoomsModal: false,
+            roomsModalReset: false,
             pusherInstance: null,
             organizationPresenceChannel: false,
             organizationUsersOnline: [],
@@ -78,11 +79,6 @@ class Sidebar extends React.Component {
             }
 
         }.bind(this), 1000);
-    }
-
-    componentDidUpdate() {
-        var { pusherInstance, organizationPresenceChannel } = this.state;
-        const { organization, auth, user, getOrganizations } = this.props;
 
         if (auth.isLoggedIn && organization != null && !organizationPresenceChannel) {
 
@@ -155,11 +151,19 @@ class Sidebar extends React.Component {
                 }
 
             });
-
         }
 
         if (organizationPresenceChannel && !auth.isLoggedIn) {
             this.setState({ organizationPresenceChannel: false, pusherInstance: null });
+        }
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+        const { createRoomSuccess, lastCreatedRoomSlug } = this.props;
+
+        if (prevProps.createRoomSuccess != createRoomSuccess && createRoomSuccess) {
+            this.setState({ showRoomsModal: false, roomsModalReset: true });
+            return this.props.push(`/room/${lastCreatedRoomSlug}`);
         }
     }
 
@@ -178,6 +182,7 @@ class Sidebar extends React.Component {
             teams, 
             user, 
             auth, 
+            push,
             userLogout, 
             currentUrl, 
             getOrganizationUsers, 
@@ -189,13 +194,15 @@ class Sidebar extends React.Component {
             settings, 
             updateDefaultDevices, 
             createRoom,
-            createRoomSuccess
+            createRoomSuccess,
+            lastCreatedRoomSlug
         } = this.props;
         const { 
             currentTime,
             showInviteUsersModal, 
             showManageUsersModal, 
             showRoomsModal, 
+            roomsModalReset,
             showManageCameraModal, 
             pusherInstance,
             organizationUsersOnline
@@ -207,9 +214,7 @@ class Sidebar extends React.Component {
                 team.name = team.name.trim() + "...";
             }
         })
-       
-        console.log("RENDER");
-
+    
         const rooms = teams.map((team, teamKey) =>
             <div key={teamKey} className="mt-2">
                 <Row>
@@ -307,7 +312,10 @@ class Sidebar extends React.Component {
                             show={showRoomsModal}
                             loading={organizationLoading.toString()}
                             createroomsuccess={createRoomSuccess}
+                            lastCreatedRoomSlug={lastCreatedRoomSlug}
+                            roomsModalReset={roomsModalReset}
                             handleSubmit={createRoom}
+                            push={push}
                             onHide={() => this.setState({ showRoomsModal: false })}
                         />
                         <ManageCameraModal 

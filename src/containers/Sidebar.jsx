@@ -22,6 +22,7 @@ function mapStateToProps(state, ownProps) {
         organizationLoading: state.organization.loading,
         inviteUsersSuccess: state.organization.inviteUsersSuccess,
         createRoomSuccess: state.organization.createRoomSuccess,
+        lastCreatedRoomSlug: state.organization.lastCreatedRoomSlug,
         teams: state.organization.teams,
         auth: state.auth,
         currentURL: ownProps.location.pathname,
