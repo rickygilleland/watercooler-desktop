@@ -380,7 +380,7 @@ class Sidebar extends React.Component {
                         </div>
                     </div>
                     <div className="pl-0 ml-auto" style={{borderLeft:"1px solid #1c2046",width:"100%"}}>
-                        {pusherInstance != null ?
+                
                             <>
                                 <Route 
                                     path={routes.ROOM} 
@@ -395,7 +395,7 @@ class Sidebar extends React.Component {
                                     )}
                                 />
                             </>
-                        : '' }
+            
                     </div>
                 </EnsureLoggedInContainer>
                 </Switch>
