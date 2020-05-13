@@ -169,7 +169,7 @@ class Room extends React.Component {
             }
         }
 
-        if (prevState.dimensions != dimensions || prevState.publishers.lenght != publishers.length) {
+        if (prevState.dimensions != dimensions || prevState.publishers.length != publishers.length) {
             this.updateDisplayedVideosSizes(null, true);
         }
 
