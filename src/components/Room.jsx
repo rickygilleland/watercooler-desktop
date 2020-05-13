@@ -1033,7 +1033,7 @@ class Room extends React.Component {
                             <div style={{height:80}}></div>
                         </div>
                     </Col>
-                    <Col xs={{span:4}} md={{span:5}}>
+                    <Col xs={{span:4}} md={{span:5}} className="pr-0">
                         {local_stream ?
                             <div className="d-flex flex-row flex-nowrap justify-content-end">
                                 <div className="align-self-center pr-4">
