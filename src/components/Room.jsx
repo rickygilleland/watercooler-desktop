@@ -51,7 +51,8 @@ class Room extends React.Component {
             },
             dimensions: {
                 width: window.innerWidth,
-                height: window.innerHeight
+                height: window.innerHeight,
+                sidebarWidth: 240
             },
             talking: [],
             local_video_container: [],
@@ -509,6 +510,9 @@ class Room extends React.Component {
                     mediaState: function(mediaState) {
 
                     },
+                    webrtcState: function(state) {
+
+                    },
                     oncleanup: function() {
                             // PeerConnection with the plugin closed, clean the UI
                             // The plugin handle is still valid so we can create a new one
@@ -587,8 +591,16 @@ class Room extends React.Component {
                     "request": "publish",
                     "audio": audioStatus,
                     "video": videoStatus,
+                    "data": true,
                     "videocodec": "vp9"
                 }
+                /*var request = {
+                    "request": "publish",
+                    "captureDesktopAudio": false,
+                    "video": "screen",
+                    "data": true,
+                    "videocodec": "vp9"
+                }*/
 
                 videoRoomStreamerHandle.send({ "message": request, "jsep": jsep });
 
@@ -981,7 +993,7 @@ class Room extends React.Component {
                     <Col xs={{span:4}} md={{span:5}}>
                         <div className="d-flex flex-row justify-content-start">
                             <div className="align-self-center">
-                                <p style={{fontWeight:"bolder",fontSize:"1rem"}} className="pb-0 mb-0">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".65rem"}} /> : '# '} {room.name}</p>
+                                <p style={{fontWeight:"bolder",fontSize:"1rem"}} className="pb-0 mb-0">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".7rem",marginRight:".2rem"}} /> : <span style={{marginRight:".2rem"}}>#</span>} {room.name}</p>
                                 {room.is_private ?
                                     <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-view-members">View current members of this private room and add new ones.</Tooltip>}>
                                         <span className="d-inline-block">
