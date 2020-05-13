@@ -1,7 +1,7 @@
 {
   "name": "watercooler",
   "productName": "Water Cooler",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "Bring natural conversation back to remote teams",
   "main": ".webpack/main",
   "scripts": {
@@ -33,7 +33,7 @@
     "babel-loader": "^8.1.0",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "css-loader": "^3.0.0",
-    "electron": "8.2.5",
+    "electron": "9.0.0-beta.24",
     "electron-download": "^4.1.1",
     "electron-notarize": "^0.3.0",
     "file-loader": "^6.0.0",
