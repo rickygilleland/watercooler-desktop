@@ -59,7 +59,7 @@ function ManageCameraModal(props) {
                         )}
                     </Form.Control>
                 
-                    <p className="mt-4"><strong><i>Note:</i> If you're already connected to a room, you will need to leave the room and re-join for these settings to take effect.</strong></p>
+                    <p className="mt-4 text-muted" style={{fontSize:".8rem"}}><i>Note:</i> If you're already connected to a room, you will need to leave the room and re-join for these settings to take effect.</p>
 
                     <Button className="mt-1" variant="primary" type="submit">Update Camera Settings</Button>
                 </Form>

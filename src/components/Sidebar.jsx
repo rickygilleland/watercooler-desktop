@@ -219,7 +219,7 @@ class Sidebar extends React.Component {
             <div key={teamKey} className="mt-2">
                 <Row>
                     <Col xs={9}>
-                        <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:600}}>Rooms</p>
+                        <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:800}}>Rooms</p>
                     </Col>
                     <Col xs={3}>
                         <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} onClick={() => this.setState({ showRoomsModal: true })}><FontAwesomeIcon icon={faPlusSquare} /></Button>
@@ -243,7 +243,7 @@ class Sidebar extends React.Component {
                                                     room: room
                                                 }
                                             }}>
-                                        <p className="text-light mb-0 pl-3">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".65rem"}} /> : '# '} {room.name}</p>
+                                        <p className="text-light mb-0 pl-3">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".7rem",marginRight:".2rem"}} /> : <span style={{marginRight:".2rem"}}>#</span>} {room.name}</p>
                                     </NavLink>
                                 </li>
                             )}
@@ -332,7 +332,7 @@ class Sidebar extends React.Component {
                             <ErrorBoundary showError={false}>
                                 <Navbar.Brand>
                                     {organization != null ? 
-                                        <p className="text-light p-0 m-0" style={{fontSize:".9rem"}}><strong>{organization.name}</strong></p>
+                                        <p className="text-light p-0 m-0" style={{fontSize:".9rem",fontWeight:800}}>{organization.name}</p>
                                     : '' }
                                     {user != null ? 
                                         <p className="text-light pt-0 pb-1" style={{fontSize:".8rem"}}><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#3ecf8e",fontSize:".5rem",verticalAlign:'middle'}} /> {user.first_name}</p>
