@@ -39,6 +39,7 @@ class Room extends React.Component {
             server: null,
             local_stream: null,
             publishers: [],
+            initialized: false,
             me: {},
             connected: false,
             publishing: false,
@@ -129,14 +130,22 @@ class Room extends React.Component {
         });
 
         if (pusherInstance != null) {
-            this.initializeRoom();
+            this.setState({ initialized: true }, () => {
+                this.initializeRoom();
+            });
         }
 
     }
 
     componentDidUpdate(prevProps, prevState) {
-        const { match, location } = this.props;
-        const { dimensions, publishers, publishing, rootStreamerHandle } = this.state;
+        const { match, location, pusherInstance } = this.props;
+        const { initialized, dimensions, publishers, publishing, rootStreamerHandle } = this.state;
+
+        if (pusherInstance != null && initialized == false) {
+            this.setState({ initialized: true }, () => {
+                this.initializeRoom();
+            });
+        }
 
         var that = this;
 
@@ -163,6 +172,7 @@ class Room extends React.Component {
                     me: {},
                     connected: false,
                     publishing: false,
+                    initialized: false
                 }, () => {
                     this.initializeRoom();
                 });
