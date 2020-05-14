@@ -369,20 +369,22 @@ class Room extends React.Component {
                         //register a publisher
                         var request = { 
                             "request":  "join", 
+                            "id": me.info.id.toString(),
                             "room": room.channel_id, 
                             "ptype": "publisher",
                             "display": me.info.peer_uuid,
-                            "token": me.info.streamer_key
+                            "token": me.info.streamer_key,
+                            "pin": me.info.room_pin
                         }
 
                         videoRoomStreamerHandle.send({ "message": request });
                     
                     },
                     error: function(cause) {
-                            // Couldn't attach to the plugin
-                            if (that.props.pusherInstance.connection.state == "connected") {
-                                that.getNewServer();
-                            }
+                        // Couldn't attach to the plugin
+                        if (that.props.pusherInstance.connection.state == "connected") {
+                            that.getNewServer();
+                        }
                     },
                     onmessage: function(msg, jsep) {
                         var { videoRoomStreamerHandle, currentLoadingMessage, containerBackgroundColors, members } = that.state;
@@ -392,6 +394,9 @@ class Room extends React.Component {
                         }
 
                         if (msg.videoroom == "joined") {
+
+                            var updatedMe = that.state.me;
+                            updatedMe.info.private_id = msg.private_id;
 
                             if (msg.publishers.length > 0) { 
 
@@ -413,7 +418,7 @@ class Room extends React.Component {
                                     updatedPublishers.push(publisher);
                                 })
 
-                                that.setState({ connected: true, loading: false, publishers: updatedPublishers });
+                                that.setState({ connected: true, loading: false, publishers: updatedPublishers, me: updatedMe });
                             } else {
                                 currentLoadingMessage = [];
 
@@ -700,6 +705,7 @@ class Room extends React.Component {
                     "display": me.info.peer_uuid,
                     "token": me.info.streamer_key,
                     "feed": publisher.id,
+                    "private_id": me.info.private_id,
                 }
 
                 remoteHandle.send({ "message": request });
