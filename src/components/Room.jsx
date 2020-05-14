@@ -787,7 +787,7 @@ class Room extends React.Component {
 
         if (publishers.length > 0) {
             if ((dimensions.width - newWidth) > 20 || (dimensions.height - newHeight) > 20) {
-                this.setState({ dimensions: { width: newWidth, height: newHeight } });
+                this.setState({ dimensions: { width: newWidth, height: newHeight, sidebarWidth: dimensions.sidebarWidth } });
             }
         }
 
