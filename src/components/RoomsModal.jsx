@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { Row, Col, Button, Navbar, Dropdown, Modal, Card, Image, Form, Alert, OverlayTrigger, Overlay, Popover, Tooltip } from 'react-bootstrap';
+import { 
+  Row, 
+  Col, 
+  Button, 
+  Modal, 
+  Form, 
+  Alert, 
+  OverlayTrigger, 
+  Tooltip 
+} from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch, faWindowClose } from '@fortawesome/free-solid-svg-icons';
 

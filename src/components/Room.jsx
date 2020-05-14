@@ -1,23 +1,24 @@
 import React from 'react';
 import { ipcRenderer } from 'electron';
 import update from 'immutability-helper';
-import { each, debounce } from 'lodash';
-import { Link } from 'react-router-dom';
-import { Container, Image, Button, Row, Col, TabContainer, OverlayTrigger, Overlay, Popover, Tooltip } from 'react-bootstrap';
+import { each } from 'lodash';
+import { 
+    Container, 
+    Button, 
+    Row, 
+    Col, 
+    OverlayTrigger, 
+    Tooltip 
+} from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { 
     faCircleNotch, 
-    faSignOutAlt, 
     faMicrophone, 
     faMicrophoneSlash, 
     faVideo, 
     faVideoSlash, 
     faDoorClosed, 
     faDoorOpen, 
-    faCircle, 
-    faGrin, 
-    faLayerGroup, 
-    faLessThanEqual, 
     faUser, 
     faLock 
 } from '@fortawesome/free-solid-svg-icons';
