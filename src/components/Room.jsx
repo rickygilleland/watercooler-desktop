@@ -1,23 +1,24 @@
 import React from 'react';
 import { ipcRenderer } from 'electron';
 import update from 'immutability-helper';
-import { each, debounce } from 'lodash';
-import { Link } from 'react-router-dom';
-import { Container, Image, Button, Row, Col, TabContainer, OverlayTrigger, Overlay, Popover, Tooltip } from 'react-bootstrap';
+import { each } from 'lodash';
+import { 
+    Container, 
+    Button, 
+    Row, 
+    Col, 
+    OverlayTrigger, 
+    Tooltip 
+} from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { 
     faCircleNotch, 
-    faSignOutAlt, 
     faMicrophone, 
     faMicrophoneSlash, 
     faVideo, 
     faVideoSlash, 
     faDoorClosed, 
     faDoorOpen, 
-    faCircle, 
-    faGrin, 
-    faLayerGroup, 
-    faLessThanEqual, 
     faUser, 
     faLock 
 } from '@fortawesome/free-solid-svg-icons';
@@ -40,6 +41,7 @@ class Room extends React.Component {
             local_stream: null,
             publishers: [],
             initialized: false,
+            room_at_capacity: false,
             me: {},
             connected: false,
             publishing: false,
@@ -256,6 +258,10 @@ class Room extends React.Component {
             presence_channel.bind_global(function(event, data) {
 
                 if (event == "pusher:subscription_succeeded") {
+                    if (data.me.info.room_at_capacity) {
+                        return that.setState({ loading: false, room_at_capacity: true });
+                    }
+
                     that.setState({ members: data.members, me: data.me, server: data.me.info.media_server  });
                     that.openMediaHandle();
                 }
@@ -369,20 +375,22 @@ class Room extends React.Component {
                         //register a publisher
                         var request = { 
                             "request":  "join", 
+                            "id": me.info.id.toString(),
                             "room": room.channel_id, 
                             "ptype": "publisher",
                             "display": me.info.peer_uuid,
-                            "token": me.info.streamer_key
+                            "token": me.info.streamer_key,
+                            "pin": me.info.room_pin
                         }
 
                         videoRoomStreamerHandle.send({ "message": request });
                     
                     },
                     error: function(cause) {
-                            // Couldn't attach to the plugin
-                            if (that.props.pusherInstance.connection.state == "connected") {
-                                that.getNewServer();
-                            }
+                        // Couldn't attach to the plugin
+                        if (that.props.pusherInstance.connection.state == "connected") {
+                            that.getNewServer();
+                        }
                     },
                     onmessage: function(msg, jsep) {
                         var { videoRoomStreamerHandle, currentLoadingMessage, containerBackgroundColors, members } = that.state;
@@ -392,6 +400,9 @@ class Room extends React.Component {
                         }
 
                         if (msg.videoroom == "joined") {
+
+                            var updatedMe = that.state.me;
+                            updatedMe.info.private_id = msg.private_id;
 
                             if (msg.publishers.length > 0) { 
 
@@ -413,7 +424,7 @@ class Room extends React.Component {
                                     updatedPublishers.push(publisher);
                                 })
 
-                                that.setState({ connected: true, loading: false, publishers: updatedPublishers });
+                                that.setState({ connected: true, loading: false, publishers: updatedPublishers, me: updatedMe });
                             } else {
                                 currentLoadingMessage = [];
 
@@ -700,6 +711,7 @@ class Room extends React.Component {
                     "display": me.info.peer_uuid,
                     "token": me.info.streamer_key,
                     "feed": publisher.id,
+                    "private_id": me.info.private_id,
                 }
 
                 remoteHandle.send({ "message": request });
@@ -780,9 +792,7 @@ class Room extends React.Component {
         var newHeight = window.innerHeight;
 
         if (publishers.length > 0) {
-            if ((dimensions.width - newWidth) > 20 || (dimensions.height - newHeight) > 20) {
-                this.setState({ dimensions: { width: newWidth, height: newHeight } });
-            }
+            this.setState({ dimensions: { width: newWidth, height: newHeight, sidebarWidth: dimensions.sidebarWidth } });
         }
 
     }
@@ -972,6 +982,7 @@ class Room extends React.Component {
         const { 
             room, 
             loading, 
+            room_at_capacity,
             publishers, 
             publishing,
             talking,
@@ -1025,15 +1036,18 @@ class Room extends React.Component {
                         <div className="d-flex flex-row justify-content-center">
                             <div className="align-self-center">
                                 {local_stream === null ?
-                                    <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
-                                :
+                                    !room_at_capacity ?
+                                        <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                    :
+                                        <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" disabled><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                :   
                                     <Button variant="outline-danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
                                 }
                             </div>
                             <div style={{height:80}}></div>
                         </div>
                     </Col>
-                    <Col xs={{span:4}} md={{span:5}}>
+                    <Col xs={{span:4}} md={{span:5}} className="pr-0">
                         {local_stream ?
                             <div className="d-flex flex-row flex-nowrap justify-content-end">
                                 <div className="align-self-center pr-4">
@@ -1057,28 +1071,36 @@ class Room extends React.Component {
                     </Col>
                 </Row>
                 <Container className="ml-0 stage-container" fluid style={{height:videoSizes.containerHeight}}>
+
                     {loading ? 
                         <React.Fragment>
                             <h1 className="text-center mt-5">Loading Room...</h1>
                             <center><FontAwesomeIcon icon={faCircleNotch} className="mt-3" style={{fontSize:"2.4rem",color:"#6772ef"}} spin /></center> 
                         </React.Fragment>  
                     : 
+                        !room_at_capacity ?
+                            <React.Fragment>
+                                <div className={videoSizes.display}>
+                                    {publishers.length > 0 ?
+                                        <VideoList
+                                            videoSizes={videoSizes}
+                                            publishers={publishers}
+                                            publishing={publishing}
+                                            currentTime={currentTime}
+                                            user={user}
+                                            talking={talking}
+                                            renderVideo={this.renderVideo}
+                                        ></VideoList>
+                                    :
+                                        currentLoadingMessage
+                                    }
+                                </div>
+                            </React.Fragment>
+                        :
                         <React.Fragment>
-                            <div className={videoSizes.display}>
-                                {publishers.length > 0 ?
-                                    <VideoList
-                                        videoSizes={videoSizes}
-                                        publishers={publishers}
-                                        publishing={publishing}
-                                        currentTime={currentTime}
-                                        user={user}
-                                        talking={talking}
-                                        renderVideo={this.renderVideo}
-                                    ></VideoList>
-                                :
-                                    currentLoadingMessage
-                                }
-                            </div>
+                            <h1 className="text-center mt-5">Oops!</h1>
+                            <h2 className="text-center h3" style={{fontWeight:600}}>This room is at capacity and cannot be joined.</h2>
+                            <p className="text-center h3" style={{fontWeight:500}}>Free plans have a limit of 5 people in a room at a time.</p>
                         </React.Fragment>
                     }
                 </Container>

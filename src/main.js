@@ -41,7 +41,7 @@ if (!isDevMode) {
 
       updateNotification.show();
 
-      updateNotification.on('click', event => {
+      updateNotification.on('click', clickEvent => {
         autoUpdater.quitAndInstall()
       })
     } else {
