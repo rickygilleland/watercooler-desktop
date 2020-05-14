@@ -40,6 +40,7 @@ class Room extends React.Component {
             local_stream: null,
             publishers: [],
             initialized: false,
+            room_at_capacity: false,
             me: {},
             connected: false,
             publishing: false,
@@ -256,6 +257,10 @@ class Room extends React.Component {
             presence_channel.bind_global(function(event, data) {
 
                 if (event == "pusher:subscription_succeeded") {
+                    if (data.me.info.room_at_capacity) {
+                        return that.setState({ loading: false, room_at_capacity: true });
+                    }
+
                     that.setState({ members: data.members, me: data.me, server: data.me.info.media_server  });
                     that.openMediaHandle();
                 }
@@ -976,6 +981,7 @@ class Room extends React.Component {
         const { 
             room, 
             loading, 
+            room_at_capacity,
             publishers, 
             publishing,
             talking,
@@ -1029,8 +1035,11 @@ class Room extends React.Component {
                         <div className="d-flex flex-row justify-content-center">
                             <div className="align-self-center">
                                 {local_stream === null ?
-                                    <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
-                                :
+                                    !room_at_capacity ?
+                                        <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                    :
+                                        <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" disabled><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                :   
                                     <Button variant="outline-danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
                                 }
                             </div>
@@ -1061,28 +1070,36 @@ class Room extends React.Component {
                     </Col>
                 </Row>
                 <Container className="ml-0 stage-container" fluid style={{height:videoSizes.containerHeight}}>
+
                     {loading ? 
                         <React.Fragment>
                             <h1 className="text-center mt-5">Loading Room...</h1>
                             <center><FontAwesomeIcon icon={faCircleNotch} className="mt-3" style={{fontSize:"2.4rem",color:"#6772ef"}} spin /></center> 
                         </React.Fragment>  
                     : 
+                        !room_at_capacity ?
+                            <React.Fragment>
+                                <div className={videoSizes.display}>
+                                    {publishers.length > 0 ?
+                                        <VideoList
+                                            videoSizes={videoSizes}
+                                            publishers={publishers}
+                                            publishing={publishing}
+                                            currentTime={currentTime}
+                                            user={user}
+                                            talking={talking}
+                                            renderVideo={this.renderVideo}
+                                        ></VideoList>
+                                    :
+                                        currentLoadingMessage
+                                    }
+                                </div>
+                            </React.Fragment>
+                        :
                         <React.Fragment>
-                            <div className={videoSizes.display}>
-                                {publishers.length > 0 ?
-                                    <VideoList
-                                        videoSizes={videoSizes}
-                                        publishers={publishers}
-                                        publishing={publishing}
-                                        currentTime={currentTime}
-                                        user={user}
-                                        talking={talking}
-                                        renderVideo={this.renderVideo}
-                                    ></VideoList>
-                                :
-                                    currentLoadingMessage
-                                }
-                            </div>
+                            <h1 className="text-center mt-5">Oops!</h1>
+                            <h2 className="text-center h3" style={{fontWeight:600}}>This room is at capacity and cannot be joined.</h2>
+                            <p className="text-center h3" style={{fontWeight:500}}>Free plans have a limit of 5 people in a room at a time.</p>
                         </React.Fragment>
                     }
                 </Container>
