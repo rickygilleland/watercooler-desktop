@@ -35,6 +35,7 @@ class Team extends React.Component {
                 <InviteUsersModal 
                     show={showInviteUsersModal}
                     handleSubmit={inviteUsers}
+                    loading={organizationLoading.toString()}
                     inviteuserssuccess={inviteUsersSuccess}
                     onHide={() => this.setState({ showInviteUsersModal: false })}
                 />
