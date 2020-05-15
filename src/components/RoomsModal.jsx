@@ -18,12 +18,14 @@ function RoomsModal(props) {
     const [ videoEnabled, setVideoEnabled ] = useState(false);
     const [ isPrivate, setIsPrivate ] = useState(false);
     const [ formSubmitted, setFormSubmitted ] = useState(false);
+    const [ reset, setReset ] = useState(false);
 
-    if (props.roomsModalReset && formSubmitted == true) {
+    if (props.roomsModalReset && ((formSubmitted == true && reset == true) || props.createroomsuccess && reset == false)) {
       setFormSubmitted(false);
       setName("");
       setVideoEnabled(false);
       setIsPrivate(false);
+      setReset(true);
     }
 
     function handleNameChange(event) {
@@ -49,6 +51,7 @@ function RoomsModal(props) {
       setName("");
       setVideoEnabled(false);
       setIsPrivate(false);
+      setReset(false);
       props.onHide();
     }
 

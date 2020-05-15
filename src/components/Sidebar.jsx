@@ -159,9 +159,9 @@ class Sidebar extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        const { createRoomSuccess, lastCreatedRoomSlug } = this.props;
+        const { createRoomSuccess, lastCreatedRoomSlug, location } = this.props;
 
-        if (prevProps.createRoomSuccess != createRoomSuccess && createRoomSuccess) {
+        if (prevProps.createRoomSuccess != createRoomSuccess && createRoomSuccess && !location.pathname.includes("/room")) {
             this.setState({ showRoomsModal: false, roomsModalReset: true });
             return this.props.push(`/room/${lastCreatedRoomSlug}`);
         }
