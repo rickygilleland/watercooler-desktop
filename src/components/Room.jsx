@@ -996,7 +996,7 @@ class Room extends React.Component {
         } = this.state;
 
         return (
-            <React.Fragment>
+            <div className="room-container">
                 <AddUserToRoomModal 
                     users={roomUsers}
                     organizationUsers={organizationUsers}
@@ -1010,66 +1010,68 @@ class Room extends React.Component {
                     onShow={() => getRoomUsers(room.id)}
                     onHide={() => this.setState({ showAddUserToRoomModal: false })}
                 />
-                <Row className="text-light pl-0 ml-0" style={{height:80,backgroundColor:"#121422"}}>
-                    <Col xs={{span:4}} md={{span:5}}>
-                        <div className="d-flex flex-row justify-content-start">
-                            <div className="align-self-center">
-                                <p style={{fontWeight:"bolder",fontSize:"1rem"}} className="pb-0 mb-0">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".7rem",marginRight:".2rem"}} /> : <span style={{marginRight:".2rem"}}>#</span>} {room.name}</p>
-                                {room.is_private ?
-                                    <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-view-members">View current members of this private room and add new ones.</Tooltip>}>
+                <div className={"overlay " + (local_stream === null ? '' : '')} style={{top:0,left:240,right:0,display:local_stream === null ? 'block' : ''}}>
+                    <Row className="text-light pl-0 ml-0" style={{height:80,backgroundColor:"#121422"}}>
+                        <Col xs={{span:4}} md={{span:5}}>
+                            <div className="d-flex flex-row justify-content-start">
+                                <div className="align-self-center">
+                                    <p style={{fontWeight:"bolder",fontSize:"1rem"}} className="pb-0 mb-0">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".7rem",marginRight:".2rem"}} /> : <span style={{marginRight:".2rem"}}>#</span>} {room.name}</p>
+                                    {room.is_private ?
+                                        <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-view-members">View current members of this private room and add new ones.</Tooltip>}>
+                                            <span className="d-inline-block">
+                                            <Button variant="link" className="pl-0 pt-0" style={{color:"#fff",fontSize:".7rem"}} onClick={() => this.setState({ showAddUserToRoomModal: true })}><FontAwesomeIcon icon={faUser} /> {roomUsers.length > 0 ? roomUsers.length : '' }</Button>
+                                            </span>
+                                        </OverlayTrigger>
+                                    :
+                                    <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-view-members">This room is visible to everyone on your team.</Tooltip>}>
                                         <span className="d-inline-block">
-                                        <Button variant="link" className="pl-0 pt-0" style={{color:"#fff",fontSize:".7rem"}} onClick={() => this.setState({ showAddUserToRoomModal: true })}><FontAwesomeIcon icon={faUser} /> {roomUsers.length > 0 ? roomUsers.length : '' }</Button>
+                                        <Button variant="link" className="pl-0 pt-0" style={{color:"#fff",fontSize:".7rem", pointerEvents: 'none'}}><FontAwesomeIcon icon={faUser} /></Button>
                                         </span>
                                     </OverlayTrigger>
-                                :
-                                <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-view-members">This room is visible to everyone on your team.</Tooltip>}>
-                                    <span className="d-inline-block">
-                                    <Button variant="link" className="pl-0 pt-0" style={{color:"#fff",fontSize:".7rem", pointerEvents: 'none'}}><FontAwesomeIcon icon={faUser} /></Button>
-                                    </span>
-                                </OverlayTrigger>
-                                }
-                            </div>
-                            <div style={{height:80}}></div>
-                        </div>
-                    </Col>
-                    <Col xs={{span:4}} md={{span:2}}>
-                        <div className="d-flex flex-row justify-content-center">
-                            <div className="align-self-center">
-                                {local_stream === null ?
-                                    !room_at_capacity ?
-                                        <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
-                                    :
-                                        <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" disabled><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
-                                :   
-                                    <Button variant="outline-danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
-                                }
-                            </div>
-                            <div style={{height:80}}></div>
-                        </div>
-                    </Col>
-                    <Col xs={{span:4}} md={{span:5}} className="pr-0">
-                        {local_stream ?
-                            <div className="d-flex flex-row flex-nowrap justify-content-end">
-                                <div className="align-self-center pr-4">
-                                    <Button variant={audioStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
-                                    {room.video_enabled ?
-                                        <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
-                                    :
-                                    <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Video is disabled in this room.</Tooltip>}>
-                                        <span className="d-inline-block">
-                                       
-                                        <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
-                                        </span>
-                                    </OverlayTrigger> 
                                     }
                                 </div>
                                 <div style={{height:80}}></div>
-                                {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}
-                                {local_video_container}
                             </div>
-                        : '' }
-                    </Col>
-                </Row>
+                        </Col>
+                        <Col xs={{span:4}} md={{span:2}}>
+                            <div className="d-flex flex-row justify-content-center">
+                                <div className="align-self-center">
+                                    {local_stream === null ?
+                                        !room_at_capacity ?
+                                            <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                        :
+                                            <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" disabled><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                    :   
+                                        <Button variant="outline-danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
+                                    }
+                                </div>
+                                <div style={{height:80}}></div>
+                            </div>
+                        </Col>
+                        <Col xs={{span:4}} md={{span:5}} className="pr-0">
+                            {local_stream ?
+                                <div className="d-flex flex-row flex-nowrap justify-content-end">
+                                    <div className="align-self-center pr-4">
+                                        <Button variant={audioStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
+                                        {room.video_enabled ?
+                                            <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                        :
+                                        <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Video is disabled in this room.</Tooltip>}>
+                                            <span className="d-inline-block">
+                                        
+                                            <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                            </span>
+                                        </OverlayTrigger> 
+                                        }
+                                    </div>
+                                    <div style={{height:80}}></div>
+                                    {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}
+                                    {local_video_container}
+                                </div>
+                            : '' }
+                        </Col>
+                    </Row>
+                </div>
                 <Container className="ml-0 stage-container" fluid style={{height:videoSizes.containerHeight}}>
 
                     {loading ? 
@@ -1104,7 +1106,7 @@ class Room extends React.Component {
                         </React.Fragment>
                     }
                 </Container>
-            </React.Fragment>
+            </div>
         );
     }
 }
