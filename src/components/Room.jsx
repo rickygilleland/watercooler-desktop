@@ -400,11 +400,15 @@ class Room extends React.Component {
                     onmessage: function(msg, jsep) {
                         var { videoRoomStreamerHandle, currentLoadingMessage, containerBackgroundColors, members } = that.state;
 
+                        console.log("debug msg", msg);
+                        console.log("debug jsep", jsep);
+
                         if (jsep != null) {
                             videoRoomStreamerHandle.handleRemoteJsep({ "jsep": jsep });
                         }
 
                         if (msg.videoroom == "joined") {
+                            console.log("debug joined", msg);
 
                             var updatedMe = that.state.me;
                             updatedMe.info.private_id = msg.private_id;
@@ -477,6 +481,8 @@ class Room extends React.Component {
                                 let rand = Math.floor(Math.random() * containerBackgroundColors.length); 
                                 var currentPublishers = that.state.publishers;
 
+                                console.log("debug", newPublishers);
+
                                 newPublishers.forEach(publisher => {
                                     each(members, function(member) {
                                         if (member.peer_uuid == publisher.display) {
@@ -501,6 +507,8 @@ class Room extends React.Component {
                                     return keep;
 
                                 })
+
+                                console.log("debug", currentPublishers);
 
                                 that.setState({ publishers: [ ...newPublishers, ...currentPublishers ] });
                             }
@@ -708,34 +716,27 @@ class Room extends React.Component {
                 }
 
                 screenSharingHandle.send({ "message": request });
+
+                screenSharingHandle.createOffer({
+                    stream: stream,
+                    success: function(jsep) {
+                        var request = {
+                            "request": "publish",
+                            "audio": false,
+                            "video": true,
+                            "videocodec": "vp9"
+                        }
+
+                        screenSharingHandle.send({ "message": request, "jsep": jsep });
+                        that.setState({ screenSharingActive: true });
+    
+                    }
+                })
             
             },
             error: function(cause) {
                 // Couldn't attach to the plugin
             },
-            message: function(msg, jsep) {
-                if (msg.videoroom == "joined") {
-                    console.log(msg);
-
-                     //publish our feed
-                    screenSharingHandle.createOffer({
-                        stream: stream,
-                        success: function(jsep) {
-                            var request = {
-                                "request": "publish",
-                                "audio": false,
-                                "video": true,
-                                "videocodec": "vp9"
-                            }
-
-                            videoRoomStreamerHandle.send({ "message": request, "jsep": jsep });
-
-                            that.setState({ screenSharingActive: true });
-
-                        }
-                    })
-                }
-            }
         });
 
     }
@@ -1086,6 +1087,7 @@ class Room extends React.Component {
                     }
                 }
             })
+            console.log("debug screen sharing stream", stream);
             this.startPublishingScreenSharingStream(stream);
         } catch (e) {
             //show an error
