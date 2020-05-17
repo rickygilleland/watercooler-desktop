@@ -8,7 +8,8 @@ import {
     Row, 
     Col, 
     OverlayTrigger, 
-    Tooltip 
+    Tooltip,
+    Dropdown
 } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { 
@@ -21,7 +22,8 @@ import {
     faDoorOpen, 
     faUser, 
     faLock,
-    faDesktop
+    faDesktop,
+    faWindowMaximize
 } from '@fortawesome/free-solid-svg-icons';
 import { Janus } from 'janus-gateway';
 import Pusher from 'pusher-js';
@@ -49,6 +51,7 @@ class Room extends React.Component {
             publishing: false,
             screenSharingActive: false,
             showScreenSharingModal: false,
+            showScreenSharingDropdown: false,
             screenSources: [],
             screenSourcesLoading: false,
             leaving: false,
@@ -1070,6 +1073,7 @@ class Room extends React.Component {
             screenSources,
             screenSourcesLoading,
             showScreenSharingModal,
+            showScreenSharingDropdown,
             local_stream, 
             local_video_container,
             videoStatus, 
@@ -1145,7 +1149,16 @@ class Room extends React.Component {
                         {local_stream ?
                             <div className="d-flex flex-row flex-nowrap justify-content-end">
                                 <div className="align-self-center pr-4">
-                                    <Button variant="outline-info" className="mx-1" onClick={() => this.setState({ showScreenSharingModal: true, screenSourcesLoading: true })}><FontAwesomeIcon icon={faDesktop} /></Button>
+                                    <Dropdown className="btn p-0 m-0" as="button">
+                                        <Dropdown.Toggle variant="outline-info" id="screensharing-dropdown" className="mx-1 no-carat">
+                                            <FontAwesomeIcon icon={faDesktop} />
+                                        </Dropdown.Toggle>
+                                        <Dropdown.Menu show={showScreenSharingDropdown}>
+                                            <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block" onClick={() => this.setState({ showScreenSharingModal: true, screenSourcesLoading: true, showScreenSharingDropdown: false })}><FontAwesomeIcon icon={faDesktop} /> Share Whole Screen</Button></Dropdown.Item>
+                                            <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block" onClick={() => this.setState({ showScreenSharingModal: true, screenSourcesLoading: true, showScreenSharingDropdown: false })}><FontAwesomeIcon icon={faWindowMaximize} /> Share a Window</Button></Dropdown.Item>
+                                        </Dropdown.Menu>
+                                    </Dropdown>
+            
                                     <Button variant={audioStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
                                     {room.video_enabled ?
                                         <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
