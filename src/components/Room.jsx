@@ -380,7 +380,7 @@ class Room extends React.Component {
                         //register a publisher
                         var request = { 
                             "request":  "join", 
-                            "id": me.info.id.toString()+"_screensharing",
+                            "id": me.info.id.toString(),
                             "room": room.channel_id, 
                             "ptype": "publisher",
                             "display": me.info.peer_uuid,
@@ -493,7 +493,7 @@ class Room extends React.Component {
                                 currentPublishers.filter(publisher => {
                                     var keep = true;
                                     newPublishers.forEach(newPublisher => {
-                                        if (newPublisher.member.id == publisher.member.id && !publisher.id.includes("_screensharing")) {
+                                        if (newPublisher.member.id == publisher.member.id && !newPublisher.id.includes("_screensharing")) {
                                             keep = false;
                                         }
                                     })
@@ -699,7 +699,7 @@ class Room extends React.Component {
                 //register a publisher
                 var request = { 
                     "request":  "join", 
-                    "id": me.info.id.toString(),
+                    "id": me.info.id.toString()+"_screensharing",
                     "room": room.channel_id, 
                     "ptype": "publisher",
                     "display": me.info.peer_uuid,
@@ -714,10 +714,6 @@ class Room extends React.Component {
                 // Couldn't attach to the plugin
             },
             message: function(msg, jsep) {
-                if (jsep != null) {
-                    screenSharingHandle.handleRemoteJsep({ "jsep": jsep });
-                }
-
                 if (msg.videoroom == "joined") {
                     console.log(msg);
 
@@ -759,6 +755,8 @@ class Room extends React.Component {
 
         var handle;
         var that = this;
+
+        console.log("subscribinig", publisher);
 
         rootStreamerHandle.attach({
             plugin: "janus.plugin.videoroom",
