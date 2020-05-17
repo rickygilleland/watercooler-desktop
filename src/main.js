@@ -139,6 +139,7 @@ const createWindow = () => {
 };
 
 app.commandLine.appendSwitch('force-fieldtrials', 'WebRTC-SupportVP9SVC/EnabledByFlag_2SL3TL/');
+app.commandLine.appendSwitch('webrtc-max-cpu-consumption-percentage', 100);
 
 if (process.env == "darwin") {
   app.commandLine.appendSwitch('enable-oop-rasterization');

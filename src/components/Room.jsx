@@ -1,5 +1,5 @@
 import React from 'react';
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, desktopCapturer } from 'electron';
 import update from 'immutability-helper';
 import { each } from 'lodash';
 import { 
@@ -20,12 +20,14 @@ import {
     faDoorClosed, 
     faDoorOpen, 
     faUser, 
-    faLock 
+    faLock,
+    faDesktop
 } from '@fortawesome/free-solid-svg-icons';
 import { Janus } from 'janus-gateway';
 import Pusher from 'pusher-js';
 import VideoList from './VideoList';
 import AddUserToRoomModal from './AddUserToRoomModal';
+import ScreenSharingModal from './ScreenSharingModal';
 
 class Room extends React.Component {
     constructor(props) {
@@ -45,6 +47,10 @@ class Room extends React.Component {
             me: {},
             connected: false,
             publishing: false,
+            screenSharingActive: false,
+            showScreenSharingModal: false,
+            screenSources: [],
+            screenSourcesLoading: false,
             leaving: false,
             videoSizes: {
                 width: 0,
@@ -84,6 +90,9 @@ class Room extends React.Component {
         this.initializeRoom = this.initializeRoom.bind(this);
 
         this.createDetachedWindowBound = this.createDetachedWindow.bind(this);
+
+        this.getAvailableScreensToShare = this.getAvailableScreensToShare.bind(this);
+        this.toggleScreenSharing = this.toggleScreenSharing.bind(this);
 
         this.toggleVideoOrAudio = this.toggleVideoOrAudio.bind(this);
         this.handleRemoteStreams = this.handleRemoteStreams.bind(this);
@@ -680,6 +689,10 @@ class Room extends React.Component {
         
     }
 
+    async startPublishingScreenSharingStream() {
+
+    }
+
     handleRemoteStreams() {
         var { publishers } = this.state;
 
@@ -915,7 +928,6 @@ class Room extends React.Component {
     }
 
     createDetachedWindow() {
-
     }
 
     toggleVideoOrAudio(type) {
@@ -967,6 +979,74 @@ class Room extends React.Component {
         }
     }
 
+    async getAvailableScreensToShare() {
+        var screenSources = [];
+
+        console.log("getAvailableScreensToShare called");
+
+        const sources = await desktopCapturer.getSources({
+            types: ['window', 'screen'],
+            thumbnailSize: { width: 1000, height: 1000 },
+            fetchWindowIcons: true
+        });
+
+        sources.forEach(source => {
+            if (!source.name.includes("Water Cooler")) {
+                var icon = null;
+                if (source.appIcon != null) {
+                    icon = source.appIcon.toDataURL();
+                }
+                var newSource = {
+                    icon,
+                    display_id: source.display_id,
+                    id: source.id,
+                    name: source.name,
+                    thumbnail: source.thumbnail.toDataURL()
+                }
+                screenSources.push(newSource);
+            }
+        })
+
+        console.log("screen sharing sources", screenSources);
+
+        this.setState({ screenSources, screenSourcesLoading: false })
+    }
+
+    toggleScreenSharing(streamId = null) {
+        const { screenSharingActive } = this.state;
+
+        if (screenSharingActive) {
+            //stop
+        }
+
+        //
+
+        /*try {
+                  const stream = await navigator.mediaDevices.getUserMedia({
+                    audio: false,
+                    video: {
+                      mandatory: {
+                        chromeMediaSource: 'desktop',
+                        chromeMediaSourceId: source.id,
+                        minWidth: 1280,
+                        maxWidth: 1280,
+                        minHeight: 720,
+                        maxHeight: 720
+                      }
+                    }
+                  })
+                  handleStream(stream)
+                } catch (e) {
+                  handleError(e)
+                }
+                return
+              }
+        */
+
+        //this.startPublishingScreenSharingStream();
+
+    }
+
     render() {
         const { 
             getRoomUsers, 
@@ -986,6 +1066,10 @@ class Room extends React.Component {
             publishers, 
             publishing,
             talking,
+            screenSharingActive,
+            screenSources,
+            screenSourcesLoading,
+            showScreenSharingModal,
             local_stream, 
             local_video_container,
             videoStatus, 
@@ -994,6 +1078,8 @@ class Room extends React.Component {
             currentLoadingMessage,
             showAddUserToRoomModal 
         } = this.state;
+
+        console.log("render screen sharing sources", screenSources);
 
         return (
             <React.Fragment>
@@ -1009,6 +1095,14 @@ class Room extends React.Component {
                     getRoomUsers={getRoomUsers}
                     onShow={() => getRoomUsers(room.id)}
                     onHide={() => this.setState({ showAddUserToRoomModal: false })}
+                />
+                <ScreenSharingModal 
+                    sources={screenSources}
+                    show={showScreenSharingModal}
+                    loading={screenSourcesLoading}
+                    handleSubmit={this.toggleScreenSharing}
+                    onShow={() => this.getAvailableScreensToShare()}
+                    onHide={() => this.setState({ showScreenSharingModal: false })}
                 />
                 <Row className="text-light pl-0 ml-0" style={{height:80,backgroundColor:"#121422"}}>
                     <Col xs={{span:4}} md={{span:5}}>
@@ -1051,6 +1145,7 @@ class Room extends React.Component {
                         {local_stream ?
                             <div className="d-flex flex-row flex-nowrap justify-content-end">
                                 <div className="align-self-center pr-4">
+                                    <Button variant="outline-info" className="mx-1" onClick={() => this.setState({ showScreenSharingModal: true, screenSourcesLoading: true })}><FontAwesomeIcon icon={faDesktop} /></Button>
                                     <Button variant={audioStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
                                     {room.video_enabled ?
                                         <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
