@@ -398,7 +398,7 @@ class Room extends React.Component {
                         }
                     },
                     onmessage: function(msg, jsep) {
-                        var { videoRoomStreamerHandle, currentLoadingMessage, containerBackgroundColors, members } = that.state;
+                        var { videoRoomStreamerHandle, currentLoadingMessage, containerBackgroundColors, members, me } = that.state;
 
                         console.log("debug msg", msg);
                         console.log("debug jsep", jsep);
@@ -476,12 +476,10 @@ class Room extends React.Component {
                         if (msg.videoroom == "event") {
                             //check if we have new publishers to subscribe to
                             if (typeof msg.publishers != "undefined") {
-                                let newPublishers = msg.publishers;
+                                var newPublishers = msg.publishers;
 
                                 let rand = Math.floor(Math.random() * containerBackgroundColors.length); 
                                 var currentPublishers = that.state.publishers;
-
-                                console.log("debug", newPublishers);
 
                                 newPublishers.forEach(publisher => {
                                     each(members, function(member) {
@@ -499,18 +497,20 @@ class Room extends React.Component {
                                 currentPublishers.filter(publisher => {
                                     var keep = true;
                                     newPublishers.forEach(newPublisher => {
-                                        if (newPublisher.member.id == publisher.member.id && !newPublisher.id.includes("_screensharing")) {
+                                        if (newPublisher.member.id == publisher.member.id) {
                                             keep = false;
                                         }
                                     })
-
                                     return keep;
 
                                 })
 
-                                console.log("debug", currentPublishers);
+                                if (newPublishers.length == 1 && newPublishers[0].display == me.info.peer_uuid) {
+                                    newPublishers = [];
+                                } 
 
                                 that.setState({ publishers: [ ...newPublishers, ...currentPublishers ] });
+
                             }
 
                             if (typeof msg.leaving != "undefined") {
@@ -545,7 +545,10 @@ class Room extends React.Component {
 
                     },
                     webrtcState: function(state) {
-
+                        console.log("debug webrtcstate", state);
+                    },
+                    iceState: function(state) {
+                        console.log("debug icestate", state);
                     },
                     oncleanup: function() {
                             // PeerConnection with the plugin closed, clean the UI
@@ -734,8 +737,18 @@ class Room extends React.Component {
                 })
             
             },
+            onmessage: function(msg, jsep) {
+                const { screenSharingHandle } = that.state;
+                console.log("debug screenshare handle msg", msg);
+
+                if (jsep != null) {
+                    screenSharingHandle.handleRemoteJsep({ "jsep": jsep });
+                }
+
+            },
             error: function(cause) {
                 // Couldn't attach to the plugin
+                console.log("debug screenshare error", cause);
             },
         });
 
@@ -1078,12 +1091,8 @@ class Room extends React.Component {
                 audio: false,
                 video: {
                     mandatory: {
-                    chromeMediaSource: 'desktop',
-                    chromeMediaSourceId: streamId,
-                    minWidth: 1280,
-                    maxWidth: 1280,
-                    minHeight: 720,
-                    maxHeight: 720
+                        chromeMediaSource: 'desktop',
+                        chromeMediaSourceId: streamId,
                     }
                 }
             })

@@ -38,7 +38,7 @@ function ScreenSharingModal(props) {
                 <Row>
                     {sources.map((source) => 
                         <Col key={source.id} xs={6} className="hover-focus">
-                            <Card style={{backgroundColor:"transparent"}} text="dark" className="border-0 mb-2">
+                            <Card style={{backgroundColor:"transparent"}} text="dark" className="border-0 mb-2" onClick={() => handleSubmit(source.id)}>
                                 <Card.Img src={source.thumbnail} style={{maxHeight:180,width:"100%",objectFit:"cover",objectPosition:"0 0"}} />
                                 <Card.Body className="p-0"><p className="font-weight-bold text-light pt-2"><img src={source.icon} style={{height:20}}/> {source.name}</p></Card.Body>
                             </Card>
