@@ -53,6 +53,7 @@ class Room extends React.Component {
             showScreenSharingModal: false,
             showScreenSharingDropdown: false,
             screenSharingHandle: null,
+            screenSharingStream: null,
             screenSources: [],
             screenSourcesLoading: false,
             leaving: false,
@@ -97,6 +98,7 @@ class Room extends React.Component {
 
         this.getAvailableScreensToShare = this.getAvailableScreensToShare.bind(this);
         this.startPublishingScreenSharingStream = this.startPublishingScreenSharingStream.bind(this);
+        this.openScreenSharingHandle = this.openScreenSharingHandle.bind(this);
         this.toggleScreenSharing = this.toggleScreenSharing.bind(this);
 
         this.toggleVideoOrAudio = this.toggleVideoOrAudio.bind(this);
@@ -658,7 +660,7 @@ class Room extends React.Component {
     }
 
     stopPublishingStream() {
-        const { videoRoomStreamerHandle, local_stream, publishers } = this.state;
+        const { videoRoomStreamerHandle, screenSharingHandle, screenSharingStream, local_stream, publishers } = this.state;
 
         if (videoRoomStreamerHandle == null) {
             return;
@@ -669,6 +671,16 @@ class Room extends React.Component {
         }
 
         videoRoomStreamerHandle.send({ "message": request });
+
+        if (screenSharingHandle != null) {
+            screenSharingHandle.send({ "message": request });
+
+            const screenSharingTracks = screenSharingStream.getTracks();
+
+            screenSharingTracks.forEach(function(track) {
+                track.stop();
+            })
+        }
 
         if (local_stream != null) {
             const tracks = local_stream.getTracks();
@@ -692,11 +704,11 @@ class Room extends React.Component {
             return publisher.active;
         })
 
-        this.setState({ publishing: false, local_stream: null, publishers })
+        this.setState({ publishing: false, local_stream: null, publishers, screenSharingActive: false })
         
     }
-
-    async startPublishingScreenSharingStream(stream) {
+    
+    openScreenSharingHandle() {
         var { rootStreamerHandle, me, room } = this.state;
 
         var that = this;
@@ -720,26 +732,11 @@ class Room extends React.Component {
 
                 screenSharingHandle.send({ "message": request });
 
-                screenSharingHandle.createOffer({
-                    stream: stream,
-                    success: function(jsep) {
-                        var request = {
-                            "request": "publish",
-                            "audio": false,
-                            "video": true,
-                            "videocodec": "vp9"
-                        }
-
-                        screenSharingHandle.send({ "message": request, "jsep": jsep });
-                        that.setState({ screenSharingActive: true });
-    
-                    }
-                })
+                return that.startPublishingScreenSharingStream();
             
             },
             onmessage: function(msg, jsep) {
                 const { screenSharingHandle } = that.state;
-                console.log("debug screenshare handle msg", msg);
 
                 if (jsep != null) {
                     screenSharingHandle.handleRemoteJsep({ "jsep": jsep });
@@ -748,9 +745,35 @@ class Room extends React.Component {
             },
             error: function(cause) {
                 // Couldn't attach to the plugin
-                console.log("debug screenshare error", cause);
             },
         });
+    }
+
+    async startPublishingScreenSharingStream() {
+        var { screenSharingHandle, screenSharingStream, me, room } = this.state;
+
+        if (screenSharingHandle == null) {
+            console.log("debug creating new screen sharinig handle", screenSharingHandle);
+            return this.openScreenSharingHandle();
+        }
+
+        var that = this;
+
+        screenSharingHandle.createOffer({
+            stream: screenSharingStream,
+            success: function(jsep) {
+                var request = {
+                    "request": "publish",
+                    "audio": false,
+                    "video": true,
+                    "videocodec": "vp9"
+                }
+
+                screenSharingHandle.send({ "message": request, "jsep": jsep });
+                that.setState({ screenSharingActive: true });
+
+            }
+        })
 
     }
 
@@ -1074,10 +1097,25 @@ class Room extends React.Component {
     }
 
     async toggleScreenSharing(streamId = null) {
-        const { screenSharingActive, screenSources } = this.state;
+        const { screenSharingHandle, screenSharingActive, screenSources, screenSharingStream } = this.state;
 
-        if (screenSharingActive) {
-            //stop
+        if (screenSharingActive && streamId == null) {
+
+            var request = {
+                "request": "unpublish"
+            }
+
+            if (screenSharingHandle != null) {
+                screenSharingHandle.send({ "message": request });
+            }
+
+            const screenSharingTracks = screenSharingStream.getTracks();
+
+            screenSharingTracks.forEach(function(track) {
+                track.stop();
+            })
+
+            return this.setState({ screenSharingActive: false, screenSharingStream: null });
         }
 
         if (streamId == "entire-screen") {
@@ -1102,8 +1140,10 @@ class Room extends React.Component {
                     }
                 }
             })
-            console.log("debug screen sharing stream", stream);
-            this.startPublishingScreenSharingStream(stream);
+
+            this.setState({ screenSharingStream: stream });
+
+            this.startPublishingScreenSharingStream();
         } catch (e) {
             //show an error
         }
@@ -1207,16 +1247,19 @@ class Room extends React.Component {
                         {local_stream ?
                             <div className="d-flex flex-row flex-nowrap justify-content-end">
                                 <div className="align-self-center pr-4">
-                                    <Dropdown className="btn p-0 m-0" as="span">
-                                        <Dropdown.Toggle variant="outline-info" id="screensharing-dropdown" className="mx-1 no-carat">
-                                            <FontAwesomeIcon icon={faDesktop} />
-                                        </Dropdown.Toggle>
-                                        <Dropdown.Menu show={showScreenSharingDropdown}>
-                                            <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block" onClick={() => this.toggleScreenSharing("entire-screen")}><FontAwesomeIcon icon={faDesktop} /> Share Whole Screen</Button></Dropdown.Item>
-                                            <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block" onClick={() => this.setState({ showScreenSharingModal: true, screenSourcesLoading: true, showScreenSharingDropdown: false })}><FontAwesomeIcon icon={faWindowMaximize} /> Share a Window</Button></Dropdown.Item>
-                                        </Dropdown.Menu>
-                                    </Dropdown>
-            
+                                    {screenSharingActive ? 
+                                        <Button variant="outline-danger" className="mx-1" onClick={() => this.toggleScreenSharing()}><FontAwesomeIcon icon={faDesktop} /></Button>
+                                    :
+                                        <Dropdown className="btn p-0 m-0" as="span">
+                                            <Dropdown.Toggle variant="outline-info" id="screensharing-dropdown" className="mx-1 no-carat">
+                                                <FontAwesomeIcon icon={faDesktop} />
+                                            </Dropdown.Toggle>
+                                            <Dropdown.Menu show={showScreenSharingDropdown}>
+                                                <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block" onClick={() => this.toggleScreenSharing("entire-screen")}><FontAwesomeIcon icon={faDesktop} /> Share Whole Screen</Button></Dropdown.Item>
+                                                <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block" onClick={() => this.setState({ showScreenSharingModal: true, screenSourcesLoading: true, showScreenSharingDropdown: false })}><FontAwesomeIcon icon={faWindowMaximize} /> Share a Window</Button></Dropdown.Item>
+                                            </Dropdown.Menu>
+                                        </Dropdown>
+                                    }
                                     <Button variant={audioStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
                                     {room.video_enabled ?
                                         <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
