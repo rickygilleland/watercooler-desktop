@@ -974,7 +974,9 @@ class Room extends React.Component {
                 height: height,
                 width: width,
                 display: display,
-                containerHeight: dimensions.height - 80
+                containerHeight: dimensions.height - 80,
+                rows,
+                columns
             }
 
             this.setState({ videoSizes });
@@ -1093,6 +1095,10 @@ class Room extends React.Component {
                     mandatory: {
                         chromeMediaSource: 'desktop',
                         chromeMediaSourceId: streamId,
+                        minWidth: 1280,
+                        maxWidth: 1920,
+                        minHeight: 720,
+                        maxHeight: 1080
                     }
                 }
             })

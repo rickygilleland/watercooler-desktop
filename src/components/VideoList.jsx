@@ -18,7 +18,8 @@ function VideoList(props) {
                     active={typeof publisher.active != "undefined" ? publisher.active : false}
                     hasVideo={typeof publisher.hasVideo != "undefined" ? publisher.hasVideo : false}
                     hasAudio={typeof publisher.hasAudio != "undefined" ? publisher.hasAudio : false}
-                    key={publisher.display}
+                    showBeforeJoin={publisher.id.includes("_screensharing") ? false : true}
+                    key={publisher.id}
                 ></Video>
             )
         }
