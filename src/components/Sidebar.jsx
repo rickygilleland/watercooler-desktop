@@ -10,7 +10,6 @@ import { getOrganizationUsers } from '../actions/organization';
 import EnsureLoggedInContainer from '../containers/EnsureLoggedInContainer';
 import LoginPage from '../containers/LoginPage';
 import MagicLoginPage from '../containers/MagicLoginPage';
-import LoadingPage from '../containers/LoadingPage';
 import RoomPage from '../containers/RoomPage';
 import TeamPage from '../containers/TeamPage';
 import ErrorBoundary from './ErrorBoundary';
@@ -285,7 +284,6 @@ class Sidebar extends React.Component {
                     <Switch>
                         <Route path={routes.LOGIN} component={LoginPage} />
                         <Route path={routes.MAGIC_LOGIN} component={MagicLoginPage} />
-                        <Route path={routes.LOADING} component={LoadingPage} />
                         <Redirect from="/" exact to={{
                                 pathname: routes.LOADING,
                         }} />

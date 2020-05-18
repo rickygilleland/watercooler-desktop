@@ -1,5 +1,5 @@
 import React from 'react';
-import { ipcRenderer, desktopCapturer } from 'electron';
+import { ipcRenderer, desktopCapturer, screen } from 'electron';
 import update from 'immutability-helper';
 import { each } from 'lodash';
 import { 
@@ -30,6 +30,7 @@ import Pusher from 'pusher-js';
 import VideoList from './VideoList';
 import AddUserToRoomModal from './AddUserToRoomModal';
 import ScreenSharingModal from './ScreenSharingModal';
+const { BrowserWindow } = require('electron').remote
 
 class Room extends React.Component {
     constructor(props) {
@@ -54,6 +55,7 @@ class Room extends React.Component {
             showScreenSharingDropdown: false,
             screenSharingHandle: null,
             screenSharingStream: null,
+            screenSharingWindow: null,
             screenSources: [],
             screenSourcesLoading: false,
             leaving: false,
@@ -210,7 +212,7 @@ class Room extends React.Component {
     
     componentWillUnmount() {
         const { pusherInstance } = this.props;
-        const { me, room, rootStreamerHandle, publishers, local_stream, publishing } = this.state;
+        const { me, room, rootStreamerHandle, publishers, local_stream, publishing, screenSharingWindow } = this.state;
 
         if (typeof room.channel_id != 'undefined' && typeof pusherInstance != "undefined" &&  pusherInstance != null) {
             pusherInstance.unsubscribe(`presence-room.${room.channel_id}`);
@@ -227,6 +229,10 @@ class Room extends React.Component {
             });
         } catch (error) {
             //do something
+        }
+
+        if (screenSharingWindow != null) {
+            screenSharingWindow.destroy();
         }
 
         window.removeEventListener('resize', this.handleResize);
@@ -660,7 +666,7 @@ class Room extends React.Component {
     }
 
     stopPublishingStream() {
-        const { videoRoomStreamerHandle, screenSharingHandle, screenSharingStream, local_stream, publishers } = this.state;
+        const { videoRoomStreamerHandle, screenSharingHandle, screenSharingStream, screenSharingWindow, local_stream, publishers } = this.state;
 
         if (videoRoomStreamerHandle == null) {
             return;
@@ -675,11 +681,17 @@ class Room extends React.Component {
         if (screenSharingHandle != null) {
             screenSharingHandle.send({ "message": request });
 
-            const screenSharingTracks = screenSharingStream.getTracks();
+            if (screenSharingStream != null) {
+                const screenSharingTracks = screenSharingStream.getTracks();
 
-            screenSharingTracks.forEach(function(track) {
-                track.stop();
-            })
+                screenSharingTracks.forEach(function(track) {
+                    track.stop();
+                })
+            }
+        }
+
+        if (screenSharingWindow != null) {
+            screenSharingWindow.destroy();
         }
 
         if (local_stream != null) {
@@ -704,7 +716,7 @@ class Room extends React.Component {
             return publisher.active;
         })
 
-        this.setState({ publishing: false, local_stream: null, publishers, screenSharingActive: false })
+        this.setState({ publishing: false, local_stream: null, publishers, screenSharingActive: false, screenSharingWindow: null })
         
     }
     
@@ -770,7 +782,27 @@ class Room extends React.Component {
                 }
 
                 screenSharingHandle.send({ "message": request, "jsep": jsep });
-                that.setState({ screenSharingActive: true });
+
+                let screenSharingWindow = new BrowserWindow({ 
+                    width: 300, 
+                    height: 90,
+                    x: 0,
+                    y: 0,
+                    frame: false,
+                    transparent: true,
+                    alwaysOnTop: true,
+                    visibleOnAllWorkspaces: true,
+                    hasShadow: false,
+                    webPreferences: {
+                        nodeIntegration: true,
+                        preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+                        devTools: true
+                    }
+                })
+                  
+                screenSharingWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/screensharing_controls");
+
+                that.setState({ screenSharingActive: true, screenSharingWindow });
 
             }
         })
@@ -1097,7 +1129,7 @@ class Room extends React.Component {
     }
 
     async toggleScreenSharing(streamId = null) {
-        const { screenSharingHandle, screenSharingActive, screenSources, screenSharingStream } = this.state;
+        const { screenSharingHandle, screenSharingActive, screenSources, screenSharingStream, screenSharingWindow } = this.state;
 
         if (screenSharingActive && streamId == null) {
 
@@ -1108,14 +1140,21 @@ class Room extends React.Component {
             if (screenSharingHandle != null) {
                 screenSharingHandle.send({ "message": request });
             }
+            
+            if (screenSharingStream != null) {
+                const screenSharingTracks = screenSharingStream.getTracks();
 
-            const screenSharingTracks = screenSharingStream.getTracks();
+                screenSharingTracks.forEach(function(track) {
+                    track.stop();
+                })
 
-            screenSharingTracks.forEach(function(track) {
-                track.stop();
-            })
+            }
 
-            return this.setState({ screenSharingActive: false, screenSharingStream: null });
+            if (screenSharingWindow != null) {
+                screenSharingWindow.destroy();
+            }
+
+            return this.setState({ screenSharingActive: false, screenSharingStream: null, screenSharingWindow: null });
         }
 
         if (streamId == "entire-screen") {
@@ -1124,6 +1163,8 @@ class Room extends React.Component {
                     streamId = source.id;
                 }
             })
+
+
         }
 
         try {
