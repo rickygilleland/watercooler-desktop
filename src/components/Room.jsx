@@ -783,6 +783,7 @@ class Room extends React.Component {
 
                 screenSharingHandle.send({ "message": request, "jsep": jsep });
 
+
                 let screenSharingWindow = new BrowserWindow({ 
                     width: 300, 
                     height: 90,
@@ -1272,13 +1273,16 @@ class Room extends React.Component {
                     <Col xs={{span:4}} md={{span:2}}>
                         <div className="d-flex flex-row justify-content-center">
                             <div className="align-self-center">
-                                {local_stream === null ?
-                                    !room_at_capacity ?
-                                        <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                {loading ?
+                                        ''
                                     :
-                                        <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" disabled><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
-                                :   
-                                    <Button variant="outline-danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
+                                        local_stream === null ?
+                                            !room_at_capacity ?
+                                                <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                            :
+                                                <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" disabled><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                        :   
+                                            <Button variant="outline-danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
                                 }
                             </div>
                             <div style={{height:80}}></div>
