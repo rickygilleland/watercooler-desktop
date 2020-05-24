@@ -2,16 +2,23 @@ import React from 'react';
 import Video from './Video';
 
 function VideoList(props) {
-    const { publishing, user, publishers, talking, videoSizes, renderVideo, currentTime, pinned } = props;
+    const { publishing, user, publishers, talking, videoSizes, renderVideo, togglePinned, pinned, currentTime } = props;
+
+    var showPinToggle = false;
+    if (publishers.length > 1) {
+        showPinToggle = true;
+    }
 
     if (pinned !== false) {
         var publisher = publishers[pinned];
         console.log("VIDE PUB", publishers);
         return(
             <Video
+                showPinToggle={showPinToggle}
                 videoSizes={videoSizes}
                 publisher={publisher}
                 renderVideo={renderVideo}
+                togglePinned={togglePinned}
                 publishing={publishing}
                 talking={talking}
                 currentTime={currentTime}
@@ -30,9 +37,11 @@ function VideoList(props) {
         if (publisher.member.id != user.id) {
             return(
                 <Video
+                    showPinToggle={showPinToggle}
                     videoSizes={videoSizes}
                     publisher={publisher}
                     renderVideo={renderVideo}
+                    togglePinned={togglePinned}
                     publishing={publishing}
                     talking={talking}
                     currentTime={currentTime}

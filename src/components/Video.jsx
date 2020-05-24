@@ -1,12 +1,20 @@
 import React from 'react';
-import { Image, Col, Row } from 'react-bootstrap';
+import { Image, Col, Row, Button } from 'react-bootstrap';
 import { DateTime } from 'luxon';
 import VideoPlayer from './VideoPlayer';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faVideoSlash, faMicrophone, faMicrophoneSlash, faCircleNotch } from '@fortawesome/free-solid-svg-icons';
+import { 
+    faVideoSlash, 
+    faMicrophone, 
+    faMicrophoneSlash, 
+    faCircleNotch,
+    faExpand,
+    faCompress
+} from '@fortawesome/free-solid-svg-icons';
 
 function Video(props) {
     const { 
+        showPinToggle,
         showBeforeJoin,
         videoSizes, 
         publisher, 
@@ -17,6 +25,7 @@ function Video(props) {
         hasVideo, 
         hasAudio, 
         renderVideo,
+        togglePinned,
         pinned
     } = props;
 
@@ -77,6 +86,16 @@ function Video(props) {
                                             }
                                         </span>
                                     </p>*/}
+                                    {showPinToggle 
+                                        ?
+                                            pinned 
+                                                ?
+                                                    <Button variant="dark" className="float-right mb-1 mr-2 toggle-pinned-btn border-0" onClick={() => togglePinned(publisher) }><FontAwesomeIcon icon={faCompress} /></Button>
+                                                :
+                                                    <Button variant="dark" className="float-right mb-1 mr-2 toggle-pinned-btn border-0" onClick={() => togglePinned(publisher) }><FontAwesomeIcon icon={faExpand} /></Button>
+                                        : 
+                                            ''
+                                    }
                                 </Col>
                             </Row>
                         </div>

@@ -1250,10 +1250,6 @@ class Room extends React.Component {
                     mandatory: {
                         chromeMediaSource: 'desktop',
                         chromeMediaSourceId: streamId,
-                        minWidth: 1280,
-                        maxWidth: 1920,
-                        minHeight: 720,
-                        maxHeight: 1080
                     }
                 }
             })
@@ -1420,6 +1416,7 @@ class Room extends React.Component {
                                             user={user}
                                             talking={talking}
                                             renderVideo={this.renderVideo}
+                                            togglePinned={this.togglePinned}
                                             pinned={pinned}
                                         ></VideoList>
                                     :
