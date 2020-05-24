@@ -826,6 +826,8 @@ class Room extends React.Component {
                     })
                       
                     screenSharingWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/screensharing_controls");
+
+                    ipcRenderer.invoke('update-screen-sharing-controls', { starting: true });
     
                     that.setState({ screenSharingActive: true, screenSharingWindow });                    
                 })
@@ -1118,14 +1120,13 @@ class Room extends React.Component {
             }
 
             if (screenSharingWindow != null) {
-                var args = {
+
+                ipcRenderer.invoke('update-screen-sharing-controls', {
                     videoStatus,
                     audioStatus,
                     videoEnabled: this.state.room.video_enabled,
                     screenSharingWindow: screenSharingWindow.id
-                }
-
-                ipcRenderer.invoke('update-screen-sharing-controls', args);
+                });
             }
 
             if (typeof local_video_container != "undefined") {

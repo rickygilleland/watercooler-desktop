@@ -166,6 +166,15 @@ app.on('ready', () => {
   })
 
   ipcMain.handle('update-screen-sharing-controls', async (event, args) => {
+
+    if (typeof args.starting != "undefined") {
+      return mainWindow.hide();
+    }
+
+    if (typeof args.leaveRoom != "undefined" || typeof args.toggleScreenSharing != "undefined") {
+      mainWindow.show();
+    }
+
     if (typeof args.screenSharingWindow != "undefined") {
       BrowserWindow.fromId(args.screenSharingWindow).webContents.send('update-screen-sharing-controls', args);
     } else {
