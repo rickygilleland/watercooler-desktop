@@ -16,7 +16,8 @@ function Video(props) {
         talking,
         hasVideo, 
         hasAudio, 
-        renderVideo 
+        renderVideo,
+        pinned
     } = props;
 
     var classAppend = '';
@@ -53,7 +54,7 @@ function Video(props) {
         if (hasVideo === true && !videoLoading) {
             return (
                 <div className="col p-0 video-col">
-                    <div className={`video-container mx-auto position-relative rounded text-light ${classAppend}`}  style={{height: height, width: videoSizes.width }}>
+                    <div className={`video-container mx-auto position-relative rounded text-light ${classAppend}`}  style={{height: pinned ? videoSizes.pinnedHeight : height, width: pinned ? videoSizes.pinnedWidth : videoSizes.width }}>
                         <VideoPlayer renderVideo={renderVideo} stream={publisher.stream} publisher={publisher} />
                         <div className="position-absolute overlay" style={{top:5,width:"100%"}}>	
                             {publisher.member.timezone != null && publisher.member.timezone != localTimezone ? 	

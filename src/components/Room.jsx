@@ -70,6 +70,7 @@ class Room extends React.Component {
                 height: window.innerHeight,
                 sidebarWidth: 240
             },
+            pinned: false,
             talking: [],
             local_video_container: [],
             videoStatus: false,
@@ -921,6 +922,20 @@ class Room extends React.Component {
                     publishers[key].handle = handle;
                     publishers[key].active = true;
 
+                    if (publishers[key].id.includes("_screensharing")) {
+                        publishers[key].pinned = true;
+
+                        publishers.forEach(publisher => {
+                            publisher.pinned = false;
+                        })
+
+                        var pinned = key;
+                    }
+
+                    if (typeof pinned != "undefined") {
+                        return that.setState({ pinned, publishers });
+                    }
+
                     that.setState({ publishers });
                 }
 
@@ -1047,6 +1062,14 @@ class Room extends React.Component {
                 height = Math.round( width / aspectRatio );
             }
 
+            var pinnedWidth = dimensions.width - 375;
+            var pinnedHeight = Math.round(pinnedWidth / aspectRatio);
+
+            while(pinnedHeight > (dimensions.height)) {
+                pinnedWidth -= 5;
+                pinnedHeight = Math.round(pinnedWidth / aspectRatio);
+            }
+
             var display = "row align-items-center justify-content-center h-100";
 
             if (dimensions.width < 1080) {
@@ -1058,6 +1081,8 @@ class Room extends React.Component {
                 width: width,
                 display: display,
                 containerHeight: dimensions.height - 80,
+                pinnedHeight,
+                pinnedWidth,
                 rows,
                 columns
             }
@@ -1259,6 +1284,7 @@ class Room extends React.Component {
             videoStatus, 
             audioStatus, 
             videoSizes, 
+            pinned,
             currentLoadingMessage,
             showAddUserToRoomModal 
         } = this.state;
@@ -1372,7 +1398,7 @@ class Room extends React.Component {
                     : 
                         !room_at_capacity ?
                             <React.Fragment>
-                                <div className={videoSizes.display}>
+                                <div className={videoSizes.display} style={{overflowY:"scroll"}}>
                                     {publishers.length > 0 ?
                                         <VideoList
                                             videoSizes={videoSizes}
@@ -1382,6 +1408,7 @@ class Room extends React.Component {
                                             user={user}
                                             talking={talking}
                                             renderVideo={this.renderVideo}
+                                            pinned={pinned}
                                         ></VideoList>
                                     :
                                         currentLoadingMessage
