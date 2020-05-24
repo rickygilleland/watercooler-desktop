@@ -6,6 +6,7 @@ function VideoList(props) {
 
     if (pinned !== false) {
         var publisher = publishers[pinned];
+        console.log("VIDE PUB", publishers);
         return(
             <Video
                 videoSizes={videoSizes}

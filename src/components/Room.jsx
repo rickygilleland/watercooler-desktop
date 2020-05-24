@@ -106,6 +106,7 @@ class Room extends React.Component {
 
         this.toggleVideoOrAudio = this.toggleVideoOrAudio.bind(this);
         this.handleRemoteStreams = this.handleRemoteStreams.bind(this);
+        this.togglePinned = this.togglePinned.bind(this);
         this.subscribeToRemoteStream = this.subscribeToRemoteStream.bind(this);
         this.updateDisplayedVideosSizes = this.updateDisplayedVideosSizes.bind(this);
 
@@ -844,8 +845,35 @@ class Room extends React.Component {
         publishers.forEach((publisher, key) => {
             if (typeof publisher.handle == "undefined" || publisher.handle == null) {
                 this.subscribeToRemoteStream(publisher, key);
+                
+                if (publisher.id.includes("_screensharing")) {
+                    this.togglePinned(publisher);
+                }
             }
         })
+    }
+
+    togglePinned(publisherToPin) {
+        const { publishers } = this.state;
+
+        var unpin = false;
+        var pinned = false;
+
+        publishers.forEach((publisher, key) => {
+            if (publisher.id != publisherToPin.id) {
+                return publisher.pinned = false;
+            }
+
+            if (typeof publisher.pinned != "undefined" && publisher.pinned) {
+                return publisher.pinned = false;
+            } 
+
+            publisher.pinned = true;
+            pinned = key;
+        })
+
+        this.setState({ publishers, pinned })
+
     }
 
     subscribeToRemoteStream(publisher, key) {
@@ -853,8 +881,6 @@ class Room extends React.Component {
 
         var handle;
         var that = this;
-
-        console.log("subscribinig", publisher);
 
         rootStreamerHandle.attach({
             plugin: "janus.plugin.videoroom",
@@ -921,20 +947,6 @@ class Room extends React.Component {
                     publishers[key].hasAudio = hasAudio;
                     publishers[key].handle = handle;
                     publishers[key].active = true;
-
-                    if (publishers[key].id.includes("_screensharing")) {
-                        publishers[key].pinned = true;
-
-                        publishers.forEach(publisher => {
-                            publisher.pinned = false;
-                        })
-
-                        var pinned = key;
-                    }
-
-                    if (typeof pinned != "undefined") {
-                        return that.setState({ pinned, publishers });
-                    }
 
                     that.setState({ publishers });
                 }
@@ -1065,7 +1077,7 @@ class Room extends React.Component {
             var pinnedWidth = dimensions.width - 375;
             var pinnedHeight = Math.round(pinnedWidth / aspectRatio);
 
-            while(pinnedHeight > (dimensions.height)) {
+            while(pinnedHeight > (dimensions.height - 250)) {
                 pinnedWidth -= 5;
                 pinnedHeight = Math.round(pinnedWidth / aspectRatio);
             }
