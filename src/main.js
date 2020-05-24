@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, autoUpdater, dialog, protocol, ipcMain, webContents, powerMonitor, Notification } from 'electron';
+import { app, BrowserWindow, Menu, autoUpdater, dialog, protocol, ipcMain, webContents, screen, powerMonitor, Notification } from 'electron';
 import { init } from '@sentry/electron/dist/main';
 import * as Sentry from '@sentry/electron';
 if(require('electron-squirrel-startup')) app.quit();
@@ -158,6 +158,20 @@ app.on('ready', () => {
 
   powerMonitor.on('lock-screen', () => {
     mainWindow.webContents.send('power_update', 'lock-screen');
+  })
+
+  ipcMain.handle('get-current-window-dimensions', async (event) => {
+    const { width, height } = screen.getPrimaryDisplay().workAreaSize
+    return { width, height }
+  })
+
+  ipcMain.handle('update-screen-sharing-controls', async (event, args) => {
+    if (typeof args.screenSharingWindow != "undefined") {
+      BrowserWindow.fromId(args.screenSharingWindow).webContents.send('update-screen-sharing-controls', args);
+    } else {
+      mainWindow.webContents.send('update-screen-sharing-controls', args);
+    }
+    return true;
   })
 
 });

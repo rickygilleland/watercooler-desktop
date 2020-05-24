@@ -1,5 +1,5 @@
 import React from 'react';
-import { ipcRenderer, desktopCapturer, screen } from 'electron';
+import { ipcRenderer, desktopCapturer } from 'electron';
 import update from 'immutability-helper';
 import { each } from 'lodash';
 import { 
@@ -141,6 +141,20 @@ class Room extends React.Component {
             if (arg == "unlock-screen" || arg == "resume") {
                 this.reconnectNetworkConnections();
             }
+        })
+
+        ipcRenderer.on('update-screen-sharing-controls', (event, args) => {
+            if (typeof args.initial == "undefined") {
+                //handle toggle
+            }
+
+            console.log("RECEIVED", this.state.screenSharingWindow);
+
+            ipcRenderer.invoke('update-screen-sharing-controls', {
+                videoStatus: this.state.videoStatus,
+                audioStatus: this.state.audioStatus,
+                screenSharingWindow: this.state.screenSharingWindow.id
+            });
         })
 
         Janus.init({
@@ -783,27 +797,31 @@ class Room extends React.Component {
 
                 screenSharingHandle.send({ "message": request, "jsep": jsep });
 
-
-                let screenSharingWindow = new BrowserWindow({ 
-                    width: 300, 
-                    height: 90,
-                    x: 0,
-                    y: 0,
-                    frame: false,
-                    transparent: true,
-                    alwaysOnTop: true,
-                    visibleOnAllWorkspaces: true,
-                    hasShadow: false,
-                    webPreferences: {
-                        nodeIntegration: true,
-                        preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-                        devTools: true
-                    }
+                ipcRenderer.invoke('get-current-window-dimensions').then((result) => {
+                    var x = result.width - (result.width / 2) - 150;
+                    var y = result.height - 85;
+                    let screenSharingWindow = new BrowserWindow({ 
+                        width: 300, 
+                        height: 90,
+                        x,
+                        y,
+                        frame: false,
+                        transparent: true,
+                        alwaysOnTop: true,
+                        visibleOnAllWorkspaces: true,
+                        hasShadow: false,
+                        resizable: false,
+                        webPreferences: {
+                            nodeIntegration: true,
+                            preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+                            devTools: true
+                        }
+                    })
+                      
+                    screenSharingWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/screensharing_controls");
+    
+                    that.setState({ screenSharingActive: true, screenSharingWindow });                    
                 })
-                  
-                screenSharingWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/screensharing_controls");
-
-                that.setState({ screenSharingActive: true, screenSharingWindow });
 
             }
         })
@@ -1052,7 +1070,7 @@ class Room extends React.Component {
     }
 
     toggleVideoOrAudio(type) {
-        var { videoRoomStreamerHandle, local_stream, videoStatus, audioStatus } = this.state;
+        var { videoRoomStreamerHandle, local_stream, videoStatus, audioStatus, screenSharingWindow } = this.state;
 
         if (typeof local_stream !== 'undefined') {
             var tracks = local_stream.getTracks();
@@ -1096,7 +1114,16 @@ class Room extends React.Component {
                 return this.setState({ local_video_container, videoStatus, audioStatus });
             }
 
-            this.setState({ videoStatus, audioStatus });
+            this.setState({ videoStatus, audioStatus });  
+
+            var args = {
+                videoStatus,
+                audioStatus,
+                screenSharingWindow: screenSharingWindow.id
+            }
+
+            ipcRenderer.invoke('update-screen-sharing-controls', args);
+
         }
     }
 
