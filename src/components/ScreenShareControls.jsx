@@ -31,7 +31,8 @@ class ScreenShareControls extends React.PureComponent {
 
         this.state = {
             audioStatus: null,
-            videoStatus: null
+            videoStatus: null,
+            videoEnabled: null,
         }
     }
 
@@ -39,8 +40,7 @@ class ScreenShareControls extends React.PureComponent {
         ipcRenderer.invoke('update-screen-sharing-controls', { initial: true });
 
         ipcRenderer.on('update-screen-sharing-controls', (event, args) => {
-            console.log("RECEIVED");
-            this.setState({ audioStatus: args.audioStatus, videoStatus: args.videoStatus });
+            this.setState({ audioStatus: args.audioStatus, videoStatus: args.videoStatus, videoEnabled: args.videoEnabled });
         })
     }
 
@@ -48,8 +48,20 @@ class ScreenShareControls extends React.PureComponent {
        
     }
 
+    toggleScreenSharing() {
+        ipcRenderer.invoke('update-screen-sharing-controls', { toggleScreenSharing: true });
+    }
+
+    toggleVideoOrAudio(type) {
+        ipcRenderer.invoke('update-screen-sharing-controls', { toggleVideoOrAudio: type });
+    }
+
+    leaveRoom() {
+        ipcRenderer.invoke('update-screen-sharing-controls', { leaveRoom: true });
+    }
+
     render() {
-        const { videoStatus, audioStatus } = this.state;
+        const { videoStatus, audioStatus, videoEnabled } = this.state;
 
         if (videoStatus == null) {
             return (
@@ -60,10 +72,19 @@ class ScreenShareControls extends React.PureComponent {
         return(
             <div className="d-flex flex-row justify-content-center vh-100" style={{backgroundColor:"#121422"}}>
                 <div className="align-self-start mt-1">
-                <Button variant="outline-danger" style={{whiteSpace:'nowrap'}} className="mx-1" ><FontAwesomeIcon icon={faDesktop} /></Button>
-                <Button variant={audioStatus ? "outline-success" : "outline-danger"} style={{whiteSpace:'nowrap'}} className="mx-1" ><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /> </Button>
-                <Button variant={videoStatus ? "outline-success" : "outline-danger"} style={{whiteSpace:'nowrap'}} className="mx-1" ><FontAwesomeIcon icon={faVideoSlash} /> </Button>
-                <Button variant="outline-danger" style={{whiteSpace:'nowrap'}} className="mx-1"><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
+                <Button variant="outline-danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.toggleScreenSharing() }><FontAwesomeIcon icon={faDesktop} /></Button>
+                <Button variant={audioStatus ? "outline-success" : "outline-danger"} style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio")} ><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /> </Button>
+                {videoEnabled ?
+                    <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                :
+                <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Video is disabled in this room.</Tooltip>}>
+                    <span className="d-inline-block">
+                    
+                    <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                    </span>
+                </OverlayTrigger> 
+                }
+                <Button variant="outline-danger" style={{whiteSpace:'nowrap'}} className="mx-1"><FontAwesomeIcon icon={faDoorClosed} onClick={() => this.leaveRoom() } /> Leave</Button>
                 </div>
             </div>
         )

@@ -144,15 +144,22 @@ class Room extends React.Component {
         })
 
         ipcRenderer.on('update-screen-sharing-controls', (event, args) => {
-            if (typeof args.initial == "undefined") {
-                //handle toggle
+            if (typeof args.toggleVideoOrAudio != "undefined") {
+                return this.toggleVideoOrAudio(args.toggleVideoOrAudio);
             }
 
-            console.log("RECEIVED", this.state.screenSharingWindow);
+            if (typeof args.toggleScreenSharing != "undefined") {
+                return this.toggleScreenSharing();
+            }
+
+            if (typeof args.leaveRoom != "undefined") {
+                return this.stopPublishingStream();
+            }
 
             ipcRenderer.invoke('update-screen-sharing-controls', {
                 videoStatus: this.state.videoStatus,
                 audioStatus: this.state.audioStatus,
+                videoEnabled: this.state.room.video_enabled,
                 screenSharingWindow: this.state.screenSharingWindow.id
             });
         })
@@ -810,7 +817,7 @@ class Room extends React.Component {
                         alwaysOnTop: true,
                         visibleOnAllWorkspaces: true,
                         hasShadow: false,
-                        resizable: false,
+                        resizable: true,
                         webPreferences: {
                             nodeIntegration: true,
                             preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
@@ -1110,19 +1117,22 @@ class Room extends React.Component {
                 } 
             }
 
+            if (screenSharingWindow != null) {
+                var args = {
+                    videoStatus,
+                    audioStatus,
+                    videoEnabled: this.state.room.video_enabled,
+                    screenSharingWindow: screenSharingWindow.id
+                }
+
+                ipcRenderer.invoke('update-screen-sharing-controls', args);
+            }
+
             if (typeof local_video_container != "undefined") {
                 return this.setState({ local_video_container, videoStatus, audioStatus });
             }
 
             this.setState({ videoStatus, audioStatus });  
-
-            var args = {
-                videoStatus,
-                audioStatus,
-                screenSharingWindow: screenSharingWindow.id
-            }
-
-            ipcRenderer.invoke('update-screen-sharing-controls', args);
 
         }
     }
