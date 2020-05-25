@@ -155,6 +155,9 @@ class Room extends React.Component {
             }
 
             if (typeof args.toggleScreenSharing != "undefined") {
+                if (typeof args.entireScreen != "undefined" && args.toggleScreenSharing == true) {
+                    return this.toggleScreenSharing("entire-screen");
+                }
                 return this.toggleScreenSharing();
             }
 
@@ -167,6 +170,13 @@ class Room extends React.Component {
                 audioStatus: this.state.audioStatus,
                 videoEnabled: this.state.room.video_enabled,
                 screenSharingWindow: this.state.screenSharingWindow.id
+            });
+
+            ipcRenderer.invoke('update-tray-icon', {
+                videoStatus: this.state.videoStatus,
+                audioStatus: this.state.audioStatus,
+                videoEnabled: this.state.room.video_enabled,
+                screenSharingActive: this.state.screenSharingActive
             });
         })
 
@@ -687,6 +697,14 @@ class Room extends React.Component {
 
                 that.setState({ publishing: true, local_video_container });
 
+                ipcRenderer.invoke('update-tray-icon', {
+                    enable: true,
+                    videoStatus,
+                    audioStatus,
+                    videoEnabled: that.state.room.video_enabled,
+                    screenSharingActive: that.state.screenSharingActive
+                });
+
                 that.handleRemoteStreams();
             }
         })
@@ -742,6 +760,10 @@ class Room extends React.Component {
         publishers.filter(publisher => {
             return publisher.active;
         })
+
+        ipcRenderer.invoke('update-tray-icon', {
+            disable: true
+        });
 
         this.setState({ publishing: false, local_stream: null, publishers, screenSharingActive: false, screenSharingWindow: null })
         
@@ -835,6 +857,13 @@ class Room extends React.Component {
                     screenSharingWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/screensharing_controls");
 
                     ipcRenderer.invoke('update-screen-sharing-controls', { starting: true });
+
+                    ipcRenderer.invoke('update-tray-icon', {
+                        videoStatus: that.state.videoStatus,
+                        audioStatus: that.state.audioStatus,
+                        videoEnabled: that.state.room.video_enabled,
+                        screenSharingActive: true
+                    });
     
                     that.setState({ screenSharingActive: true, screenSharingWindow });                    
                 })
@@ -1171,6 +1200,13 @@ class Room extends React.Component {
                 });
             }
 
+            ipcRenderer.invoke('update-tray-icon', {
+                videoStatus,
+                audioStatus,
+                videoEnabled: this.state.room.video_enabled,
+                screenSharingActive: this.state.screenSharingActive
+            });
+
             if (typeof local_video_container != "undefined") {
                 return this.setState({ local_video_container, videoStatus, audioStatus });
             }
@@ -1242,6 +1278,13 @@ class Room extends React.Component {
                 screenSharingWindow.destroy();
             }
 
+            ipcRenderer.invoke('update-tray-icon', {
+                videoStatus: this.state.videoStatus,
+                audioStatus: this.state.audioStatus,
+                videoEnabled: this.state.room.video_enabled,
+                screenSharingActive: false
+            });
+
             return this.setState({ screenSharingActive: false, screenSharingStream: null, screenSharingWindow: null });
         }
 
@@ -1251,8 +1294,6 @@ class Room extends React.Component {
                     streamId = source.id;
                 }
             })
-
-
         }
 
         try {
@@ -1269,6 +1310,7 @@ class Room extends React.Component {
             this.setState({ screenSharingStream: stream });
 
             this.startPublishingScreenSharingStream();
+
         } catch (e) {
             //show an error
         }
