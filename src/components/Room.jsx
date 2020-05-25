@@ -1112,10 +1112,10 @@ class Room extends React.Component {
                 height = Math.round( width / aspectRatio );
             }
 
-            var pinnedWidth = dimensions.width - 375;
+            var pinnedWidth = dimensions.width - 275;
             var pinnedHeight = Math.round(pinnedWidth / aspectRatio);
 
-            while(pinnedHeight > (dimensions.height - 250)) {
+            while(pinnedHeight > (dimensions.height - 120)) {
                 pinnedWidth -= 5;
                 pinnedHeight = Math.round(pinnedWidth / aspectRatio);
             }
@@ -1454,7 +1454,7 @@ class Room extends React.Component {
                         : '' }
                     </Col>
                 </Row>
-                <Container className="ml-0 stage-container" fluid style={{height:videoSizes.containerHeight}}>
+                <Container className="ml-0 stage-container" fluid style={{height:videoSizes.containerHeight - 20}}>
 
                     {loading ? 
                         <React.Fragment>

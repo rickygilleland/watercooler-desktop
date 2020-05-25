@@ -9,9 +9,11 @@ function VideoList(props) {
         showPinToggle = true;
     }
 
-    if (pinned !== false) {
-        var publisher = publishers[pinned];
-        console.log("VIDE PUB", publishers);
+    if (pinned !== false || !showPinToggle) {
+        var publisher = publishers[0];
+        if (pinned !== false) {
+            publisher = publishers[pinned];
+        }
         return(
             <Video
                 showPinToggle={showPinToggle}
