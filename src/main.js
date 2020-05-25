@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, autoUpdater, dialog, protocol, ipcMain, webContents, screen, powerMonitor, Notification, systemPreferences } from 'electron';
+import { app, BrowserWindow, Menu, autoUpdater, dialog, protocol, ipcMain, webContents, screen, powerMonitor, Notification, systemPreferences, Tray } from 'electron';
 import { init } from '@sentry/electron/dist/main';
 import * as Sentry from '@sentry/electron';
 if(require('electron-squirrel-startup')) app.quit();
@@ -146,6 +146,9 @@ if (process.platform == "darwin") {
   app.commandLine.appendSwitch('enable-features', 'metal');
 }
 
+let tray = null;
+let trayMenu = null;
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -176,14 +179,107 @@ app.on('ready', () => {
   ipcMain.handle('update-screen-sharing-controls', async (event, args) => {
 
     if (typeof args.starting != "undefined") {
+
+      let iconPath = path.resolve(__dirname, 'icons', 'appIconTemplate.png');
+
+      tray = new Tray(iconPath);
+      trayMenu = Menu.buildFromTemplate([
+        { 
+          label: "Stop Screen Sharing", click: function() {
+            mainWindow.webContents.send('update-screen-sharing-controls', { toggleScreenSharing: true });
+            mainWindow.show();
+            tray.destroy();
+          }
+        },
+        {
+          label: "Mute Microphone", click: function() {
+            mainWindow.webContents.send('update-screen-sharing-controls', { toggleVideoOrAudio: "audio" });
+          }
+        },
+        {
+          label: "Turn Off Camera", click: function() {
+            mainWindow.webContents.send('update-screen-sharing-controls', { toggleVideoOrAudio: "video" });
+          }
+        },
+        {
+          label: "Leave Room", click: function() {
+            mainWindow.webContents.send('update-screen-sharing-controls', { leaveRoom: true });
+            mainWindow.show();
+            tray.destroy();
+          } 
+        }
+      ])
+      tray.setToolTip('Screen Sharing is Active');
+
+      tray.setContextMenu(trayMenu)
+    
       return mainWindow.hide();
     }
 
     if (typeof args.leaveRoom != "undefined" || typeof args.toggleScreenSharing != "undefined") {
+
+      tray.destroy();
+      tray = null;
+
       mainWindow.show();
     }
 
     if (typeof args.screenSharingWindow != "undefined") {
+      if (typeof args.audioStatus != "undefined") {
+        if (args.videoEnabled) {
+          trayMenu = Menu.buildFromTemplate([
+            { 
+              label: "Stop Screen Sharing", click: function() {
+                mainWindow.webContents.send('update-screen-sharing-controls', { toggleScreenSharing: true });
+                mainWindow.show();
+                tray.destroy();
+              }
+            },
+            {
+              label: args.audioStatus ? "Mute Microphone" : "Unmute Microphone", click: function() {
+                mainWindow.webContents.send('update-screen-sharing-controls', { toggleVideoOrAudio: "audio" });
+              }
+            },
+            {
+              label: args.videoStatus ? "Turn Off Camera" : "Turn On Camera", click: function() {
+                mainWindow.webContents.send('update-screen-sharing-controls', { toggleVideoOrAudio: "video" });
+              }
+            },
+            {
+              label: "Leave Room", click: function() {
+                mainWindow.webContents.send('update-screen-sharing-controls', { leaveRoom: true });
+                mainWindow.show();
+                tray.destroy();
+              } 
+            }
+          ])
+        } else {
+          trayMenu = Menu.buildFromTemplate([
+            { 
+              label: "Stop Screen Sharing", click: function() {
+                mainWindow.webContents.send('update-screen-sharing-controls', { toggleScreenSharing: true });
+                mainWindow.show();
+                tray.destroy();
+              }
+            },
+            {
+              label: args.audioStatus ? "Mute Microphone" : "Unmute Microphone", click: function() {
+                mainWindow.webContents.send('update-screen-sharing-controls', { toggleVideoOrAudio: "audio" });
+              }
+            },
+            {
+              label: "Leave Room", click: function() {
+                mainWindow.webContents.send('update-screen-sharing-controls', { leaveRoom: true });
+                mainWindow.show();
+                tray.destroy();
+              } 
+            }
+          ])
+        }
+  
+        tray.setContextMenu(trayMenu)
+      }
+
       BrowserWindow.fromId(args.screenSharingWindow).webContents.send('update-screen-sharing-controls', args);
     } else {
       mainWindow.webContents.send('update-screen-sharing-controls', args);

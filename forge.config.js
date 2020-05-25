@@ -48,7 +48,7 @@ module.exports = {
                   "js": "./src/renderer.js",
                   "name": "main_window"
                 }
-              ]
+              ],
             }
           }
         ]
