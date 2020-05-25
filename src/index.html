@@ -33,7 +33,7 @@ gtag('config', 'G-3RVXY9EZ49');
   ::-webkit-scrollbar {
       display: none;
   }
-  video {
+  .video-flip {
     transform:rotateY(180deg);
   }
   .titlebar {
@@ -43,10 +43,10 @@ gtag('config', 'G-3RVXY9EZ49');
     text-decoration:none;
     opacity: ".5";
   }
-  .dropdownSettings > .dropdown-toggle {
+  .dropdownSettings > .dropdown-toggle, .no-hover-bg:hover {
     background-color: transparent !important;
   }
-  .dropdownSettings > .dropdown-toggle::after {
+  .dropdownSettings > .dropdown-toggle::after, .no-carat::after {
     display:none !important
   }
   .dropdownSettings > .dropdown-menu {
@@ -105,10 +105,28 @@ gtag('config', 'G-3RVXY9EZ49');
   .video-col .border {
     border: 3px solid #3ecf8e!important
   }
+  .hover-focus:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+  }
+  .toggle-pinned-btn {
+    background-color: rgb(18, 20, 34, .5) !important;
+  }
+  .toggle-pinned-btn:hover {
+    background-color: rgb(18, 20, 34, 1) !important;
+  }
+  .screen-sharing-controls {
+    -webkit-app-region: drag !important;
+  }
+  .screen-sharing-controls .btn {
+    margin-top: .35rem;
+    margin-bottom: .35rem;
+    -webkit-app-region: no-drag !important;
+  }
 </style>
 <body style="overflow: hidden; margin: 0" >
   <div id="App">
-    <h1 class="text-center mt-5">Loading Water Cooler...</h1>
+    <div class="vh-100" style="background-color: #121422;"></div>
   </div>
 </body>
 </html>

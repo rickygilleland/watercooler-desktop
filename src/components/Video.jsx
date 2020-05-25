@@ -1,12 +1,21 @@
 import React from 'react';
-import { Image, Col, Row } from 'react-bootstrap';
+import { Image, Col, Row, Button } from 'react-bootstrap';
 import { DateTime } from 'luxon';
 import VideoPlayer from './VideoPlayer';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faVideoSlash, faMicrophone, faMicrophoneSlash, faCircleNotch } from '@fortawesome/free-solid-svg-icons';
+import { 
+    faVideoSlash, 
+    faMicrophone, 
+    faMicrophoneSlash, 
+    faCircleNotch,
+    faExpand,
+    faCompress
+} from '@fortawesome/free-solid-svg-icons';
 
 function Video(props) {
     const { 
+        showPinToggle,
+        showBeforeJoin,
         videoSizes, 
         publisher, 
         localTimezone, 
@@ -15,7 +24,9 @@ function Video(props) {
         talking,
         hasVideo, 
         hasAudio, 
-        renderVideo 
+        renderVideo,
+        togglePinned,
+        pinned
     } = props;
 
     var classAppend = '';
@@ -46,11 +57,14 @@ function Video(props) {
             }
         })
 
+        var height = videoSizes.height;
+
+
         if (hasVideo === true && !videoLoading) {
             return (
                 <div className="col p-0 video-col">
-                    <div className={`video-container mx-auto position-relative rounded text-light ${classAppend}`}  style={{height: videoSizes.height, width: videoSizes.width }}>
-                        <VideoPlayer renderVideo={renderVideo} stream={publisher.stream} />
+                    <div className={`video-container mx-auto position-relative rounded text-light ${classAppend}`}  style={{height: pinned ? videoSizes.pinnedHeight : height, width: pinned ? videoSizes.pinnedWidth : videoSizes.width }}>
+                        <VideoPlayer renderVideo={renderVideo} stream={publisher.stream} publisher={publisher} />
                         <div className="position-absolute overlay" style={{top:5,width:"100%"}}>	
                             {publisher.member.timezone != null && publisher.member.timezone != localTimezone ? 	
                             <p className="pl-2 mb-1 mt-1 font-weight-bolder"><span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>{currentTime.setZone(publisher.member.timezone).toLocaleString(DateTime.TIME_SIMPLE)}</span></p>	
@@ -59,7 +73,7 @@ function Video(props) {
                         <div className="position-absolute overlay" style={{bottom:5,width:"100%"}}>
                             <Row>
                                 <Col>
-                                    <p className="pl-2 mb-1 mt-1 font-weight-bolder"><span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>{publisher.member.first_name}</span></p>
+                                    <p className="pl-2 mb-1 mt-1 font-weight-bolder"><span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>{publisher.id.includes("_screensharing") ? publisher.member.first_name + "'s Screen" : publisher.member.first_name}</span></p>
                                 </Col>
                                 <Col>
                                     {/*<p className="pr-2 mb-1 mt-1 font-weight-bolder text-right">
@@ -72,6 +86,16 @@ function Video(props) {
                                             }
                                         </span>
                                     </p>*/}
+                                    {showPinToggle 
+                                        ?
+                                            pinned 
+                                                ?
+                                                    <Button variant="dark" className="float-right mb-1 mr-2 toggle-pinned-btn border-0" onClick={() => togglePinned(publisher) }><FontAwesomeIcon icon={faCompress} /></Button>
+                                                :
+                                                    <Button variant="dark" className="float-right mb-1 mr-2 toggle-pinned-btn border-0" onClick={() => togglePinned(publisher) }><FontAwesomeIcon icon={faExpand} /></Button>
+                                        : 
+                                            ''
+                                    }
                                 </Col>
                             </Row>
                         </div>
@@ -119,6 +143,10 @@ function Video(props) {
                 </div>
             )
         }
+    }
+
+    if (showBeforeJoin == false) {
+        return(null);
     }
 
     return(

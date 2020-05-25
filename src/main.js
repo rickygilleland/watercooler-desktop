@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, autoUpdater, dialog, protocol, ipcMain, webContents, powerMonitor, Notification } from 'electron';
+import { app, BrowserWindow, Menu, autoUpdater, dialog, protocol, ipcMain, webContents, screen, powerMonitor, Notification, systemPreferences, Tray } from 'electron';
 import { init } from '@sentry/electron/dist/main';
 import * as Sentry from '@sentry/electron';
 if(require('electron-squirrel-startup')) app.quit();
@@ -139,11 +139,16 @@ const createWindow = () => {
 };
 
 app.commandLine.appendSwitch('force-fieldtrials', 'WebRTC-SupportVP9SVC/EnabledByFlag_2SL3TL/');
+app.commandLine.appendSwitch('webrtc-max-cpu-consumption-percentage', 100);
 
-if (process.env == "darwin") {
+if (process.platform == "darwin") {
   app.commandLine.appendSwitch('enable-oop-rasterization');
   app.commandLine.appendSwitch('enable-features', 'metal');
 }
+
+let tray = null;
+let trayMenu = null;
+let iconPath = path.resolve(__dirname, 'icons', 'appIconTemplate.png');
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -157,6 +162,115 @@ app.on('ready', () => {
 
   powerMonitor.on('lock-screen', () => {
     mainWindow.webContents.send('power_update', 'lock-screen');
+  })
+
+  ipcMain.handle('get-current-window-dimensions', async (event) => {
+    const { width, height } = screen.getPrimaryDisplay().workAreaSize
+    return { width, height }
+  })
+
+  ipcMain.handle('get-media-access-status', async (event, args) => {
+    if (process.platform != "darwin") {
+      return "granted";
+    }
+
+    return systemPreferences.getMediaAccessStatus(args.mediaType);
+  })
+
+  ipcMain.handle('update-tray-icon', async (event, args) => {
+    if (typeof args.enable != "undefined" && tray == null) {
+      tray = new Tray(iconPath);
+      tray.setToolTip('Screen Sharing is Active');
+    }
+
+    if (typeof args.disable != "undefined" && tray != null) {
+      tray.destroy();
+      return tray = null;
+    }
+
+    if (typeof args.screenSharingActive != "undefined") {
+      if (args.videoEnabled) {
+        trayMenu = Menu.buildFromTemplate([
+          { 
+            label: args.screenSharingActive ? "Stop Sharing Screen" : "Start Sharing Entire Screen", click: function() {
+              mainWindow.webContents.send('update-screen-sharing-controls', { toggleScreenSharing: args.screenSharingActive ? false : true, entireScreen: true });
+              if (args.screenSharingActive) {
+                return mainWindow.show();
+              }
+
+              mainWindow.setVisibleOnAllWorkspaces(true);
+              mainWindow.hide();
+              mainWindow.focus();
+              mainWindow.setVisibleOnAllWorkspaces(false);
+            }
+          },
+          {
+            label: args.audioStatus ? "Mute Microphone" : "Unmute Microphone", click: function() {
+              mainWindow.webContents.send('update-screen-sharing-controls', { toggleVideoOrAudio: "audio" });
+            }
+          },
+          {
+            label: args.videoStatus ? "Turn Off Camera" : "Turn On Camera", click: function() {
+              mainWindow.webContents.send('update-screen-sharing-controls', { toggleVideoOrAudio: "video" });
+            }
+          },
+          {
+            label: "Leave Room", click: function() {
+              mainWindow.webContents.send('update-screen-sharing-controls', { leaveRoom: true });
+              mainWindow.show();
+            } 
+          }
+        ])
+      } else {
+        trayMenu = Menu.buildFromTemplate([
+          { 
+            label: args.screenSharingActive ? "Stop Sharing Screen" : "Start Sharing Entire Screen", click: function() {
+              mainWindow.webContents.send('update-screen-sharing-controls', { toggleScreenSharing: args.screenSharingActive ? false : true, entireScreen: true });
+              if (args.screenSharingActive) {
+                return mainWindow.show();
+              }
+
+              mainWindow.setVisibleOnAllWorkspaces(true);
+              mainWindow.hide();
+              mainWindow.focus();
+              mainWindow.setVisibleOnAllWorkspaces(false);
+            }
+          },
+          {
+            label: args.audioStatus ? "Mute Microphone" : "Unmute Microphone", click: function() {
+              mainWindow.webContents.send('update-screen-sharing-controls', { toggleVideoOrAudio: "audio" });
+            }
+          },
+          {
+            label: "Leave Room", click: function() {
+              mainWindow.webContents.send('update-screen-sharing-controls', { leaveRoom: true });
+              mainWindow.show();
+            } 
+          }
+        ])
+      }
+    }
+
+    tray.setContextMenu(trayMenu)
+
+  })
+
+  ipcMain.handle('update-screen-sharing-controls', async (event, args) => {
+
+    if (typeof args.starting != "undefined") {    
+      return mainWindow.hide();
+    }
+
+    if (typeof args.leaveRoom != "undefined" || typeof args.toggleScreenSharing != "undefined") {
+      mainWindow.show();
+    }
+
+    if (typeof args.screenSharingWindow != "undefined") {
+      BrowserWindow.fromId(args.screenSharingWindow).webContents.send('update-screen-sharing-controls', args);
+    } else {
+      mainWindow.webContents.send('update-screen-sharing-controls', args);
+    }
+    return true;
   })
 
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ipcRenderer } from 'electron';
+import { ipcRenderer, desktopCapturer, systemPreferences } from 'electron';
 import update from 'immutability-helper';
 import { each } from 'lodash';
 import { 
@@ -8,7 +8,8 @@ import {
     Row, 
     Col, 
     OverlayTrigger, 
-    Tooltip 
+    Tooltip,
+    Dropdown
 } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { 
@@ -20,12 +21,16 @@ import {
     faDoorClosed, 
     faDoorOpen, 
     faUser, 
-    faLock 
+    faLock,
+    faDesktop,
+    faWindowMaximize
 } from '@fortawesome/free-solid-svg-icons';
 import { Janus } from 'janus-gateway';
 import Pusher from 'pusher-js';
 import VideoList from './VideoList';
 import AddUserToRoomModal from './AddUserToRoomModal';
+import ScreenSharingModal from './ScreenSharingModal';
+const { BrowserWindow } = require('electron').remote
 
 class Room extends React.Component {
     constructor(props) {
@@ -45,6 +50,14 @@ class Room extends React.Component {
             me: {},
             connected: false,
             publishing: false,
+            screenSharingActive: false,
+            showScreenSharingModal: false,
+            showScreenSharingDropdown: false,
+            screenSharingHandle: null,
+            screenSharingStream: null,
+            screenSharingWindow: null,
+            screenSources: [],
+            screenSourcesLoading: false,
             leaving: false,
             videoSizes: {
                 width: 0,
@@ -57,6 +70,7 @@ class Room extends React.Component {
                 height: window.innerHeight,
                 sidebarWidth: 240
             },
+            pinned: false,
             talking: [],
             local_video_container: [],
             videoStatus: false,
@@ -85,8 +99,14 @@ class Room extends React.Component {
 
         this.createDetachedWindowBound = this.createDetachedWindow.bind(this);
 
+        this.getAvailableScreensToShare = this.getAvailableScreensToShare.bind(this);
+        this.startPublishingScreenSharingStream = this.startPublishingScreenSharingStream.bind(this);
+        this.openScreenSharingHandle = this.openScreenSharingHandle.bind(this);
+        this.toggleScreenSharing = this.toggleScreenSharing.bind(this);
+
         this.toggleVideoOrAudio = this.toggleVideoOrAudio.bind(this);
         this.handleRemoteStreams = this.handleRemoteStreams.bind(this);
+        this.togglePinned = this.togglePinned.bind(this);
         this.subscribeToRemoteStream = this.subscribeToRemoteStream.bind(this);
         this.updateDisplayedVideosSizes = this.updateDisplayedVideosSizes.bind(this);
 
@@ -108,6 +128,12 @@ class Room extends React.Component {
     componentDidMount() {
         const { teams, match, location, pusherInstance } = this.props;
 
+        ipcRenderer.invoke('get-media-access-status', { mediaType: "screen" }).then(response => {
+            if (response == "granted") {
+                this.getAvailableScreensToShare();
+            }
+        })
+
         window.addEventListener('resize', this.handleResize);
         this.handleResize();
 
@@ -121,6 +147,37 @@ class Room extends React.Component {
             if (arg == "unlock-screen" || arg == "resume") {
                 this.reconnectNetworkConnections();
             }
+        })
+
+        ipcRenderer.on('update-screen-sharing-controls', (event, args) => {
+            if (typeof args.toggleVideoOrAudio != "undefined") {
+                return this.toggleVideoOrAudio(args.toggleVideoOrAudio);
+            }
+
+            if (typeof args.toggleScreenSharing != "undefined") {
+                if (typeof args.entireScreen != "undefined" && args.toggleScreenSharing == true) {
+                    return this.toggleScreenSharing("entire-screen");
+                }
+                return this.toggleScreenSharing();
+            }
+
+            if (typeof args.leaveRoom != "undefined") {
+                return this.stopPublishingStream();
+            }
+
+            ipcRenderer.invoke('update-screen-sharing-controls', {
+                videoStatus: this.state.videoStatus,
+                audioStatus: this.state.audioStatus,
+                videoEnabled: this.state.room.video_enabled,
+                screenSharingWindow: this.state.screenSharingWindow.id
+            });
+
+            ipcRenderer.invoke('update-tray-icon', {
+                videoStatus: this.state.videoStatus,
+                audioStatus: this.state.audioStatus,
+                videoEnabled: this.state.room.video_enabled,
+                screenSharingActive: this.state.screenSharingActive
+            });
         })
 
         Janus.init({
@@ -192,7 +249,7 @@ class Room extends React.Component {
     
     componentWillUnmount() {
         const { pusherInstance } = this.props;
-        const { me, room, rootStreamerHandle, publishers, local_stream, publishing } = this.state;
+        const { me, room, rootStreamerHandle, publishers, local_stream, publishing, screenSharingWindow } = this.state;
 
         if (typeof room.channel_id != 'undefined' && typeof pusherInstance != "undefined" &&  pusherInstance != null) {
             pusherInstance.unsubscribe(`presence-room.${room.channel_id}`);
@@ -209,6 +266,10 @@ class Room extends React.Component {
             });
         } catch (error) {
             //do something
+        }
+
+        if (screenSharingWindow != null) {
+            screenSharingWindow.destroy();
         }
 
         window.removeEventListener('resize', this.handleResize);
@@ -348,17 +409,6 @@ class Room extends React.Component {
             return false;
         }
 
-        /*if (rootStreamerHandle != null && rootStreamerHandle.isConnected()) {
-            console.log("STILL CONNECTED");
-            console.log(rootStreamerHandle)
-            rootStreamerHandle.destroy({
-                success: function() {
-                    console.log("CALLING AGAIN");
-                    return that.openMediaHandle();
-                }
-            });
-        }*/
-
         var rootStreamerHandle = new Janus(
         {
             server: [`wss://${server}:4443/`, `https://${server}/streamer`],
@@ -393,13 +443,17 @@ class Room extends React.Component {
                         }
                     },
                     onmessage: function(msg, jsep) {
-                        var { videoRoomStreamerHandle, currentLoadingMessage, containerBackgroundColors, members } = that.state;
+                        var { videoRoomStreamerHandle, currentLoadingMessage, containerBackgroundColors, members, me } = that.state;
+
+                        console.log("debug msg", msg);
+                        console.log("debug jsep", jsep);
 
                         if (jsep != null) {
                             videoRoomStreamerHandle.handleRemoteJsep({ "jsep": jsep });
                         }
 
                         if (msg.videoroom == "joined") {
+                            console.log("debug joined", msg);
 
                             var updatedMe = that.state.me;
                             updatedMe.info.private_id = msg.private_id;
@@ -467,7 +521,7 @@ class Room extends React.Component {
                         if (msg.videoroom == "event") {
                             //check if we have new publishers to subscribe to
                             if (typeof msg.publishers != "undefined") {
-                                let newPublishers = msg.publishers;
+                                var newPublishers = msg.publishers;
 
                                 let rand = Math.floor(Math.random() * containerBackgroundColors.length); 
                                 var currentPublishers = that.state.publishers;
@@ -492,12 +546,16 @@ class Room extends React.Component {
                                             keep = false;
                                         }
                                     })
-
                                     return keep;
 
                                 })
 
+                                if (newPublishers.length == 1 && newPublishers[0].display == me.info.peer_uuid) {
+                                    newPublishers = [];
+                                } 
+
                                 that.setState({ publishers: [ ...newPublishers, ...currentPublishers ] });
+
                             }
 
                             if (typeof msg.leaving != "undefined") {
@@ -532,7 +590,10 @@ class Room extends React.Component {
 
                     },
                     webrtcState: function(state) {
-
+                        console.log("debug webrtcstate", state);
+                    },
+                    iceState: function(state) {
+                        console.log("debug icestate", state);
                     },
                     oncleanup: function() {
                             // PeerConnection with the plugin closed, clean the UI
@@ -636,13 +697,21 @@ class Room extends React.Component {
 
                 that.setState({ publishing: true, local_video_container });
 
+                ipcRenderer.invoke('update-tray-icon', {
+                    enable: true,
+                    videoStatus,
+                    audioStatus,
+                    videoEnabled: that.state.room.video_enabled,
+                    screenSharingActive: that.state.screenSharingActive
+                });
+
                 that.handleRemoteStreams();
             }
         })
     }
 
     stopPublishingStream() {
-        const { videoRoomStreamerHandle, local_stream, publishers } = this.state;
+        const { videoRoomStreamerHandle, screenSharingHandle, screenSharingStream, screenSharingWindow, local_stream, publishers } = this.state;
 
         if (videoRoomStreamerHandle == null) {
             return;
@@ -653,6 +722,22 @@ class Room extends React.Component {
         }
 
         videoRoomStreamerHandle.send({ "message": request });
+
+        if (screenSharingHandle != null) {
+            screenSharingHandle.send({ "message": request });
+
+            if (screenSharingStream != null) {
+                const screenSharingTracks = screenSharingStream.getTracks();
+
+                screenSharingTracks.forEach(function(track) {
+                    track.stop();
+                })
+            }
+        }
+
+        if (screenSharingWindow != null) {
+            screenSharingWindow.destroy();
+        }
 
         if (local_stream != null) {
             const tracks = local_stream.getTracks();
@@ -676,8 +761,120 @@ class Room extends React.Component {
             return publisher.active;
         })
 
-        this.setState({ publishing: false, local_stream: null, publishers })
+        ipcRenderer.invoke('update-tray-icon', {
+            disable: true
+        });
+
+        this.setState({ publishing: false, local_stream: null, publishers, screenSharingActive: false, screenSharingWindow: null })
         
+    }
+    
+    openScreenSharingHandle() {
+        var { rootStreamerHandle, me, room } = this.state;
+
+        var that = this;
+
+        rootStreamerHandle.attach({
+            plugin: "janus.plugin.videoroom",
+            opaqueId: me.info.peer_uuid,
+            success: function(screenSharingHandle) {
+                that.setState({ screenSharingHandle });
+
+                //register a publisher
+                var request = { 
+                    "request":  "join", 
+                    "id": me.info.id.toString()+"_screensharing",
+                    "room": room.channel_id, 
+                    "ptype": "publisher",
+                    "display": me.info.peer_uuid,
+                    "token": me.info.streamer_key,
+                    "pin": me.info.room_pin
+                }
+
+                screenSharingHandle.send({ "message": request });
+
+                return that.startPublishingScreenSharingStream();
+            
+            },
+            onmessage: function(msg, jsep) {
+                const { screenSharingHandle } = that.state;
+
+                if (jsep != null) {
+                    screenSharingHandle.handleRemoteJsep({ "jsep": jsep });
+                }
+
+            },
+            error: function(cause) {
+                // Couldn't attach to the plugin
+            },
+        });
+    }
+
+    async startPublishingScreenSharingStream() {
+        var { screenSharingHandle, screenSharingStream, me, room } = this.state;
+
+        if (screenSharingHandle == null) {
+            console.log("debug creating new screen sharinig handle", screenSharingHandle);
+            return this.openScreenSharingHandle();
+        }
+
+        var that = this;
+
+        screenSharingHandle.createOffer({
+            stream: screenSharingStream,
+            success: function(jsep) {
+                var request = {
+                    "request": "publish",
+                    "audio": false,
+                    "video": true,
+                    "videocodec": "vp9"
+                }
+
+                screenSharingHandle.send({ "message": request, "jsep": jsep });
+
+                ipcRenderer.invoke('get-current-window-dimensions').then((result) => {
+                    var x = 0;
+                    var y = Math.round(result.height - (result.height / 2) - 150);
+                    
+                    let screenSharingWindow = new BrowserWindow({ 
+                        width: 45, 
+                        height: 185,
+                        x,
+                        y,
+                        frame: false,
+                        transparent: true,
+                        alwaysOnTop: true,
+                        hasShadow: false,
+                        resizable: false,
+                        paintWhenInitiallyHidden: false,
+                        focusable: false,
+                        acceptFirstMouse: true,
+                        webPreferences: {
+                            nodeIntegration: true,
+                            preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+                            devTools: false
+                        }
+                    })
+
+                    screenSharingWindow.setVisibleOnAllWorkspaces(true);
+                      
+                    screenSharingWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/screensharing_controls");
+
+                    ipcRenderer.invoke('update-screen-sharing-controls', { starting: true });
+
+                    ipcRenderer.invoke('update-tray-icon', {
+                        videoStatus: that.state.videoStatus,
+                        audioStatus: that.state.audioStatus,
+                        videoEnabled: that.state.room.video_enabled,
+                        screenSharingActive: true
+                    });
+    
+                    that.setState({ screenSharingActive: true, screenSharingWindow });                    
+                })
+
+            }
+        })
+
     }
 
     handleRemoteStreams() {
@@ -686,8 +883,35 @@ class Room extends React.Component {
         publishers.forEach((publisher, key) => {
             if (typeof publisher.handle == "undefined" || publisher.handle == null) {
                 this.subscribeToRemoteStream(publisher, key);
+                
+                if (publisher.id.includes("_screensharing")) {
+                    this.togglePinned(publisher);
+                }
             }
         })
+    }
+
+    togglePinned(publisherToPin) {
+        const { publishers } = this.state;
+
+        var unpin = false;
+        var pinned = false;
+
+        publishers.forEach((publisher, key) => {
+            if (publisher.id != publisherToPin.id) {
+                return publisher.pinned = false;
+            }
+
+            if (typeof publisher.pinned != "undefined" && publisher.pinned) {
+                return publisher.pinned = false;
+            } 
+
+            publisher.pinned = true;
+            pinned = key;
+        })
+
+        this.setState({ publishers, pinned })
+
     }
 
     subscribeToRemoteStream(publisher, key) {
@@ -888,6 +1112,14 @@ class Room extends React.Component {
                 height = Math.round( width / aspectRatio );
             }
 
+            var pinnedWidth = dimensions.width - 275;
+            var pinnedHeight = Math.round(pinnedWidth / aspectRatio);
+
+            while(pinnedHeight > (dimensions.height - 120)) {
+                pinnedWidth -= 5;
+                pinnedHeight = Math.round(pinnedWidth / aspectRatio);
+            }
+
             var display = "row align-items-center justify-content-center h-100";
 
             if (dimensions.width < 1080) {
@@ -898,7 +1130,11 @@ class Room extends React.Component {
                 height: height,
                 width: width,
                 display: display,
-                containerHeight: dimensions.height - 80
+                containerHeight: dimensions.height - 80,
+                pinnedHeight,
+                pinnedWidth,
+                rows,
+                columns
             }
 
             this.setState({ videoSizes });
@@ -915,11 +1151,10 @@ class Room extends React.Component {
     }
 
     createDetachedWindow() {
-
     }
 
     toggleVideoOrAudio(type) {
-        var { videoRoomStreamerHandle, local_stream, videoStatus, audioStatus } = this.state;
+        var { videoRoomStreamerHandle, local_stream, videoStatus, audioStatus, screenSharingWindow } = this.state;
 
         if (typeof local_stream !== 'undefined') {
             var tracks = local_stream.getTracks();
@@ -959,12 +1194,131 @@ class Room extends React.Component {
                 } 
             }
 
+            if (screenSharingWindow != null) {
+
+                ipcRenderer.invoke('update-screen-sharing-controls', {
+                    videoStatus,
+                    audioStatus,
+                    videoEnabled: this.state.room.video_enabled,
+                    screenSharingWindow: screenSharingWindow.id
+                });
+            }
+
+            ipcRenderer.invoke('update-tray-icon', {
+                videoStatus,
+                audioStatus,
+                videoEnabled: this.state.room.video_enabled,
+                screenSharingActive: this.state.screenSharingActive
+            });
+
             if (typeof local_video_container != "undefined") {
                 return this.setState({ local_video_container, videoStatus, audioStatus });
             }
 
-            this.setState({ videoStatus, audioStatus });
+            this.setState({ videoStatus, audioStatus });  
+
         }
+    }
+
+    async getAvailableScreensToShare() {
+
+        var screenSources = [];
+
+        ipcRenderer.invoke('get-media-access-status', { mediaType: "screen" }).then(response => {
+            if (response == "denied") {
+                return this.setState({ screenSources });
+            }
+        })
+
+        const sources = await desktopCapturer.getSources({
+            types: ['window', 'screen'],
+            thumbnailSize: { width: 1000, height: 1000 },
+            fetchWindowIcons: true
+        });
+
+        sources.forEach(source => {
+            if (!source.name.includes("Water Cooler")) {
+                var icon = null;
+                if (source.appIcon != null) {
+                    icon = source.appIcon.toDataURL();
+                }
+                var newSource = {
+                    icon,
+                    display_id: source.display_id,
+                    id: source.id,
+                    name: source.name,
+                    thumbnail: source.thumbnail.toDataURL()
+                }
+                screenSources.push(newSource);
+            }
+        })
+
+        this.setState({ screenSources, screenSourcesLoading: false })
+    }
+
+    async toggleScreenSharing(streamId = null) {
+        const { screenSharingHandle, screenSharingActive, screenSources, screenSharingStream, screenSharingWindow } = this.state;
+
+        if (screenSharingActive && streamId == null) {
+
+            var request = {
+                "request": "unpublish"
+            }
+
+            if (screenSharingHandle != null) {
+                screenSharingHandle.send({ "message": request });
+            }
+            
+            if (screenSharingStream != null) {
+                const screenSharingTracks = screenSharingStream.getTracks();
+
+                screenSharingTracks.forEach(function(track) {
+                    track.stop();
+                })
+
+            }
+
+            if (screenSharingWindow != null) {
+                screenSharingWindow.destroy();
+            }
+
+            ipcRenderer.invoke('update-tray-icon', {
+                videoStatus: this.state.videoStatus,
+                audioStatus: this.state.audioStatus,
+                videoEnabled: this.state.room.video_enabled,
+                screenSharingActive: false
+            });
+
+            return this.setState({ screenSharingActive: false, screenSharingStream: null, screenSharingWindow: null });
+        }
+
+        if (streamId == "entire-screen") {
+            screenSources.forEach(source => {
+                if (source.name == "Entire Screen") {
+                    streamId = source.id;
+                }
+            })
+        }
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: false,
+                video: {
+                    mandatory: {
+                        chromeMediaSource: 'desktop',
+                        chromeMediaSourceId: streamId,
+                    }
+                }
+            })
+
+            this.setState({ screenSharingStream: stream });
+
+            this.startPublishingScreenSharingStream();
+
+        } catch (e) {
+            //show an error
+        }
+
     }
 
     render() {
@@ -986,11 +1340,17 @@ class Room extends React.Component {
             publishers, 
             publishing,
             talking,
+            screenSharingActive,
+            screenSources,
+            screenSourcesLoading,
+            showScreenSharingModal,
+            showScreenSharingDropdown,
             local_stream, 
             local_video_container,
             videoStatus, 
             audioStatus, 
             videoSizes, 
+            pinned,
             currentLoadingMessage,
             showAddUserToRoomModal 
         } = this.state;
@@ -1009,6 +1369,14 @@ class Room extends React.Component {
                     getRoomUsers={getRoomUsers}
                     onShow={() => getRoomUsers(room.id)}
                     onHide={() => this.setState({ showAddUserToRoomModal: false })}
+                />
+                <ScreenSharingModal 
+                    sources={screenSources}
+                    show={showScreenSharingModal}
+                    loading={screenSourcesLoading}
+                    handleSubmit={this.toggleScreenSharing}
+                    onShow={() => this.getAvailableScreensToShare()}
+                    onHide={() => this.setState({ showScreenSharingModal: false })}
                 />
                 <Row className="text-light pl-0 ml-0" style={{height:80,backgroundColor:"#121422"}}>
                     <Col xs={{span:4}} md={{span:5}}>
@@ -1035,13 +1403,16 @@ class Room extends React.Component {
                     <Col xs={{span:4}} md={{span:2}}>
                         <div className="d-flex flex-row justify-content-center">
                             <div className="align-self-center">
-                                {local_stream === null ?
-                                    !room_at_capacity ?
-                                        <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                {loading ?
+                                        ''
                                     :
-                                        <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" disabled><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
-                                :   
-                                    <Button variant="outline-danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
+                                        local_stream === null ?
+                                            !room_at_capacity ?
+                                                <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                            :
+                                                <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" disabled><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                        :   
+                                            <Button variant="outline-danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
                                 }
                             </div>
                             <div style={{height:80}}></div>
@@ -1051,6 +1422,19 @@ class Room extends React.Component {
                         {local_stream ?
                             <div className="d-flex flex-row flex-nowrap justify-content-end">
                                 <div className="align-self-center pr-4">
+                                    {screenSharingActive ? 
+                                        <Button variant="outline-danger" className="mx-1" onClick={() => this.toggleScreenSharing()}><FontAwesomeIcon icon={faDesktop} /></Button>
+                                    :
+                                        <Dropdown className="btn p-0 m-0" as="span">
+                                            <Dropdown.Toggle variant="outline-info" id="screensharing-dropdown" className="mx-1 no-carat">
+                                                <FontAwesomeIcon icon={faDesktop} />
+                                            </Dropdown.Toggle>
+                                            <Dropdown.Menu show={showScreenSharingDropdown}>
+                                                <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block" onClick={() => this.toggleScreenSharing("entire-screen")}><FontAwesomeIcon icon={faDesktop} /> Share Whole Screen</Button></Dropdown.Item>
+                                                <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block" onClick={() => this.setState({ showScreenSharingModal: true, screenSourcesLoading: true, showScreenSharingDropdown: false })}><FontAwesomeIcon icon={faWindowMaximize} /> Share a Window</Button></Dropdown.Item>
+                                            </Dropdown.Menu>
+                                        </Dropdown>
+                                    }
                                     <Button variant={audioStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
                                     {room.video_enabled ?
                                         <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
@@ -1070,7 +1454,7 @@ class Room extends React.Component {
                         : '' }
                     </Col>
                 </Row>
-                <Container className="ml-0 stage-container" fluid style={{height:videoSizes.containerHeight}}>
+                <Container className="ml-0 stage-container" fluid style={{height:videoSizes.containerHeight - 20}}>
 
                     {loading ? 
                         <React.Fragment>
@@ -1080,7 +1464,7 @@ class Room extends React.Component {
                     : 
                         !room_at_capacity ?
                             <React.Fragment>
-                                <div className={videoSizes.display}>
+                                <div className={videoSizes.display} style={{overflowY:"scroll"}}>
                                     {publishers.length > 0 ?
                                         <VideoList
                                             videoSizes={videoSizes}
@@ -1090,6 +1474,8 @@ class Room extends React.Component {
                                             user={user}
                                             talking={talking}
                                             renderVideo={this.renderVideo}
+                                            togglePinned={this.togglePinned}
+                                            pinned={pinned}
                                         ></VideoList>
                                     :
                                         currentLoadingMessage

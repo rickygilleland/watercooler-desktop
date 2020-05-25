@@ -17,10 +17,10 @@ class VideoPlayer extends React.PureComponent {
 
     render() {
 
-        const { renderVideo, stream } = this.props;
+        const { renderVideo, stream, publisher } = this.props;
 
         return(
-            <video autoPlay ref={renderVideo(stream)} className="rounded shadow" style={{height:"100%",width:"100%"}}></video>
+            <video autoPlay ref={renderVideo(stream)} className={!publisher.id.includes("_screensharing") ? 'video-flip rounded shadow' : 'rounded'} style={{height:"100%",width:"100%"}}></video>
         )
     }
 }
