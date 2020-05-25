@@ -180,7 +180,7 @@ app.on('ready', () => {
   ipcMain.handle('update-tray-icon', async (event, args) => {
     if (typeof args.enable != "undefined" && tray == null) {
       tray = new Tray(iconPath);
-      tray.setToolTip('Screen Sharing is Active');
+      tray.setToolTip('Water Cooler');
     }
 
     if (typeof args.disable != "undefined" && tray != null) {
@@ -189,6 +189,10 @@ app.on('ready', () => {
     }
 
     if (typeof args.screenSharingActive != "undefined") {
+      tray.setToolTip('Water Cooler');
+      if (args.screenSharingActive) {
+        tray.setToolTip('Water Cooler is Sharing Your Screen');
+      }
       if (args.videoEnabled) {
         trayMenu = Menu.buildFromTemplate([
           { 
