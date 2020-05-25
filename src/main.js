@@ -195,8 +195,13 @@ app.on('ready', () => {
             label: args.screenSharingActive ? "Stop Sharing Screen" : "Start Sharing Entire Screen", click: function() {
               mainWindow.webContents.send('update-screen-sharing-controls', { toggleScreenSharing: args.screenSharingActive ? false : true, entireScreen: true });
               if (args.screenSharingActive) {
-                mainWindow.show();
+                return mainWindow.show();
               }
+
+              mainWindow.setVisibleOnAllWorkspaces(true);
+              mainWindow.hide();
+              mainWindow.focus();
+              mainWindow.setVisibleOnAllWorkspaces(false);
             }
           },
           {
@@ -222,8 +227,13 @@ app.on('ready', () => {
             label: args.screenSharingActive ? "Stop Sharing Screen" : "Start Sharing Entire Screen", click: function() {
               mainWindow.webContents.send('update-screen-sharing-controls', { toggleScreenSharing: args.screenSharingActive ? false : true, entireScreen: true });
               if (args.screenSharingActive) {
-                mainWindow.show();
+                return mainWindow.show();
               }
+
+              mainWindow.setVisibleOnAllWorkspaces(true);
+              mainWindow.hide();
+              mainWindow.focus();
+              mainWindow.setVisibleOnAllWorkspaces(false);
             }
           },
           {
