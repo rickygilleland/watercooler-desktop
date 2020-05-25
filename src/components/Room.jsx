@@ -844,15 +844,19 @@ class Room extends React.Component {
                         frame: false,
                         transparent: true,
                         alwaysOnTop: true,
-                        visibleOnAllWorkspaces: true,
                         hasShadow: false,
                         resizable: false,
+                        paintWhenInitiallyHidden: false,
+                        focusable: false,
+                        acceptFirstMouse: true,
                         webPreferences: {
                             nodeIntegration: true,
                             preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
                             devTools: false
                         }
                     })
+
+                    screenSharingWindow.setVisibleOnAllWorkspaces(true);
                       
                     screenSharingWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/screensharing_controls");
 
