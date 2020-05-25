@@ -10,10 +10,15 @@ import ScreenShareControls from './components/ScreenShareControls'
 import LoadingPage from './containers/LoadingPage';
 const customTitlebar = require('custom-electron-titlebar');
 
-new customTitlebar.Titlebar({
-  backgroundColor: customTitlebar.Color.fromHex('#121422'),
-  overflow: "hidden",
-});
+var path = window.location.href;
+path = path.substring(path.lastIndexOf("#") + 1);
+
+if (path != "/screensharing_controls") {
+  new customTitlebar.Titlebar({
+    backgroundColor: customTitlebar.Color.fromHex('#121422'),
+    overflow: "hidden",
+  });
+}
 
 export default class App extends React.Component {
   render() {

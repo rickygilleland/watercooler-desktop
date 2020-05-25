@@ -811,11 +811,12 @@ class Room extends React.Component {
                 screenSharingHandle.send({ "message": request, "jsep": jsep });
 
                 ipcRenderer.invoke('get-current-window-dimensions').then((result) => {
-                    var x = result.width - (result.width / 2) - 150;
-                    var y = result.height - 85;
+                    var x = 0;
+                    var y = Math.round(result.height - (result.height / 2) - 150);
+                    
                     let screenSharingWindow = new BrowserWindow({ 
-                        width: 300, 
-                        height: 90,
+                        width: 45, 
+                        height: 185,
                         x,
                         y,
                         frame: false,
@@ -823,7 +824,7 @@ class Room extends React.Component {
                         alwaysOnTop: true,
                         visibleOnAllWorkspaces: true,
                         hasShadow: false,
-                        resizable: true,
+                        resizable: false,
                         webPreferences: {
                             nodeIntegration: true,
                             preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
