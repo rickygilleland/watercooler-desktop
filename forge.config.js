@@ -57,7 +57,9 @@ module.exports = {
           '@electron-forge/plugin-auto-unpack-natives'
         ]
       ],
-      
+      "hooks": {
+        "postPackage": require("./hooks/notarize.js")
+        },
     "publishers": [
         {
             "name": '@electron-forge/publisher-github',
