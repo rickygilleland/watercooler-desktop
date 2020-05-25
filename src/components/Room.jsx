@@ -850,7 +850,7 @@ class Room extends React.Component {
                         webPreferences: {
                             nodeIntegration: true,
                             preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-                            devTools: true
+                            devTools: false
                         }
                     })
                       

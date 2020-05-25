@@ -30,9 +30,9 @@ class ScreenShareControls extends React.PureComponent {
         super(props);
 
         this.state = {
-            audioStatus: null,
-            videoStatus: null,
-            videoEnabled: null,
+            audioStatus: true,
+            videoStatus: false,
+            videoEnabled: false,
         }
     }
 
@@ -45,7 +45,6 @@ class ScreenShareControls extends React.PureComponent {
     }
 
     componentDidUpdate(prevProps, prevState) {
-       
     }
 
     toggleScreenSharing() {
@@ -62,12 +61,6 @@ class ScreenShareControls extends React.PureComponent {
 
     render() {
         const { videoStatus, audioStatus, videoEnabled } = this.state;
-
-        if (videoStatus == null) {
-            return (
-                <div className="vh-100" style={{backgroundColor:"#121422"}}></div>
-            )
-        }
 
         return(
             <div className="d-flex flex-column justify-content-center vh-100 screen-sharing-controls" style={{backgroundColor:"#121422"}}>
