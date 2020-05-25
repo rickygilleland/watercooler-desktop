@@ -1237,6 +1237,12 @@ class Room extends React.Component {
                 if (source.appIcon != null) {
                     icon = source.appIcon.toDataURL();
                 }
+
+                if (source.name != null && source.name.length > 50) {
+                    source.name = source.name.slice(0, 49);
+                    source.name = source.name.trim() + "...";
+                }
+
                 var newSource = {
                     icon,
                     display_id: source.display_id,
