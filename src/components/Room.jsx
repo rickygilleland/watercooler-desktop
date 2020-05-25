@@ -1225,7 +1225,7 @@ class Room extends React.Component {
         var screenSources = [];
 
         ipcRenderer.invoke('get-media-access-status', { mediaType: "screen" }).then(response => {
-            if (response == "denied") {
+            if (response != "granted") {
                 return this.setState({ screenSources });
             }
         })

@@ -202,6 +202,14 @@ app.on('ready', () => {
                 return mainWindow.show();
               }
 
+              if (process.platform == "darwin") {
+                var screenAccessGranted = systemPreferences.getMediaAccessStatus("screen");
+
+                if (screenAccessGranted != "granted") {
+                  return false;
+                }
+              }
+
               mainWindow.setVisibleOnAllWorkspaces(true);
               mainWindow.hide();
               mainWindow.focus();
@@ -232,6 +240,14 @@ app.on('ready', () => {
               mainWindow.webContents.send('update-screen-sharing-controls', { toggleScreenSharing: args.screenSharingActive ? false : true, entireScreen: true });
               if (args.screenSharingActive) {
                 return mainWindow.show();
+              }
+
+              if (process.platform == "darwin") {
+                var screenAccessGranted = systemPreferences.getMediaAccessStatus("screen");
+
+                if (screenAccessGranted != "granted") {
+                  return false;
+                }
               }
 
               mainWindow.setVisibleOnAllWorkspaces(true);
