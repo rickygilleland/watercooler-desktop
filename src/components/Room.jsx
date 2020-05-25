@@ -1,5 +1,5 @@
 import React from 'react';
-import { ipcRenderer, desktopCapturer } from 'electron';
+import { ipcRenderer, desktopCapturer, systemPreferences } from 'electron';
 import update from 'immutability-helper';
 import { each } from 'lodash';
 import { 
@@ -128,7 +128,11 @@ class Room extends React.Component {
     componentDidMount() {
         const { teams, match, location, pusherInstance } = this.props;
 
-        this.getAvailableScreensToShare();
+        ipcRenderer.invoke('get-media-access-status', { mediaType: "screen" }).then(response => {
+            if (response == "granted") {
+                this.getAvailableScreensToShare();
+            }
+        })
 
         window.addEventListener('resize', this.handleResize);
         this.handleResize();
@@ -1176,7 +1180,14 @@ class Room extends React.Component {
     }
 
     async getAvailableScreensToShare() {
+
         var screenSources = [];
+
+        ipcRenderer.invoke('get-media-access-status', { mediaType: "screen" }).then(response => {
+            if (response == "denied") {
+                return this.setState({ screenSources });
+            }
+        })
 
         const sources = await desktopCapturer.getSources({
             types: ['window', 'screen'],

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, autoUpdater, dialog, protocol, ipcMain, webContents, screen, powerMonitor, Notification } from 'electron';
+import { app, BrowserWindow, Menu, autoUpdater, dialog, protocol, ipcMain, webContents, screen, powerMonitor, Notification, systemPreferences } from 'electron';
 import { init } from '@sentry/electron/dist/main';
 import * as Sentry from '@sentry/electron';
 if(require('electron-squirrel-startup')) app.quit();
@@ -141,7 +141,7 @@ const createWindow = () => {
 app.commandLine.appendSwitch('force-fieldtrials', 'WebRTC-SupportVP9SVC/EnabledByFlag_2SL3TL/');
 app.commandLine.appendSwitch('webrtc-max-cpu-consumption-percentage', 100);
 
-if (process.env == "darwin") {
+if (process.platform == "darwin") {
   app.commandLine.appendSwitch('enable-oop-rasterization');
   app.commandLine.appendSwitch('enable-features', 'metal');
 }
@@ -163,6 +163,14 @@ app.on('ready', () => {
   ipcMain.handle('get-current-window-dimensions', async (event) => {
     const { width, height } = screen.getPrimaryDisplay().workAreaSize
     return { width, height }
+  })
+
+  ipcMain.handle('get-media-access-status', async (event, args) => {
+    if (process.platform != "darwin") {
+      return "granted";
+    }
+
+    return systemPreferences.getMediaAccessStatus(args.mediaType);
   })
 
   ipcMain.handle('update-screen-sharing-controls', async (event, args) => {
