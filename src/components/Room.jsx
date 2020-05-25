@@ -56,6 +56,7 @@ class Room extends React.Component {
             screenSharingHandle: null,
             screenSharingStream: null,
             screenSharingWindow: null,
+            screenSharingError: false,
             screenSources: [],
             screenSourcesLoading: false,
             leaving: false,
@@ -1224,12 +1225,6 @@ class Room extends React.Component {
 
         var screenSources = [];
 
-        ipcRenderer.invoke('get-media-access-status', { mediaType: "screen" }).then(response => {
-            if (response != "granted") {
-                return this.setState({ screenSources });
-            }
-        })
-
         const sources = await desktopCapturer.getSources({
             types: ['window', 'screen'],
             thumbnailSize: { width: 1000, height: 1000 },
@@ -1293,6 +1288,13 @@ class Room extends React.Component {
         }
 
         if (streamId == "entire-screen") {
+
+            ipcRenderer.invoke('get-media-access-status', { mediaType: "screen" }).then(response => {
+                if (response == "denied") {
+                    return this.setState({ screenSharingError: true })
+                }
+            })
+
             screenSources.forEach(source => {
                 if (source.name == "Entire Screen") {
                     streamId = source.id;
@@ -1311,7 +1313,7 @@ class Room extends React.Component {
                 }
             })
 
-            this.setState({ screenSharingStream: stream });
+            this.setState({ screenSharingStream: stream, screenSharingError: false });
 
             this.startPublishingScreenSharingStream();
 
