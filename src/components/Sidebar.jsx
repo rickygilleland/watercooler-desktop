@@ -8,8 +8,6 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch, faCircle, faSignOutAlt, faUserFriends, faPlusSquare, faCog, faUserPlus, faUsers, faLock, faCamera } from '@fortawesome/free-solid-svg-icons';
 import { getOrganizationUsers } from '../actions/organization';
 import EnsureLoggedInContainer from '../containers/EnsureLoggedInContainer';
-import LoginPage from '../containers/LoginPage';
-import MagicLoginPage from '../containers/MagicLoginPage';
 import RoomPage from '../containers/RoomPage';
 import TeamPage from '../containers/TeamPage';
 import ErrorBoundary from './ErrorBoundary';
@@ -57,6 +55,7 @@ class Sidebar extends React.Component {
         })
 
         if (organizationPresenceChannel && !auth.isLoggedIn) {
+            pusherInstance.disconnect();
             this.setState({ organizationPresenceChannel: false, pusherInstance: null });
         }
 
@@ -167,11 +166,14 @@ class Sidebar extends React.Component {
     }
 
     componentWillUnmount() {
-        var { organizationPresenceChannel } = this.state;
+        const { organization } = this.props;
+        const { organizationPresenceChannel, pusherInstance } = this.state;
         window.removeEventListener('resize', this.handleResize);
 
         if (organizationPresenceChannel) {
             pusherInstance.unsubscribe(`presence-room.${organization.id}`);
+            pusherInstance.disconnect();
+
         }
     }
 
@@ -282,120 +284,119 @@ class Sidebar extends React.Component {
             <>
                 <ErrorBoundary showError={true}>
                     <Switch>
-                        <Route path={routes.LOGIN} component={LoginPage} />
-                        <Route path={routes.MAGIC_LOGIN} component={MagicLoginPage} />
                         <Redirect from="/" exact to={{
                                 pathname: routes.LOADING,
                         }} />
                     </Switch>
                 </ErrorBoundary>
                 <Switch>
-                <EnsureLoggedInContainer>
-                    <ErrorBoundary showError={false}>
-                        <InviteUsersModal 
-                            show={showInviteUsersModal}
-                            handleSubmit={inviteUsers}
-                            loading={organizationLoading.toString()}
-                            inviteuserssuccess={inviteUsersSuccess}
-                            onHide={() => this.setState({ showInviteUsersModal: false })}
-                        />
-                        <ManageUsersModal 
-                            users={organizationUsers}
-                            loading={organizationLoading.toString()}
-                            show={showManageUsersModal}
-                            onShow={() => getOrganizationUsers(organization.id)}
-                            onHide={() => this.setState({ showManageUsersModal: false })}
-                        />
-                        <RoomsModal 
-                            show={showRoomsModal}
-                            loading={organizationLoading.toString()}
-                            createroomsuccess={createRoomSuccess}
-                            lastCreatedRoomSlug={lastCreatedRoomSlug}
-                            roomsModalReset={roomsModalReset}
-                            handleSubmit={createRoom}
-                            push={push}
-                            onHide={() => this.setState({ showRoomsModal: false })}
-                        />
-                        <ManageCameraModal 
-                            show={showManageCameraModal}
-                            settings={settings}
-                            handleSubmit={updateDefaultDevices}
-                            onShow={() => getAvailableDevices()}
-                            onHide={() => this.setState({ showManageCameraModal: false })}
-                        />
-                    </ErrorBoundary>
-                    <div style={{backgroundColor:"#1b1e2f",width:240}} className="vh-100 pr-0 float-left">
-                        
-                        <Navbar className="text-light pt-4" style={{height:80,backgroundColor:"#121422",borderBottom:"1px solid #1c2046"}}>
-                            <ErrorBoundary showError={false}>
-                                <Navbar.Brand>
-                                    {organization != null ? 
-                                        <p className="text-light p-0 m-0" style={{fontSize:".9rem",fontWeight:800}}>{organization.name}</p>
-                                    : '' }
-                                    {user != null ? 
-                                        <p className="text-light pt-0 pb-1" style={{fontSize:".8rem"}}><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#3ecf8e",fontSize:".5rem",verticalAlign:'middle'}} /> {user.first_name}</p>
-                                    : '' }
-                                </Navbar.Brand>
-                                <div className="ml-auto" style={{height:60}}>
+                    <EnsureLoggedInContainer>
+                        <ErrorBoundary showError={false}>
+                            <InviteUsersModal 
+                                show={showInviteUsersModal}
+                                handleSubmit={inviteUsers}
+                                loading={organizationLoading.toString()}
+                                inviteuserssuccess={inviteUsersSuccess}
+                                onHide={() => this.setState({ showInviteUsersModal: false })}
+                            />
+                            <ManageUsersModal 
+                                users={organizationUsers}
+                                loading={organizationLoading.toString()}
+                                show={showManageUsersModal}
+                                onShow={() => getOrganizationUsers(organization.id)}
+                                onHide={() => this.setState({ showManageUsersModal: false })}
+                            />
+                            <RoomsModal 
+                                show={showRoomsModal}
+                                loading={organizationLoading.toString()}
+                                billing={billing}
+                                createroomsuccess={createRoomSuccess}
+                                lastCreatedRoomSlug={lastCreatedRoomSlug}
+                                roomsModalReset={roomsModalReset}
+                                handleSubmit={createRoom}
+                                push={push}
+                                onHide={() => this.setState({ showRoomsModal: false })}
+                            />
+                            <ManageCameraModal 
+                                show={showManageCameraModal}
+                                settings={settings}
+                                handleSubmit={updateDefaultDevices}
+                                onShow={() => getAvailableDevices()}
+                                onHide={() => this.setState({ showManageCameraModal: false })}
+                            />
+                        </ErrorBoundary>
+                        <div style={{backgroundColor:"#1b1e2f",width:240}} className="vh-100 pr-0 float-left">
                             
-                                    <Dropdown className="dropdownSettings text-light">
-                                        <Dropdown.Toggle><FontAwesomeIcon icon={faCog} style={{color:"#fff"}} /></Dropdown.Toggle>
-                                        <Dropdown.Menu>
-                                            <Dropdown.Item onClick={() => this.setState({ showInviteUsersModal: true })}>
-                                                <FontAwesomeIcon icon={faUserPlus} /> Invite People to {organization != null ? organization.name : ''}
-                                            </Dropdown.Item>
-                                            <Dropdown.Item onClick={() => this.setState({ showManageCameraModal: true })}>
-                                                <FontAwesomeIcon icon={faCamera} /> Camera Settings
-                                            </Dropdown.Item>
-                                            <Dropdown.Item onClick={() => userLogout() }>
-                                                <FontAwesomeIcon icon={faSignOutAlt}/> Sign Out
-                                            </Dropdown.Item>
-                                        </Dropdown.Menu>
-                                    </Dropdown>
+                            <Navbar className="text-light pt-4" style={{height:80,backgroundColor:"#121422",borderBottom:"1px solid #1c2046"}}>
+                                <ErrorBoundary showError={false}>
+                                    <Navbar.Brand>
+                                        {organization != null ? 
+                                            <p className="text-light p-0 m-0" style={{fontSize:".9rem",fontWeight:800}}>{organization.name}</p>
+                                        : '' }
+                                        {user != null ? 
+                                            <p className="text-light pt-0 pb-1" style={{fontSize:".8rem"}}><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#3ecf8e",fontSize:".5rem",verticalAlign:'middle'}} /> {user.first_name}</p>
+                                        : '' }
+                                    </Navbar.Brand>
+                                    <div className="ml-auto" style={{height:60}}>
+                                
+                                        <Dropdown className="dropdownSettings text-light">
+                                            <Dropdown.Toggle><FontAwesomeIcon icon={faCog} style={{color:"#fff"}} /></Dropdown.Toggle>
+                                            <Dropdown.Menu>
+                                                <Dropdown.Item onClick={() => this.setState({ showInviteUsersModal: true })}>
+                                                    <FontAwesomeIcon icon={faUserPlus} /> Invite People to {organization != null ? organization.name : ''}
+                                                </Dropdown.Item>
+                                                <Dropdown.Item onClick={() => this.setState({ showManageCameraModal: true })}>
+                                                    <FontAwesomeIcon icon={faCamera} /> Camera Settings
+                                                </Dropdown.Item>
+                                                <Dropdown.Item onClick={() => userLogout() }>
+                                                    <FontAwesomeIcon icon={faSignOutAlt}/> Sign Out
+                                                </Dropdown.Item>
+                                            </Dropdown.Menu>
+                                        </Dropdown>
 
-                                </div>
-                            </ErrorBoundary>
-                        </Navbar>
-                        <div>
-                            <ul className="nav flex-column mt-1">
-                                <li key="people-nav-button" className="nav-item">
-                                    <NavLink exact={true} 
-                                        activeStyle={{
-                                            fontWeight: "bold",
-                                            backgroundColor:"#4381ff"
-                                        }} 
-                                        className="d-block py-1"
-                                        to={{
-                                            pathname: `/team`
-                                        }}>
-                                            <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faUsers} style={{fontSize:".65rem"}} />  Team</p>
-                                    </NavLink>
-                                </li>
-                            </ul>
+                                    </div>
+                                </ErrorBoundary>
+                            </Navbar>
+                            <div>
+                                <ul className="nav flex-column mt-1">
+                                    <li key="people-nav-button" className="nav-item">
+                                        <NavLink exact={true} 
+                                            activeStyle={{
+                                                fontWeight: "bold",
+                                                backgroundColor:"#4381ff"
+                                            }} 
+                                            className="d-block py-1"
+                                            to={{
+                                                pathname: `/team`
+                                            }}>
+                                                <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faUsers} style={{fontSize:".65rem"}} />  Team</p>
+                                        </NavLink>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div>
+                                {rooms}
+                            </div>
                         </div>
-                        <div>
-                            {rooms}
-                        </div>
-                    </div>
-                    <div className="pl-0 ml-auto" style={{borderLeft:"1px solid #1c2046",width:"100%"}}>
+                        <div className="pl-0 ml-auto" style={{borderLeft:"1px solid #1c2046",width:"100%"}}>
+                    
+                                <>
+                                    <Route 
+                                        path={routes.ROOM} 
+                                        render={(routeProps) => (
+                                            <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
+                                        )}
+                                    />
+                                    <Route 
+                                        path={routes.TEAM} 
+                                        render={(routeProps) => (
+                                            <ErrorBoundary showError={true}><TeamPage {...routeProps} organizationUsersOnline={organizationUsersOnline} currentTime={currentTime} /></ErrorBoundary>
+                                        )}
+                                    />
+                                </>
                 
-                            <>
-                                <Route 
-                                    path={routes.ROOM} 
-                                    render={(routeProps) => (
-                                        <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
-                                    )}
-                                />
-                                <Route 
-                                    path={routes.TEAM} 
-                                    render={(routeProps) => (
-                                        <ErrorBoundary showError={true}><TeamPage {...routeProps} organizationUsersOnline={organizationUsersOnline} currentTime={currentTime} /></ErrorBoundary>
-                                    )}
-                                />
-                            </>
-            
-                    </div>
-                </EnsureLoggedInContainer>
+                        </div>
+                    </EnsureLoggedInContainer>
                 </Switch>
             </>
         );
