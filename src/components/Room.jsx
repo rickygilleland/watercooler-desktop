@@ -1336,6 +1336,7 @@ class Room extends React.Component {
             roomLoading, 
             user, 
             organizationUsers,
+            billing,
             addUserToRoom,
             addUserLoading,
             currentTime
@@ -1430,29 +1431,46 @@ class Room extends React.Component {
                         {local_stream ?
                             <div className="d-flex flex-row flex-nowrap justify-content-end">
                                 <div className="align-self-center pr-4">
-                                    {screenSharingActive ? 
-                                        <Button variant="outline-danger" className="mx-1" onClick={() => this.toggleScreenSharing()}><FontAwesomeIcon icon={faDesktop} /></Button>
-                                    :
-                                        <Dropdown className="btn p-0 m-0" as="span">
-                                            <Dropdown.Toggle variant="outline-info" id="screensharing-dropdown" className="mx-1 no-carat">
-                                                <FontAwesomeIcon icon={faDesktop} />
-                                            </Dropdown.Toggle>
-                                            <Dropdown.Menu show={showScreenSharingDropdown}>
-                                                <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block" onClick={() => this.toggleScreenSharing("entire-screen")}><FontAwesomeIcon icon={faDesktop} /> Share Whole Screen</Button></Dropdown.Item>
-                                                <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block" onClick={() => this.setState({ showScreenSharingModal: true, screenSourcesLoading: true, showScreenSharingDropdown: false })}><FontAwesomeIcon icon={faWindowMaximize} /> Share a Window</Button></Dropdown.Item>
-                                            </Dropdown.Menu>
-                                        </Dropdown>
+                                    {billing.plan == "Free"
+                                        ?
+                                            <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Screen sharing is unavailable on the free plan.</Tooltip>}>
+                                                <span className="d-inline-block">
+                                                    <Button variant="outline-info" className="mx-1" style={{ pointerEvents: 'none' }} disabled><FontAwesomeIcon icon={faDesktop} /></Button>
+                                                </span>
+                                            </OverlayTrigger> 
+                                        :
+                                            screenSharingActive ? 
+                                                <Button variant="outline-danger" className="mx-1" onClick={() => this.toggleScreenSharing()}><FontAwesomeIcon icon={faDesktop} /></Button>
+                                            :
+                                                <Dropdown className="btn p-0 m-0" as="span">
+                                                    <Dropdown.Toggle variant="outline-info" id="screensharing-dropdown" className="mx-1 no-carat">
+                                                        <FontAwesomeIcon icon={faDesktop} />
+                                                    </Dropdown.Toggle>
+                                                    <Dropdown.Menu show={showScreenSharingDropdown}>
+                                                        <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block" onClick={() => this.toggleScreenSharing("entire-screen")}><FontAwesomeIcon icon={faDesktop} /> Share Whole Screen</Button></Dropdown.Item>
+                                                        <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block" onClick={() => this.setState({ showScreenSharingModal: true, screenSourcesLoading: true, showScreenSharingDropdown: false })}><FontAwesomeIcon icon={faWindowMaximize} /> Share a Window</Button></Dropdown.Item>
+                                                    </Dropdown.Menu>
+                                                </Dropdown>
                                     }
                                     <Button variant={audioStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
-                                    {room.video_enabled ?
-                                        <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
-                                    :
-                                    <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Video is disabled in this room.</Tooltip>}>
-                                        <span className="d-inline-block">
-                                       
-                                        <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
-                                        </span>
-                                    </OverlayTrigger> 
+                                    {billing.plan == "Free"
+                                        ?
+                                            <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Video is unavailable on the free plan.</Tooltip>}>
+                                                <span className="d-inline-block">
+                                            
+                                                <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                                </span>
+                                            </OverlayTrigger> 
+                                        :
+                                            room.video_enabled ?
+                                                <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                            :
+                                            <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Video is disabled in this room.</Tooltip>}>
+                                                <span className="d-inline-block">
+                                            
+                                                <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                                </span>
+                                            </OverlayTrigger> 
                                     }
                                 </div>
                                 <div style={{height:80}}></div>

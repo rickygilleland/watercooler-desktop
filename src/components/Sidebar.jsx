@@ -178,6 +178,7 @@ class Sidebar extends React.Component {
     render() {
         const { 
             organization, 
+            billing,
             teams, 
             user, 
             auth, 
@@ -309,6 +310,7 @@ class Sidebar extends React.Component {
                         <RoomsModal 
                             show={showRoomsModal}
                             loading={organizationLoading.toString()}
+                            billing={billing}
                             createroomsuccess={createRoomSuccess}
                             lastCreatedRoomSlug={lastCreatedRoomSlug}
                             roomsModalReset={roomsModalReset}

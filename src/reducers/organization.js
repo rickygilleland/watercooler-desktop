@@ -19,6 +19,7 @@ const initialState = {
     organization: null,
     teams: [],
     users: [],
+    billing: {},
     error: false,
     loading: false,
     inviteUsersSuccess: false,
@@ -42,6 +43,7 @@ export default function organization(state = initialState, action = {}) {
                     name: action.payload.data.name,
                     slug: action.payload.data.slug
                 },
+                billing: action.payload.data.billing,
                 teams: updatedTeams
             }
             break;
