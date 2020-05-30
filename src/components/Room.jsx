@@ -276,6 +276,8 @@ class Room extends React.Component {
         window.removeEventListener('resize', this.handleResize);
         window.removeEventListener('online', this.reconnectNetworkConnections);
         window.removeEventListener('offline', this.disconnectNetworkConnections);
+
+        ipcRenderer.removeAllListeners();
     }
 
     initializeRoom() {

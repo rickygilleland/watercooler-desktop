@@ -6,6 +6,8 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
 import { getOrganizations } from '../actions/organization';
 
+const { ipcRenderer } = require('electron')
+
 
 class Login extends React.Component {
 
@@ -33,6 +35,14 @@ class Login extends React.Component {
             push(routes.LOADING);
         }
 
+        ipcRenderer.on('url_update', (event, arg) => {
+            let pushUrl = arg.slice(13);
+
+            if (pushUrl.includes('magic')) {
+                push(arg.slice(13));
+            }
+        })
+
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -49,6 +59,10 @@ class Login extends React.Component {
             this.setState({ loading: false, loginError: auth.loginError, codeError: auth.codeError });
         }
 
+    }
+
+    componentWillUnmount() {
+        ipcRenderer.removeAllListeners('url_update');
     }
 
     handleUsernameChange(event) {
@@ -75,7 +89,7 @@ class Login extends React.Component {
     
             this.setState({ missingUsername: false, missingPassword: false });
     
-            return authenticateUser(username, password);
+            return authenticateUser(username, password.trim());
         }
 
         requestLoginCode(username);

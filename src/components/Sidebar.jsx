@@ -40,19 +40,13 @@ class Sidebar extends React.Component {
             currentTime: DateTime.local()
         }
 
+        this.userLogout = this.userLogout.bind(this);
+
     }
 
     componentDidMount() {
         var { pusherInstance, organizationPresenceChannel } = this.state;
         const { push, auth, user, organization, getOrganizations, updateUserDetails } = this.props;
-
-        ipcRenderer.on('url_update', (event, arg) => {
-            let pushUrl = arg.slice(13);
-
-            if (pushUrl.includes('magic')) {
-                push(arg.slice(13));
-            }
-        })
 
         if (organizationPresenceChannel && !auth.isLoggedIn) {
             pusherInstance.disconnect();
@@ -152,12 +146,17 @@ class Sidebar extends React.Component {
         }
 
         if (organizationPresenceChannel && !auth.isLoggedIn) {
+            pusherInstance.disconnect();
             this.setState({ organizationPresenceChannel: false, pusherInstance: null });
         }
     }
 
     componentDidUpdate(prevProps, prevState) {
-        const { createRoomSuccess, lastCreatedRoomSlug, location } = this.props;
+        const { createRoomSuccess, lastCreatedRoomSlug, location, billing, getOrganizations } = this.props;
+
+        if (Object.keys(billing).length === 0) {
+            getOrganizations();
+        }
 
         if (prevProps.createRoomSuccess != createRoomSuccess && createRoomSuccess && !location.pathname.includes("/room")) {
             this.setState({ showRoomsModal: false, roomsModalReset: true });
@@ -170,11 +169,26 @@ class Sidebar extends React.Component {
         const { organizationPresenceChannel, pusherInstance } = this.state;
         window.removeEventListener('resize', this.handleResize);
 
-        if (organizationPresenceChannel) {
+        if (organizationPresenceChannel && Object.keys(organization).length === 0 && organization.id != null) {
             pusherInstance.unsubscribe(`presence-room.${organization.id}`);
             pusherInstance.disconnect();
 
         }
+    }
+
+    userLogout() {
+        const { userLogout, organization } = this.props;
+        const { organizationPresenceChannel, pusherInstance } = this.state;
+
+        if (organizationPresenceChannel && organization.id != null) {
+            pusherInstance.unsubscribe(`presence-room.${organization.id}`);
+        }
+
+        if (pusherInstance != null) {
+            pusherInstance.disconnect();
+        }
+
+        return userLogout();
     }
 
     render() {
@@ -185,7 +199,6 @@ class Sidebar extends React.Component {
             user, 
             auth, 
             push,
-            userLogout, 
             currentUrl, 
             getOrganizationUsers, 
             organizationUsers, 
@@ -349,7 +362,7 @@ class Sidebar extends React.Component {
                                                 <Dropdown.Item onClick={() => this.setState({ showManageCameraModal: true })}>
                                                     <FontAwesomeIcon icon={faCamera} /> Camera Settings
                                                 </Dropdown.Item>
-                                                <Dropdown.Item onClick={() => userLogout() }>
+                                                <Dropdown.Item onClick={() => this.userLogout() }>
                                                     <FontAwesomeIcon icon={faSignOutAlt}/> Sign Out
                                                 </Dropdown.Item>
                                             </Dropdown.Menu>

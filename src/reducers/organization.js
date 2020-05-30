@@ -16,7 +16,7 @@ import {
 import { faAudioDescription } from '@fortawesome/free-solid-svg-icons';
 
 const initialState = {
-    organization: null,
+    organization: {},
     teams: [],
     users: [],
     billing: {},

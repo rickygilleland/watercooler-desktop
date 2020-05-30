@@ -6,6 +6,7 @@ import { ConnectedRouter } from 'connected-react-router';
 import { History } from 'history';
 import routes from './constants/routes.json';
 import Sidebar from './containers/Sidebar';
+import ErrorBoundary from './components/ErrorBoundary';
 import LoginPage from './containers/LoginPage';
 import MagicLoginPage from './containers/MagicLoginPage';
 import ScreenShareControls from './components/ScreenShareControls'
@@ -34,8 +35,8 @@ export default class App extends React.Component {
             <Switch>
               <Route path={routes.LOGIN} component={LoginPage} />
               <Route path={routes.MAGIC_LOGIN} component={MagicLoginPage} />
-              <Route path="/screensharing_controls" exact component={ScreenShareControls} />
               <Route path={routes.LOADING} component={LoadingPage} />
+              <Route path="/screensharing_controls" exact component={ScreenShareControls} />
               <Route path="/*" component={Sidebar} />
             </Switch>
           </ConnectedRouter>
