@@ -254,7 +254,7 @@ class Room extends React.Component {
     }
     
     componentWillUnmount() {
-        const { pusherInstance } = this.props;
+        const { pusherInstance, userPrivateNotificationChannel } = this.props;
         const { me, room, rootStreamerHandle, publishers, local_stream, publishing, screenSharingWindow } = this.state;
 
         if (typeof room.channel_id != 'undefined' && typeof pusherInstance != "undefined" &&  pusherInstance != null) {
@@ -278,6 +278,10 @@ class Room extends React.Component {
             screenSharingWindow.destroy();
         }
 
+        if (userPrivateNotificationChannel !== false) {
+            userPrivateNotificationChannel.unbind('call.declined');
+        }
+
         window.removeEventListener('resize', this.handleResize);
         window.removeEventListener('online', this.reconnectNetworkConnections);
         window.removeEventListener('offline', this.disconnectNetworkConnections);
@@ -286,7 +290,7 @@ class Room extends React.Component {
     }
 
     initializeRoom() {
-        const { teams, match, location, pusherInstance, getRoomUsers } = this.props;
+        const { teams, match, location, pusherInstance, getRoomUsers, userPrivateNotificationChannel } = this.props;
 
         var curTeam = {};
         var curRoom = {};
@@ -312,6 +316,10 @@ class Room extends React.Component {
         if (curRoom === {}) {
             push("/");
         }
+
+        userPrivateNotificationChannel.bind('call.declined', function(data) {
+
+        })
 
         //refresh the count of users in this room
         getRoomUsers(curRoom.id);
@@ -491,12 +499,20 @@ class Room extends React.Component {
                             } else {
                                 currentLoadingMessage = [];
 
-                                currentLoadingMessage.push(
-                                    <div key={99999}>
-                                        <h1 className="text-center">This room is empty.</h1>
-                                        <h2 className="text-center h3">Your teammates will appear here automatically after joining.</h2>
-                                    </div>
-                                );
+                                if (that.state.isCall) {
+                                    currentLoadingMessage.push(
+                                        <div key={99999}>
+                                            <h1 className="text-center">Calling...</h1>
+                                        </div>
+                                    );
+                                } else {
+                                    currentLoadingMessage.push(
+                                        <div key={99999}>
+                                            <h1 className="text-center">This room is empty.</h1>
+                                            <h2 className="text-center h3">Your teammates will appear here automatically after joining.</h2>
+                                        </div>
+                                    );
+                                }
 
                                 that.setState({ connected: true, loading: false, currentLoadingMessage }); 
                             }

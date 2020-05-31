@@ -16,6 +16,7 @@ import InviteUsersModal from './InviteUsersModal';
 import ManageCameraModal from './ManageCameraModal';
 import RoomsModal from './RoomsModal';
 import NewCallModal from './NewCallModal';
+import IncomingCallModal from './IncomingCallModal';
 
 const { ipcRenderer } = require('electron')
 
@@ -35,6 +36,8 @@ class Sidebar extends React.Component {
             showManageCameraModal: false,
             showRoomsModal: false,
             showCallsModal: false,
+            showIncomingCallModal: false,
+            incomingCall: null,
             roomsModalReset: false,
             pusherInstance: null,
             organizationPresenceChannel: false,
@@ -42,8 +45,9 @@ class Sidebar extends React.Component {
             organizationUsersOnline: [],
             currentTime: DateTime.local()
         }
-
+        
         this.userLogout = this.userLogout.bind(this);
+        this.handleIncomingCall = this.handleIncomingCall.bind(this);
 
     }
 
@@ -138,10 +142,10 @@ class Sidebar extends React.Component {
             });
 
             if (userPrivateNotificationChannel === false) {
-                var user_channel = pusherInstance.subscribe(`user.${user.id}`);
+                var user_channel = pusherInstance.subscribe(`private-user.${user.id}`);
                 var that = this;
 
-                this.setState({ userPrivateNotificationChannel: true });
+                this.setState({ userPrivateNotificationChannel: user_channel });
 
                 user_channel.bind_global(function(event, data) {
 
@@ -201,11 +205,15 @@ class Sidebar extends React.Component {
     }
 
     userLogout() {
-        const { userLogout, organization } = this.props;
-        const { organizationPresenceChannel, pusherInstance } = this.state;
+        const { userLogout, organization, user } = this.props;
+        const { organizationPresenceChannel, userPrivateNotificationChannel, pusherInstance } = this.state;
 
         if (organizationPresenceChannel && organization.id != null) {
             pusherInstance.unsubscribe(`presence-room.${organization.id}`);
+        }
+
+        if (userPrivateNotificationChannel !== false) {
+            pusherInstance.unsubscribe(`private-user.${user.id}`);
         }
 
         if (pusherInstance != null) {
@@ -213,6 +221,11 @@ class Sidebar extends React.Component {
         }
 
         return userLogout();
+    }
+
+    handleIncomingCall(acceptOrDecline) {
+        const { userPrivateNotificationChannel, incomingCall } = this.state;
+
     }
 
     render() {
@@ -243,9 +256,12 @@ class Sidebar extends React.Component {
             showManageUsersModal, 
             showRoomsModal, 
             showCallsModal,
+            showIncomingCallModal,
+            incomingCall,
             roomsModalReset,
             showManageCameraModal, 
             pusherInstance,
+            userPrivateNotificationChannel,
             organizationUsersOnline
         } = this.state;
 
@@ -257,83 +273,89 @@ class Sidebar extends React.Component {
         })
 
         let curTeam = teams[0];
+        let rooms;
+        let calls;
 
-        const rooms = (
-            <div key={"rooms_" + curTeam.id} className="mt-2">
-                <Row>
-                    <Col xs={9}>
-                        <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:800}}>Rooms</p>
-                    </Col>
-                    <Col xs={3}>
-                        <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} onClick={() => this.setState({ showRoomsModal: true })}><FontAwesomeIcon icon={faPlusSquare} /></Button>
-                    </Col>
-                </Row>
-                <div style={{overflowY:"scroll",height:"vh50 !important"}}>
-                    {curTeam.rooms.length > 0 ?
-                        <ul className="nav flex-column mt-1">
-                            {curTeam.rooms.map((room, roomKey) => 
-                                <li key={roomKey} className="nav-item">
-                                    <NavLink exact={true} 
-                                            activeStyle={{
-                                                fontWeight: "bold",
-                                                backgroundColor:"#4381ff"
-                                            }} 
-                                            className="d-block py-1"
-                                            to={{
-                                                pathname: `/room/${room.slug}`,
-                                                state: {
-                                                    team: curTeam,
-                                                    room: room
-                                                }
-                                            }}>
-                                        <p className="text-light mb-0 pl-3">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".7rem",marginRight:".2rem"}} /> : <span style={{marginRight:".2rem"}}>#</span>} {room.name}</p>
-                                    </NavLink>
-                                </li>
-                            )}
-                        </ul>
-                    : '' }
+        try {
+            rooms = (
+                <div key={"rooms_" + curTeam.id} className="mt-2">
+                    <Row>
+                        <Col xs={9}>
+                            <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:800}}>Rooms</p>
+                        </Col>
+                        <Col xs={3}>
+                            <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} onClick={() => this.setState({ showRoomsModal: true })}><FontAwesomeIcon icon={faPlusSquare} /></Button>
+                        </Col>
+                    </Row>
+                    <div>
+                        {curTeam.rooms.length > 0 ?
+                            <ul className="nav flex-column mt-1">
+                                {curTeam.rooms.map((room, roomKey) => 
+                                    <li key={roomKey} className="nav-item">
+                                        <NavLink exact={true} 
+                                                activeStyle={{
+                                                    fontWeight: "bold",
+                                                    backgroundColor:"#4381ff"
+                                                }} 
+                                                className="d-block py-1"
+                                                to={{
+                                                    pathname: `/room/${room.slug}`,
+                                                    state: {
+                                                        team: curTeam,
+                                                        room: room
+                                                    }
+                                                }}>
+                                            <p className="text-light mb-0 pl-3">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".7rem",marginRight:".2rem"}} /> : <span style={{marginRight:".2rem"}}>#</span>} {room.name}</p>
+                                        </NavLink>
+                                    </li>
+                                )}
+                            </ul>
+                        : '' }
+                    </div>
                 </div>
-            </div>
-        );
+            );
 
-        const calls = (
-            <div key={"calls_" + curTeam.id} className="mt-2">
-                <Row>
-                    <Col xs={9}>
-                        <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:800}}>Direct Calls</p>
-                    </Col>
-                    <Col xs={3}>
-                        <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} onClick={() => this.setState({ showCallsModal: true })}><FontAwesomeIcon icon={faPlusSquare} /></Button>
-                    </Col>
-                </Row>
-                <div style={{overflowY:"scroll",height:"vh50 !important"}}>
-                    {typeof curTeam.calls != "undefined" && curTeam.calls.length > 0 ?
-                        <ul className="nav flex-column mt-1">
-                            {curTeam.calls.map((room, roomKey) => 
-                                <li key={roomKey} className="nav-item">
-                                    <NavLink exact={true} 
-                                            activeStyle={{
-                                                fontWeight: "bold",
-                                                backgroundColor:"#4381ff"
-                                            }} 
-                                            className="d-block py-1"
-                                            to={{
-                                                pathname: `/call/${room.slug}`,
-                                                state: {
-                                                    team: curTeam,
-                                                    room: room,
-                                                    isCall: true
-                                                }
-                                            }}>
-                                        <p className="text-light mb-0 pl-3">Direct Call Name</p>
-                                    </NavLink>
-                                </li>
-                            )}
-                        </ul>
-                    : '' }
+            calls = (
+                <div key={"calls_" + curTeam.id} className="mt-2">
+                    <Row>
+                        <Col xs={9}>
+                            <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:800}}>Direct Calls</p>
+                        </Col>
+                        <Col xs={3}>
+                            <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} onClick={() => this.setState({ showCallsModal: true })}><FontAwesomeIcon icon={faPlusSquare} /></Button>
+                        </Col>
+                    </Row>
+                    <div>
+                        {typeof curTeam.calls != "undefined" && curTeam.calls.length > 0 ?
+                            <ul className="nav flex-column mt-1">
+                                {curTeam.calls.map((room, roomKey) => 
+                                    <li key={roomKey} className="nav-item">
+                                        <NavLink exact={true} 
+                                                activeStyle={{
+                                                    fontWeight: "bold",
+                                                    backgroundColor:"#4381ff"
+                                                }} 
+                                                className="d-block py-1"
+                                                to={{
+                                                    pathname: `/call/${room.slug}`,
+                                                    state: {
+                                                        team: curTeam,
+                                                        room: room,
+                                                        isCall: true
+                                                    }
+                                                }}>
+                                            <p className="text-light mb-0 pl-3">Direct Call Name</p>
+                                        </NavLink>
+                                    </li>
+                                )}
+                            </ul>
+                        : '' }
+                    </div>
                 </div>
-            </div>
-        )
+            )
+        } catch(error) {
+
+        } 
                                         
         var firstRoom = {};
         try {
@@ -411,6 +433,12 @@ class Sidebar extends React.Component {
                                 onShow={() => getOrganizationUsers(organization.id)}
                                 onHide={() => this.setState({ showCallsModal: false })}
                             />
+                            <IncomingCallModal 
+                                call={incomingCall}
+                                show={showIncomingCallModal}
+                                handleIncomingCall={this.handleIncomingCall}
+                                onHide={() => this.setState({ showIncomingCallModal: false })}
+                            />
                             <ManageCameraModal 
                                 show={showManageCameraModal}
                                 settings={settings}
@@ -451,26 +479,28 @@ class Sidebar extends React.Component {
                                     </div>
                                 </ErrorBoundary>
                             </Navbar>
-                            <div>
-                                <ul className="nav flex-column mt-1">
-                                    <li key="people-nav-button" className="nav-item">
-                                        <NavLink exact={true} 
-                                            activeStyle={{
-                                                fontWeight: "bold",
-                                                backgroundColor:"#4381ff"
-                                            }} 
-                                            className="d-block py-1"
-                                            to={{
-                                                pathname: `/team`
-                                            }}>
-                                                <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faUsers} style={{fontSize:".65rem"}} />  Team</p>
-                                        </NavLink>
-                                    </li>
-                                </ul>
-                            </div>
-                            <div>
-                                {rooms}
-                                {calls}
+                            <div className="sidebar-scroll">
+                                <div>
+                                    <ul className="nav flex-column mt-1">
+                                        <li key="people-nav-button" className="nav-item">
+                                            <NavLink exact={true} 
+                                                activeStyle={{
+                                                    fontWeight: "bold",
+                                                    backgroundColor:"#4381ff"
+                                                }} 
+                                                className="d-block py-1"
+                                                to={{
+                                                    pathname: `/team`
+                                                }}>
+                                                    <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faUsers} style={{fontSize:".65rem"}} />  Team</p>
+                                            </NavLink>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    {rooms}
+                                    {calls}
+                                </div>
                             </div>
                         </div>
                         <div className="pl-0 ml-auto" style={{borderLeft:"1px solid #1c2046",width:"100%"}}>
@@ -479,13 +509,13 @@ class Sidebar extends React.Component {
                                     <Route 
                                         path={routes.ROOM} 
                                         render={(routeProps) => (
-                                            <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
+                                            <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} userPrivateNotificationChannel={userPrivateNotificationChannel} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
                                         )}
                                     />
                                     <Route 
                                         path={routes.CALL} 
                                         render={(routeProps) => (
-                                            <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
+                                            <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} userPrivateNotificationChannel={userPrivateNotificationChannel} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
                                         )}
                                     />
                                     <Route 

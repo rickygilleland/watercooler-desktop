@@ -10,6 +10,9 @@ class EnsureLoggedInContainer extends React.Component {
       const { dispatch, currentURL, auth, organization } = this.props
 
       if ((!auth.isLoggedIn || auth.loginError) && (currentURL != "/login" && !currentURL.includes("/magic/login"))) {
+        if (auth.redirectUrl == currentUrl) {
+          return dispatch(push("/login"));
+        }
 
         dispatch(setRedirectUrl({ redirectUrl: currentURL }));
         dispatch(push("/login"));
@@ -21,6 +24,9 @@ class EnsureLoggedInContainer extends React.Component {
       const { dispatch, currentURL, auth, organization } = this.props
 
       if ((!auth.isLoggedIn || auth.loginError) && (currentURL != "/login" && !currentURL.includes("/magic/login"))) {
+        if (auth.redirectUrl == currentUrl) {
+          return dispatch(push("/login"));
+        }
         dispatch(setRedirectUrl({ redirectUrl: currentURL }));
         dispatch(push("/login"));
       }

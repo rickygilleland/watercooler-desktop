@@ -52,7 +52,7 @@ class Loading extends React.Component {
             return getUserDetails();
         }
 
-        if (organization == null) {
+        if (Object.keys(organization).length === 0 || typeof organization == 'undefined') {
             return getOrganizations();
         }
 

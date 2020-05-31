@@ -132,7 +132,20 @@ export default function organization(state = initialState, action = {}) {
                     if (typeof team.calls == "undefined") {
                         team.calls = [];
                     }
-                    team.calls.push(action.payload.data);
+
+                    let callFound = false;
+
+                    team.calls.forEach(call => {
+                        if (call.id == action.payload.data.id) {
+                            callFound = true;
+
+                            call = action.payload.data;
+                        }
+                    })
+
+                    if (!callFound) {
+                        team.calls.push(action.payload.data);
+                    }
                 }
 
                 team.calls = orderBy(team.calls, ['name', 'created_at'], ['asc']);
@@ -140,7 +153,8 @@ export default function organization(state = initialState, action = {}) {
 
             updatedState = {
                 loading: false,
-                createCallSuccess: true
+                createCallSuccess: true,
+                teams: updatedTeams
             }
             break;
         case CREATE_CALL_FAILURE:
