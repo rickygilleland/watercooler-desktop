@@ -44,6 +44,7 @@ class Loading extends React.Component {
         const { 
             organization, 
             organizationUsers, 
+            auth,
             user, 
             push, 
             teams, 
@@ -55,7 +56,7 @@ class Loading extends React.Component {
         if (auth.isLoggedIn == false) {
             return push("/login");
         }
-        
+
         if (Object.keys(user).length === 0 || typeof user == 'undefined') {
             return getUserDetails();
         }
