@@ -18,7 +18,7 @@ class Loading extends React.Component {
         const { getOrganizations, getUserDetails, push, user, auth, organization, organizationLoading, teams } = this.props;
 
         if (auth.isLoggedIn == false) {
-            dispatch(push("/login"));
+            return push("/login");
         }
 
         getOrganizations();
@@ -53,9 +53,9 @@ class Loading extends React.Component {
         } = this.props;
 
         if (auth.isLoggedIn == false) {
-            dispatch(push("/login"));
+            return push("/login");
         }
-
+        
         if (Object.keys(user).length === 0 || typeof user == 'undefined') {
             return getUserDetails();
         }
