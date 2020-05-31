@@ -12,6 +12,9 @@ import {
     CREATE_ROOM_STARTED,
     CREATE_ROOM_SUCCESS,
     CREATE_ROOM_FAILURE,
+    CREATE_CALL_STARTED,
+    CREATE_CALL_SUCCESS,
+    CREATE_CALL_FAILURE
 } from '../actions/organization';
 import { faAudioDescription } from '@fortawesome/free-solid-svg-icons';
 
@@ -24,6 +27,7 @@ const initialState = {
     loading: false,
     inviteUsersSuccess: false,
     createRoomSuccess: false,
+    createCallSuccess: false,
     lastCreatedRoomSlug: null,
 }
 
@@ -115,6 +119,35 @@ export default function organization(state = initialState, action = {}) {
                 createRoomSuccess: false
             }
             break;
+        case CREATE_CALL_STARTED:
+            updatedState = {
+                loading: true,
+                createCallSuccess: false
+            }
+            break;
+        case CREATE_CALL_SUCCESS:
+            var updatedTeams = state.teams;
+            updatedTeams.forEach(team => {
+                if (team.id == action.payload.data.team_id) {
+                    if (typeof team.calls == "undefined") {
+                        team.calls = [];
+                    }
+                    team.calls.push(action.payload.data);
+                }
+
+                team.calls = orderBy(team.calls, ['name', 'created_at'], ['asc']);
+            });
+
+            updatedState = {
+                loading: false,
+                createCallSuccess: true
+            }
+            break;
+        case CREATE_CALL_FAILURE:
+            updatedState = {
+                loading: false,
+                createCallSuccess: false
+            }
         default:
             //do nothing
             return state;

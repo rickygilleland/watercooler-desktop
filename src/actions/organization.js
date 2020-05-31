@@ -9,6 +9,9 @@ export const INVITE_USERS_FAILURE = 'INVITE_USERS_FAILURE';
 export const CREATE_ROOM_STARTED = 'CREATE_ROOM_STARTED';
 export const CREATE_ROOM_SUCCESS = 'CREATE_ROOM_SUCCESS';
 export const CREATE_ROOM_FAILURE = 'CREATE_ROOM_FAILURE';
+export const CREATE_CALL_STARTED = 'CREATE_CALL_STARTED';
+export const CREATE_CALL_SUCCESS = 'CREATE_CALL_SUCCESS';
+export const CREATE_CALL_FAILURE = 'CREATE_CALL_FAILURE';
 
 export function getOrganizationsSuccess(payload) {
     return {
@@ -84,6 +87,25 @@ export function createRoomFailure(payload) {
     }
 }
 
+export function createCallStarted() {
+    return {
+        type: CREATE_CALL_STARTED
+    }
+}
+
+export function createCallSuccess(payload) {
+    return {
+        type: CREATE_CALL_SUCCESS,
+        payload
+    }
+}
+
+export function createCallFailure(payload) {
+    return {
+        type: CREATE_CALL_FAILURE,
+        payload
+    }
+}
 
 export function getOrganizations() {
     return (dispatch, getState, axios) => {
@@ -192,6 +214,38 @@ export function createRoom(name, videoEnabled, isPrivate) {
             })
         } catch (error) {
             dispatch(createRoomFailure({ error: error }));
+        }
+    }
+}
+
+export function createCall(participants) {
+    return (dispatch, getState, axios) => {
+        dispatch(createCallStarted());
+        const state = getState();
+
+        try {
+            axios({
+                method: 'post',
+                url: `https://watercooler.work/api/call`,
+                data: { 
+                    organization_id: state.organization.organization.id,
+                    team_id: state.organization.teams[0].id,
+                    participants,
+                    type: "call"
+                },
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer '+state.auth.authKey,
+                }
+            })
+            .then(response => {
+                dispatch(createCallSuccess({ data: response.data}));
+            })
+            .catch(error => {
+                dispatch(createCallFailure({ error: error.message }));
+            })
+        } catch (error) {
+            dispatch(createCallFailure({ error: error }));
         }
     }
 }

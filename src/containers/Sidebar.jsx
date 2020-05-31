@@ -5,7 +5,8 @@ import {
   getOrganizations, 
   getOrganizationUsers, 
   inviteUsers, 
-  createRoom 
+  createRoom,
+  createCall
 } from '../actions/organization';
 import { getAvailableDevices, updateDefaultDevices } from '../actions/settings';
 import { connect } from 'react-redux';
@@ -40,6 +41,7 @@ function mapDispatchToProps(dispatch) {
         getOrganizationUsers,
         inviteUsers,
         createRoom,
+        createCall,
         getAvailableDevices,
         updateDefaultDevices,
         push,

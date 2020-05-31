@@ -40,6 +40,7 @@ class Room extends React.Component {
         this.state = {
             room: {},
             team: {},
+            isCall: false,
             loading: true,
             members: [],
             server: null,
@@ -128,6 +129,10 @@ class Room extends React.Component {
 
     componentDidMount() {
         const { teams, match, location, pusherInstance } = this.props;
+
+        if (match.path == "/call/:roomSlug") {
+            this.setState({ isCall: true });
+        }
 
         ipcRenderer.invoke('get-media-access-status', { mediaType: "screen" }).then(response => {
             if (response == "granted") {
@@ -482,6 +487,7 @@ class Room extends React.Component {
                                 })
 
                                 that.setState({ connected: true, loading: false, publishers: updatedPublishers, me: updatedMe });
+
                             } else {
                                 currentLoadingMessage = [];
 
@@ -493,6 +499,10 @@ class Room extends React.Component {
                                 );
 
                                 that.setState({ connected: true, loading: false, currentLoadingMessage }); 
+                            }
+
+                            if (that.state.isCall == true) {
+                                that.startPublishingStream();
                             }
                         }
 
@@ -1345,6 +1355,7 @@ class Room extends React.Component {
         } = this.props;
 
         const { 
+            isCall,
             room, 
             loading, 
             room_at_capacity,
@@ -1414,15 +1425,21 @@ class Room extends React.Component {
                     <Col xs={{span:4}} md={{span:2}}>
                         <div className="d-flex flex-row justify-content-center">
                             <div className="align-self-center">
-                                {loading ?
-                                        ''
+                                {!isCall ?
+                                    loading ?
+                                            ''
+                                        :
+                                            local_stream === null ?
+                                                !room_at_capacity ?
+                                                    <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                                :
+                                                    <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" disabled><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                            :   
+                                                <Button variant="outline-danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
                                     :
-                                        local_stream === null ?
-                                            !room_at_capacity ?
-                                                <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
-                                            :
-                                                <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" disabled><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
-                                        :   
+                                        loading || local_stream === null ?
+                                            ''
+                                        :
                                             <Button variant="outline-danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
                                 }
                             </div>

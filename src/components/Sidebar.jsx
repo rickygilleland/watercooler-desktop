@@ -15,6 +15,7 @@ import ManageUsersModal from './ManageUsersModal';
 import InviteUsersModal from './InviteUsersModal';
 import ManageCameraModal from './ManageCameraModal';
 import RoomsModal from './RoomsModal';
+import NewCallModal from './NewCallModal';
 
 const { ipcRenderer } = require('electron')
 
@@ -33,9 +34,11 @@ class Sidebar extends React.Component {
             showManageUsersModal: false,
             showManageCameraModal: false,
             showRoomsModal: false,
+            showCallsModal: false,
             roomsModalReset: false,
             pusherInstance: null,
             organizationPresenceChannel: false,
+            userPrivateNotificationChannel: false,
             organizationUsersOnline: [],
             currentTime: DateTime.local()
         }
@@ -45,12 +48,12 @@ class Sidebar extends React.Component {
     }
 
     componentDidMount() {
-        var { pusherInstance, organizationPresenceChannel } = this.state;
+        var { pusherInstance, organizationPresenceChannel, userPrivateNotificationChannel } = this.state;
         const { push, auth, user, organization, getOrganizations, updateUserDetails } = this.props;
 
         if (organizationPresenceChannel && !auth.isLoggedIn) {
             pusherInstance.disconnect();
-            this.setState({ organizationPresenceChannel: false, pusherInstance: null });
+            this.setState({ organizationPresenceChannel: false, pusherInstance: null, userPrivateNotificationChannel: false });
         }
 
         var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -132,22 +135,42 @@ class Sidebar extends React.Component {
                     that.setState({ organizationUsersOnline: updatedOnlineUsers });
                 }
 
-                if (event == "room.created" && data.created_by != user.id && !data.room.is_private) {
-                    return getOrganizations();
-                }
-
-                console.log(event,data);
-
-                if (event == "room.user.invited" && data.user == user.id) {
-                    return getOrganizations();
-                }
-
             });
+
+            if (userPrivateNotificationChannel === false) {
+                var user_channel = pusherInstance.subscribe(`user.${user.id}`);
+                var that = this;
+
+                this.setState({ userPrivateNotificationChannel: true });
+
+                user_channel.bind_global(function(event, data) {
+
+                    console.log("private notification received: ", event);
+                    console.log("private notification received: ", data);
+
+                    if (event == "pusher:subscription_succeeded") {
+                        console.log("user notification channel subscribed");
+                    }
+
+                    if (event == "room.created") {
+                        return getOrganizations();
+                    }
+
+                    if (event == "room.user.invited") {
+                        return getOrganizations();
+                    }
+
+                    if (event == "call.created") {
+                        return getOrganizations();
+                    }
+
+                });
+            }
         }
 
         if (organizationPresenceChannel && !auth.isLoggedIn) {
             pusherInstance.disconnect();
-            this.setState({ organizationPresenceChannel: false, pusherInstance: null });
+            this.setState({ organizationPresenceChannel: false, userPrivateNotificationChannel: false, pusherInstance: null });
         }
     }
 
@@ -165,12 +188,13 @@ class Sidebar extends React.Component {
     }
 
     componentWillUnmount() {
-        const { organization } = this.props;
+        const { organization, user } = this.props;
         const { organizationPresenceChannel, pusherInstance } = this.state;
         window.removeEventListener('resize', this.handleResize);
 
         if (organizationPresenceChannel && Object.keys(organization).length === 0 && organization.id != null) {
             pusherInstance.unsubscribe(`presence-room.${organization.id}`);
+            pusherInstance.unsubscribe(`user.${user.id}`);
             pusherInstance.disconnect();
 
         }
@@ -210,6 +234,7 @@ class Sidebar extends React.Component {
             updateDefaultDevices, 
             createRoom,
             createRoomSuccess,
+            createCall,
             lastCreatedRoomSlug
         } = this.props;
         const { 
@@ -217,6 +242,7 @@ class Sidebar extends React.Component {
             showInviteUsersModal, 
             showManageUsersModal, 
             showRoomsModal, 
+            showCallsModal,
             roomsModalReset,
             showManageCameraModal, 
             pusherInstance,
@@ -229,9 +255,11 @@ class Sidebar extends React.Component {
                 team.name = team.name.trim() + "...";
             }
         })
-    
-        const rooms = teams.map((team, teamKey) =>
-            <div key={teamKey} className="mt-2">
+
+        let curTeam = teams[0];
+
+        const rooms = (
+            <div key={"rooms_" + curTeam.id} className="mt-2">
                 <Row>
                     <Col xs={9}>
                         <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:800}}>Rooms</p>
@@ -240,10 +268,10 @@ class Sidebar extends React.Component {
                         <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} onClick={() => this.setState({ showRoomsModal: true })}><FontAwesomeIcon icon={faPlusSquare} /></Button>
                     </Col>
                 </Row>
-                <div className="vh-100" style={{overflowY:"scroll",paddingBottom:215}}>
-                    {team.rooms.length > 0 ?
+                <div style={{overflowY:"scroll",height:"vh50 !important"}}>
+                    {curTeam.rooms.length > 0 ?
                         <ul className="nav flex-column mt-1">
-                            {team.rooms.map((room, roomKey) => 
+                            {curTeam.rooms.map((room, roomKey) => 
                                 <li key={roomKey} className="nav-item">
                                     <NavLink exact={true} 
                                             activeStyle={{
@@ -254,11 +282,50 @@ class Sidebar extends React.Component {
                                             to={{
                                                 pathname: `/room/${room.slug}`,
                                                 state: {
-                                                    team: team,
+                                                    team: curTeam,
                                                     room: room
                                                 }
                                             }}>
                                         <p className="text-light mb-0 pl-3">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".7rem",marginRight:".2rem"}} /> : <span style={{marginRight:".2rem"}}>#</span>} {room.name}</p>
+                                    </NavLink>
+                                </li>
+                            )}
+                        </ul>
+                    : '' }
+                </div>
+            </div>
+        );
+
+        const calls = (
+            <div key={"calls_" + curTeam.id} className="mt-2">
+                <Row>
+                    <Col xs={9}>
+                        <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:800}}>Direct Calls</p>
+                    </Col>
+                    <Col xs={3}>
+                        <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} onClick={() => this.setState({ showCallsModal: true })}><FontAwesomeIcon icon={faPlusSquare} /></Button>
+                    </Col>
+                </Row>
+                <div style={{overflowY:"scroll",height:"vh50 !important"}}>
+                    {typeof curTeam.calls != "undefined" && curTeam.calls.length > 0 ?
+                        <ul className="nav flex-column mt-1">
+                            {curTeam.calls.map((room, roomKey) => 
+                                <li key={roomKey} className="nav-item">
+                                    <NavLink exact={true} 
+                                            activeStyle={{
+                                                fontWeight: "bold",
+                                                backgroundColor:"#4381ff"
+                                            }} 
+                                            className="d-block py-1"
+                                            to={{
+                                                pathname: `/call/${room.slug}`,
+                                                state: {
+                                                    team: curTeam,
+                                                    room: room,
+                                                    isCall: true
+                                                }
+                                            }}>
+                                        <p className="text-light mb-0 pl-3">Direct Call Name</p>
                                     </NavLink>
                                 </li>
                             )}
@@ -331,6 +398,19 @@ class Sidebar extends React.Component {
                                 push={push}
                                 onHide={() => this.setState({ showRoomsModal: false })}
                             />
+                            <NewCallModal 
+                                userId={user.id}
+                                users={organizationUsers}
+                                show={showCallsModal}
+                                loading={organizationLoading.toString()}
+                                createroomsuccess={createRoomSuccess}
+                                lastCreatedRoomSlug={lastCreatedRoomSlug}
+                                roomsModalReset={roomsModalReset}
+                                handleSubmit={createCall}
+                                push={push}
+                                onShow={() => getOrganizationUsers(organization.id)}
+                                onHide={() => this.setState({ showCallsModal: false })}
+                            />
                             <ManageCameraModal 
                                 show={showManageCameraModal}
                                 settings={settings}
@@ -390,6 +470,7 @@ class Sidebar extends React.Component {
                             </div>
                             <div>
                                 {rooms}
+                                {calls}
                             </div>
                         </div>
                         <div className="pl-0 ml-auto" style={{borderLeft:"1px solid #1c2046",width:"100%"}}>
@@ -397,6 +478,12 @@ class Sidebar extends React.Component {
                                 <>
                                     <Route 
                                         path={routes.ROOM} 
+                                        render={(routeProps) => (
+                                            <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
+                                        )}
+                                    />
+                                    <Route 
+                                        path={routes.CALL} 
                                         render={(routeProps) => (
                                             <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
                                         )}
