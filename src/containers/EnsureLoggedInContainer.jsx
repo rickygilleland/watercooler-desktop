@@ -7,7 +7,7 @@ import { setRedirectUrl } from '../actions/auth';
 
 class EnsureLoggedInContainer extends React.Component {
     componentDidMount() {
-      const { dispatch, currentURL, auth, organization } = this.props
+      const { dispatch, currentURL, auth, organization } = this.props;
 
       if ((!auth.isLoggedIn || auth.loginError) && (currentURL != "/login" && !currentURL.includes("/magic/login"))) {
         if (auth.redirectUrl == currentURL) {

@@ -33,6 +33,9 @@ export default class App extends React.Component {
         <PersistGate loading={null} persistor={persistor}>
           <ConnectedRouter history={history}>
             <Switch>
+              <Redirect from="/" exact to={{
+                      pathname: routes.LOADING,
+              }} />
               <Route path={routes.LOGIN} component={LoginPage} />
               <Route path={routes.MAGIC_LOGIN} component={MagicLoginPage} />
               <Route path={routes.LOADING} component={LoadingPage} />
