@@ -27,6 +27,8 @@ class Sidebar extends React.Component {
         super(props);
 
         this.state = {
+            timeInterval: null,
+            updateInterval: null,
             dimensions: {
                 width: 0,
                 height: 0
@@ -66,7 +68,7 @@ class Sidebar extends React.Component {
             updateUserDetails(timezone);
         }
 
-        window.setInterval(function () {
+        let timeInterval = setInterval(function () {
 
             var currentTime = DateTime.local();
 
@@ -78,6 +80,14 @@ class Sidebar extends React.Component {
             }
 
         }.bind(this), 1000);
+
+        let updateInterval = setInterval(function () {
+
+            getOrganizations();
+
+        }.bind(this), 600000);
+
+        this.setState({ timeInterval, updateInterval });
 
         if (auth.isLoggedIn && organization != null && !organizationPresenceChannel) {
 
@@ -195,8 +205,16 @@ class Sidebar extends React.Component {
 
     componentWillUnmount() {
         const { organization, user } = this.props;
-        const { organizationPresenceChannel, pusherInstance } = this.state;
+        const { organizationPresenceChannel, pusherInstance, timeInterval, updateInterval } = this.state;
         window.removeEventListener('resize', this.handleResize);
+
+        if (timeInterval != null) {
+            clearInterval(timeInterval);
+        }
+
+        if (updateInterval != null) {
+            clearInterval(updateInterval);
+        }
 
         if (organizationPresenceChannel && Object.keys(organization).length === 0 && organization.id != null) {
             pusherInstance.unsubscribe(`presence-room.${organization.id}`);
