@@ -11,6 +11,7 @@ function mapStateToProps(state) {
         auth: state.auth,
         user: state.user,
         organization: state.organization.organization,
+        billing: state.organization.billing,
         organizationUsers: state.organization.users,
         teams: state.organization.teams,
         roomLoading: state.room.loading,

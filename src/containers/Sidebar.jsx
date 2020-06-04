@@ -5,7 +5,8 @@ import {
   getOrganizations, 
   getOrganizationUsers, 
   inviteUsers, 
-  createRoom 
+  createRoom,
+  createCall
 } from '../actions/organization';
 import { getAvailableDevices, updateDefaultDevices } from '../actions/settings';
 import { connect } from 'react-redux';
@@ -18,6 +19,7 @@ function mapStateToProps(state, ownProps) {
     return {
         user: state.user,
         organization: state.organization.organization,
+        billing: state.organization.billing,
         organizationUsers: state.organization.users,
         organizationLoading: state.organization.loading,
         inviteUsersSuccess: state.organization.inviteUsersSuccess,
@@ -39,6 +41,7 @@ function mapDispatchToProps(dispatch) {
         getOrganizationUsers,
         inviteUsers,
         createRoom,
+        createCall,
         getAvailableDevices,
         updateDefaultDevices,
         push,

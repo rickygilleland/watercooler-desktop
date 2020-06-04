@@ -9,7 +9,8 @@ module.exports = {
             "entitlements-inherit": "./src/entitlements.plist",
             "appBundleId": "com.watercooler.app"
         },
-        "appBundleId": "com.watercooler.app"
+        "appBundleId": "com.watercooler.app",
+        "asar": true
     },
       "makers": [
         {
@@ -48,9 +49,12 @@ module.exports = {
                   "js": "./src/renderer.js",
                   "name": "main_window"
                 }
-              ]
+              ],
             }
           }
+        ],
+        [
+          '@electron-forge/plugin-auto-unpack-natives'
         ]
       ],
       "hooks": {
