@@ -165,7 +165,9 @@ class Sidebar extends React.Component {
                     }
 
                     if (event == "call.created") {
-                        return getOrganizations();
+                        getOrganizations();
+
+                        that.setState({ showIncomingCallModal: true, incomingCall: data.room })
                     }
 
                 });
@@ -319,7 +321,7 @@ class Sidebar extends React.Component {
                 <div key={"calls_" + curTeam.id} className="mt-2">
                     <Row>
                         <Col xs={9}>
-                            <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:800}}>Direct Calls</p>
+                            <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:800}}>Calls</p>
                         </Col>
                         <Col xs={3}>
                             <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} onClick={() => this.setState({ showCallsModal: true })}><FontAwesomeIcon icon={faPlusSquare} /></Button>
@@ -385,13 +387,6 @@ class Sidebar extends React.Component {
 
         return (
             <>
-                <ErrorBoundary showError={true}>
-                    <Switch>
-                        <Redirect from="/" exact to={{
-                                pathname: routes.LOADING,
-                        }} />
-                    </Switch>
-                </ErrorBoundary>
                 <Switch>
                     <EnsureLoggedInContainer>
                         <ErrorBoundary showError={false}>
