@@ -106,6 +106,7 @@ const createWindow = () => {
       webPreferences: {
         nodeIntegration: true,
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+        preload: path.join(__dirname, 'sentry.js'),
         devTools: false
       }
     });
