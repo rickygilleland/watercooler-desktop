@@ -159,13 +159,6 @@ class Sidebar extends React.Component {
 
                 user_channel.bind_global(function(event, data) {
 
-                    console.log("private notification received: ", event);
-                    console.log("private notification received: ", data);
-
-                    if (event == "pusher:subscription_succeeded") {
-                        console.log("user notification channel subscribed");
-                    }
-
                     if (event == "room.created") {
                         return getOrganizations();
                     }
@@ -174,11 +167,11 @@ class Sidebar extends React.Component {
                         return getOrganizations();
                     }
 
-                    if (event == "call.created") {
+                    /*if (event == "call.created") {
                         getOrganizations();
 
                         that.setState({ showIncomingCallModal: true, incomingCall: data.room })
-                    }
+                    }*/
 
                 });
             }
@@ -512,7 +505,7 @@ class Sidebar extends React.Component {
                                 </div>
                                 <div>
                                     {rooms}
-                                    {calls}
+                                    {/*calls*/}
                                 </div>
                             </div>
                         </div>
