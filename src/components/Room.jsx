@@ -1220,7 +1220,7 @@ class Room extends React.Component {
                 if (videoStatus) {
                     local_video_container.push(
                         <div style={{width:106.66,height:80}} key={999} className="align-self-center">
-                            <video autoPlay muted ref={this.renderVideo(this.state.local_stream)} style={{height:80 }} className="rounded shadow"></video>
+                            <video autoPlay muted ref={this.renderVideo(this.state.local_stream)} style={{height:80 }} className="rounded shadow video-flip"></video>
                         </div>
                     )
                 } 
