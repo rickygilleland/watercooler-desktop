@@ -63,8 +63,9 @@ class Sidebar extends React.Component {
         posthog.people.set({email: user.email});
 
         posthog.register({
-            "organization_id": organization.id
-        })
+            "organization_id": organization.id,
+            "version": require("electron").remote.app.getVersion()
+        });
 
         if (organizationPresenceChannel && !auth.isLoggedIn) {
             pusherInstance.disconnect();
