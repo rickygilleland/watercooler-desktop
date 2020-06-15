@@ -11,6 +11,9 @@ import LoginPage from './containers/LoginPage';
 import MagicLoginPage from './containers/MagicLoginPage';
 import ScreenShareControls from './components/ScreenShareControls'
 import LoadingPage from './containers/LoadingPage';
+
+import posthog from 'posthog-js';
+
 const customTitlebar = require('custom-electron-titlebar');
 
 var path = window.location.href;
@@ -22,6 +25,8 @@ if (path != "/screensharing_controls") {
     overflow: "hidden",
   });
 }
+
+posthog.init('64tUVTgJhFVIV7BADDLYHN-zG2Ja1yqzOI_SE8Pytc4', {api_host: 'https://analytics.watercooler.work'});
 
 export default class App extends React.Component {
   render() {

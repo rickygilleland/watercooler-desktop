@@ -7,6 +7,8 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch, faUserPlus, faCircle } from '@fortawesome/free-solid-svg-icons';
 import InviteUsersModal from './InviteUsersModal';
 
+import posthog from 'posthog-js';
+
 class Team extends React.Component {
 
     constructor(props) {
@@ -18,6 +20,8 @@ class Team extends React.Component {
 
     componentDidMount() {
         const { getOrganizationUsers, organization } = this.props;
+
+        posthog.capture('$pageview');
 
         getOrganizationUsers(organization.id);
     }

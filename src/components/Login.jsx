@@ -5,6 +5,7 @@ import routes from '../constants/routes.json';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
 import { getOrganizations } from '../actions/organization';
+import posthog from 'posthog-js';
 
 const { ipcRenderer } = require('electron')
 
@@ -185,6 +186,7 @@ class Login extends React.Component {
                                         value={password}
                                         onChange={this.handlePasswordChange}
                                         size="lg"
+                                        className="ph-no-capture"
                                     />
                                 </Form.Group>
                             : "" }
