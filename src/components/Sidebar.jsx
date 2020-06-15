@@ -18,6 +18,8 @@ import RoomsModal from './RoomsModal';
 import NewCallModal from './NewCallModal';
 import IncomingCallModal from './IncomingCallModal';
 
+import posthog from 'posthog-js';
+
 const { ipcRenderer } = require('electron')
 
 
@@ -56,6 +58,14 @@ class Sidebar extends React.Component {
     componentDidMount() {
         var { pusherInstance, organizationPresenceChannel, userPrivateNotificationChannel } = this.state;
         const { push, auth, user, organization, getOrganizations, updateUserDetails } = this.props;
+
+        posthog.identify(user.id);
+        posthog.people.set({email: user.email});
+
+        posthog.register({
+            "organization_id": organization.id,
+            "version": require("electron").remote.app.getVersion()
+        });
 
         if (organizationPresenceChannel && !auth.isLoggedIn) {
             pusherInstance.disconnect();
@@ -233,6 +243,8 @@ class Sidebar extends React.Component {
             pusherInstance.disconnect();
         }
 
+        posthog.reset();
+
         return userLogout();
     }
 
@@ -310,7 +322,7 @@ class Sidebar extends React.Component {
                                                     fontWeight: "bold",
                                                     backgroundColor:"#4381ff"
                                                 }} 
-                                                className="d-block py-1"
+                                                className="d-block py-1 ph-no-capture"
                                                 to={{
                                                     pathname: `/room/${room.slug}`,
                                                     state: {
@@ -318,7 +330,7 @@ class Sidebar extends React.Component {
                                                         room: room
                                                     }
                                                 }}>
-                                            <p className="text-light mb-0 pl-3">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".7rem",marginRight:".2rem"}} /> : <span style={{marginRight:".2rem"}}>#</span>} {room.name}</p>
+                                            <p className="text-light mb-0 pl-3 ph-no-capture">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".7rem",marginRight:".2rem"}} /> : <span style={{marginRight:".2rem"}}>#</span>} {room.name}</p>
                                         </NavLink>
                                     </li>
                                 )}

@@ -30,6 +30,7 @@ import Pusher from 'pusher-js';
 import VideoList from './VideoList';
 import AddUserToRoomModal from './AddUserToRoomModal';
 import ScreenSharingModal from './ScreenSharingModal';
+import posthog from 'posthog-js';
 const { BrowserWindow } = require('electron').remote
 
 class Room extends React.Component {
@@ -316,6 +317,8 @@ class Room extends React.Component {
         if (curRoom === {}) {
             push("/");
         }
+
+        posthog.capture('$pageview', {"room_id": curRoom.id});
 
         userPrivateNotificationChannel.bind('call.declined', function(data) {
 
@@ -1183,7 +1186,7 @@ class Room extends React.Component {
     }
 
     toggleVideoOrAudio(type) {
-        var { videoRoomStreamerHandle, local_stream, videoStatus, audioStatus, screenSharingWindow } = this.state;
+        var { videoRoomStreamerHandle, local_stream, videoStatus, audioStatus, screenSharingWindow, room } = this.state;
 
         if (typeof local_stream !== 'undefined') {
             var tracks = local_stream.getTracks();
@@ -1217,7 +1220,7 @@ class Room extends React.Component {
                 if (videoStatus) {
                     local_video_container.push(
                         <div style={{width:106.66,height:80}} key={999} className="align-self-center">
-                            <video autoPlay muted ref={this.renderVideo(this.state.local_stream)} style={{height:80 }} className="rounded shadow"></video>
+                            <video autoPlay muted ref={this.renderVideo(this.state.local_stream)} style={{height:80 }} className="rounded shadow video-flip"></video>
                         </div>
                     )
                 } 
@@ -1242,6 +1245,12 @@ class Room extends React.Component {
 
             if (typeof local_video_container != "undefined") {
                 return this.setState({ local_video_container, videoStatus, audioStatus });
+            }
+
+            if (type == "video") {
+                posthog.capture('video-toggled', {"room_id": room.id, "video-enabled": videoStatus});
+            } else {
+                posthog.capture('audio-toggled', {"room_id": room.id, "audio-enabled": audioStatus});
             }
 
             this.setState({ videoStatus, audioStatus });  
@@ -1286,7 +1295,7 @@ class Room extends React.Component {
     }
 
     async toggleScreenSharing(streamId = null) {
-        const { screenSharingHandle, screenSharingActive, screenSources, screenSharingStream, screenSharingWindow } = this.state;
+        const { screenSharingHandle, screenSharingActive, screenSources, screenSharingStream, screenSharingWindow, room } = this.state;
 
         if (screenSharingActive && streamId == null) {
 
@@ -1318,10 +1327,16 @@ class Room extends React.Component {
                 screenSharingActive: false
             });
 
+            posthog.capture('screen-sharing-stopped', {"room_id": room.id});
+
             return this.setState({ screenSharingActive: false, screenSharingStream: null, screenSharingWindow: null });
         }
 
+        let entireScreen = false;
+
         if (streamId == "entire-screen") {
+
+            entireScreen = true;
 
             ipcRenderer.invoke('get-media-access-status', { mediaType: "screen" }).then(response => {
                 if (response == "denied") {
@@ -1335,6 +1350,8 @@ class Room extends React.Component {
                 }
             })
         }
+
+        posthog.capture('screen-sharing-started', {"room_id": room.id, "entire-screen": entireScreen});
 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
@@ -1482,28 +1499,28 @@ class Room extends React.Component {
                                                         <FontAwesomeIcon icon={faDesktop} />
                                                     </Dropdown.Toggle>
                                                     <Dropdown.Menu show={showScreenSharingDropdown}>
-                                                        <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block" onClick={() => this.toggleScreenSharing("entire-screen")}><FontAwesomeIcon icon={faDesktop} /> Share Whole Screen</Button></Dropdown.Item>
-                                                        <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block" onClick={() => this.setState({ showScreenSharingModal: true, screenSourcesLoading: true, showScreenSharingDropdown: false })}><FontAwesomeIcon icon={faWindowMaximize} /> Share a Window</Button></Dropdown.Item>
+                                                        <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block ph-no-capture" onClick={() => this.toggleScreenSharing("entire-screen")}><FontAwesomeIcon icon={faDesktop} /> Share Whole Screen</Button></Dropdown.Item>
+                                                        <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block ph-no-capture" onClick={() => this.setState({ showScreenSharingModal: true, screenSourcesLoading: true, showScreenSharingDropdown: false })}><FontAwesomeIcon icon={faWindowMaximize} /> Share a Window</Button></Dropdown.Item>
                                                     </Dropdown.Menu>
                                                 </Dropdown>
                                     }
-                                    <Button variant={audioStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
+                                    <Button variant={audioStatus ? "outline-success" : "outline-danger"} className="mx-1 ph-no-capture" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
                                     {billing.plan == "Free"
                                         ?
                                             <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Video is unavailable on the free plan.</Tooltip>}>
                                                 <span className="d-inline-block">
                                             
-                                                <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                                <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1 ph-no-capture" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                                 </span>
                                             </OverlayTrigger> 
                                         :
                                             room.video_enabled ?
-                                                <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                                <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1 ph-no-capture" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                             :
                                             <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Video is disabled in this room.</Tooltip>}>
                                                 <span className="d-inline-block">
                                             
-                                                <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                                <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1 ph-no-capture" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                                 </span>
                                             </OverlayTrigger> 
                                     }
