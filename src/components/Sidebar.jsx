@@ -465,85 +465,87 @@ class Sidebar extends React.Component {
                                 onHide={() => this.setState({ showManageCameraModal: false })}
                             />
                         </ErrorBoundary>
-                        <div style={{backgroundColor:"#1b1e2f",width:240}} className="vh-100 pr-0 float-left">
-                            
-                            <Navbar className="text-light pt-4" style={{height:80,backgroundColor:"#121422",borderBottom:"1px solid #1c2046"}}>
-                                <ErrorBoundary showError={false}>
-                                    <Navbar.Brand>
-                                        {organization != null ? 
-                                            <p className="text-light p-0 m-0" style={{fontSize:".9rem",fontWeight:800}}>{organization.name}</p>
-                                        : '' }
-                                        {user != null ? 
-                                            <p className="text-light pt-0 pb-1" style={{fontSize:".8rem"}}><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#3ecf8e",fontSize:".5rem",verticalAlign:'middle'}} /> {user.first_name}</p>
-                                        : '' }
-                                    </Navbar.Brand>
-                                    <div className="ml-auto" style={{height:60}}>
+                        <div className="d-flex">
+                            <div style={{backgroundColor:"#1b1e2f",width:280}} className="vh-100 pr-0">
                                 
-                                        <Dropdown className="dropdownSettings text-light">
-                                            <Dropdown.Toggle><FontAwesomeIcon icon={faCog} style={{color:"#fff"}} /></Dropdown.Toggle>
-                                            <Dropdown.Menu>
-                                                <Dropdown.Item onClick={() => this.setState({ showInviteUsersModal: true })}>
-                                                    <FontAwesomeIcon icon={faUserPlus} /> Invite People to {organization != null ? organization.name : ''}
-                                                </Dropdown.Item>
-                                                <Dropdown.Item onClick={() => this.setState({ showManageCameraModal: true })}>
-                                                    <FontAwesomeIcon icon={faCamera} /> Camera Settings
-                                                </Dropdown.Item>
-                                                <Dropdown.Item onClick={() => this.userLogout() }>
-                                                    <FontAwesomeIcon icon={faSignOutAlt}/> Sign Out
-                                                </Dropdown.Item>
-                                            </Dropdown.Menu>
-                                        </Dropdown>
+                                <Navbar className="text-light pt-4" style={{height:80,backgroundColor:"#121422",borderBottom:"1px solid #1c2046"}}>
+                                    <ErrorBoundary showError={false}>
+                                        <Navbar.Brand>
+                                            {organization != null ? 
+                                                <p className="text-light p-0 m-0" style={{fontSize:".9rem",fontWeight:800}}>{organization.name}</p>
+                                            : '' }
+                                            {user != null ? 
+                                                <p className="text-light pt-0 pb-1" style={{fontSize:".8rem"}}><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#3ecf8e",fontSize:".5rem",verticalAlign:'middle'}} /> {user.first_name}</p>
+                                            : '' }
+                                        </Navbar.Brand>
+                                        <div className="ml-auto" style={{height:60}}>
+                                    
+                                            <Dropdown className="dropdownSettings text-light">
+                                                <Dropdown.Toggle><FontAwesomeIcon icon={faCog} style={{color:"#fff"}} /></Dropdown.Toggle>
+                                                <Dropdown.Menu>
+                                                    <Dropdown.Item onClick={() => this.setState({ showInviteUsersModal: true })}>
+                                                        <FontAwesomeIcon icon={faUserPlus} /> Invite People to {organization != null ? organization.name : ''}
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item onClick={() => this.setState({ showManageCameraModal: true })}>
+                                                        <FontAwesomeIcon icon={faCamera} /> Camera Settings
+                                                    </Dropdown.Item>
+                                                    <Dropdown.Item onClick={() => this.userLogout() }>
+                                                        <FontAwesomeIcon icon={faSignOutAlt}/> Sign Out
+                                                    </Dropdown.Item>
+                                                </Dropdown.Menu>
+                                            </Dropdown>
 
+                                        </div>
+                                    </ErrorBoundary>
+                                </Navbar>
+                                <div className="sidebar-scroll">
+                                    <div>
+                                        <ul className="nav flex-column mt-1">
+                                            <li key="people-nav-button" className="nav-item">
+                                                <NavLink exact={true} 
+                                                    activeStyle={{
+                                                        fontWeight: "bold",
+                                                        backgroundColor:"#4381ff"
+                                                    }} 
+                                                    className="d-block py-1"
+                                                    to={{
+                                                        pathname: `/team`
+                                                    }}>
+                                                        <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faUsers} style={{fontSize:".65rem"}} />  Team</p>
+                                                </NavLink>
+                                            </li>
+                                        </ul>
                                     </div>
-                                </ErrorBoundary>
-                            </Navbar>
-                            <div className="sidebar-scroll">
-                                <div>
-                                    <ul className="nav flex-column mt-1">
-                                        <li key="people-nav-button" className="nav-item">
-                                            <NavLink exact={true} 
-                                                activeStyle={{
-                                                    fontWeight: "bold",
-                                                    backgroundColor:"#4381ff"
-                                                }} 
-                                                className="d-block py-1"
-                                                to={{
-                                                    pathname: `/team`
-                                                }}>
-                                                    <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faUsers} style={{fontSize:".65rem"}} />  Team</p>
-                                            </NavLink>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div>
-                                    {rooms}
-                                    {/*calls*/}
+                                    <div>
+                                        {rooms}
+                                        {/*calls*/}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div className="pl-0 ml-auto" style={{borderLeft:"1px solid #1c2046",width:"100%"}}>
+                            <div className="pl-0" style={{borderLeft:"1px solid #1c2046",width:"100%",borderRadius:15,marginLeft:10,marginRight:10,marginTop:10,marginBottom:30,backgroundColor:"#fff"}}>
+                        
+                                    <>
+                                        <Route 
+                                            path={routes.ROOM} 
+                                            render={(routeProps) => (
+                                                <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} userPrivateNotificationChannel={userPrivateNotificationChannel} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
+                                            )}
+                                        />
+                                        <Route 
+                                            path={routes.CALL} 
+                                            render={(routeProps) => (
+                                                <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} userPrivateNotificationChannel={userPrivateNotificationChannel} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
+                                            )}
+                                        />
+                                        <Route 
+                                            path={routes.TEAM} 
+                                            render={(routeProps) => (
+                                                <ErrorBoundary showError={true}><TeamPage {...routeProps} organizationUsersOnline={organizationUsersOnline} currentTime={currentTime} /></ErrorBoundary>
+                                            )}
+                                        />
+                                    </>
                     
-                                <>
-                                    <Route 
-                                        path={routes.ROOM} 
-                                        render={(routeProps) => (
-                                            <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} userPrivateNotificationChannel={userPrivateNotificationChannel} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
-                                        )}
-                                    />
-                                    <Route 
-                                        path={routes.CALL} 
-                                        render={(routeProps) => (
-                                            <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} userPrivateNotificationChannel={userPrivateNotificationChannel} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
-                                        )}
-                                    />
-                                    <Route 
-                                        path={routes.TEAM} 
-                                        render={(routeProps) => (
-                                            <ErrorBoundary showError={true}><TeamPage {...routeProps} organizationUsersOnline={organizationUsersOnline} currentTime={currentTime} /></ErrorBoundary>
-                                        )}
-                                    />
-                                </>
-                
+                            </div>
                         </div>
                     </EnsureLoggedInContainer>
                 </Switch>

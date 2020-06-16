@@ -71,7 +71,7 @@ class Room extends React.Component {
             dimensions: {
                 width: window.innerWidth,
                 height: window.innerHeight,
-                sidebarWidth: 240
+                sidebarWidth: 280
             },
             pinned: false,
             talking: [],
@@ -1047,9 +1047,7 @@ class Room extends React.Component {
         var newWidth = window.innerWidth;
         var newHeight = window.innerHeight;
 
-        if (publishers.length > 0) {
-            this.setState({ dimensions: { width: newWidth, height: newHeight, sidebarWidth: dimensions.sidebarWidth } });
-        }
+        this.setState({ dimensions: { width: newWidth, height: newHeight, sidebarWidth: dimensions.sidebarWidth } });
 
     }
 
@@ -1169,9 +1167,19 @@ class Room extends React.Component {
                 columns
             }
 
-            this.setState({ videoSizes });
+            return this.setState({ videoSizes });
             
         } 
+
+
+        this.setState({ videoSizes: {
+                width: 0,
+                height: 0,
+                display: "row align-items-center justify-content-center h-100",
+                containerHeight: window.innerHeight - 114
+            }
+        });
+        
     }
 
     renderVideo(source) {
@@ -1390,8 +1398,8 @@ class Room extends React.Component {
         const { 
             isCall,
             room, 
-            loading, 
             room_at_capacity,
+            loading,
             publishers, 
             publishing,
             talking,
@@ -1433,7 +1441,7 @@ class Room extends React.Component {
                     onShow={() => this.getAvailableScreensToShare()}
                     onHide={() => this.setState({ showScreenSharingModal: false })}
                 />
-                <Row className="text-light pl-0 ml-0" style={{height:80,backgroundColor:"#121422"}}>
+                <Row className="pl-0 ml-0" style={{height:80}}>
                     <Col xs={{span:4}} md={{span:5}}>
                         <div className="d-flex flex-row justify-content-start">
                             <div className="align-self-center">
@@ -1441,13 +1449,13 @@ class Room extends React.Component {
                                 {room.is_private ?
                                     <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-view-members">View current members of this private room and add new ones.</Tooltip>}>
                                         <span className="d-inline-block">
-                                        <Button variant="link" className="pl-0 pt-0" style={{color:"#fff",fontSize:".7rem"}} onClick={() => this.setState({ showAddUserToRoomModal: true })}><FontAwesomeIcon icon={faUser} /> {roomUsers.length > 0 ? roomUsers.length : '' }</Button>
+                                        <Button variant="link" className="pl-0 pt-0" style={{color:"black",fontSize:".7rem"}} onClick={() => this.setState({ showAddUserToRoomModal: true })}><FontAwesomeIcon icon={faUser} /> {roomUsers.length > 0 ? roomUsers.length : '' }</Button>
                                         </span>
                                     </OverlayTrigger>
                                 :
                                 <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-view-members">This room is visible to everyone on your team.</Tooltip>}>
                                     <span className="d-inline-block">
-                                    <Button variant="link" className="pl-0 pt-0" style={{color:"#fff",fontSize:".7rem", pointerEvents: 'none'}}><FontAwesomeIcon icon={faUser} /></Button>
+                                    <Button variant="link" className="pl-0 pt-0" style={{color:"black",fontSize:".7rem", pointerEvents: 'none'}}><FontAwesomeIcon icon={faUser} /></Button>
                                     </span>
                                 </OverlayTrigger>
                                 }
@@ -1464,16 +1472,16 @@ class Room extends React.Component {
                                         :
                                             local_stream === null ?
                                                 !room_at_capacity ?
-                                                    <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                                    <Button variant="success" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
                                                 :
-                                                    <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" disabled><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                                    <Button variant="success" style={{whiteSpace:'nowrap'}} className="mx-1" disabled><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
                                             :   
-                                                <Button variant="outline-danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
+                                                <Button variant="danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
                                     :
                                         loading || local_stream === null ?
                                             ''
                                         :
-                                            <Button variant="outline-danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
+                                            <Button variant="danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
                                 }
                             </div>
                             <div style={{height:80}}></div>
@@ -1487,40 +1495,40 @@ class Room extends React.Component {
                                         ?
                                             <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Screen sharing is unavailable on the free plan.</Tooltip>}>
                                                 <span className="d-inline-block">
-                                                    <Button variant="outline-info" className="mx-1" style={{ pointerEvents: 'none' }} disabled><FontAwesomeIcon icon={faDesktop} /></Button>
+                                                    <Button variant="info" className="mx-1" style={{ pointerEvents: 'none' }} disabled><FontAwesomeIcon icon={faDesktop} /></Button>
                                                 </span>
                                             </OverlayTrigger> 
                                         :
                                             screenSharingActive ? 
-                                                <Button variant="outline-danger" className="mx-1" onClick={() => this.toggleScreenSharing()}><FontAwesomeIcon icon={faDesktop} /></Button>
+                                                <Button variant="danger" className="mx-1" onClick={() => this.toggleScreenSharing()}><FontAwesomeIcon icon={faDesktop} /></Button>
                                             :
                                                 <Dropdown className="btn p-0 m-0" as="span">
-                                                    <Dropdown.Toggle variant="outline-info" id="screensharing-dropdown" className="mx-1 no-carat">
+                                                    <Dropdown.Toggle variant="info" id="screensharing-dropdown" className="mx-1 no-carat">
                                                         <FontAwesomeIcon icon={faDesktop} />
                                                     </Dropdown.Toggle>
                                                     <Dropdown.Menu show={showScreenSharingDropdown}>
-                                                        <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block ph-no-capture" onClick={() => this.toggleScreenSharing("entire-screen")}><FontAwesomeIcon icon={faDesktop} /> Share Whole Screen</Button></Dropdown.Item>
-                                                        <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block ph-no-capture" onClick={() => this.setState({ showScreenSharingModal: true, screenSourcesLoading: true, showScreenSharingDropdown: false })}><FontAwesomeIcon icon={faWindowMaximize} /> Share a Window</Button></Dropdown.Item>
+                                                        <Dropdown.Item className="no-hover-bg"><Button variant="info" className="btn-block ph-no-capture" onClick={() => this.toggleScreenSharing("entire-screen")}><FontAwesomeIcon icon={faDesktop} /> Share Whole Screen</Button></Dropdown.Item>
+                                                        <Dropdown.Item className="no-hover-bg"><Button variant="info" className="btn-block ph-no-capture" onClick={() => this.setState({ showScreenSharingModal: true, screenSourcesLoading: true, showScreenSharingDropdown: false })}><FontAwesomeIcon icon={faWindowMaximize} /> Share a Window</Button></Dropdown.Item>
                                                     </Dropdown.Menu>
                                                 </Dropdown>
                                     }
-                                    <Button variant={audioStatus ? "outline-success" : "outline-danger"} className="mx-1 ph-no-capture" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
+                                    <Button variant={audioStatus ? "success" : "danger"} className="mx-1 ph-no-capture" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
                                     {billing.plan == "Free"
                                         ?
                                             <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Video is unavailable on the free plan.</Tooltip>}>
                                                 <span className="d-inline-block">
                                             
-                                                <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1 ph-no-capture" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                                <Button variant={videoStatus ? "success" : "danger"} className="mx-1 ph-no-capture" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                                 </span>
                                             </OverlayTrigger> 
                                         :
                                             room.video_enabled ?
-                                                <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1 ph-no-capture" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                                <Button variant={videoStatus ? "success" : "danger"} className="mx-1 ph-no-capture" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                             :
                                             <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Video is disabled in this room.</Tooltip>}>
                                                 <span className="d-inline-block">
                                             
-                                                <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1 ph-no-capture" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                                <Button variant={videoStatus ? "success" : "danger"} className="mx-1 ph-no-capture" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                                 </span>
                                             </OverlayTrigger> 
                                     }
@@ -1535,10 +1543,10 @@ class Room extends React.Component {
                 <Container className="ml-0 stage-container" fluid style={{height:videoSizes.containerHeight - 20}}>
 
                     {loading ? 
-                        <React.Fragment>
+                        <div style={{overflowY:"scroll"}}>
                             <h1 className="text-center mt-5">Loading Room...</h1>
                             <center><FontAwesomeIcon icon={faCircleNotch} className="mt-3" style={{fontSize:"2.4rem",color:"#6772ef"}} spin /></center> 
-                        </React.Fragment>  
+                        </div>  
                     : 
                         !room_at_capacity ?
                             <React.Fragment>
