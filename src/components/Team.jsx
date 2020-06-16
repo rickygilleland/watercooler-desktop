@@ -43,11 +43,11 @@ class Team extends React.Component {
                     inviteuserssuccess={inviteUsersSuccess}
                     onHide={() => this.setState({ showInviteUsersModal: false })}
                 />
-                <Row className="text-light pl-0 ml-0" style={{height:80,backgroundColor:"#121422"}}>
+                <Row className="pl-0 ml-0" style={{height:80}}>
                     <Col xs={{span:4}}>
                         <div className="d-flex flex-row justify-content-start">
                             <div className="align-self-center">
-                                <p style={{fontWeight:"bolder",fontSize:"1rem"}} className="pb-0 mb-0">Team</p>
+                                <p style={{fontWeight:"bolder",fontSize:"1.65rem"}} className="pb-0 mb-0">Team</p>
                             </div>
                             <div style={{height:80}}></div>
                         </div>
@@ -67,7 +67,7 @@ class Team extends React.Component {
                         <center><FontAwesomeIcon icon={faCircleNotch} className="mt-3" style={{fontSize:"2.4rem",color:"#6772ef"}} spin /></center> 
                     </>
                 :   
-                    <Row className="pt-3 px-3 vh-100" style={{overflowY:"scroll",paddingBottom:100}}>
+                    <Row className="pt-3 px-3 team-container" style={{overflowY:"scroll",paddingBottom:100}}>
                         {organizationUsers.map((organizationUser) =>
                             <Col xs={6} md={4} lg={3} xl={2} key={organizationUser.id}>
                                 <Card className="mb-3">
