@@ -465,9 +465,9 @@ class Sidebar extends React.Component {
                             />
                         </ErrorBoundary>
                         <div className="d-flex">
-                            <div style={{backgroundColor:"#1b1e2f",width:280}} className="vh-100 pr-0">
+                            <div style={{width:280}} className="vh-100 pr-0">
                                 
-                                <Navbar className="text-light pt-4" style={{height:80,backgroundColor:"#121422",borderBottom:"1px solid #1c2046"}}>
+                                <Navbar className="text-light pt-4" style={{height:90,backgroundColor:"#121422",borderBottom:"1px solid #1c2046"}}>
                                     <ErrorBoundary showError={false}>
                                         <Navbar.Brand>
                                             {organization != null ? 
