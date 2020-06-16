@@ -1441,7 +1441,7 @@ class Room extends React.Component {
                     onShow={() => this.getAvailableScreensToShare()}
                     onHide={() => this.setState({ showScreenSharingModal: false })}
                 />
-                <Row className="pl-0 ml-0" style={{height:80}}>
+                <Row className="pl-0 ml-0 w-100 border-bottom" style={{height:80}}> 
                     <Col xs={{span:4}} md={{span:5}}>
                         <div className="d-flex flex-row justify-content-start">
                             <div className="align-self-center">
