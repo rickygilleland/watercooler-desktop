@@ -520,7 +520,7 @@ class Sidebar extends React.Component {
                                     </div>
                                 </div>
                             </div>
-                            <div className="pl-0" style={{borderLeft:"1px solid #1c2046",width:"100%",borderRadius:15,marginLeft:10,marginRight:10,marginTop:10,marginBottom:30,backgroundColor:"#fff"}}>
+                            <div className="pl-0" style={{borderLeft:"1px solid #1c2046",width:"100%",borderRadius:15,marginLeft:10,marginRight:20,marginTop:10,marginBottom:35,backgroundColor:"#fff"}}>
                         
                                     <>
                                         <Route 
