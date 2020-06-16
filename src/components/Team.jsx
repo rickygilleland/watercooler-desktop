@@ -69,12 +69,12 @@ class Team extends React.Component {
                 :   
                     <Row className="pt-3 px-3 team-container" style={{overflowY:"scroll",paddingBottom:100}}>
                         {organizationUsers.map((organizationUser) =>
-                            <Col xs={6} md={4} lg={4} xl={4} key={organizationUser.id}>
+                            <Col xs={6} md={4} lg={4} xl={3} key={organizationUser.id}>
                                 <div class="d-flex">
                                     <div>
                                         <Image src={organizationUser.avatar_url} roundedCircle fluid style={{maxHeight:85}} />
                                     </div>
-                                    <div className="ml-3">
+                                    <div className="ml-3 align-self-center">
                                         <p className="font-weight-bold mb-0" style={{fontSize:".95rem"}}>
                                             {organizationUsersOnline.includes(organizationUser.id) ? <FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#3ecf8e",fontSize:".5rem",verticalAlign:'middle'}} /> : <FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#f9426c",fontSize:".5rem",verticalAlign:'middle'}} />} {organizationUser.first_name} {organizationUser.last_name} {user.id == organizationUser.id ? "(you)" : ''}
                                         </p>
