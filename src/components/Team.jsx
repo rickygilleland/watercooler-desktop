@@ -69,18 +69,20 @@ class Team extends React.Component {
                 :   
                     <Row className="pt-3 px-3 team-container" style={{overflowY:"scroll",paddingBottom:100}}>
                         {organizationUsers.map((organizationUser) =>
-                            <Col xs={6} md={4} lg={3} xl={2} key={organizationUser.id}>
-                                <Card className="mb-3">
-                                    <Card.Img variant="top" src={organizationUser.avatar_url} className="border-bottom" />
-                                    <Card.Body style={{padding:".7rem"}}>
+                            <Col xs={6} md={4} lg={4} xl={4} key={organizationUser.id}>
+                                <div class="d-flex">
+                                    <div>
+                                        <Image src={organizationUser.avatar_url} roundedCircle fluid style={{maxHeight:85}} />
+                                    </div>
+                                    <div className="ml-3">
                                         <p className="font-weight-bold mb-0" style={{fontSize:".95rem"}}>
-                                        {organizationUsersOnline.includes(organizationUser.id) ? <FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#3ecf8e",fontSize:".5rem",verticalAlign:'middle'}} /> : <FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#f9426c",fontSize:".5rem",verticalAlign:'middle'}} />} {organizationUser.first_name} {organizationUser.last_name} {user.id == organizationUser.id ? "(you)" : ''}
+                                            {organizationUsersOnline.includes(organizationUser.id) ? <FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#3ecf8e",fontSize:".5rem",verticalAlign:'middle'}} /> : <FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#f9426c",fontSize:".5rem",verticalAlign:'middle'}} />} {organizationUser.first_name} {organizationUser.last_name} {user.id == organizationUser.id ? "(you)" : ''}
                                         </p>
                                         {organizationUser.timezone != null ?
                                             <p style={{fontSize:".8rem"}}><strong>Local Time:</strong> {currentTime.setZone(organizationUser.timezone).toLocaleString(DateTime.TIME_SIMPLE)}</p>
                                         : '' }
-                                    </Card.Body>
-                                </Card>
+                                    </div>
+                                </div>
                             </Col>
                         )}
                     </Row>
