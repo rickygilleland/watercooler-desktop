@@ -75,7 +75,6 @@ class Room extends React.Component {
             },
             pinned: false,
             talking: [],
-            local_video_container: [],
             videoStatus: false,
             audioStatus: true,
             streamer_server_connected: false,
@@ -718,16 +717,23 @@ class Room extends React.Component {
 
                 videoRoomStreamerHandle.send({ "message": request, "jsep": jsep });
 
-                var local_video_container = [];
-                if (videoStatus) {
-                    local_video_container.push(
-                        <div style={{width:106.66,height:80}} key={999} className="align-self-center">
-                            <video autoPlay muted ref={that.renderVideo(that.state.local_stream)} style={{height:80 }} className="rounded shadow"></video>
-                        </div>
-                    )
-                } 
+                let { publishers, containerBackgroundColors, me } = that.state;
 
-                that.setState({ publishing: true, local_video_container });
+                var rand = Math.floor(Math.random() * containerBackgroundColors.length);
+
+                let newPublisher = {
+                    containerBackgroundColor: containerBackgroundColors[rand],
+                    loading: false,
+                    member: me.info,
+                    videoStatus,
+                    audioStatus,
+                    id: me.id.toString(),
+                    stream: local_stream
+                }
+
+                publishers.push(newPublisher);
+
+                that.setState({ publishing: true, publishers });
 
                 ipcRenderer.invoke('update-tray-icon', {
                     enable: true,
@@ -1223,17 +1229,6 @@ class Room extends React.Component {
                 videoRoomStreamerHandle.send({ "message": request });
             }
 
-            if (type == "video") {
-                var local_video_container = [];
-                if (videoStatus) {
-                    local_video_container.push(
-                        <div style={{width:106.66,height:80}} key={999} className="align-self-center">
-                            <video autoPlay muted ref={this.renderVideo(this.state.local_stream)} style={{height:80 }} className="rounded shadow video-flip"></video>
-                        </div>
-                    )
-                } 
-            }
-
             if (screenSharingWindow != null) {
 
                 ipcRenderer.invoke('update-screen-sharing-controls', {
@@ -1250,10 +1245,6 @@ class Room extends React.Component {
                 videoEnabled: this.state.room.video_enabled,
                 screenSharingActive: this.state.screenSharingActive
             });
-
-            if (typeof local_video_container != "undefined") {
-                return this.setState({ local_video_container, videoStatus, audioStatus });
-            }
 
             if (type == "video") {
                 posthog.capture('video-toggled', {"room_id": room.id, "video-enabled": videoStatus});
@@ -1409,7 +1400,6 @@ class Room extends React.Component {
             showScreenSharingModal,
             showScreenSharingDropdown,
             local_stream, 
-            local_video_container,
             videoStatus, 
             audioStatus, 
             videoSizes, 
@@ -1441,26 +1431,29 @@ class Room extends React.Component {
                     onShow={() => this.getAvailableScreensToShare()}
                     onHide={() => this.setState({ showScreenSharingModal: false })}
                 />
-                <Row className="pl-0 ml-0 w-100 border-bottom" style={{height:80}}> 
+                <Row className="pl-0 ml-0 w-100" style={{height:60}}> 
                     <Col xs={{span:4}} md={{span:5}}>
                         <div className="d-flex flex-row justify-content-start">
                             <div className="align-self-center">
-                                <p style={{fontWeight:"bolder",fontSize:"1rem"}} className="pb-0 mb-0">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".7rem",marginRight:".2rem"}} /> : <span style={{marginRight:".2rem"}}>#</span>} {room.name}</p>
+                                <p style={{fontWeight:"bolder",fontSize:"1.4rem"}} className="pb-0 mb-0">{room.name}</p>
                                 {room.is_private ?
-                                    <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-view-members">View current members of this private room and add new ones.</Tooltip>}>
-                                        <span className="d-inline-block">
-                                        <Button variant="link" className="pl-0 pt-0" style={{color:"black",fontSize:".7rem"}} onClick={() => this.setState({ showAddUserToRoomModal: true })}><FontAwesomeIcon icon={faUser} /> {roomUsers.length > 0 ? roomUsers.length : '' }</Button>
-                                        </span>
-                                    </OverlayTrigger>
+                                    <React.Fragment>
+                                        <FontAwesomeIcon icon={faLock} style={{fontSize:".7rem",marginRight:".3rem",marginBottom:3}} />
+                                        <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-view-members">View current members of this private room and add new ones.</Tooltip>}>
+                                            <span className="d-inline-block">
+                                            <Button variant="link" className="pt-0 pl-1" style={{color:"black",fontSize:".7rem"}} onClick={() => this.setState({ showAddUserToRoomModal: true })}><FontAwesomeIcon icon={faUser} /> {roomUsers.length > 0 ? roomUsers.length : '' }</Button>
+                                            </span>
+                                        </OverlayTrigger>
+                                    </React.Fragment>
                                 :
-                                <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-view-members">This room is visible to everyone on your team.</Tooltip>}>
+                                /*<OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-view-members">This room is visible to everyone on your team.</Tooltip>}>
                                     <span className="d-inline-block">
                                     <Button variant="link" className="pl-0 pt-0" style={{color:"black",fontSize:".7rem", pointerEvents: 'none'}}><FontAwesomeIcon icon={faUser} /></Button>
                                     </span>
-                                </OverlayTrigger>
+                                </OverlayTrigger>*/''
                                 }
                             </div>
-                            <div style={{height:80}}></div>
+                            <div style={{height:60}}></div>
                         </div>
                     </Col>
                     <Col xs={{span:4}} md={{span:2}}>
@@ -1484,7 +1477,7 @@ class Room extends React.Component {
                                             <Button variant="danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
                                 }
                             </div>
-                            <div style={{height:80}}></div>
+                            <div style={{height:60}}></div>
                         </div>
                     </Col>
                     <Col xs={{span:4}} md={{span:5}} className="pr-0">
@@ -1533,9 +1526,8 @@ class Room extends React.Component {
                                             </OverlayTrigger> 
                                     }
                                 </div>
-                                <div style={{height:80}}></div>
+                                <div style={{height:60}}></div>
                                 {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}
-                                {local_video_container}
                             </div>
                         : '' }
                     </Col>

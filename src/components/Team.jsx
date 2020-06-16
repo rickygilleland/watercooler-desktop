@@ -72,7 +72,7 @@ class Team extends React.Component {
                             <Col xs={6} md={4} lg={4} xl={3} key={organizationUser.id}>
                                 <div class="d-flex">
                                     <div>
-                                        <Image src={organizationUser.avatar_url} roundedCircle fluid style={{maxHeight:85}} />
+                                        <Image src={organizationUser.avatar_url} fluid style={{maxHeight:85,borderRadius:15}} />
                                     </div>
                                     <div className="ml-3 align-self-center">
                                         <p className="font-weight-bold mb-0" style={{fontSize:".95rem"}}>

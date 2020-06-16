@@ -36,27 +36,25 @@ function VideoList(props) {
     }
 
     return(publishers.map(publisher => {
-        if (publisher.member.id != user.id) {
-            return(
-                <Video
-                    showPinToggle={showPinToggle}
-                    videoSizes={videoSizes}
-                    publisher={publisher}
-                    renderVideo={renderVideo}
-                    togglePinned={togglePinned}
-                    publishing={publishing}
-                    talking={talking}
-                    currentTime={currentTime}
-                    localTimezone={user.timezone}
-                    active={typeof publisher.active != "undefined" ? publisher.active : false}
-                    hasVideo={typeof publisher.hasVideo != "undefined" ? publisher.hasVideo : false}
-                    hasAudio={typeof publisher.hasAudio != "undefined" ? publisher.hasAudio : false}
-                    showBeforeJoin={publisher.id.includes("_screensharing") ? false : true}
-                    pinned={false}
-                    key={publisher.id}
-                ></Video>
-            )
-        }
+        return(
+            <Video
+                showPinToggle={showPinToggle}
+                videoSizes={videoSizes}
+                publisher={publisher}
+                renderVideo={renderVideo}
+                togglePinned={togglePinned}
+                publishing={publishing}
+                talking={talking}
+                currentTime={currentTime}
+                localTimezone={user.timezone}
+                active={typeof publisher.active != "undefined" ? publisher.active : false}
+                hasVideo={typeof publisher.hasVideo != "undefined" ? publisher.hasVideo : false}
+                hasAudio={typeof publisher.hasAudio != "undefined" ? publisher.hasAudio : false}
+                showBeforeJoin={publisher.id.includes("_screensharing") ? false : true}
+                pinned={false}
+                key={publisher.id}
+            ></Video>
+        )
     }))
 
     
