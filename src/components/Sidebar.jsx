@@ -319,8 +319,7 @@ class Sidebar extends React.Component {
                                     <li key={roomKey} className="nav-item">
                                         <NavLink exact={true} 
                                                 activeStyle={{
-                                                    fontWeight: "bold",
-                                                    backgroundColor:"#4381ff"
+                                                    fontWeight: "bold"
                                                 }} 
                                                 className="d-block py-1 ph-no-capture"
                                                 to={{
@@ -330,7 +329,7 @@ class Sidebar extends React.Component {
                                                         room: room
                                                     }
                                                 }}>
-                                            <p className="text-light mb-0 pl-3 ph-no-capture">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".7rem",marginRight:".2rem"}} /> : <span style={{marginRight:".2rem"}}>#</span>} {room.name}</p>
+                                            <p className="mb-0 pl-3 ph-no-capture">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".7rem",marginRight:".2rem"}} /> : <span style={{marginRight:".2rem"}}>#</span>} {room.name}</p>
                                         </NavLink>
                                     </li>
                                 )}
@@ -504,14 +503,13 @@ class Sidebar extends React.Component {
                                             <li key="people-nav-button" className="nav-item">
                                                 <NavLink exact={true} 
                                                     activeStyle={{
-                                                        fontWeight: "bold",
-                                                        backgroundColor:"#4381ff"
+                                                        fontWeight: "bold"
                                                     }} 
                                                     className="d-block py-1"
                                                     to={{
                                                         pathname: `/team`
                                                     }}>
-                                                        <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faUsers} style={{fontSize:".65rem"}} />  Team</p>
+                                                        <p className="mb-0 pl-3"><FontAwesomeIcon icon={faUsers} style={{fontSize:".65rem"}} />  Team</p>
                                                 </NavLink>
                                             </li>
                                         </ul>
