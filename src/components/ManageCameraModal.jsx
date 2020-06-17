@@ -6,9 +6,9 @@ import { faCircleNotch, faWindowClose } from '@fortawesome/free-solid-svg-icons'
 function ManageCameraModal(props) {
     const { loading, users, settings } = props;
 
-    const [ defaultVideoInput, setDefaultVideoInput ] = useState(typeof settings.defaultDevices.videoInput != "undefined" ? settings.defaultDevices.videoInput : typeof settings.devices.videoInputs != "undefined" && typeof settings.devices.videoInputs[0] != "undefined" ? settings.devices.videoInputs[0].deviceId : "");
-    const [ defaultAudioInput, setDefaultAudioInput ] = useState(typeof settings.defaultDevices.audioInput != "undefined" ? settings.defaultDevices.audioInput : typeof settings.devices.audioInputs != "undefined" && typeof settings.devices.audioInputs[0] != "undefined" ? settings.devices.audioInputs[0].deviceId : "");
-    const [ defaultAudioOutput, setDefaultAudioOutput ] = useState(typeof settings.defaultDevices.audioOutput != "undefined" ? settings.defaultDevices.audioOutput : typeof settings.devices.audioOutputs != "undefined" && typeof settings.devices.audioOutputs[0] != "undefined" ? settings.devices.audioOutputs[0].deviceId : "");
+    const [ defaultVideoInput, setDefaultVideoInput ] = useState(settings.defaultDevices != null && typeof settings.defaultDevices.videoInput != "undefined" ? settings.defaultDevices.videoInput : typeof settings.devices.videoInputs != "undefined" && typeof settings.devices.videoInputs[0] != "undefined" ? settings.devices.videoInputs[0].deviceId : "");
+    const [ defaultAudioInput, setDefaultAudioInput ] = useState(settings.defaultDevices != null && typeof settings.defaultDevices.audioInput != "undefined" ? settings.defaultDevices.audioInput : typeof settings.devices.audioInputs != "undefined" && typeof settings.devices.audioInputs[0] != "undefined" ? settings.devices.audioInputs[0].deviceId : "");
+    const [ defaultAudioOutput, setDefaultAudioOutput ] = useState(settings.defaultDevices != null && typeof settings.defaultDevices.audioOutput != "undefined" ? settings.defaultDevices.audioOutput : typeof settings.devices.audioOutputs != "undefined" && typeof settings.devices.audioOutputs[0] != "undefined" ? settings.devices.audioOutputs[0].deviceId : "");
 
     function handleVideoInputChange(event) {
         setDefaultVideoInput(event.target.value);
