@@ -501,17 +501,6 @@ class Room extends React.Component {
 
                                 that.setState({ connected: true, loading: false, publishers: [...that.state.publishers, ...updatedPublishers], me: updatedMe });
 
-                                let dataMsg = {
-                                    type: "initial_video_audio_status",
-                                    publisher_id: user.id,
-                                    video_status: that.state.videoStatus,
-                                    audio_status: that.state.audioStatus
-                                };
-                        
-                                videoRoomStreamerHandle.data({
-                                    text: JSON.stringify(dataMsg)
-                                });
-
                             } else {
                                 currentLoadingMessage = [];
 
@@ -621,7 +610,24 @@ class Room extends React.Component {
                         }
                     },
                     ondataopen: function(data) {
+                        const {videoRoomStreamerHandle, videoStatus, audioStatus } = that.state;
                         console.log("DATA CHANNEL open");
+
+                        let dataMsg = {
+                            type: "initial_video_audio_status",
+                            publisher_id: user.id,
+                            video_status: videoStatus,
+                            audio_status: audioStatus
+                        };
+                
+                        videoRoomStreamerHandle.data({
+                            text: JSON.stringify(dataMsg),
+                            success: function() {
+                                console.log("DATA sent success", dataMsg)
+                            }
+                        });
+                        
+
                     },
                     ondata: function(data) {
                         console.log("DATA received", data);
@@ -976,7 +982,7 @@ class Room extends React.Component {
 
     subscribeToRemoteStream(publisher, key) {
         const { user } = this.props;
-        const { me, room, publishers, rootStreamerHandle } = this.state;
+        const { me, room, publishers, rootStreamerHandle, videoRoomStreamerHandle } = this.state;
 
         var handle;
         var that = this;
@@ -1046,6 +1052,8 @@ class Room extends React.Component {
                 const { publishers } = that.state;
                 let dataMsg = JSON.parse(data);
 
+                console.log("DATA RECEIVED from pub", dataMsg);
+
                 if (dataMsg.type == "initial_video_audio_status_response" && dataMsg.requesting_publisher_id != user.id) {
                     return;
                 }
@@ -1071,7 +1079,7 @@ class Room extends React.Component {
                 })
 
                 if (dataMsg.type == "initial_video_audio_status") {
-                    let dataMsg = {
+                    let dataMsgResponse = {
                         type: "initial_video_audio_status_response",
                         publisher_id: user.id,
                         requesting_publisher_id: dataMsg.publisher_id,
@@ -1080,7 +1088,10 @@ class Room extends React.Component {
                     };
     
                     videoRoomStreamerHandle.data({
-                        text: JSON.stringify(dataMsg)
+                        text: JSON.stringify(dataMsgResponse),
+                        success: function() {
+                            console.log("DATA status request response sent");
+                        }
                     });
                 }
 
