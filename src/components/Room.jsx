@@ -443,7 +443,6 @@ class Room extends React.Component {
                         //register a publisher
                         var request = { 
                             "request":  "join", 
-                            "id": me.info.id.toString(),
                             "room": room.channel_id, 
                             "ptype": "publisher",
                             "display": me.info.peer_uuid,
@@ -496,7 +495,12 @@ class Room extends React.Component {
                                     updatedPublishers.push(publisher);
                                 })
 
-                                that.setState({ connected: true, loading: false, publishers: updatedPublishers, me: updatedMe });
+
+                                var test = [...that.state.publishers, updatedPublishers];
+
+                                console.log("CUR", test);
+
+                                that.setState({ connected: true, loading: false, publishers: [...that.state.publishers, ...updatedPublishers], me: updatedMe });
 
                             } else {
                                 currentLoadingMessage = [];
@@ -555,7 +559,7 @@ class Room extends React.Component {
                                 var newPublishers = msg.publishers;
 
                                 let rand = Math.floor(Math.random() * containerBackgroundColors.length); 
-                                var currentPublishers = that.state.publishers;
+                                var currentPublishers = [...that.state.publishers];
 
                                 newPublishers.forEach(publisher => {
                                     each(members, function(member) {
@@ -570,7 +574,7 @@ class Room extends React.Component {
                                     }
                                 })
 
-                                currentPublishers.filter(publisher => {
+                                currentPublishers = currentPublishers.filter(publisher => {
                                     var keep = true;
                                     newPublishers.forEach(newPublisher => {
                                         if (newPublisher.member.id == publisher.member.id) {
@@ -590,7 +594,8 @@ class Room extends React.Component {
                             }
 
                             if (typeof msg.leaving != "undefined") {
-                                const updatedPublishers = that.state.publishers.filter(item => {
+                                var updatedPublishers = [...that.state.publishers];
+                                updatedPublishers = updatedPublishers.filter(item => {
                                     return item.id != msg.leaving;
                                 })
 
@@ -599,7 +604,8 @@ class Room extends React.Component {
                             }
 
                             if (typeof msg.unpublished != "undefined") {
-                                const updatedPublishers = that.state.publishers.filter(item => {
+                                var updatedPublishers = [...that.state.publishers];
+                                updatedPublishers = updatedPublishers.filter(item => {
                                     return item.id != msg.unpublished;
                                 })
 
@@ -717,7 +723,7 @@ class Room extends React.Component {
 
                 videoRoomStreamerHandle.send({ "message": request, "jsep": jsep });
 
-                let { publishers, containerBackgroundColors, me } = that.state;
+                const { containerBackgroundColors, me } = that.state;
 
                 var rand = Math.floor(Math.random() * containerBackgroundColors.length);
 
@@ -731,9 +737,15 @@ class Room extends React.Component {
                     stream: local_stream
                 }
 
-                publishers.push(newPublisher);
+                var updatedPublishers = [...that.state.publishers]; 
 
-                that.setState({ publishing: true, publishers });
+                updatedPublishers = updatedPublishers.filter(publisher => {
+                    return publisher.id != me.id;
+                })
+
+                updatedPublishers.push(newPublisher);
+
+                that.setState({ publishing: true, publishers: updatedPublishers });
 
                 ipcRenderer.invoke('update-tray-icon', {
                     enable: true,
@@ -749,7 +761,7 @@ class Room extends React.Component {
     }
 
     stopPublishingStream() {
-        const { videoRoomStreamerHandle, screenSharingHandle, screenSharingStream, screenSharingWindow, local_stream, publishers } = this.state;
+        const { videoRoomStreamerHandle, screenSharingHandle, screenSharingStream, screenSharingWindow, local_stream, publishers, me } = this.state;
 
         if (videoRoomStreamerHandle == null) {
             return;
@@ -785,25 +797,26 @@ class Room extends React.Component {
             })
         }
 
-        publishers.forEach((publisher, key) => {
+        var updatedPublishers = [...publishers];
+
+        updatedPublishers = updatedPublishers.filter(publisher => {
             if (typeof publisher.handle != "undefined" && publisher.handle != null) {
                 publisher.handle.detach();
             }
 
-            publishers[key].stream = null;
-            publishers[key].handle = null;
-            publishers[key].active = false;
-        })
+            publisher.handle = null;
+            publisher.active = false;
+            publisher.stream = null;
 
-        publishers.filter(publisher => {
-            return publisher.active;
+            return publisher.member.id != me.id;
+            
         })
 
         ipcRenderer.invoke('update-tray-icon', {
             disable: true
         });
 
-        this.setState({ publishing: false, local_stream: null, publishers, screenSharingActive: false, screenSharingWindow: null })
+        this.setState({ publishing: false, local_stream: null, publishers: updatedPublishers, screenSharingActive: false, screenSharingWindow: null })
         
     }
     

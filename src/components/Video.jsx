@@ -26,7 +26,8 @@ function Video(props) {
         hasAudio, 
         renderVideo,
         togglePinned,
-        pinned
+        pinned,
+        isLocal
     } = props;
 
     var classAppend = '';
@@ -64,7 +65,7 @@ function Video(props) {
             return (
                 <div className="col p-0 video-col">
                     <div className={`video-container mx-auto position-relative text-light ${classAppend}`}  style={{height: pinned ? videoSizes.pinnedHeight : height, width: pinned ? videoSizes.pinnedWidth : videoSizes.width, borderRadius: 25 }}>
-                        <VideoPlayer renderVideo={renderVideo} stream={publisher.stream} publisher={publisher} />
+                        <VideoPlayer renderVideo={renderVideo} isLocal={isLocal} stream={publisher.stream} publisher={publisher} />
                         <div className="position-absolute overlay" style={{top:8,width:"100%"}}>	
                             {publisher.member.timezone != null && publisher.member.timezone != localTimezone ? 	
                             <p className="pl-2 mb-1 mt-1 font-weight-bolder" style={{fontSize:"1.1rem"}}><span style={{backgroundColor:"rgb(18, 20, 34, .5)",borderRadius:15,padding:".6rem"}}>{currentTime.setZone(publisher.member.timezone).toLocaleString(DateTime.TIME_SIMPLE)}</span></p>	
@@ -113,7 +114,7 @@ function Video(props) {
                             <p className="pl-2 mb-1 mt-1 font-weight-bolder" style={{fontSize:"1.1rem"}}><span style={{backgroundColor:"rgb(18, 20, 34, .5)",borderRadius:15,padding:".6rem"}}>{currentTime.setZone(publisher.member.timezone).toLocaleString(DateTime.TIME_SIMPLE)}</span></p>	
                             : ''}	
                         </div>
-                        <video autoPlay ref={renderVideo(publisher.stream)} style={{height: 0, width: 0 }}></video>
+                        <video autoPlay muted={isLocal} ref={renderVideo(publisher.stream)} style={{height: 0, width: 0 }}></video>
                         <div className="mx-auto align-self-center">
                             <Image src={publisher.member.avatar} style={{maxHeight:75,borderRadius:15}} fluid />
                         </div>

@@ -13,7 +13,7 @@ function VideoList(props) {
         var publisher = publishers[0];
         if (pinned !== false) {
             publisher = publishers[pinned];
-        }
+        };
         return(
             <Video
                 showPinToggle={showPinToggle}
@@ -31,6 +31,7 @@ function VideoList(props) {
                 showBeforeJoin={publisher.id.includes("_screensharing") ? false : true}
                 pinned={true}
                 key={publisher.id}
+                isLocal={publisher.member.id == user.id}
             ></Video>
         )
     }
@@ -53,6 +54,7 @@ function VideoList(props) {
                 showBeforeJoin={publisher.id.includes("_screensharing") ? false : true}
                 pinned={false}
                 key={publisher.id}
+                isLocal={publisher.member.id == user.id}
             ></Video>
         )
     }))
