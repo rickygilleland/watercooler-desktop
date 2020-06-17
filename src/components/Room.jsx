@@ -609,10 +609,10 @@ class Room extends React.Component {
                         }
                     },
                     ondataopen: function(data) {
-
+                        console.log("DATA CHANNEL open");
                     },
                     ondata: function(data) {
-                        console.log(data);
+                        console.log("DATA received", data);
                     },
                     slowLink: function(slowLink) {
 
@@ -699,6 +699,8 @@ class Room extends React.Component {
         //publish our feed
         videoRoomStreamerHandle.createOffer({
             stream: local_stream,
+            media: { audioRecv: false, videoRecv: false, audioSend: true, videoSend: true },
+            data: true,
             success: function(jsep) {
                 var request = {
                     "request": "publish",
@@ -1027,10 +1029,10 @@ class Room extends React.Component {
 
             },
             ondataopen: function(data) {
-
+                console.log("DATA CHANNEL open sub");
             },
             ondata: function(data) {
-                console.log("DATA received", data);
+                console.log("DATA received sub", data);
             },
             slowLink: function(slowLink) {
 
@@ -1275,7 +1277,9 @@ class Room extends React.Component {
                 };
             }   
 
-            videoRoomStreamerHandle.data({text: JSON.stringify(dataMsg)});
+            videoRoomStreamerHandle.data({
+                text: JSON.stringify(dataMsg)
+            });
 
             this.setState({ videoStatus: updatedVideoStatus, audioStatus: updatedAudioStatus, publishers: updatedPublishers });  
 
