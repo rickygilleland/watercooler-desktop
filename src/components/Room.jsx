@@ -577,17 +577,13 @@ class Room extends React.Component {
                                 currentPublishers = currentPublishers.filter(publisher => {
                                     var keep = true;
                                     newPublishers.forEach(newPublisher => {
-                                        if (newPublisher.member.id == publisher.member.id) {
+                                        if (newPublisher.member.id == publisher.member.id && !newPublisher.id.includes("_screensharing")) {
                                             keep = false;
                                         }
                                     })
                                     return keep;
 
                                 })
-
-                                if (newPublishers.length == 1 && newPublishers[0].display == me.info.peer_uuid) {
-                                    newPublishers = [];
-                                } 
 
                                 that.setState({ publishers: [ ...newPublishers, ...currentPublishers ] });
 
@@ -929,10 +925,11 @@ class Room extends React.Component {
     }
 
     handleRemoteStreams() {
-        var { publishers } = this.state;
+        const { user } = this.props;
+        const { publishers } = this.state;
 
         publishers.forEach((publisher, key) => {
-            if (typeof publisher.handle == "undefined" || publisher.handle == null) {
+            if ((typeof publisher.handle == "undefined" || publisher.handle == null) && publisher.member.id != user.id) {
                 this.subscribeToRemoteStream(publisher, key);
                 
                 if (publisher.id.includes("_screensharing")) {
