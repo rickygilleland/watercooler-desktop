@@ -1029,10 +1029,27 @@ class Room extends React.Component {
 
             },
             ondataopen: function(data) {
-                console.log("DATA CHANNEL open sub");
             },
             ondata: function(data) {
-                console.log("DATA received sub", data);
+                const { publishers } = that.state;
+                let dataMsg = JSON.parse(data);
+
+                let updatedPublishers = [...publishers];
+
+                updatedPublishers.forEach(publisher => {
+                    if (publisher.member.id == dataMsg.publisher_id) {
+                        if (dataMsg.type == "audio_toggled") {
+                            publisher.hasAudio = dataMsg.audio_status;
+                        }
+
+                        if (dataMsg.type == "video_toggled") {
+                            publisher.hasVideo = dataMsg.video_status;
+                        }
+                    }
+                })
+
+                that.setState({ publishers: updatedPublishers });
+
             },
             slowLink: function(slowLink) {
 
@@ -1266,14 +1283,16 @@ class Room extends React.Component {
             })
 
             let dataMsg = {
-                type: "video-toggled",
-                videoStatus: updatedVideoStatus
+                type: "video_toggled",
+                publisher_id: user.id,
+                video_status: updatedVideoStatus
             };
 
             if (type == "audio") {
                 dataMsg = {
-                    type: "audio-toggled",
-                    videoStatus: updatedAudioStatus
+                    type: "audio_toggled",
+                    publisher_id: user.id,
+                    audio_status: updatedAudioStatus
                 };
             }   
 
