@@ -420,6 +420,7 @@ class Room extends React.Component {
     }
 
     openMediaHandle() {
+        const { user } = this.props; 
         var { me, room, team, local_stream, server } = this.state;
         var that = this;
 
@@ -499,6 +500,17 @@ class Room extends React.Component {
                                 var test = [...that.state.publishers, updatedPublishers];
 
                                 that.setState({ connected: true, loading: false, publishers: [...that.state.publishers, ...updatedPublishers], me: updatedMe });
+
+                                let dataMsg = {
+                                    type: "initial_video_audio_status",
+                                    publisher_id: user.id,
+                                    video_status: that.state.videoStatus,
+                                    audio_status: that.state.audioStatus
+                                };
+                        
+                                videoRoomStreamerHandle.data({
+                                    text: JSON.stringify(dataMsg)
+                                });
 
                             } else {
                                 currentLoadingMessage = [];
@@ -963,6 +975,7 @@ class Room extends React.Component {
     }
 
     subscribeToRemoteStream(publisher, key) {
+        const { user } = this.props;
         const { me, room, publishers, rootStreamerHandle } = this.state;
 
         var handle;
@@ -1026,13 +1039,16 @@ class Room extends React.Component {
 
                     that.setState({ publishers: updatedPublishers });
                 }
-
             },
             ondataopen: function(data) {
             },
             ondata: function(data) {
                 const { publishers } = that.state;
                 let dataMsg = JSON.parse(data);
+
+                if (dataMsg.type == "initial_video_audio_status_response" && dataMsg.requesting_publisher_id != user.id) {
+                    return;
+                }
 
                 let updatedPublishers = [...publishers];
 
@@ -1045,8 +1061,28 @@ class Room extends React.Component {
                         if (dataMsg.type == "video_toggled") {
                             publisher.hasVideo = dataMsg.video_status;
                         }
+
+                        if (dataMsg.type == "initial_video_audio_status") {
+                            publisher.hasAudio = dataMsg.audio_status;
+                            publusher.hasVideo = dataMsg.video_status;
+                        }
+                        
                     }
                 })
+
+                if (dataMsg.type == "initial_video_audio_status") {
+                    let dataMsg = {
+                        type: "initial_video_audio_status_response",
+                        publisher_id: user.id,
+                        requesting_publisher_id: dataMsg.publisher_id,
+                        video_status: that.state.videoStatus,
+                        audio_status: that.state.audioStatus
+                    };
+    
+                    videoRoomStreamerHandle.data({
+                        text: JSON.stringify(dataMsg)
+                    });
+                }
 
                 that.setState({ publishers: updatedPublishers });
 
