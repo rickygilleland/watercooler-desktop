@@ -699,8 +699,7 @@ class Room extends React.Component {
         //publish our feed
         videoRoomStreamerHandle.createOffer({
             stream: local_stream,
-            media: { audioRecv: false, videoRecv: false, audioSend: true, videoSend: true },
-            data: true,
+            media: { audioRecv: false, videoRecv: false, audioSend: true, videoSend: true, data: true },
             success: function(jsep) {
                 var request = {
                     "request": "publish",
@@ -869,6 +868,7 @@ class Room extends React.Component {
 
         screenSharingHandle.createOffer({
             stream: screenSharingStream,
+            media: { screenshareFrameRate: 30 },
             success: function(jsep) {
                 var request = {
                     "request": "publish",
@@ -1000,7 +1000,7 @@ class Room extends React.Component {
                     if (typeof msg.display != "undefined") {
                         handle.createAnswer({
                             jsep: jsep,
-                            media: { audioSend: false, videoSend: false},
+                            media: { audioSend: false, videoSend: false, data: true},
                             success: function(jsep) {
                                 var request = {
                                     "request": "start",
@@ -1019,7 +1019,7 @@ class Room extends React.Component {
 
                 if (typeof updatedPublishers[key] != "undefined") {
                     updatedPublishers[key].stream = remote_stream;
-                    updatedPublishers[key].hasVideo = false;
+                    updatedPublishers[key].hasVideo = updatedPublishers[key].id.includes("_screensharing");
                     updatedPublishers[key].hasAudio = true;
                     updatedPublishers[key].handle = handle;
                     updatedPublishers[key].active = true;
