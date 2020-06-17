@@ -100,9 +100,6 @@ function Video(props) {
                         <div className="mx-auto align-self-center">
                             <Image src={publisher.member.avatar} style={{maxHeight:75,borderRadius:15}} fluid />
                         </div>
-                        <div className="mx-auto align-self-center">
-                            <p className="font-weight-bolder text-center" style={{paddingTop:8,fontSize:"1.2rem"}}><FontAwesomeIcon style={{color:"#f9426c"}} icon={faVideoSlash} /> Audio Only</p>
-                        </div>
                         <div className="position-absolute overlay" style={{bottom:8,width:"100%"}}>
                             <Row>
                                 <Col>

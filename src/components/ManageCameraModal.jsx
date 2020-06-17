@@ -6,9 +6,9 @@ import { faCircleNotch, faWindowClose } from '@fortawesome/free-solid-svg-icons'
 function ManageCameraModal(props) {
     const { loading, users, settings } = props;
 
-    const [ defaultVideoInput, setDefaultVideoInput ] = useState(typeof settings.devices.videoInputs != "undefined" && typeof settings.devices.videoInputs[0] != "undefined" ? settings.devices.videoInputs[0].deviceId : "");
-    const [ defaultAudioInput, setDefaultAudioInput ] = useState(typeof settings.devices.audioInputs != "undefined" && typeof settings.devices.audioInputs[0] != "undefined" ? settings.devices.audioInputs[0].deviceId : "");
-    const [ defaultAudioOutput, setDefaultAudioOutput ] = useState(typeof settings.devices.audioOutputs != "undefined" && typeof settings.devices.audioOutputs[0] != "undefined" ? settings.devices.audioOutputs[0].deviceId : "");
+    const [ defaultVideoInput, setDefaultVideoInput ] = useState(typeof settings.defaultDevices.videoInput != "undefined" ? settings.defaultDevices.videoInput : typeof settings.devices.videoInputs != "undefined" && typeof settings.devices.videoInputs[0] != "undefined" ? settings.devices.videoInputs[0].deviceId : "");
+    const [ defaultAudioInput, setDefaultAudioInput ] = useState(typeof settings.defaultDevices.audioInput != "undefined" ? settings.defaultDevices.audioInput : typeof settings.devices.audioInputs != "undefined" && typeof settings.devices.audioInputs[0] != "undefined" ? settings.devices.audioInputs[0].deviceId : "");
+    const [ defaultAudioOutput, setDefaultAudioOutput ] = useState(typeof settings.defaultDevices.audioOutput != "undefined" ? settings.defaultDevices.audioOutput : typeof settings.devices.audioOutputs != "undefined" && typeof settings.devices.audioOutputs[0] != "undefined" ? settings.devices.audioOutputs[0].deviceId : "");
 
     function handleVideoInputChange(event) {
         setDefaultVideoInput(event.target.value);
@@ -47,13 +47,21 @@ function ManageCameraModal(props) {
 
                 <Form onSubmit={handleSubmit}>
                     <Form.Label>Set your Video Input:</Form.Label>
-                    <Form.Control as="select" value={defaultVideoInput} onChange={handleVideoInputChange}>
+                    <Form.Control 
+                        as="select" 
+                        value={defaultVideoInput} 
+                        onChange={handleVideoInputChange}
+                    >
                         {settings.devices.videoInputs.map(input =>
                             <option value={input.deviceId} key={input.deviceId}>{input.label}</option>    
                         )}
                     </Form.Control>
                     <Form.Label className="pt-3">Set your Audio Input:</Form.Label>
-                    <Form.Control as="select" value={defaultAudioInput} onChange={handleAudioInputChange}>
+                    <Form.Control 
+                        as="select" 
+                        value={defaultAudioInput} 
+                        onChange={handleAudioInputChange}
+                    >
                         {settings.devices.audioInputs.map(input =>
                             <option value={input.deviceId} key={input.deviceId}>{input.label}</option>    
                         )}

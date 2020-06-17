@@ -20,17 +20,15 @@ function VideoList(props) {
             publisher = publishers[pinned];
         };
 
-        if (typeof publisher.stream != "undefined") {
+        if (typeof publisher.stream != "undefined" && publisher.stream != null) {
             let tracks = publisher.stream.getTracks();
 
             tracks.forEach(function(track) {
                 if (track.kind == "video") {
-                    hasVideo = track.enabled;
                     videoLoading = track.muted;
                 } 
 
                 if (track.kind == "audio") {
-                    hasAudio = track.enabled;
                     audioLoading = track.muted;
                 } 
             })
@@ -48,8 +46,8 @@ function VideoList(props) {
                 currentTime={currentTime}
                 localTimezone={user.timezone}
                 active={typeof publisher.active != "undefined" ? publisher.active : false}
-                hasVideo={hasVideo}
-                hasAudio={hasAudio}
+                hasVideo={typeof publisher.hasVideo != "undefined" ? publisher.hasVideo : false}
+                hasAudio={typeof publisher.hasAudio != "undefined" ? publisher.hasAudio : false}
                 videoLoading={videoLoading}
                 audioLoading={audioLoading}
                 showBeforeJoin={publisher.id.includes("_screensharing") ? false : true}
@@ -62,23 +60,19 @@ function VideoList(props) {
 
     return(publishers.map(publisher => {
 
-        if (typeof publisher.stream != "undefined") {
+        if (typeof publisher.stream != "undefined" && publisher.stream != null) {
             let tracks = publisher.stream.getTracks();
 
             tracks.forEach(function(track) {
                 if (track.kind == "video") {
-                    hasVideo = track.enabled;
                     videoLoading = track.muted;
                 } 
 
                 if (track.kind == "audio") {
-                    hasAudio = track.enabled;
                     audioLoading = track.muted;
                 } 
             })
         }
-
-        console.log("audioStatus", hasAudio);
 
         return(
             <Video
@@ -92,8 +86,8 @@ function VideoList(props) {
                 currentTime={currentTime}
                 localTimezone={user.timezone}
                 active={typeof publisher.active != "undefined" ? publisher.active : false}
-                hasVideo={hasVideo}
-                hasAudio={hasAudio}
+                hasVideo={typeof publisher.hasVideo != "undefined" ? publisher.hasVideo : false}
+                hasAudio={typeof publisher.hasAudio != "undefined" ? publisher.hasAudio : false}
                 videoLoading={videoLoading}
                 audioLoading={audioLoading}
                 showBeforeJoin={publisher.id.includes("_screensharing") ? false : true}

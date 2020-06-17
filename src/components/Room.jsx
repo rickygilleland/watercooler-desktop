@@ -612,7 +612,7 @@ class Room extends React.Component {
 
                     },
                     ondata: function(data) {
-                        
+                        console.log(data);
                     },
                     slowLink: function(slowLink) {
 
@@ -661,7 +661,7 @@ class Room extends React.Component {
 
         let streamOptions;
         /* TODO: Manually prompt for camera and microphone access on macos to handle it more gracefully - systemPreferences.getMediaAccessStatus(mediaType) */
-        if (settings.defaultDevices != null) {
+        if (settings.defaultDevices != null && Object.keys(settings.defaultDevices).length !== 0) {
             streamOptions = {
                 video: {
                     aspectRatio: 1.3333333333,
@@ -1013,26 +1013,16 @@ class Room extends React.Component {
             },
             onremotestream: function(remote_stream) {
                 var tracks = remote_stream.getTracks();
-                var hasVideo = false;
-                var hasAudio = false;
-                tracks.forEach(track => {
-                    if (track.kind == "video" && track.enabled) {
-                        hasVideo = true;
-                    }
-                    if (track.kind == "audio" && track.enabled) {
-                        hasAudio = true;
-                    }
-                })
+                let updatedPublishers = [...publishers];
 
-                //make sure this publisher still exists
-                if (typeof publishers[key] != "undefined") {
-                    publishers[key].stream = remote_stream;
-                    publishers[key].hasVideo = hasVideo;
-                    publishers[key].hasAudio = hasAudio;
-                    publishers[key].handle = handle;
-                    publishers[key].active = true;
+                if (typeof updatedPublishers[key] != "undefined") {
+                    updatedPublishers[key].stream = remote_stream;
+                    updatedPublishers[key].hasVideo = false;
+                    updatedPublishers[key].hasAudio = true;
+                    updatedPublishers[key].handle = handle;
+                    updatedPublishers[key].active = true;
 
-                    that.setState({ publishers });
+                    that.setState({ publishers: updatedPublishers });
                 }
 
             },
@@ -1040,7 +1030,7 @@ class Room extends React.Component {
 
             },
             ondata: function(data) {
-                
+                console.log("DATA received", data);
             },
             slowLink: function(slowLink) {
 
@@ -1272,6 +1262,20 @@ class Room extends React.Component {
                     publisher.hasVideo = updatedVideoStatus;
                 }
             })
+
+            let dataMsg = {
+                type: "video-toggled",
+                videoStatus: updatedVideoStatus
+            };
+
+            if (type == "audio") {
+                dataMsg = {
+                    type: "audio-toggled",
+                    videoStatus: updatedAudioStatus
+                };
+            }   
+
+            videoRoomStreamerHandle.data({text: JSON.stringify(dataMsg)});
 
             this.setState({ videoStatus: updatedVideoStatus, audioStatus: updatedAudioStatus, publishers: updatedPublishers });  
 
@@ -1516,7 +1520,7 @@ class Room extends React.Component {
                                             screenSharingActive ? 
                                                 <Button variant="danger" className="mx-1" onClick={() => this.toggleScreenSharing()}><FontAwesomeIcon icon={faDesktop} /></Button>
                                             :
-                                                <Dropdown className="btn p-0 m-0" as="span">
+                                                <Dropdown className="p-0 m-0" as="span">
                                                     <Dropdown.Toggle variant="info" id="screensharing-dropdown" className="mx-1 no-carat">
                                                         <FontAwesomeIcon icon={faDesktop} />
                                                     </Dropdown.Toggle>
