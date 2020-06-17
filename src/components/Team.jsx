@@ -70,7 +70,7 @@ class Team extends React.Component {
                     <Row className="pt-3 px-3 team-container" style={{overflowY:"scroll",paddingBottom:100}}>
                         {organizationUsers.map((organizationUser) =>
                             <Col xs={6} md={4} lg={4} xl={3} key={organizationUser.id}>
-                                <div class="d-flex">
+                                <div className="d-flex">
                                     <div>
                                         <Image src={organizationUser.avatar_url} fluid style={{maxHeight:85,borderRadius:15}} />
                                     </div>

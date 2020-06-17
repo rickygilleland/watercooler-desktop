@@ -1,7 +1,7 @@
 import React from 'react';
 import { ipcRenderer, desktopCapturer, systemPreferences } from 'electron';
 import update from 'immutability-helper';
-import { each } from 'lodash';
+import { each, clone } from 'lodash';
 import { 
     Container, 
     Button, 
@@ -498,8 +498,6 @@ class Room extends React.Component {
 
                                 var test = [...that.state.publishers, updatedPublishers];
 
-                                console.log("CUR", test);
-
                                 that.setState({ connected: true, loading: false, publishers: [...that.state.publishers, ...updatedPublishers], me: updatedMe });
 
                             } else {
@@ -704,8 +702,8 @@ class Room extends React.Component {
             success: function(jsep) {
                 var request = {
                     "request": "publish",
-                    "audio": audioStatus,
-                    "video": videoStatus,
+                    "audio": true,
+                    "video": true,
                     "data": true,
                     "videocodec": "vp9"
                 }
@@ -1210,7 +1208,11 @@ class Room extends React.Component {
     }
 
     toggleVideoOrAudio(type) {
-        var { videoRoomStreamerHandle, local_stream, videoStatus, audioStatus, screenSharingWindow, room } = this.state;
+        const { user } = this.props;
+        const { videoRoomStreamerHandle, local_stream, videoStatus, audioStatus, screenSharingWindow, room, publishers } = this.state;
+
+        let updatedVideoStatus = clone(videoStatus);
+        let updatedAudioStatus = clone(audioStatus);
 
         if (typeof local_stream !== 'undefined') {
             var tracks = local_stream.getTracks();
@@ -1220,49 +1222,58 @@ class Room extends React.Component {
                     track.enabled = track.enabled ? false : true;
 
                     if (type == "video") {
-                        videoStatus = track.enabled ? true : false;
+                        updatedVideoStatus = track.enabled ? true : false;
                     } else {
-                        audioStatus = track.enabled ? true : false;
+                        updatedAudioStatus = track.enabled ? true : false;
                     }
                 }
             })
 
-            if (videoRoomStreamerHandle != null) {
+            /*if (videoRoomStreamerHandle != null) {
                 //update our published stream
                 var request = {
                     "request": "configure",
-                    "audio": audioStatus,
-                    "video": videoStatus,
+                    "audio": updatedAudioStatus,
+                    "video": updatedVideoStatus,
                     "videocodec": "vp9"
                 }
 
                 videoRoomStreamerHandle.send({ "message": request });
-            }
+            }*/
 
             if (screenSharingWindow != null) {
 
                 ipcRenderer.invoke('update-screen-sharing-controls', {
-                    videoStatus,
-                    audioStatus,
+                    updatedVideoStatus,
+                    updatedAudioStatus,
                     videoEnabled: this.state.room.video_enabled,
                     screenSharingWindow: screenSharingWindow.id
                 });
             }
 
             ipcRenderer.invoke('update-tray-icon', {
-                videoStatus,
-                audioStatus,
+                updatedVideoStatus,
+                updatedAudioStatus,
                 videoEnabled: this.state.room.video_enabled,
                 screenSharingActive: this.state.screenSharingActive
             });
 
             if (type == "video") {
-                posthog.capture('video-toggled', {"room_id": room.id, "video-enabled": videoStatus});
+                posthog.capture('video-toggled', {"room_id": room.id, "video-enabled": updatedVideoStatus});
             } else {
-                posthog.capture('audio-toggled', {"room_id": room.id, "audio-enabled": audioStatus});
+                posthog.capture('audio-toggled', {"room_id": room.id, "audio-enabled": updatedAudioStatus});
             }
 
-            this.setState({ videoStatus, audioStatus });  
+            let updatedPublishers = [...publishers];
+
+            updatedPublishers.forEach(publisher => {
+                if (publisher.member.id == user.id) {
+                    publisher.hasAudio = updatedAudioStatus;
+                    publisher.hasVideo = updatedVideoStatus;
+                }
+            })
+
+            this.setState({ videoStatus: updatedVideoStatus, audioStatus: updatedAudioStatus, publishers: updatedPublishers });  
 
         }
     }

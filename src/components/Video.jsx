@@ -1,5 +1,6 @@
 import React from 'react';
 import { Image, Col, Row, Button } from 'react-bootstrap';
+import { isEqual } from 'lodash';
 import { DateTime } from 'luxon';
 import VideoPlayer from './VideoPlayer';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
@@ -24,6 +25,8 @@ function Video(props) {
         talking,
         hasVideo, 
         hasAudio, 
+        audioLoading,
+        videoLoading,
         renderVideo,
         togglePinned,
         pinned,
@@ -38,28 +41,7 @@ function Video(props) {
     
     if (typeof publisher.stream != "undefined" && publisher.stream != null) {
 
-        var videoLoading = false;
-        var audioLoading = false;
-
-        var tracks = publisher.stream.getTracks();
-
-        if (tracks.length == 0) {
-            videoLoading = true;
-            audioLoading = true;
-        }
-
-        tracks.forEach(function(track) {
-            if (track.type == "video" && track.muted) {
-                videoLoading = true;
-            } 
-
-            if (track.type == "audio" && track.muted) {
-                audioLoading = true;
-            }
-        })
-
         var height = videoSizes.height;
-
 
         if (hasVideo === true && !videoLoading) {
             return (
