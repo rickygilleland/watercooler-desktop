@@ -229,7 +229,6 @@ class Sidebar extends React.Component {
     componentWillUnmount() {
         const { organization, user } = this.props;
         const { organizationPresenceChannel, pusherInstance, timeInterval, updateInterval } = this.state;
-        window.removeEventListener('resize', this.handleResize);
 
         if (timeInterval != null) {
             clearInterval(timeInterval);
