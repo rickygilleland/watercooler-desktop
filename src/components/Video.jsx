@@ -22,7 +22,7 @@ function Video(props) {
         localTimezone, 
         currentTime,
         publishing, 
-        talking,
+        speaking,
         hasVideo, 
         hasAudio, 
         audioLoading,
@@ -35,9 +35,10 @@ function Video(props) {
 
     var classAppend = '';
 
-    if (talking.includes(publisher.id)) {
-        classAppend = "border border-success";
+    if (speaking) {
+        classAppend = "speaking-border";
     }
+
     
     if (typeof publisher.stream != "undefined" && publisher.stream != null) {
 
@@ -52,6 +53,19 @@ function Video(props) {
                             {publisher.member.timezone != null && publisher.member.timezone != localTimezone ? 	
                             <p className="pl-2 mb-1 mt-1 font-weight-bolder" style={{fontSize:"1.1rem"}}><span style={{backgroundColor:"rgb(18, 20, 34, .5)",borderRadius:15,padding:".6rem"}}>{currentTime.setZone(publisher.member.timezone).toLocaleString(DateTime.TIME_SIMPLE)}</span></p>	
                             : ''}	
+                        </div>
+                        <div className="position-absolute hide-overlay" style={{bottom:8,width:"100%"}}>
+                            <Row>
+                                <Col>
+                                    {!publisher.hasAudio ?
+                                        <p className="pl-2 mb-1 mt-1 font-weight-bolder" style={{fontSize:"1.1rem"}}>
+                                            <span style={{backgroundColor:"rgb(18, 20, 34, .5)",borderRadius:15,padding:".6rem"}}>                                
+                                                <FontAwesomeIcon style={{color:"#f9426c",fontSize:".95rem"}} icon={faMicrophoneSlash} /> 
+                                            </span>
+                                        </p>
+                                    : '' }
+                                </Col>
+                            </Row>
                         </div>
                         <div className="position-absolute overlay" style={{bottom:8,width:"100%"}}>
                             <Row>
@@ -110,6 +124,19 @@ function Video(props) {
                         <video autoPlay muted={isLocal} ref={renderVideo(publisher.stream)} style={{height: 0, width: 0 }}></video>
                         <div className="mx-auto align-self-center">
                             <Image src={publisher.member.avatar} style={{maxHeight:75,borderRadius:15}} fluid />
+                        </div>
+                        <div className="position-absolute hide-overlay" style={{bottom:8,width:"100%"}}>
+                            <Row>
+                                <Col>
+                                    {!publisher.hasAudio ?
+                                        <p className="pl-2 mb-1 mt-1 font-weight-bolder" style={{fontSize:"1.1rem"}}>
+                                            <span style={{backgroundColor:"rgb(18, 20, 34, .5)",borderRadius:15,padding:".6rem"}}>                                
+                                                <FontAwesomeIcon style={{color:"#f9426c",fontSize:".95rem"}} icon={faMicrophoneSlash} /> 
+                                            </span>
+                                        </p>
+                                    : '' }
+                                </Col>
+                            </Row>
                         </div>
                         <div className="position-absolute overlay" style={{bottom:8,width:"100%"}}>
                             <Row>

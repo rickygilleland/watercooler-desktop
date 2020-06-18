@@ -109,8 +109,14 @@
   .stage-container:hover .overlay {
     display:block
   }
-  .video-col .border {
-    border: 3px solid #3ecf8e!important
+  .stage-container:hover > .hide-overlay {
+    display:none !important;
+  }
+  .stage-container:hover .hide-overlay {
+    display:none !important;
+  }
+  .speaking-border {
+    box-shadow: 0 0 0 .25rem #3ecf8e, 0 .5rem 1rem #3ecf8e !important ;
   }
   .hover-focus:hover, .nav-item a:hover {
     transform: translateY(-1px);

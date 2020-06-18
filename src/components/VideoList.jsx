@@ -2,7 +2,7 @@ import React from 'react';
 import Video from './Video';
 
 function VideoList(props) {
-    const { publishing, user, publishers, talking, videoSizes, renderVideo, togglePinned, pinned, currentTime } = props;
+    const { publishing, user, publishers, videoSizes, renderVideo, togglePinned, pinned, currentTime } = props;
 
     let hasVideo = false;
     let hasAudio = false;
@@ -13,7 +13,7 @@ function VideoList(props) {
     if (publishers.length > 1) {
         showPinToggle = true;
     }
-
+ 
     if (pinned !== false || !showPinToggle) {
         var publisher = publishers[0];
         if (pinned !== false) {
@@ -42,7 +42,7 @@ function VideoList(props) {
                 renderVideo={renderVideo}
                 togglePinned={togglePinned}
                 publishing={publishing}
-                talking={talking}
+                speaking={typeof publisher.speaking != "undefined" ? publisher.speaking : false}
                 currentTime={currentTime}
                 localTimezone={user.timezone}
                 active={typeof publisher.active != "undefined" ? publisher.active : false}
@@ -82,7 +82,7 @@ function VideoList(props) {
                 renderVideo={renderVideo}
                 togglePinned={togglePinned}
                 publishing={publishing}
-                talking={talking}
+                speaking={typeof publisher.speaking != "undefined" ? publisher.speaking : false}
                 currentTime={currentTime}
                 localTimezone={user.timezone}
                 active={typeof publisher.active != "undefined" ? publisher.active : false}

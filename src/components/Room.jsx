@@ -31,6 +31,7 @@ import VideoList from './VideoList';
 import AddUserToRoomModal from './AddUserToRoomModal';
 import ScreenSharingModal from './ScreenSharingModal';
 import posthog from 'posthog-js';
+import hark from 'hark';
 const { BrowserWindow } = require('electron').remote
 
 class Room extends React.Component {
@@ -74,7 +75,6 @@ class Room extends React.Component {
                 sidebarWidth: 280
             },
             pinned: false,
-            talking: [],
             videoStatus: false,
             audioStatus: true,
             streamer_server_connected: false,
@@ -411,7 +411,7 @@ class Room extends React.Component {
         try {
             rootStreamerHandle.destroy({
                 success: function() {
-                    that.setState({ publishers: [], talking: [] })
+                    that.setState({ publishers: [] })
                 }
             });
         } catch (error) {
@@ -525,31 +525,6 @@ class Room extends React.Component {
                             if (that.state.isCall == true) {
                                 that.startPublishingStream();
                             }
-                        }
-
-                        if (msg.videoroom == "talking") {
-                            var updatedTalking = [];
-
-                            updatedTalking.push(msg.id);
-
-                            that.state.talking.forEach(talking => {
-                                updatedTalking.push(talking);
-                            })
-
-                            that.setState({ talking: updatedTalking });
-
-                        }
-
-                        if (msg.videoroom == "stopped-talking") {
-                            var updatedTalking = [];
-
-                            that.state.talking.forEach(talking => {
-                                if (talking != msg.id) {
-                                    updatedTalking.push(talking);
-                                }
-                            })
-
-                            that.setState({ talking: updatedTalking });
                         }
 
                         if (msg.videoroom == "event") {
@@ -685,9 +660,70 @@ class Room extends React.Component {
             }
         }
 
-        const local_stream = await navigator.mediaDevices.getUserMedia(streamOptions);
+        const raw_local_stream = await navigator.mediaDevices.getUserMedia(streamOptions);
 
-        const tracks = local_stream.getTracks();
+        /*let localVideo = document.createElement("video")
+        localVideo.srcObject = raw_local_stream;
+        localVideo.autoplay = true;
+        localVideo.muted = true;
+
+        let localVideoCanvas = document.createElement("canvas");
+
+        localVideo.addEventListener('playing', () => {
+            //process            
+        })
+
+        const local_stream = localVideoCanvas.captureStream(30)*/
+        
+        var speechEvents = hark(raw_local_stream);
+
+        var that = this;
+
+        speechEvents.on('speaking', function() {
+            const { publishers } = that.state;
+            let dataMsg = {
+                type: "started_speaking",
+                publisher_id: user.id
+            };
+
+            videoRoomStreamerHandle.data({
+                text: JSON.stringify(dataMsg)
+            });
+
+            let updatedPublishers = [...publishers];
+
+            updatedPublishers.forEach(publisher => {
+                if (publisher.member.id == user.id) {
+                    publisher.speaking = true;
+                }
+            })
+
+            that.setState({ publishers: updatedPublishers });
+        });
+
+        speechEvents.on('stopped_speaking', function() {
+            const { publishers } = that.state;
+            let dataMsg = {
+                type: "stopped_speaking",
+                publisher_id: user.id
+            };
+
+            videoRoomStreamerHandle.data({
+                text: JSON.stringify(dataMsg)
+            });
+
+            let updatedPublishers = [...publishers];
+
+            updatedPublishers.forEach(publisher => {
+                if (publisher.member.id == user.id) {
+                    publisher.speaking = false;
+                }
+            })
+
+            that.setState({ publishers: updatedPublishers });
+        });
+
+        const tracks = raw_local_stream.getTracks();
 
         tracks.forEach(function(track) {
             if (track.kind == "video") {
@@ -697,7 +733,9 @@ class Room extends React.Component {
             }
         });
 
-        this.setState({ local_stream });
+        
+
+        this.setState({ local_stream: raw_local_stream });
 
         var that = this;
 
@@ -1055,8 +1093,6 @@ class Room extends React.Component {
                 const { publishers } = that.state;
                 let dataMsg = JSON.parse(data);
 
-                console.log("DATA RECEIVED from pub", dataMsg);
-
                 if (dataMsg.type == "initial_video_audio_status_response" && dataMsg.requesting_publisher_id != user.id) {
                     return;
                 }
@@ -1077,7 +1113,14 @@ class Room extends React.Component {
                             publisher.hasAudio = dataMsg.audio_status;
                             publisher.hasVideo = dataMsg.video_status;
                         }
+
+                        if (dataMsg.type == "started_speaking") {
+                            publisher.speaking = true;
+                        }
                         
+                        if (dataMsg.type == "stopped_speaking") {
+                            publisher.speaking = false;
+                        }
                     }
                 })
 
@@ -1091,10 +1134,7 @@ class Room extends React.Component {
                     };
     
                     videoRoomStreamerHandle.data({
-                        text: JSON.stringify(dataMsgResponse),
-                        success: function() {
-                            console.log("DATA status request response sent");
-                        }
+                        text: JSON.stringify(dataMsgResponse)
                     });
                 }
 
@@ -1233,7 +1273,7 @@ class Room extends React.Component {
                 height: height,
                 width: width,
                 display: display,
-                containerHeight: dimensions.height - 80,
+                containerHeight: dimensions.height - 60,
                 pinnedHeight,
                 pinnedWidth,
                 rows,
@@ -1491,7 +1531,6 @@ class Room extends React.Component {
             loading,
             publishers, 
             publishing,
-            talking,
             screenSharingActive,
             screenSources,
             screenSourcesLoading,
@@ -1648,7 +1687,6 @@ class Room extends React.Component {
                                             publishing={publishing}
                                             currentTime={currentTime}
                                             user={user}
-                                            talking={talking}
                                             renderVideo={this.renderVideo}
                                             togglePinned={this.togglePinned}
                                             pinned={pinned}
