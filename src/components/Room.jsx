@@ -613,20 +613,7 @@ class Room extends React.Component {
                         const {videoRoomStreamerHandle, videoStatus, audioStatus } = that.state;
                         console.log("DATA CHANNEL open");
 
-                        let dataMsg = {
-                            type: "initial_video_audio_status",
-                            publisher_id: user.id,
-                            video_status: videoStatus,
-                            audio_status: audioStatus
-                        };
                 
-                        videoRoomStreamerHandle.data({
-                            text: JSON.stringify(dataMsg),
-                            success: function() {
-                                console.log("DATA sent success", dataMsg)
-                            }
-                        });
-                        
 
                     },
                     ondata: function(data) {
@@ -674,7 +661,7 @@ class Room extends React.Component {
     }
 
     async startPublishingStream() {
-        const { settings } = this.props;
+        const { settings, user } = this.props;
         var { videoRoomStreamerHandle, audioStatus, videoStatus } = this.state;
 
         let streamOptions;
@@ -1019,7 +1006,7 @@ class Room extends React.Component {
                     if (typeof msg.display != "undefined") {
                         handle.createAnswer({
                             jsep: jsep,
-                            media: { audioSend: false, videoSend: false, data: true},
+                            media: { audioSend: false, videoSend: false, data: true },
                             success: function(jsep) {
                                 var request = {
                                     "request": "start",
@@ -1047,6 +1034,22 @@ class Room extends React.Component {
                 }
             },
             ondataopen: function(data) {
+                const { videoRoomStreamerHandle, videoStatus, audioStatus } = that.state;
+                let dataMsg = {
+                    type: "initial_video_audio_status",
+                    publisher_id: user.id,
+                    video_status: videoStatus,
+                    audio_status: audioStatus
+                };
+        
+                setTimeout(() => { 
+                    videoRoomStreamerHandle.data({
+                        text: JSON.stringify(dataMsg),
+                        success: function() {
+                            console.log("DATA sent success sub", dataMsg)
+                        }
+                    });
+                 }, 500);
             },
             ondata: function(data) {
                 const { publishers } = that.state;
