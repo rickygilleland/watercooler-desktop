@@ -731,8 +731,8 @@ class Room extends React.Component {
                     containerBackgroundColor: containerBackgroundColors[rand],
                     loading: false,
                     member: me.info,
-                    videoStatus,
-                    audioStatus,
+                    hasVideo: videoStatus,
+                    hasAudio: audioStatus,
                     id: me.id.toString(),
                     stream: local_stream
                 }
