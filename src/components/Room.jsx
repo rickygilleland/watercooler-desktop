@@ -1075,7 +1075,7 @@ class Room extends React.Component {
 
                         if (dataMsg.type == "initial_video_audio_status") {
                             publisher.hasAudio = dataMsg.audio_status;
-                            publusher.hasVideo = dataMsg.video_status;
+                            publisher.hasVideo = dataMsg.video_status;
                         }
                         
                     }

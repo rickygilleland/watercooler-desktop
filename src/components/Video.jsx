@@ -56,7 +56,18 @@ function Video(props) {
                         <div className="position-absolute overlay" style={{bottom:8,width:"100%"}}>
                             <Row>
                                 <Col>
-                                    <p className="pl-2 mb-1 mt-1 font-weight-bolder" style={{fontSize:"1.1rem"}}><span style={{backgroundColor:"rgb(18, 20, 34, .5)",borderRadius:15,padding:".6rem"}}>{publisher.id.includes("_screensharing") ? publisher.member.first_name + "'s Screen" : publisher.member.first_name}</span></p>
+                                    <p className="pl-2 mb-1 mt-1 font-weight-bolder" style={{fontSize:"1.1rem"}}>
+                                        <span style={{backgroundColor:"rgb(18, 20, 34, .5)",borderRadius:15,padding:".6rem"}}>
+                                            {publisher.id.includes("_screensharing") ? publisher.member.first_name + "'s Screen" : publisher.member.first_name} 
+                                            
+                                            {publisher.hasAudio 
+                                                ? 
+                                                    <FontAwesomeIcon style={{color:"#2eb97b",fontSize:".95rem",marginLeft:".35rem"}} icon={faMicrophone} /> 
+                                                : 
+                                                    <FontAwesomeIcon style={{color:"#f9426c",fontSize:".95rem",marginLeft:".35rem"}} icon={faMicrophoneSlash} /> 
+                                            }
+                                        </span>
+                                    </p>
                                 </Col>
                                 <Col>
                                     {/*<p className="pr-2 mb-1 mt-1 font-weight-bolder text-right">
@@ -103,7 +114,18 @@ function Video(props) {
                         <div className="position-absolute overlay" style={{bottom:8,width:"100%"}}>
                             <Row>
                                 <Col>
-                                    <p className="pl-2 mb-1 mt-1 font-weight-bolder" style={{fontSize:"1.1rem"}}><span style={{backgroundColor:"rgb(18, 20, 34, .5)",borderRadius:15,padding:".6rem"}}>{publisher.member.first_name}</span></p>
+                                    <p className="pl-2 mb-1 mt-1 font-weight-bolder" style={{fontSize:"1.1rem"}}>
+                                        <span style={{backgroundColor:"rgb(18, 20, 34, .5)",borderRadius:15,padding:".6rem"}}>
+                                            {publisher.id.includes("_screensharing") ? publisher.member.first_name + "'s Screen" : publisher.member.first_name} 
+                                            
+                                            {publisher.hasAudio 
+                                                ? 
+                                                    <FontAwesomeIcon style={{color:"#2eb97b",fontSize:".95rem",marginLeft:".35rem"}} icon={faMicrophone} /> 
+                                                : 
+                                                    <FontAwesomeIcon style={{color:"#f9426c",fontSize:".95rem",marginLeft:".35rem"}} icon={faMicrophoneSlash} /> 
+                                            }
+                                        </span>
+                                    </p>
                                 </Col>
                                 <Col>
                                     {/*<p className="pr-2 mb-1 mt-1 font-weight-bolder text-right">
