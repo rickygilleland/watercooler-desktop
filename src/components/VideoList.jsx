@@ -1,24 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Video from './Video';
+import { computeScreenAwareSize } from 'custom-electron-titlebar/lib/common/dom';
 
 function VideoList(props) {
     const { publishing, user, publishers, videoSizes, renderVideo, togglePinned, pinned, currentTime } = props;
 
-    let hasVideo = false;
-    let hasAudio = false;
-    var videoLoading = false;
-    var audioLoading = false;
+    const [ processedPublishers, setProcessedPublishers ] = useState([...publishers]);
 
-    var showPinToggle = false;
-    if (publishers.length > 1) {
-        showPinToggle = true;
-    }
- 
-    if (pinned !== false || !showPinToggle) {
-        var publisher = publishers[0];
-        if (pinned !== false) {
-            publisher = publishers[pinned];
-        };
+    useEffect(() => {
+        if (processedPublishers.length != publishers.length) {
+            return setProcessedPublishers([...publishers]);
+        }
+
+        let shouldUpdate = false;
+
+        processedPublishers.forEach(processedPublisher => {
+            publishers.forEach(publisher => {
+                if (publisher.id == processedPublisher.id) {
+                    shouldUpdate = processedPublisher.hasVideo != publisher.hasVideo;
+                    shouldUpdate = processedPublisher.hasAudio != publisher.hasAudio;
+                }
+            })
+        })
+
+        if (shouldUpdate) {
+            setProcessedPublishers([...publishers]);
+        }
+    })
+
+    function checkVideoAudioStatus(publisher) {
+
+        console.log("running");
+
+        let videoLoading = false;
+        let audioLoading = false;
 
         if (typeof publisher.stream != "undefined" && publisher.stream != null) {
             let tracks = publisher.stream.getTracks();
@@ -34,6 +49,40 @@ function VideoList(props) {
             })
         }
 
+        let updatedPublishers = [...processedPublishers];
+
+        updatedPublishers.forEach(updatedPublisher => {
+            if (updatedPublisher.id == publisher.id) {
+                updatedPublisher.videoLoading = videoLoading;
+                updatedPublisher.audioLoading = audioLoading;
+            }
+        })
+
+        setProcessedPublishers(updatedPublishers);
+
+        if (publisher.hasVideo && videoLoading == true) {
+            return requestAnimationFrame(checkVideoAudioStatus(publisher));
+        }
+
+    }
+
+    var showPinToggle = false;
+    if (processedPublishers.length > 1) {
+        showPinToggle = true;
+    }
+ 
+    if (pinned !== false || !showPinToggle) {
+        var publisher = processedPublishers[0];
+        if (pinned !== false) {
+            publisher = processedPublishers[pinned];
+        };
+
+        if (typeof publisher.videoLoading == "undefined" || typeof publisher.audioLoading == "undefined") {
+            checkVideoAudioStatus(publisher);
+        }
+
+        console.log("VIDEO LOADING LIST", publisher);
+
         return(
             <Video
                 showPinToggle={showPinToggle}
@@ -48,8 +97,8 @@ function VideoList(props) {
                 active={typeof publisher.active != "undefined" ? publisher.active : false}
                 hasVideo={typeof publisher.hasVideo != "undefined" ? publisher.hasVideo : false}
                 hasAudio={typeof publisher.hasAudio != "undefined" ? publisher.hasAudio : false}
-                videoLoading={videoLoading}
-                audioLoading={audioLoading}
+                videoLoading={typeof publisher.videoLoading != "undefined" ? publisher.videoLoading : true}
+                audioLoading={typeof publisher.audioLoading != "undefined" ? publisher.audioLoading : true}
                 showBeforeJoin={publisher.id.includes("_screensharing") ? false : true}
                 pinned={true}
                 key={publisher.id}
@@ -58,20 +107,10 @@ function VideoList(props) {
         )
     }
 
-    return(publishers.map(publisher => {
+    return(processedPublishers.map(publisher => {
 
-        if (typeof publisher.stream != "undefined" && publisher.stream != null) {
-            let tracks = publisher.stream.getTracks();
-
-            tracks.forEach(function(track) {
-                if (track.kind == "video") {
-                    videoLoading = track.muted;
-                } 
-
-                if (track.kind == "audio") {
-                    audioLoading = track.muted;
-                } 
-            })
+        if (typeof publisher.videoLoading == "undefined" || typeof publisher.audioLoading == "undefined") {
+            checkVideoAudioStatus(publisher);
         }
 
         return(
@@ -88,8 +127,8 @@ function VideoList(props) {
                 active={typeof publisher.active != "undefined" ? publisher.active : false}
                 hasVideo={typeof publisher.hasVideo != "undefined" ? publisher.hasVideo : false}
                 hasAudio={typeof publisher.hasAudio != "undefined" ? publisher.hasAudio : false}
-                videoLoading={videoLoading}
-                audioLoading={audioLoading}
+                videoLoading={typeof publisher.videoLoading != "undefined" ? publisher.videoLoading : true}
+                audioLoading={typeof publisher.audioLoading != "undefined" ? publisher.audioLoading : true}
                 showBeforeJoin={publisher.id.includes("_screensharing") ? false : true}
                 pinned={false}
                 key={publisher.id}

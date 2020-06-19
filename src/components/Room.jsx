@@ -32,7 +32,10 @@ import AddUserToRoomModal from './AddUserToRoomModal';
 import ScreenSharingModal from './ScreenSharingModal';
 import posthog from 'posthog-js';
 import hark from 'hark';
+import '@tensorflow/tfjs-backend-webgl';
+import '@tensorflow/tfjs-backend-cpu';
 const bodyPix = require('@tensorflow-models/body-pix');
+import Stats from 'stats.js';
 const { BrowserWindow } = require('electron').remote
 
 class Room extends React.Component {
@@ -47,7 +50,6 @@ class Room extends React.Component {
             loading: true,
             members: [],
             server: null,
-            requestAnimationFrameId: null,
             local_stream: null,
             publishers: [],
             initialized: false,
@@ -672,7 +674,12 @@ class Room extends React.Component {
 
         const raw_local_stream = await navigator.mediaDevices.getUserMedia(streamOptions);
 
-        const net = await bodyPix.load();
+        const net = await bodyPix.load({
+            architecture: 'MobileNetV1',
+            outputStride: 16,
+            multiplier: 0.5,
+            quantBytes: 2
+        });
 
         if (typeof localVideoContainer != "undefined") {
             localVideoContainer.remove();
@@ -696,6 +703,12 @@ class Room extends React.Component {
 
         var that = this;
 
+        const stats = new Stats();
+        stats.showPanel(0);
+        let statsDiv = document.body.appendChild(stats.dom);
+        statsDiv.style.top = null;
+        statsDiv.style.bottom = 0;
+
         localVideo.onplaying = async () => {
 
             async function bodySegmentationFrame() {
@@ -708,10 +721,16 @@ class Room extends React.Component {
                     return requestAnimationFrame(bodySegmentationFrame);
                 }
 
-                const multiPersonSegmentation = await net.segmentPerson(localVideo);
+                stats.begin();
 
-                const backgroundBlurAmount = 4;
-                const edgeBlurAmount = 16;
+                const multiPersonSegmentation = await net.segmentPerson(localVideo, {
+                    internalResolution: 'low',
+                    segmentationThreshold: .6,
+                    maxDetections: 3,
+                });
+
+                const backgroundBlurAmount = 3.5;
+                const edgeBlurAmount = 20;
                 const flipHorizontal = false;
 
                 bodyPix.drawBokehEffect(
@@ -722,6 +741,8 @@ class Room extends React.Component {
                     edgeBlurAmount, 
                     flipHorizontal
                 );
+
+                stats.end();
 
                 requestAnimationFrame(bodySegmentationFrame);
                 

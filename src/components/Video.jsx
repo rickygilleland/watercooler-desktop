@@ -39,7 +39,6 @@ function Video(props) {
         classAppend = "speaking-border";
     }
 
-    
     if (typeof publisher.stream != "undefined" && publisher.stream != null) {
 
         var height = videoSizes.height;
@@ -125,6 +124,11 @@ function Video(props) {
                         <div className="mx-auto align-self-center">
                             <Image src={publisher.member.avatar} style={{maxHeight:75,borderRadius:15}} fluid />
                         </div>
+                        {hasVideo && videoLoading ?
+                            <div className="mx-auto align-self-center">
+                                <p className="font-weight-bolder text-center" style={{paddingTop:8,fontSize:"1.2rem"}}><FontAwesomeIcon style={{color:"#f9426c"}} icon={faCircleNotch} spin/> Loading Video...</p>
+                            </div>
+                        : '' }
                         <div className="position-absolute hide-overlay" style={{bottom:8,width:"100%"}}>
                             <Row>
                                 <Col>
