@@ -32,6 +32,7 @@ import AddUserToRoomModal from './AddUserToRoomModal';
 import ScreenSharingModal from './ScreenSharingModal';
 import posthog from 'posthog-js';
 import hark from 'hark';
+const bodyPix = require('@tensorflow-models/body-pix');
 const { BrowserWindow } = require('electron').remote
 
 class Room extends React.Component {
@@ -46,6 +47,7 @@ class Room extends React.Component {
             loading: true,
             members: [],
             server: null,
+            requestAnimationFrameId: null,
             local_stream: null,
             publishers: [],
             initialized: false,
@@ -129,6 +131,8 @@ class Room extends React.Component {
 
     componentDidMount() {
         const { teams, match, location, pusherInstance } = this.props;
+
+        this._mounted = true;
 
         if (match.path == "/call/:roomSlug") {
             this.setState({ isCall: true });
@@ -255,7 +259,13 @@ class Room extends React.Component {
     
     componentWillUnmount() {
         const { pusherInstance, userPrivateNotificationChannel } = this.props;
-        const { me, room, rootStreamerHandle, publishers, local_stream, publishing, screenSharingWindow } = this.state;
+        const { me, room, rootStreamerHandle, publishers, local_stream, publishing, screenSharingWindow, localVideoContainer } = this.state;
+
+        this._mounted = false;
+
+        if (typeof localVideoContainer != "undefined") {
+            localVideoContainer.remove();
+        }
 
         if (typeof room.channel_id != 'undefined' && typeof pusherInstance != "undefined" &&  pusherInstance != null) {
             pusherInstance.unsubscribe(`presence-room.${room.channel_id}`);
@@ -637,7 +647,7 @@ class Room extends React.Component {
 
     async startPublishingStream() {
         const { settings, user } = this.props;
-        var { videoRoomStreamerHandle, audioStatus, videoStatus } = this.state;
+        var { videoRoomStreamerHandle, audioStatus, videoStatus, localVideoContainer, localVideoCanvasContainer } = this.state;
 
         let streamOptions;
         /* TODO: Manually prompt for camera and microphone access on macos to handle it more gracefully - systemPreferences.getMediaAccessStatus(mediaType) */
@@ -662,144 +672,194 @@ class Room extends React.Component {
 
         const raw_local_stream = await navigator.mediaDevices.getUserMedia(streamOptions);
 
-        /*let localVideo = document.createElement("video")
+        const net = await bodyPix.load();
+
+        if (typeof localVideoContainer != "undefined") {
+            localVideoContainer.remove();
+        }
+
+        if (typeof localVideoCanvasContainer != "undefined") {
+            localVideoCanvasContainer.remove();
+        }
+
+        let localVideo = document.createElement("video")
         localVideo.srcObject = raw_local_stream;
         localVideo.autoplay = true;
         localVideo.muted = true;
 
         let localVideoCanvas = document.createElement("canvas");
 
-        localVideo.addEventListener('playing', () => {
-            //process            
-        })
-
-        const local_stream = localVideoCanvas.captureStream(30)*/
-        
-        var speechEvents = hark(raw_local_stream);
+        localVideo.onloadedmetadata = () => {
+            localVideo.width = localVideo.videoWidth;
+            localVideo.height = localVideo.videoHeight;
+        }
 
         var that = this;
 
-        speechEvents.on('speaking', function() {
-            const { publishers } = that.state;
-            let dataMsg = {
-                type: "started_speaking",
-                publisher_id: user.id
-            };
+        localVideo.onplaying = async () => {
 
-            videoRoomStreamerHandle.data({
-                text: JSON.stringify(dataMsg)
-            });
+            async function bodySegmentationFrame() {
 
-            let updatedPublishers = [...publishers];
-
-            updatedPublishers.forEach(publisher => {
-                if (publisher.member.id == user.id) {
-                    publisher.speaking = true;
+                if (that._mounted == false) {
+                    return;
                 }
-            })
 
-            that.setState({ publishers: updatedPublishers });
-        });
-
-        speechEvents.on('stopped_speaking', function() {
-            const { publishers } = that.state;
-            let dataMsg = {
-                type: "stopped_speaking",
-                publisher_id: user.id
-            };
-
-            videoRoomStreamerHandle.data({
-                text: JSON.stringify(dataMsg)
-            });
-
-            let updatedPublishers = [...publishers];
-
-            updatedPublishers.forEach(publisher => {
-                if (publisher.member.id == user.id) {
-                    publisher.speaking = false;
+                if (that.state.videoStatus == false) {
+                    return requestAnimationFrame(bodySegmentationFrame);
                 }
-            })
 
-            that.setState({ publishers: updatedPublishers });
-        });
+                const multiPersonSegmentation = await net.segmentPerson(localVideo);
 
-        const tracks = raw_local_stream.getTracks();
+                const backgroundBlurAmount = 4;
+                const edgeBlurAmount = 16;
+                const flipHorizontal = false;
 
-        tracks.forEach(function(track) {
-            if (track.kind == "video") {
-                track.enabled = videoStatus;
-            } else {
-                track.enabled = audioStatus;
+                bodyPix.drawBokehEffect(
+                    localVideoCanvas, 
+                    localVideo, 
+                    multiPersonSegmentation, 
+                    backgroundBlurAmount,
+                    edgeBlurAmount, 
+                    flipHorizontal
+                );
+
+                requestAnimationFrame(bodySegmentationFrame);
+                
             }
-        });
 
-        
+            bodySegmentationFrame();
 
-        this.setState({ local_stream: raw_local_stream });
+            const local_stream = localVideoCanvas.captureStream(60);
 
-        var that = this;
-
-        //publish our feed
-        videoRoomStreamerHandle.createOffer({
-            stream: local_stream,
-            media: { audioRecv: false, videoRecv: false, audioSend: true, videoSend: true, data: true },
-            success: function(jsep) {
-                var request = {
-                    "request": "publish",
-                    "audio": true,
-                    "video": true,
-                    "data": true,
-                    "videocodec": "vp9"
+            let raw_tracks = raw_local_stream.getTracks();
+            raw_tracks.forEach(track => {
+                if (track.kind == "audio") {
+                    local_stream.addTrack(track);
                 }
-                /*var request = {
-                    "request": "publish",
-                    "captureDesktopAudio": false,
-                    "video": "screen",
-                    "data": true,
-                    "videocodec": "vp9"
-                }*/
+            })
+            
+            var speechEvents = hark(local_stream);
 
-                videoRoomStreamerHandle.send({ "message": request, "jsep": jsep });
+            speechEvents.on('speaking', function() {
+                const { publishers } = that.state;
+                let dataMsg = {
+                    type: "started_speaking",
+                    publisher_id: user.id
+                };
 
-                const { containerBackgroundColors, me } = that.state;
-
-                var rand = Math.floor(Math.random() * containerBackgroundColors.length);
-
-                let newPublisher = {
-                    containerBackgroundColor: containerBackgroundColors[rand],
-                    loading: false,
-                    member: me.info,
-                    hasVideo: videoStatus,
-                    hasAudio: audioStatus,
-                    id: me.id.toString(),
-                    stream: local_stream
-                }
-
-                var updatedPublishers = [...that.state.publishers]; 
-
-                updatedPublishers = updatedPublishers.filter(publisher => {
-                    return publisher.id != me.id;
-                })
-
-                updatedPublishers.push(newPublisher);
-
-                that.setState({ publishing: true, publishers: updatedPublishers });
-
-                ipcRenderer.invoke('update-tray-icon', {
-                    enable: true,
-                    videoStatus,
-                    audioStatus,
-                    videoEnabled: that.state.room.video_enabled,
-                    screenSharingActive: that.state.screenSharingActive
+                videoRoomStreamerHandle.data({
+                    text: JSON.stringify(dataMsg)
                 });
 
-                that.handleRemoteStreams();
-            }
-        })
+                let updatedPublishers = [...publishers];
+
+                updatedPublishers.forEach(publisher => {
+                    if (publisher.member.id == user.id) {
+                        publisher.speaking = true;
+                    }
+                })
+
+                that.setState({ publishers: updatedPublishers });
+            });
+
+            speechEvents.on('stopped_speaking', function() {
+                const { publishers } = that.state;
+                let dataMsg = {
+                    type: "stopped_speaking",
+                    publisher_id: user.id
+                };
+
+                videoRoomStreamerHandle.data({
+                    text: JSON.stringify(dataMsg)
+                });
+
+                let updatedPublishers = [...publishers];
+
+                updatedPublishers.forEach(publisher => {
+                    if (publisher.member.id == user.id) {
+                        publisher.speaking = false;
+                    }
+                })
+
+                that.setState({ publishers: updatedPublishers });
+            });
+
+            const tracks = raw_local_stream.getTracks();
+
+            tracks.forEach(function(track) {
+                if (track.kind == "video") {
+                    track.enabled = videoStatus;
+                } else {
+                    track.enabled = audioStatus;
+                }
+            });
+
+            this.setState({ local_stream: raw_local_stream, localVideoContainer: localVideo, localVideoCanvasContainer });
+
+            //publish our feed
+            videoRoomStreamerHandle.createOffer({
+                stream: local_stream,
+                media: { audioRecv: false, videoRecv: false, audioSend: true, videoSend: true, data: true },
+                success: function(jsep) {
+                    var request = {
+                        "request": "publish",
+                        "audio": true,
+                        "video": true,
+                        "data": true,
+                        "videocodec": "vp9"
+                    }
+                    /*var request = {
+                        "request": "publish",
+                        "captureDesktopAudio": false,
+                        "video": "screen",
+                        "data": true,
+                        "videocodec": "vp9"
+                    }*/
+
+                    videoRoomStreamerHandle.send({ "message": request, "jsep": jsep });
+
+                    const { containerBackgroundColors, me } = that.state;
+
+                    var rand = Math.floor(Math.random() * containerBackgroundColors.length);
+
+                    let newPublisher = {
+                        containerBackgroundColor: containerBackgroundColors[rand],
+                        loading: false,
+                        member: me.info,
+                        hasVideo: videoStatus,
+                        hasAudio: audioStatus,
+                        id: me.id.toString(),
+                        stream: local_stream
+                    }
+
+                    var updatedPublishers = [...that.state.publishers]; 
+
+                    updatedPublishers = updatedPublishers.filter(publisher => {
+                        return publisher.id != me.id;
+                    })
+
+                    updatedPublishers.push(newPublisher);
+
+                    that.setState({ publishing: true, publishers: updatedPublishers });
+
+                    ipcRenderer.invoke('update-tray-icon', {
+                        enable: true,
+                        videoStatus,
+                        audioStatus,
+                        videoEnabled: that.state.room.video_enabled,
+                        screenSharingActive: that.state.screenSharingActive
+                    });
+
+                    that.handleRemoteStreams();
+                }
+            })
+        
+        }
+
     }
 
     stopPublishingStream() {
-        const { videoRoomStreamerHandle, screenSharingHandle, screenSharingStream, screenSharingWindow, local_stream, publishers, me } = this.state;
+        const { videoRoomStreamerHandle, screenSharingHandle, screenSharingStream, screenSharingWindow, local_stream, localVideoContainer, localVideoCanvasContainer, publishers, me } = this.state;
 
         if (videoRoomStreamerHandle == null) {
             return;
@@ -833,6 +893,14 @@ class Room extends React.Component {
             tracks.forEach(function(track) {
                 track.stop();
             })
+        }
+
+        if (typeof localVideoContainer != "undefined") {
+            localVideoContainer.remove();
+        }
+
+        if (typeof localVideoCanvasContainer != "undefined") {
+            localVideoCanvasContainer.remove();
         }
 
         var updatedPublishers = [...publishers];
