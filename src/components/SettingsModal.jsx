@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Row, Col, Button, Navbar, Dropdown, Modal, Card, Image, Form } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faWindowClose, faUserPlus, faCamera, faSignOutAlt } from '@fortawesome/free-solid-svg-icons';
+import { faWindowClose, faUserPlus, faCamera, faSignOutAlt, faFlask } from '@fortawesome/free-solid-svg-icons';
 
 function SettingsModal(props) {
     
@@ -30,6 +30,9 @@ function SettingsModal(props) {
             </Button>
             <Button variant="primary" className="my-3" size="lg" block onClick={() => handleShowModal("cameraSettings")}>
                 <FontAwesomeIcon icon={faCamera} /> Camera Settings
+            </Button>
+            <Button variant="primary" className="my-3" size="lg" block onClick={() => handleShowModal("experimentalSettings")}>
+                <FontAwesomeIcon icon={faFlask} /> Experimental Features
             </Button>
             <center>
                 <Button variant="danger" className="mt-3" onClick={() => handleLogOut()}>

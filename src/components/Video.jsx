@@ -40,7 +40,7 @@ function Video(props) {
         classAppend = "speaking-border";
     }
 
-    if (videoIsFaceOnly) {
+    if (videoIsFaceOnly && hasVideo) {
         classAppend = classAppend + " border-radius-round";
     }
 

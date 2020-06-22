@@ -2,6 +2,7 @@ export const GET_AVAILABLE_DEVICES_STARTED = 'GET_AVAILABLE_DEVICES_STARTED';
 export const GET_AVAILABLE_DEVICES_SUCCESS = 'GET_AVAILABLE_DEVICES_SUCCESS';
 export const GET_AVAILABLE_DEVICES_FAILURE = 'GET_AVAILABLE_DEVICES_FAILURE';
 export const UPDATE_DEFAULT_DEVICES_SUCCESS = 'UPDATE_DEFAULT_DEVICES_SUCCESS';
+export const UPDATE_EXPERIMENTAL_SETTINGS_SUCCESS = 'UPDATE_EXPERIMENTAL_SETTINGS_SUCCESS';
 
 export function getAvailableDevicesSuccess(payload) {
     return {
@@ -20,6 +21,13 @@ export function getAvailableDevicesFailure(payload) {
 export function updateDefaultDevicesSuccess(payload) {
     return {
         type: UPDATE_DEFAULT_DEVICES_SUCCESS,
+        payload
+    };
+}
+
+export function updateExperimentalSettingsSuccess(payload) {
+    return {
+        type: UPDATE_EXPERIMENTAL_SETTINGS_SUCCESS,
         payload
     };
 }
@@ -54,6 +62,25 @@ export function updateDefaultDevices(defaultVideoInput, defaultAudioInput, defau
             }
     
             dispatch(updateDefaultDevicesSuccess(payload));        
+        } catch (error) {
+            //silently fail
+        }
+
+    }
+}
+
+
+export function updateExperimentalSettings(settingToChange, updatedValue) {
+    return (dispatch, getState) => {
+        const state = getState();
+
+        try {
+            var payload = {
+                settingToChange,
+                updatedValue
+            }
+    
+            dispatch(updateExperimentalSettingsSuccess(payload));        
         } catch (error) {
             //silently fail
         }

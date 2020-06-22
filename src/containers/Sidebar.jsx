@@ -8,7 +8,11 @@ import {
   createRoom,
   createCall
 } from '../actions/organization';
-import { getAvailableDevices, updateDefaultDevices } from '../actions/settings';
+import { 
+  getAvailableDevices, 
+  updateDefaultDevices,
+  updateExperimentalSettings, 
+} from '../actions/settings';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { push } from 'connected-react-router';
@@ -44,6 +48,7 @@ function mapDispatchToProps(dispatch) {
         createCall,
         getAvailableDevices,
         updateDefaultDevices,
+        updateExperimentalSettings,
         push,
       },
       dispatch

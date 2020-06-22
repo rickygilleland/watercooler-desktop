@@ -116,6 +116,9 @@ class Room extends React.Component {
         this.subscribeToRemoteStream = this.subscribeToRemoteStream.bind(this);
         this.updateDisplayedVideosSizes = this.updateDisplayedVideosSizes.bind(this);
 
+        this.startFaceTracking = this.startFaceTracking.bind(this);
+        this.stopFaceTracking = this.stopFaceTracking.bind(this);
+
         this.stopPublishingStream = this.stopPublishingStream.bind(this);
 
         //this.updateDisplayedVideos = debounce(this.updateDisplayedVideos, 200);
@@ -209,7 +212,7 @@ class Room extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        const { match, location, pusherInstance, user } = this.props;
+        const { match, location, pusherInstance, user, settings } = this.props;
         const { initialized, dimensions, publishers, publishing, rootStreamerHandle, videoIsFaceOnly } = this.state;
 
         if (pusherInstance != null && initialized == false) {
@@ -268,6 +271,19 @@ class Room extends React.Component {
             })
 
             this.setState({ publishers: updatedPublishers });
+
+            if (videoIsFaceOnly) {
+                this.startFaceTracking();
+            } else {
+                this.stopFaceTracking();
+            }
+        }
+
+        if (prevProps.settings.experimentalSettings.faceTracking != settings.experimentalSettings.faceTracking) {
+            if (settings.experimentalSettings.faceTracking == false && videoIsFaceOnly) {
+                this.stopFaceTracking();
+                this.setState({ videoIsFaceOnly: false });
+            }
         }
     }
     
@@ -690,19 +706,6 @@ class Room extends React.Component {
 
         const raw_local_stream = await navigator.mediaDevices.getUserMedia(streamOptions);
 
-        let faceTrackingNetWindow = new BrowserWindow({ 
-            show: false,
-            webPreferences: {
-                nodeIntegration: true,
-                preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-                devTools: false
-            }
-        })
-
-        faceTrackingNetWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/face_tracking_net_background");
-
-        this.setState({ faceTrackingNetWindow });
-
         if (typeof localVideoContainer != "undefined") {
             localVideoContainer.remove();
         }
@@ -777,6 +780,8 @@ class Room extends React.Component {
 
                 if (!that.state.videoIsFaceOnly || personSegmentation == null) {
 
+                    personSegmentation = null;
+
                     localVideoCanvas.width = localVideo.width;
                     localVideoCanvas.height = localVideo.height;
 
@@ -798,7 +803,7 @@ class Room extends React.Component {
                         localVideoCanvas.height = 400;
                     }
 
-                    ctx.fillStyle = "black";
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
                     ctx.fillRect(0, 0, 400, 400);
                     return requestAnimationFrame(bodySegmentationFrame);
                 }
@@ -837,7 +842,7 @@ class Room extends React.Component {
                 }
 
                 //draw black every time so we don't see parts of previous frames if it jumps around a little bit
-                ctx.fillStyle = "black";
+                ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
                 ctx.fillRect(0, 0, 400, 400);
 
                 ctx.drawImage(
@@ -875,12 +880,14 @@ class Room extends React.Component {
 
             async function gradualFrameMove(initialX, initialY, targetX, targetY) {
 
-                if (targetY < 100) {
-                    targetY = 25;
+                const { videoIsFaceOnly, videoStatus, publishing } = that.state;
+
+                if (!that._mounted) {
+                    return;
                 }
 
-                if (targetY > (localVideo.height - 100)) {
-                    targetY = localVideo.height - 100;
+                if (!videoIsFaceOnly || !videoStatus || !publishing) {
+                    return requestAnimationFrame(bodySegmentationFrame);
                 }
 
                 if (personSegmentation.allPoses.length == 0) {
@@ -888,10 +895,10 @@ class Room extends React.Component {
                 }
 
                 if (personSegmentation.allPoses.length > 0) {
-                    if (personSegmentation.allPoses[0].keypoints[0].position.x != targetX || personSegmentation.allPoses[0].keypoints[0].position.y != targetY) {
+                    if ((personSegmentation.allPoses[0].keypoints[0].position.x - 200) != targetX || (personSegmentation.allPoses[0].keypoints[0].position.y - 200) != targetY) {
                         if (Math.abs(targetX - (personSegmentation.allPoses[0].keypoints[0].position.x - 200)) > 20 || Math.abs(targetY - (personSegmentation.allPoses[0].keypoints[0].position.y - 200)) > 20) {
                             let drawParamsCopy = {...drawParams};
-    
+
                             return requestAnimationFrame(() => { 
                                 gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, personSegmentation.allPoses[0].keypoints[0].position.x - 200, personSegmentation.allPoses[0].keypoints[0].position.y - 200);
                             });
@@ -931,11 +938,6 @@ class Room extends React.Component {
                     }
                 }
 
-                if (typeof newX == "undefined" && typeof newY == "undefined") {
-                    //nothing changed, break out of this loop
-                    return requestAnimationFrame(bodySegmentationFrame);
-                }
-
                 drawParams = {
                     sourceX: typeof newX != "undefined" ? newX : drawParams.sourceX,
                     sourceY: typeof newY != "undefined" ? newY : drawParams.sourceY,
@@ -953,7 +955,7 @@ class Room extends React.Component {
                     localVideoCanvas.height = 400;
                 }
 
-                ctx.fillStyle = "black";
+                ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
                 ctx.fillRect(0, 0, 400, 400);
 
                 ctx.drawImage(
@@ -969,6 +971,11 @@ class Room extends React.Component {
                 );
 
                 stats.end();
+
+                if (typeof newX == "undefined" && typeof newY == "undefined") {
+                    //nothing changed, break out of this loop
+                    return requestAnimationFrame(bodySegmentationFrame);
+                }
 
                 requestAnimationFrame(() => { 
                     gradualFrameMove(initialX, initialY, targetX, targetY);
@@ -1177,7 +1184,61 @@ class Room extends React.Component {
         this.setState({ publishing: false, local_stream: null, publishers: updatedPublishers, screenSharingActive: false, screenSharingWindow: null })
         
     }
+
+    startFaceTracking() {
+        const { user } = this.props;
+        const { videoRoomStreamerHandle } = this.state;
+
+        let faceTrackingNetWindow = new BrowserWindow({ 
+            show: false,
+            webPreferences: {
+                nodeIntegration: true,
+                preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+                devTools: false,
+                backgroundThrottling: false
+            }
+        })
+
+        faceTrackingNetWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/face_tracking_net_background");
+
+        if (videoRoomStreamerHandle != null) {
+            let dataMsg = {
+                type: "face_only_status_toggled",
+                publisher_id: user.id,
+                face_only_status: true
+            };
     
+            videoRoomStreamerHandle.data({
+                text: JSON.stringify(dataMsg)
+            });
+        }
+
+        this.setState({ faceTrackingNetWindow });
+    }
+
+    stopFaceTracking() {
+        const { user } = this.props;
+        const { faceTrackingNetWindow, videoRoomStreamerHandle } = this.state;
+
+        if (faceTrackingNetWindow != null) {
+            faceTrackingNetWindow.destroy();
+        }
+
+        if (videoRoomStreamerHandle != null) {
+            let dataMsg = {
+                type: "face_only_status_toggled",
+                publisher_id: user.id,
+                face_only_status: false
+            };
+    
+            videoRoomStreamerHandle.data({
+                text: JSON.stringify(dataMsg)
+            });
+        }
+
+        this.setState({ faceTrackingNetWindow: null })
+    }   
+
     openScreenSharingHandle() {
         var { rootStreamerHandle, me, room } = this.state;
 
@@ -1392,22 +1453,20 @@ class Room extends React.Component {
                 }
             },
             ondataopen: function(data) {
-                const { videoRoomStreamerHandle, videoStatus, audioStatus } = that.state;
+                const { videoRoomStreamerHandle, videoStatus, audioStatus, videoIsFaceOnly } = that.state;
                 let dataMsg = {
                     type: "initial_video_audio_status",
                     publisher_id: user.id,
                     video_status: videoStatus,
-                    audio_status: audioStatus
+                    audio_status: audioStatus,
+                    face_only_status: videoIsFaceOnly,
                 };
         
                 setTimeout(() => { 
                     videoRoomStreamerHandle.data({
-                        text: JSON.stringify(dataMsg),
-                        success: function() {
-                            console.log("DATA sent success sub", dataMsg)
-                        }
+                        text: JSON.stringify(dataMsg)
                     });
-                 }, 500);
+                 }, 1000);
             },
             ondata: function(data) {
                 const { publishers } = that.state;
@@ -1429,9 +1488,14 @@ class Room extends React.Component {
                             publisher.hasVideo = dataMsg.video_status;
                         }
 
+                        if (dataMsg.type == "face_only_status_toggled") {
+                            publisher.videoIsFaceOnly = dataMsg.face_only_status;
+                        }
+
                         if (dataMsg.type == "initial_video_audio_status") {
                             publisher.hasAudio = dataMsg.audio_status;
                             publisher.hasVideo = dataMsg.video_status;
+                            publisher.videoIsFaceOnly = dataMsg.face_only_status;
                         }
 
                         if (dataMsg.type == "started_speaking") {
@@ -1440,6 +1504,12 @@ class Room extends React.Component {
                         
                         if (dataMsg.type == "stopped_speaking") {
                             publisher.speaking = false;
+                        }
+
+                        if (dataMsg.type == "participant_status_update") {
+                            publisher.hasAudio = dataMsg.audio_status;
+                            publisher.hasVideo = dataMsg.video_status;
+                            publisher.videoIsFaceOnly = dataMsg.face_only_status;
                         }
                     }
                 })
@@ -1450,7 +1520,8 @@ class Room extends React.Component {
                         publisher_id: user.id,
                         requesting_publisher_id: dataMsg.publisher_id,
                         video_status: that.state.videoStatus,
-                        audio_status: that.state.audioStatus
+                        audio_status: that.state.audioStatus,
+                        face_only_status: that.state.videoIsFaceOnly,
                     };
     
                     videoRoomStreamerHandle.data({
@@ -1841,7 +1912,8 @@ class Room extends React.Component {
             billing,
             addUserToRoom,
             addUserLoading,
-            currentTime
+            currentTime,
+            settings,
         } = this.props;
 
         const { 
@@ -1975,7 +2047,7 @@ class Room extends React.Component {
                                         :
                                             room.video_enabled ?
                                                 <React.Fragment>
-                                                    {videoStatus ? <Button variant={videoIsFaceOnly ? "success" : "danger"} className="mx-1" onClick={() => this.setState({ videoIsFaceOnly: videoIsFaceOnly ? false : true }) }><FontAwesomeIcon icon={faSmile} /></Button> : ''}
+                                                    {videoStatus && settings.experimentalSettings.faceTracking ? <Button variant={videoIsFaceOnly ? "success" : "danger"} className="mx-1" onClick={() => this.setState({ videoIsFaceOnly: videoIsFaceOnly ? false : true }) }><FontAwesomeIcon icon={faSmile} /></Button> : ''}
                                                     <Button variant={videoStatus ? "success" : "danger"} className="mx-1 ph-no-capture" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                                 </React.Fragment>
                                             :

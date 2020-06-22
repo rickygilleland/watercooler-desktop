@@ -25,6 +25,7 @@ import RoomPage from '../containers/RoomPage';
 import TeamPage from '../containers/TeamPage';
 import ErrorBoundary from './ErrorBoundary';
 import SettingsModal from './SettingsModal';
+import ExperimentalSettingsModal from './ExperimentalSettingsModal';
 import ManageUsersModal from './ManageUsersModal';
 import InviteUsersModal from './InviteUsersModal';
 import ManageCameraModal from './ManageCameraModal';
@@ -50,6 +51,7 @@ class Sidebar extends React.Component {
                 height: 0
             },
             showSettingsModal: false,
+            showExperimentalSettingsModal: false,
             showInviteUsersModal: false,
             showManageUsersModal: false,
             showManageCameraModal: false,
@@ -281,6 +283,10 @@ class Sidebar extends React.Component {
         if (modalToShow == "cameraSettings") {
             return this.setState({ showSettingsModal: false, showManageCameraModal: true });
         }
+
+        if (modalToShow == "experimentalSettings") {
+            return this.setState({ showSettingsModal: false, showExperimentalSettingsModal: true });
+        }
     }
 
     render() {
@@ -299,6 +305,7 @@ class Sidebar extends React.Component {
             inviteUsersSuccess, 
             getAvailableDevices, 
             settings, 
+            updateExperimentalSettings,
             updateDefaultDevices, 
             createRoom,
             createRoomSuccess,
@@ -308,6 +315,7 @@ class Sidebar extends React.Component {
         const { 
             currentTime,
             showSettingsModal,
+            showExperimentalSettingsModal,
             showInviteUsersModal, 
             showManageUsersModal, 
             showRoomsModal, 
@@ -508,6 +516,12 @@ class Sidebar extends React.Component {
                                 handleLogOut={() => this.userLogout()}
                                 organization={organization}
                                 onHide={() => this.setState({ showSettingsModal: false })}
+                            />
+                            <ExperimentalSettingsModal
+                                show={showExperimentalSettingsModal}
+                                settings={settings}
+                                updateExperimentalSettings={updateExperimentalSettings}
+                                onHide={() => this.setState({ showExperimentalSettingsModal: false })}
                             />
                         </ErrorBoundary>
                         <div className="d-flex">

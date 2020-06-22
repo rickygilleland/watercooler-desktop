@@ -3,12 +3,16 @@ import {
     GET_AVAILABLE_DEVICES_STARTED,
     GET_AVAILABLE_DEVICES_SUCCESS,
     GET_AVAILABLE_DEVICES_FAILURE,
-    UPDATE_DEFAULT_DEVICES_SUCCESS
+    UPDATE_DEFAULT_DEVICES_SUCCESS,
+    UPDATE_EXPERIMENTAL_SETTINGS_SUCCESS,
  } from '../actions/settings';
 
 const initialState = {
     devices: [],
-    defaultDevices: {}
+    defaultDevices: {},
+    experimentalSettings: {
+        faceTracking: false
+    }
 }
 
 export default function user(state = initialState, action = {}) {
@@ -62,6 +66,15 @@ export default function user(state = initialState, action = {}) {
                     videoInput: action.payload.videoInput,
                     audioInput: action.payload.audioInput,
                     audioOutput: action.payload.audioOutput,
+                }
+            }
+
+            break;
+        case UPDATE_EXPERIMENTAL_SETTINGS_SUCCESS:
+
+            updatedState = {
+                experimentalSettings: {
+                    [action.payload.settingToChange]: action.payload.updatedValue
                 }
             }
 
