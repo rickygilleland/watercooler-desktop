@@ -55,6 +55,7 @@ class Room extends React.Component {
             me: {},
             connected: false,
             publishing: false,
+            heartbeatInterval: null,
             screenSharingActive: false,
             showScreenSharingModal: false,
             showScreenSharingDropdown: false,
@@ -293,7 +294,18 @@ class Room extends React.Component {
     
     componentWillUnmount() {
         const { pusherInstance, userPrivateNotificationChannel } = this.props;
-        const { me, room, rootStreamerHandle, publishers, local_stream, publishing, screenSharingWindow, faceTrackingNetWindow, localVideoContainer } = this.state;
+        const { 
+            me, 
+            room, 
+            rootStreamerHandle, 
+            publishers, 
+            local_stream, 
+            publishing, 
+            screenSharingWindow, 
+            faceTrackingNetWindow, 
+            localVideoContainer, 
+            heartbeatInterval 
+        } = this.state;
 
         this._mounted = false;
 
@@ -328,6 +340,10 @@ class Room extends React.Component {
 
         if (userPrivateNotificationChannel !== false) {
             userPrivateNotificationChannel.unbind('call.declined');
+        }
+
+        if (heartbeatInterval != null) {
+            clearInterval(heartbeatInterval);
         }
 
         window.removeEventListener('resize', this.handleResize);
@@ -1465,9 +1481,9 @@ class Room extends React.Component {
                 let dataMsg = {
                     type: "initial_video_audio_status",
                     publisher_id: user.id,
-                    video_status: videoStatus,
-                    audio_status: audioStatus,
-                    face_only_status: videoIsFaceOnly,
+                    video_status: that.state.videoStatus,
+                    audio_status: that.state.audioStatus,
+                    face_only_status: that.state.videoIsFaceOnly,
                 };
         
                 setTimeout(() => { 
@@ -1475,6 +1491,7 @@ class Room extends React.Component {
                         text: JSON.stringify(dataMsg)
                     });
                  }, 1000);
+                 
             },
             ondata: function(data) {
                 const { publishers } = that.state;
