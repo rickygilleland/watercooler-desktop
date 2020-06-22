@@ -213,7 +213,7 @@ class Room extends React.Component {
 
     componentDidUpdate(prevProps, prevState) {
         const { match, location, pusherInstance, user, settings } = this.props;
-        const { initialized, dimensions, publishers, publishing, rootStreamerHandle, videoIsFaceOnly } = this.state;
+        const { initialized, dimensions, publishers, publishing, rootStreamerHandle, videoIsFaceOnly, videoStatus } = this.state;
 
         if (pusherInstance != null && initialized == false) {
             this.setState({ initialized: true }, () => {
@@ -277,6 +277,10 @@ class Room extends React.Component {
             } else {
                 this.stopFaceTracking();
             }
+        }
+
+        if (!videoStatus && prevState.videoStatus && videoIsFaceOnly) {
+            this.stopFaceTracking();
         }
 
         if (prevProps.settings.experimentalSettings.faceTracking != settings.experimentalSettings.faceTracking) {
@@ -1218,7 +1222,7 @@ class Room extends React.Component {
 
     stopFaceTracking() {
         const { user } = this.props;
-        const { faceTrackingNetWindow, videoRoomStreamerHandle } = this.state;
+        const { faceTrackingNetWindow, videoRoomStreamerHandle, videoIsFaceOnly } = this.state;
 
         if (faceTrackingNetWindow != null) {
             faceTrackingNetWindow.destroy();
@@ -1234,6 +1238,10 @@ class Room extends React.Component {
             videoRoomStreamerHandle.data({
                 text: JSON.stringify(dataMsg)
             });
+        }
+
+        if (videoIsFaceOnly) {
+            this.setState({ videoIsFaceOnly: false })
         }
 
         this.setState({ faceTrackingNetWindow: null })
