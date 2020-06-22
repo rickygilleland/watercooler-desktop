@@ -33,10 +33,6 @@ import AddUserToRoomModal from './AddUserToRoomModal';
 import ScreenSharingModal from './ScreenSharingModal';
 import posthog from 'posthog-js';
 import hark from 'hark';
-import * as tf from '@tensorflow/tfjs-core';
-import '@tensorflow/tfjs-backend-webgl';
-import '@tensorflow/tfjs-backend-cpu';
-const bodyPix = require('@tensorflow-models/body-pix');
 import Stats from 'stats.js';
 const { BrowserWindow } = require('electron').remote
 
@@ -84,6 +80,7 @@ class Room extends React.Component {
             videoStatus: false,
             audioStatus: true,
             videoIsFaceOnly: false,
+            faceTrackingNetWindow: null,
             streamer_server_connected: false,
             videoRoomStreamerHandle: null,
             rootStreamerHandle: null,
@@ -276,7 +273,7 @@ class Room extends React.Component {
     
     componentWillUnmount() {
         const { pusherInstance, userPrivateNotificationChannel } = this.props;
-        const { me, room, rootStreamerHandle, publishers, local_stream, publishing, screenSharingWindow, localVideoContainer } = this.state;
+        const { me, room, rootStreamerHandle, publishers, local_stream, publishing, screenSharingWindow, faceTrackingNetWindow, localVideoContainer } = this.state;
 
         this._mounted = false;
 
@@ -303,6 +300,10 @@ class Room extends React.Component {
 
         if (screenSharingWindow != null) {
             screenSharingWindow.destroy();
+        }
+
+        if (faceTrackingNetWindow != null) {
+            faceTrackingNetWindow.destroy();
         }
 
         if (userPrivateNotificationChannel !== false) {
@@ -689,12 +690,18 @@ class Room extends React.Component {
 
         const raw_local_stream = await navigator.mediaDevices.getUserMedia(streamOptions);
 
-        const net = await bodyPix.load({
-            architecture: 'MobileNetV1',
-            outputStride: 16,
-            multiplier: 0.5,
-            quantBytes: 2
-        });
+        let faceTrackingNetWindow = new BrowserWindow({ 
+            show: false,
+            webPreferences: {
+                nodeIntegration: true,
+                preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+                devTools: false
+            }
+        })
+
+        faceTrackingNetWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/face_tracking_net_background");
+
+        this.setState({ faceTrackingNetWindow });
 
         if (typeof localVideoContainer != "undefined") {
             localVideoContainer.remove();
@@ -748,9 +755,13 @@ class Room extends React.Component {
 
         const ctx = localVideoCanvas.getContext('2d');
 
-        localVideo.onplaying = async () => {
+        ipcRenderer.on('face-tracking-update', (event, args) => {
+            if (args.type == "updated_coordinates") {
+                personSegmentation = args.personSegmentation;
+            }
+        })
 
-            console.log("playing", { width: localVideo.width, height: localVideo.height })
+        localVideo.onplaying = async () => {
 
             async function bodySegmentationFrame() {
 
@@ -764,7 +775,7 @@ class Room extends React.Component {
 
                 stats.begin();
 
-                if (!that.state.videoIsFaceOnly) {
+                if (!that.state.videoIsFaceOnly || personSegmentation == null) {
 
                     localVideoCanvas.width = localVideo.width;
                     localVideoCanvas.height = localVideo.height;
@@ -775,20 +786,6 @@ class Room extends React.Component {
 
                     return requestAnimationFrame(bodySegmentationFrame);
                 }
-
-                const curDate = new Date();
-
-                if (personSegmentation == null || (curDate.getTime() - personSegmentation.generated) > 200) {
-
-                    personSegmentation = await net.segmentPersonParts(localVideo, {
-                        internalResolution: 'low',
-                        segmentationThreshold: .6,
-                        maxDetections: 1,
-                    });  
-                    
-                    personSegmentation.generated = curDate.getTime();
-                }
-
 
                 if ((personSegmentation.allPoses.length == 0 || 
                         (personSegmentation.allPoses[0].score < .3 && (drawParams.sourceNoseScore > 0 && drawParams.sourceNoseScore < .3))) 
@@ -886,28 +883,19 @@ class Room extends React.Component {
                     targetY = localVideo.height - 100;
                 }
 
-                //check for new reading every 200ms -- if new location is over certain threshold, re-call this function with initial values set to cur values and targets set to new data
-                const curDate = new Date();
-                if ((curDate.getTime() - personSegmentation.generated) > 200) {
+                if (personSegmentation.allPoses.length == 0) {
+                    return requestAnimationFrame(bodySegmentationFrame);
+                }
 
-                    personSegmentation = await net.segmentPersonParts(localVideo, {
-                        internalResolution: 'low',
-                        segmentationThreshold: .6,
-                        maxDetections: 1,
-                    });  
-                    
-                    personSegmentation.generated = curDate.getTime();
-
-                    if (personSegmentation.allPoses.length == 0) {
-                        return requestAnimationFrame(bodySegmentationFrame);
-                    }
-
-                    if (Math.abs(targetX - (personSegmentation.allPoses[0].keypoints[0].position.x - 200)) > 20 || Math.abs(targetY - (personSegmentation.allPoses[0].keypoints[0].position.y - 200)) > 20) {
-                        let drawParamsCopy = {...drawParams};
-
-                        return requestAnimationFrame(() => { 
-                            gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, personSegmentation.allPoses[0].keypoints[0].position.x - 200, personSegmentation.allPoses[0].keypoints[0].position.y - 200);
-                        });
+                if (personSegmentation.allPoses.length > 0) {
+                    if (personSegmentation.allPoses[0].keypoints[0].position.x != targetX || personSegmentation.allPoses[0].keypoints[0].position.y != targetY) {
+                        if (Math.abs(targetX - (personSegmentation.allPoses[0].keypoints[0].position.x - 200)) > 20 || Math.abs(targetY - (personSegmentation.allPoses[0].keypoints[0].position.y - 200)) > 20) {
+                            let drawParamsCopy = {...drawParams};
+    
+                            return requestAnimationFrame(() => { 
+                                gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, personSegmentation.allPoses[0].keypoints[0].position.x - 200, personSegmentation.allPoses[0].keypoints[0].position.y - 200);
+                            });
+                        }
                     }
                 }
 
@@ -1119,7 +1107,11 @@ class Room extends React.Component {
     }
 
     stopPublishingStream() {
-        const { videoRoomStreamerHandle, screenSharingHandle, screenSharingStream, screenSharingWindow, local_stream, localVideoContainer, localVideoCanvasContainer, publishers, me } = this.state;
+        const { videoRoomStreamerHandle, screenSharingHandle, screenSharingStream, screenSharingWindow, faceTrackingNetWindow, local_stream, localVideoContainer, localVideoCanvasContainer, publishers, me } = this.state;
+
+        if (faceTrackingNetWindow != null) {
+            faceTrackingNetWindow.destroy();
+        }
 
         if (videoRoomStreamerHandle == null) {
             return;

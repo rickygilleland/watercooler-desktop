@@ -302,6 +302,14 @@ app.on('ready', () => {
     return true;
   })
 
+  ipcMain.handle('face-tracking-update', async (event, args) => {
+    if (typeof args.type != "undefined") {
+      if (args.type == "updated_coordinates") {
+        mainWindow.webContents.send('face-tracking-update', args);
+      }
+    }
+  })
+
 });
 
 // Quit when all windows are closed.
