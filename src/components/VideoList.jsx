@@ -30,8 +30,6 @@ function VideoList(props) {
 
     function checkVideoAudioStatus(publisher) {
 
-        console.log("running");
-
         let videoLoading = false;
         let audioLoading = false;
 
@@ -81,8 +79,6 @@ function VideoList(props) {
             checkVideoAudioStatus(publisher);
         }
 
-        console.log("VIDEO LOADING LIST", publisher);
-
         return(
             <Video
                 showPinToggle={showPinToggle}
@@ -99,6 +95,7 @@ function VideoList(props) {
                 hasAudio={typeof publisher.hasAudio != "undefined" ? publisher.hasAudio : false}
                 videoLoading={typeof publisher.videoLoading != "undefined" ? publisher.videoLoading : true}
                 audioLoading={typeof publisher.audioLoading != "undefined" ? publisher.audioLoading : true}
+                videoIsFaceOnly={typeof publisher.videoIsFaceOnly != "undefined" && publishing ? publisher.videoIsFaceOnly : false}
                 showBeforeJoin={publisher.id.includes("_screensharing") ? false : true}
                 pinned={true}
                 key={publisher.id}
@@ -129,6 +126,7 @@ function VideoList(props) {
                 hasAudio={typeof publisher.hasAudio != "undefined" ? publisher.hasAudio : false}
                 videoLoading={typeof publisher.videoLoading != "undefined" ? publisher.videoLoading : true}
                 audioLoading={typeof publisher.audioLoading != "undefined" ? publisher.audioLoading : true}
+                videoIsFaceOnly={typeof publisher.videoIsFaceOnly != "undefined" ? publisher.videoIsFaceOnly : false}
                 showBeforeJoin={publisher.id.includes("_screensharing") ? false : true}
                 pinned={false}
                 key={publisher.id}

@@ -128,8 +128,7 @@ const createWindow = () => {
         nodeIntegration: true,
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
         backgroundThrottling: false,
-        experimentalFeatures: true,
-        webSecurity: false
+        experimentalFeatures: true
       }
     });
 

@@ -27,6 +27,7 @@ function Video(props) {
         hasAudio, 
         audioLoading,
         videoLoading,
+        videoIsFaceOnly,
         renderVideo,
         togglePinned,
         pinned,
@@ -39,6 +40,10 @@ function Video(props) {
         classAppend = "speaking-border";
     }
 
+    if (videoIsFaceOnly) {
+        classAppend = classAppend + " border-radius-round";
+    }
+
     if (typeof publisher.stream != "undefined" && publisher.stream != null) {
 
         var height = videoSizes.height;
@@ -46,8 +51,8 @@ function Video(props) {
         if (hasVideo === true && !videoLoading) {
             return (
                 <div className="col p-0 video-col">
-                    <div className={`video-container mx-auto position-relative text-light ${classAppend}`}  style={{height: pinned ? videoSizes.pinnedHeight : height, width: pinned ? videoSizes.pinnedWidth : videoSizes.width, borderRadius: 25 }}>
-                        <VideoPlayer renderVideo={renderVideo} isLocal={isLocal} stream={publisher.stream} publisher={publisher} />
+                    <div className={`video-container mx-auto position-relative text-light ${classAppend}`}  style={{height: videoIsFaceOnly ? 400 : pinned ? videoSizes.pinnedHeight : height, width: videoIsFaceOnly ? 400 : pinned ? videoSizes.pinnedWidth : videoSizes.width, borderRadius: 25 }}>
+                        <VideoPlayer renderVideo={renderVideo} isLocal={isLocal} stream={publisher.stream} publisher={publisher} videoIsFaceOnly={videoIsFaceOnly} />
                         <div className="position-absolute overlay" style={{top:8,width:"100%"}}>	
                             {publisher.member.timezone != null && publisher.member.timezone != localTimezone ? 	
                             <p className="pl-2 mb-1 mt-1 font-weight-bolder" style={{fontSize:"1.1rem"}}><span style={{backgroundColor:"rgb(18, 20, 34, .5)",borderRadius:15,padding:".6rem"}}>{currentTime.setZone(publisher.member.timezone).toLocaleString(DateTime.TIME_SIMPLE)}</span></p>	

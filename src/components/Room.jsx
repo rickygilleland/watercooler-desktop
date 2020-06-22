@@ -23,7 +23,8 @@ import {
     faUser, 
     faLock,
     faDesktop,
-    faWindowMaximize
+    faWindowMaximize,
+    faSmile
 } from '@fortawesome/free-solid-svg-icons';
 import { Janus } from 'janus-gateway';
 import Pusher from 'pusher-js';
@@ -32,6 +33,7 @@ import AddUserToRoomModal from './AddUserToRoomModal';
 import ScreenSharingModal from './ScreenSharingModal';
 import posthog from 'posthog-js';
 import hark from 'hark';
+import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import '@tensorflow/tfjs-backend-cpu';
 const bodyPix = require('@tensorflow-models/body-pix');
@@ -81,6 +83,7 @@ class Room extends React.Component {
             pinned: false,
             videoStatus: false,
             audioStatus: true,
+            videoIsFaceOnly: false,
             streamer_server_connected: false,
             videoRoomStreamerHandle: null,
             rootStreamerHandle: null,
@@ -209,8 +212,8 @@ class Room extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        const { match, location, pusherInstance } = this.props;
-        const { initialized, dimensions, publishers, publishing, rootStreamerHandle } = this.state;
+        const { match, location, pusherInstance, user } = this.props;
+        const { initialized, dimensions, publishers, publishing, rootStreamerHandle, videoIsFaceOnly } = this.state;
 
         if (pusherInstance != null && initialized == false) {
             this.setState({ initialized: true }, () => {
@@ -256,6 +259,18 @@ class Room extends React.Component {
 
         if ((prevState.publishers != publishers && publishers.length > 0) && publishing) {
             this.handleRemoteStreams();
+        }
+
+        if (prevState.videoIsFaceOnly != videoIsFaceOnly) {
+            let updatedPublishers = [...publishers];
+
+            updatedPublishers.forEach(publisher => {
+                if (publisher.member.id == user.id) {
+                    publisher.videoIsFaceOnly = videoIsFaceOnly;
+                }
+            })
+
+            this.setState({ publishers: updatedPublishers });
         }
     }
     
@@ -705,11 +720,37 @@ class Room extends React.Component {
 
         const stats = new Stats();
         stats.showPanel(0);
-        let statsDiv = document.body.appendChild(stats.dom);
+        /*let statsDiv = document.body.appendChild(stats.dom);
         statsDiv.style.top = null;
-        statsDiv.style.bottom = 0;
+        statsDiv.style.bottom = 0;*/
+
+        var personSegmentation = null;
+
+        var drawParams = {
+            sourceX: 0,
+            sourceY: 0,
+            sourceWidth: 0,
+            sourceHeight: 0,
+            destinationX: 0,
+            destinationY: 0,
+            destinationWidth: 0,
+            destinationHeight: 0,
+            sourceNoseScore: 0,
+        }
+
+        var avatarImage = new Image;
+        var avatarImageLoaded = false;
+        avatarImage.onload = () => {
+            console.log("loaded");
+            avatarImageLoaded = true;
+        }
+        avatarImage.src = user.avatar_url;
+
+        const ctx = localVideoCanvas.getContext('2d');
 
         localVideo.onplaying = async () => {
+
+            console.log("playing", { width: localVideo.width, height: localVideo.height })
 
             async function bodySegmentationFrame() {
 
@@ -717,30 +758,117 @@ class Room extends React.Component {
                     return;
                 }
 
-                if (that.state.videoStatus == false) {
+                if (that.state.videoStatus == false || that.state.publishing == false) {
                     return requestAnimationFrame(bodySegmentationFrame);
                 }
 
                 stats.begin();
 
-                const multiPersonSegmentation = await net.segmentPerson(localVideo, {
-                    internalResolution: 'low',
-                    segmentationThreshold: .6,
-                    maxDetections: 3,
-                });
+                if (!that.state.videoIsFaceOnly) {
+
+                    localVideoCanvas.width = localVideo.width;
+                    localVideoCanvas.height = localVideo.height;
+
+                    ctx.drawImage(
+                        localVideo, 0, 0
+                    );
+
+                    return requestAnimationFrame(bodySegmentationFrame);
+                }
+
+                const curDate = new Date();
+
+                if (personSegmentation == null || (curDate.getTime() - personSegmentation.generated) > 200) {
+
+                    personSegmentation = await net.segmentPersonParts(localVideo, {
+                        internalResolution: 'low',
+                        segmentationThreshold: .6,
+                        maxDetections: 1,
+                    });  
+                    
+                    personSegmentation.generated = curDate.getTime();
+                }
+
+
+                if ((personSegmentation.allPoses.length == 0 || 
+                        (personSegmentation.allPoses[0].score < .3 && (drawParams.sourceNoseScore > 0 && drawParams.sourceNoseScore < .3))) 
+                        && avatarImageLoaded) 
+                    {
+                    //ctx.drawImage(avatarImage, 0, 0);
+
+                    if (localVideoCanvas.width != 400) {
+                        localVideoCanvas.width = 400;
+                        localVideoCanvas.height = 400;
+                    }
+
+                    ctx.fillStyle = "black";
+                    ctx.fillRect(0, 0, 400, 400);
+                    return requestAnimationFrame(bodySegmentationFrame);
+                }
+
+                let xBufferAmount = 200;
+                let yBufferAmount = 200;
+
+                if (drawParams.sourceX == 0 || drawParams.sourceY == 0) {
+
+                    drawParams = {
+                        sourceX: (personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount) > localVideo.width || (personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount) < 0 ? 0 : personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount,
+                        sourceY: (personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount) > localVideo.height || (personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount) < 0 ? 0 : personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount,
+                        sourceWidth: localVideo.width,
+                        sourceHeight: localVideo.height,
+                        destinationX: 0,
+                        destinationY: 0,
+                        destinationWidth: localVideo.width,
+                        destinationHeight: localVideo.height,
+                        sourceNoseScore: personSegmentation.allPoses[0].score,
+                    }
+                }
+
+                if (Math.abs(drawParams.sourceX - (personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount)) > 20 || Math.abs(drawParams.sourceY - (personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount)) > 20) {
+
+                    let drawParamsCopy = {...drawParams};
+
+                    return requestAnimationFrame(() => { 
+                        gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount, personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount);
+                    });
+
+                } 
+
+                if (localVideoCanvas.width != 400) {
+                    localVideoCanvas.width = 400;
+                    localVideoCanvas.height = 400;
+                }
+
+                //draw black every time so we don't see parts of previous frames if it jumps around a little bit
+                ctx.fillStyle = "black";
+                ctx.fillRect(0, 0, 400, 400);
+
+                ctx.drawImage(
+                    localVideo,
+                    drawParams.sourceX,
+                    drawParams.sourceY,
+                    drawParams.sourceWidth,
+                    drawParams.sourceHeight,
+                    drawParams.destinationX,
+                    drawParams.destinationY,
+                    drawParams.destinationWidth,
+                    drawParams.destinationHeight,
+                );
 
                 const backgroundBlurAmount = 3.5;
                 const edgeBlurAmount = 20;
                 const flipHorizontal = false;
 
+                /*let bokehSegmentation = await net.segmentPerson(localVideoCanvas);
+
                 bodyPix.drawBokehEffect(
                     localVideoCanvas, 
-                    localVideo, 
-                    multiPersonSegmentation, 
+                    localVideoCanvas, 
+                    bokehSegmentation, 
                     backgroundBlurAmount,
                     edgeBlurAmount, 
                     flipHorizontal
-                );
+                );*/
 
                 stats.end();
 
@@ -748,6 +876,117 @@ class Room extends React.Component {
                 
             }
 
+            async function gradualFrameMove(initialX, initialY, targetX, targetY) {
+
+                if (targetY < 100) {
+                    targetY = 25;
+                }
+
+                if (targetY > (localVideo.height - 100)) {
+                    targetY = localVideo.height - 100;
+                }
+
+                //check for new reading every 200ms -- if new location is over certain threshold, re-call this function with initial values set to cur values and targets set to new data
+                const curDate = new Date();
+                if ((curDate.getTime() - personSegmentation.generated) > 200) {
+
+                    personSegmentation = await net.segmentPersonParts(localVideo, {
+                        internalResolution: 'low',
+                        segmentationThreshold: .6,
+                        maxDetections: 1,
+                    });  
+                    
+                    personSegmentation.generated = curDate.getTime();
+
+                    if (personSegmentation.allPoses.length == 0) {
+                        return requestAnimationFrame(bodySegmentationFrame);
+                    }
+
+                    if (Math.abs(targetX - (personSegmentation.allPoses[0].keypoints[0].position.x - 200)) > 20 || Math.abs(targetY - (personSegmentation.allPoses[0].keypoints[0].position.y - 200)) > 20) {
+                        let drawParamsCopy = {...drawParams};
+
+                        return requestAnimationFrame(() => { 
+                            gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, personSegmentation.allPoses[0].keypoints[0].position.x - 200, personSegmentation.allPoses[0].keypoints[0].position.y - 200);
+                        });
+                    }
+                }
+
+                stats.begin();
+
+                if (initialX > targetX) {
+                    //going to the right
+
+                    if (drawParams.sourceX > targetX) {
+                        var newX = drawParams.sourceX - 2;
+                    }
+
+                } else {
+                    //going to the left
+
+                    if (drawParams.sourceX < targetX) {
+                        var newX = drawParams.sourceX + 2;
+                    }
+                }
+
+                if (initialY > targetY) {
+                    //going down 
+
+                    if (drawParams.sourceY > targetY) {
+                        var newY = drawParams.sourceY - 2;
+                    }
+
+                } else {
+                    //going up
+
+                    if (drawParams.sourceY < targetY) {
+                        var newY = drawParams.sourceY + 2;
+                    }
+                }
+
+                if (typeof newX == "undefined" && typeof newY == "undefined") {
+                    //nothing changed, break out of this loop
+                    return requestAnimationFrame(bodySegmentationFrame);
+                }
+
+                drawParams = {
+                    sourceX: typeof newX != "undefined" ? newX : drawParams.sourceX,
+                    sourceY: typeof newY != "undefined" ? newY : drawParams.sourceY,
+                    sourceWidth: localVideo.width,
+                    sourceHeight: localVideo.height,
+                    destinationX: 0,
+                    destinationY: 0,
+                    destinationWidth: localVideo.width,
+                    destinationHeight: localVideo.height,
+                    sourceNoseScore: personSegmentation.allPoses[0].score,
+                }
+
+                if (localVideoCanvas.width != 400) {
+                    localVideoCanvas.width = 400;
+                    localVideoCanvas.height = 400;
+                }
+
+                ctx.fillStyle = "black";
+                ctx.fillRect(0, 0, 400, 400);
+
+                ctx.drawImage(
+                    localVideo,
+                    drawParams.sourceX,
+                    drawParams.sourceY,
+                    drawParams.sourceWidth,
+                    drawParams.sourceHeight,
+                    drawParams.destinationX,
+                    drawParams.destinationY,
+                    drawParams.destinationWidth,
+                    drawParams.destinationHeight,
+                );
+
+                stats.end();
+
+                requestAnimationFrame(() => { 
+                    gradualFrameMove(initialX, initialY, targetX, targetY);
+                })
+            };
+        
             bodySegmentationFrame();
 
             const local_stream = localVideoCanvas.captureStream(60);
@@ -1628,6 +1867,7 @@ class Room extends React.Component {
             local_stream, 
             videoStatus, 
             audioStatus, 
+            videoIsFaceOnly,
             videoSizes, 
             pinned,
             currentLoadingMessage,
@@ -1742,7 +1982,10 @@ class Room extends React.Component {
                                             </OverlayTrigger> 
                                         :
                                             room.video_enabled ?
-                                                <Button variant={videoStatus ? "success" : "danger"} className="mx-1 ph-no-capture" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                                <React.Fragment>
+                                                    {videoStatus ? <Button variant={videoIsFaceOnly ? "success" : "danger"} className="mx-1" onClick={() => this.setState({ videoIsFaceOnly: videoIsFaceOnly ? false : true }) }><FontAwesomeIcon icon={faSmile} /></Button> : ''}
+                                                    <Button variant={videoStatus ? "success" : "danger"} className="mx-1 ph-no-capture" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                                </React.Fragment>
                                             :
                                             <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Video is disabled in this room.</Tooltip>}>
                                                 <span className="d-inline-block">
