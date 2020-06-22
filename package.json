@@ -1,7 +1,7 @@
 {
   "name": "watercooler",
   "productName": "Water Cooler",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Bring natural conversation back to remote teams",
   "main": ".webpack/main",
   "scripts": {
