@@ -36,6 +36,7 @@
   .sidebar-scroll {
     height: 80vh !important;
     overflow-y: scroll;
+    overflow-x: hidden;
     padding-bottom: 15px
   }
   .dropdownSettings > .dropdown-toggle, .no-hover-bg:hover {
@@ -58,6 +59,18 @@
   }
   .dropdown-menu a:hover {
     color: black !important;
+  }
+  .nav-item p, .nav-item .btn {
+    color: #fff;
+  }
+  .active p {
+    color: #5e94ff !important;
+  }
+  .nav-item p:hover, .nav-item .btn:hover {
+    color: #5e94ff;
+  }
+  .nav-item a:hover, .nav-item .btn:hover {
+    text-decoration: none;
   }
   .card-body-dark {
     background-color: #1b1e2f;
@@ -97,10 +110,16 @@
   .stage-container:hover .overlay {
     display:block
   }
-  .video-col .border {
-    border: 3px solid #3ecf8e!important
+  .stage-container:hover > .hide-overlay {
+    display:none !important;
   }
-  .hover-focus:hover {
+  .stage-container:hover .hide-overlay {
+    display:none !important;
+  }
+  .speaking-border {
+    box-shadow: 0 0 0 .25rem #3ecf8e, 0 .5rem 1rem #3ecf8e !important ;
+  }
+  .hover-focus:hover, .nav-item a:hover {
     transform: translateY(-1px);
     box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
   }
@@ -118,8 +137,20 @@
     margin-bottom: .35rem;
     -webkit-app-region: no-drag !important;
   }
+  .btn-link:hover {
+    box-shadow:none !important;
+  }
+  .btn-link:focus {
+    text-decoration: none;
+  }
+  .team-container {
+    height: calc(100vh - 120px)
+  }
+  .border-radius-round {
+    border-radius: 200px !important;
+  }
 </style>
-<body style="overflow: hidden; margin: 0" >
+<body style="overflow: hidden; margin: 0; background-color: rgb(18, 20, 34, 1);">
   <div id="App">
     <div class="vh-100" style="background-color: #121422;"></div>
   </div>

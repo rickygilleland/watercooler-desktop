@@ -107,7 +107,8 @@ const createWindow = () => {
         nodeIntegration: true,
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
         preload: path.join(__dirname, 'sentry.js'),
-        devTools: false
+        devTools: false,
+        backgroundThrottling: false
       }
     });
 
@@ -125,7 +126,9 @@ const createWindow = () => {
       frame: false,
       webPreferences: {
         nodeIntegration: true,
-        preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY
+        preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+        backgroundThrottling: false,
+        experimentalFeatures: true
       }
     });
 
@@ -141,6 +144,11 @@ const createWindow = () => {
 
 app.commandLine.appendSwitch('force-fieldtrials', 'WebRTC-SupportVP9SVC/EnabledByFlag_2SL3TL/');
 app.commandLine.appendSwitch('webrtc-max-cpu-consumption-percentage', 100);
+app.commandLine.appendSwitch('enable-precise-memory-info');
+app.commandLine.appendSwitch('enable-gpu-rasterization');
+app.commandLine.appendSwitch('enable-native-gpu-memory-buffers');
+app.commandLine.appendSwitch('enable-accelerated-video');
+app.commandLine.appendSwitch('ignore-gpu-blacklist');
 
 if (process.platform == "darwin") {
   app.commandLine.appendSwitch('enable-oop-rasterization');
@@ -292,6 +300,14 @@ app.on('ready', () => {
       mainWindow.webContents.send('update-screen-sharing-controls', args);
     }
     return true;
+  })
+
+  ipcMain.handle('face-tracking-update', async (event, args) => {
+    if (typeof args.type != "undefined") {
+      if (args.type == "updated_coordinates") {
+        mainWindow.webContents.send('face-tracking-update', args);
+      }
+    }
   })
 
 });

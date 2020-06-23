@@ -85,7 +85,7 @@ class Loading extends React.Component {
     render() {
         return(
             <Container data-tid="container" fluid>
-                <h1 className="text-center mt-5">Loading Water Cooler...</h1>
+                <h1 className="text-center mt-5 text-light">Loading Water Cooler...</h1>
                 <center><FontAwesomeIcon icon={faCircleNotch} className="mt-3" style={{fontSize:"2.4rem",color:"#6772ef"}} spin /></center>
             </Container>
         )

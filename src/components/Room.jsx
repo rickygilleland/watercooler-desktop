@@ -1,7 +1,7 @@
 import React from 'react';
 import { ipcRenderer, desktopCapturer, systemPreferences } from 'electron';
 import update from 'immutability-helper';
-import { each } from 'lodash';
+import { each, clone } from 'lodash';
 import { 
     Container, 
     Button, 
@@ -23,7 +23,8 @@ import {
     faUser, 
     faLock,
     faDesktop,
-    faWindowMaximize
+    faWindowMaximize,
+    faSmile
 } from '@fortawesome/free-solid-svg-icons';
 import { Janus } from 'janus-gateway';
 import Pusher from 'pusher-js';
@@ -31,6 +32,8 @@ import VideoList from './VideoList';
 import AddUserToRoomModal from './AddUserToRoomModal';
 import ScreenSharingModal from './ScreenSharingModal';
 import posthog from 'posthog-js';
+import hark from 'hark';
+import Stats from 'stats.js';
 const { BrowserWindow } = require('electron').remote
 
 class Room extends React.Component {
@@ -52,6 +55,7 @@ class Room extends React.Component {
             me: {},
             connected: false,
             publishing: false,
+            heartbeatInterval: null,
             screenSharingActive: false,
             showScreenSharingModal: false,
             showScreenSharingDropdown: false,
@@ -71,13 +75,13 @@ class Room extends React.Component {
             dimensions: {
                 width: window.innerWidth,
                 height: window.innerHeight,
-                sidebarWidth: 240
+                sidebarWidth: 280
             },
             pinned: false,
-            talking: [],
-            local_video_container: [],
             videoStatus: false,
             audioStatus: true,
+            videoIsFaceOnly: false,
+            faceTrackingNetWindow: null,
             streamer_server_connected: false,
             videoRoomStreamerHandle: null,
             rootStreamerHandle: null,
@@ -113,6 +117,9 @@ class Room extends React.Component {
         this.subscribeToRemoteStream = this.subscribeToRemoteStream.bind(this);
         this.updateDisplayedVideosSizes = this.updateDisplayedVideosSizes.bind(this);
 
+        this.startFaceTracking = this.startFaceTracking.bind(this);
+        this.stopFaceTracking = this.stopFaceTracking.bind(this);
+
         this.stopPublishingStream = this.stopPublishingStream.bind(this);
 
         //this.updateDisplayedVideos = debounce(this.updateDisplayedVideos, 200);
@@ -130,6 +137,8 @@ class Room extends React.Component {
 
     componentDidMount() {
         const { teams, match, location, pusherInstance } = this.props;
+
+        this._mounted = true;
 
         if (match.path == "/call/:roomSlug") {
             this.setState({ isCall: true });
@@ -204,8 +213,8 @@ class Room extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        const { match, location, pusherInstance } = this.props;
-        const { initialized, dimensions, publishers, publishing, rootStreamerHandle } = this.state;
+        const { match, location, pusherInstance, user, settings } = this.props;
+        const { initialized, dimensions, publishers, publishing, rootStreamerHandle, videoIsFaceOnly, videoStatus } = this.state;
 
         if (pusherInstance != null && initialized == false) {
             this.setState({ initialized: true }, () => {
@@ -252,11 +261,57 @@ class Room extends React.Component {
         if ((prevState.publishers != publishers && publishers.length > 0) && publishing) {
             this.handleRemoteStreams();
         }
+
+        if (prevState.videoIsFaceOnly != videoIsFaceOnly) {
+            let updatedPublishers = [...publishers];
+
+            updatedPublishers.forEach(publisher => {
+                if (publisher.member.id == user.id) {
+                    publisher.videoIsFaceOnly = videoIsFaceOnly;
+                }
+            })
+
+            this.setState({ publishers: updatedPublishers });
+
+            if (videoIsFaceOnly) {
+                this.startFaceTracking();
+            } else {
+                this.stopFaceTracking();
+            }
+        }
+
+        if (!videoStatus && prevState.videoStatus && videoIsFaceOnly) {
+            this.stopFaceTracking();
+        }
+
+        if (prevProps.settings.experimentalSettings.faceTracking != settings.experimentalSettings.faceTracking) {
+            if (settings.experimentalSettings.faceTracking == false && videoIsFaceOnly) {
+                this.stopFaceTracking();
+                this.setState({ videoIsFaceOnly: false });
+            }
+        }
     }
     
     componentWillUnmount() {
         const { pusherInstance, userPrivateNotificationChannel } = this.props;
-        const { me, room, rootStreamerHandle, publishers, local_stream, publishing, screenSharingWindow } = this.state;
+        const { 
+            me, 
+            room, 
+            rootStreamerHandle, 
+            publishers, 
+            local_stream, 
+            publishing, 
+            screenSharingWindow, 
+            faceTrackingNetWindow, 
+            localVideoContainer, 
+            heartbeatInterval 
+        } = this.state;
+
+        this._mounted = false;
+
+        if (typeof localVideoContainer != "undefined") {
+            localVideoContainer.remove();
+        }
 
         if (typeof room.channel_id != 'undefined' && typeof pusherInstance != "undefined" &&  pusherInstance != null) {
             pusherInstance.unsubscribe(`presence-room.${room.channel_id}`);
@@ -279,8 +334,16 @@ class Room extends React.Component {
             screenSharingWindow.destroy();
         }
 
+        if (faceTrackingNetWindow != null) {
+            faceTrackingNetWindow.destroy();
+        }
+
         if (userPrivateNotificationChannel !== false) {
             userPrivateNotificationChannel.unbind('call.declined');
+        }
+
+        if (heartbeatInterval != null) {
+            clearInterval(heartbeatInterval);
         }
 
         window.removeEventListener('resize', this.handleResize);
@@ -412,7 +475,7 @@ class Room extends React.Component {
         try {
             rootStreamerHandle.destroy({
                 success: function() {
-                    that.setState({ publishers: [], talking: [] })
+                    that.setState({ publishers: [] })
                 }
             });
         } catch (error) {
@@ -421,6 +484,7 @@ class Room extends React.Component {
     }
 
     openMediaHandle() {
+        const { user } = this.props; 
         var { me, room, team, local_stream, server } = this.state;
         var that = this;
 
@@ -444,7 +508,6 @@ class Room extends React.Component {
                         //register a publisher
                         var request = { 
                             "request":  "join", 
-                            "id": me.info.id.toString(),
                             "room": room.channel_id, 
                             "ptype": "publisher",
                             "display": me.info.peer_uuid,
@@ -497,7 +560,10 @@ class Room extends React.Component {
                                     updatedPublishers.push(publisher);
                                 })
 
-                                that.setState({ connected: true, loading: false, publishers: updatedPublishers, me: updatedMe });
+
+                                var test = [...that.state.publishers, updatedPublishers];
+
+                                that.setState({ connected: true, loading: false, publishers: [...that.state.publishers, ...updatedPublishers], me: updatedMe });
 
                             } else {
                                 currentLoadingMessage = [];
@@ -525,38 +591,13 @@ class Room extends React.Component {
                             }
                         }
 
-                        if (msg.videoroom == "talking") {
-                            var updatedTalking = [];
-
-                            updatedTalking.push(msg.id);
-
-                            that.state.talking.forEach(talking => {
-                                updatedTalking.push(talking);
-                            })
-
-                            that.setState({ talking: updatedTalking });
-
-                        }
-
-                        if (msg.videoroom == "stopped-talking") {
-                            var updatedTalking = [];
-
-                            that.state.talking.forEach(talking => {
-                                if (talking != msg.id) {
-                                    updatedTalking.push(talking);
-                                }
-                            })
-
-                            that.setState({ talking: updatedTalking });
-                        }
-
                         if (msg.videoroom == "event") {
                             //check if we have new publishers to subscribe to
                             if (typeof msg.publishers != "undefined") {
                                 var newPublishers = msg.publishers;
 
                                 let rand = Math.floor(Math.random() * containerBackgroundColors.length); 
-                                var currentPublishers = that.state.publishers;
+                                var currentPublishers = [...that.state.publishers];
 
                                 newPublishers.forEach(publisher => {
                                     each(members, function(member) {
@@ -571,10 +612,10 @@ class Room extends React.Component {
                                     }
                                 })
 
-                                currentPublishers.filter(publisher => {
+                                currentPublishers = currentPublishers.filter(publisher => {
                                     var keep = true;
                                     newPublishers.forEach(newPublisher => {
-                                        if (newPublisher.member.id == publisher.member.id) {
+                                        if (newPublisher.member.id == publisher.member.id && !newPublisher.id.includes("_screensharing")) {
                                             keep = false;
                                         }
                                     })
@@ -582,16 +623,13 @@ class Room extends React.Component {
 
                                 })
 
-                                if (newPublishers.length == 1 && newPublishers[0].display == me.info.peer_uuid) {
-                                    newPublishers = [];
-                                } 
-
                                 that.setState({ publishers: [ ...newPublishers, ...currentPublishers ] });
 
                             }
 
                             if (typeof msg.leaving != "undefined") {
-                                const updatedPublishers = that.state.publishers.filter(item => {
+                                var updatedPublishers = [...that.state.publishers];
+                                updatedPublishers = updatedPublishers.filter(item => {
                                     return item.id != msg.leaving;
                                 })
 
@@ -600,7 +638,8 @@ class Room extends React.Component {
                             }
 
                             if (typeof msg.unpublished != "undefined") {
-                                const updatedPublishers = that.state.publishers.filter(item => {
+                                var updatedPublishers = [...that.state.publishers];
+                                updatedPublishers = updatedPublishers.filter(item => {
                                     return item.id != msg.unpublished;
                                 })
 
@@ -610,10 +649,14 @@ class Room extends React.Component {
                         }
                     },
                     ondataopen: function(data) {
+                        const {videoRoomStreamerHandle, videoStatus, audioStatus } = that.state;
+                        console.log("DATA CHANNEL open");
+
+                
 
                     },
                     ondata: function(data) {
-                        
+                        console.log("DATA received", data);
                     },
                     slowLink: function(slowLink) {
 
@@ -657,12 +700,12 @@ class Room extends React.Component {
     }
 
     async startPublishingStream() {
-        const { settings } = this.props;
-        var { videoRoomStreamerHandle, audioStatus, videoStatus } = this.state;
+        const { settings, user } = this.props;
+        var { videoRoomStreamerHandle, audioStatus, videoStatus, localVideoContainer, localVideoCanvasContainer } = this.state;
 
         let streamOptions;
         /* TODO: Manually prompt for camera and microphone access on macos to handle it more gracefully - systemPreferences.getMediaAccessStatus(mediaType) */
-        if (settings.defaultDevices != null) {
+        if (settings.defaultDevices != null && Object.keys(settings.defaultDevices).length !== 0) {
             streamOptions = {
                 video: {
                     aspectRatio: 1.3333333333,
@@ -681,69 +724,438 @@ class Room extends React.Component {
             }
         }
 
-        const local_stream = await navigator.mediaDevices.getUserMedia(streamOptions);
+        const raw_local_stream = await navigator.mediaDevices.getUserMedia(streamOptions);
 
-        const tracks = local_stream.getTracks();
+        if (typeof localVideoContainer != "undefined") {
+            localVideoContainer.remove();
+        }
 
-        tracks.forEach(function(track) {
-            if (track.kind == "video") {
-                track.enabled = videoStatus;
-            } else {
-                track.enabled = audioStatus;
-            }
-        });
+        if (typeof localVideoCanvasContainer != "undefined") {
+            localVideoCanvasContainer.remove();
+        }
 
-        this.setState({ local_stream });
+        let localVideo = document.createElement("video")
+        localVideo.srcObject = raw_local_stream;
+        localVideo.autoplay = true;
+        localVideo.muted = true;
+
+        let localVideoCanvas = document.createElement("canvas");
+
+        localVideo.onloadedmetadata = () => {
+            localVideo.width = localVideo.videoWidth;
+            localVideo.height = localVideo.videoHeight;
+        }
 
         var that = this;
 
-        //publish our feed
-        videoRoomStreamerHandle.createOffer({
-            stream: local_stream,
-            success: function(jsep) {
-                var request = {
-                    "request": "publish",
-                    "audio": audioStatus,
-                    "video": videoStatus,
-                    "data": true,
-                    "videocodec": "vp9"
-                }
-                /*var request = {
-                    "request": "publish",
-                    "captureDesktopAudio": false,
-                    "video": "screen",
-                    "data": true,
-                    "videocodec": "vp9"
-                }*/
+        const stats = new Stats();
+        stats.showPanel(0);
+        /*let statsDiv = document.body.appendChild(stats.dom);
+        statsDiv.style.top = null;
+        statsDiv.style.bottom = 0;*/
 
-                videoRoomStreamerHandle.send({ "message": request, "jsep": jsep });
+        var personSegmentation = null;
 
-                var local_video_container = [];
-                if (videoStatus) {
-                    local_video_container.push(
-                        <div style={{width:106.66,height:80}} key={999} className="align-self-center">
-                            <video autoPlay muted ref={that.renderVideo(that.state.local_stream)} style={{height:80 }} className="rounded shadow"></video>
-                        </div>
-                    )
-                } 
+        var drawParams = {
+            sourceX: 0,
+            sourceY: 0,
+            sourceWidth: 0,
+            sourceHeight: 0,
+            destinationX: 0,
+            destinationY: 0,
+            destinationWidth: 0,
+            destinationHeight: 0,
+            sourceNoseScore: 0,
+        }
 
-                that.setState({ publishing: true, local_video_container });
+        var avatarImage = new Image;
+        var avatarImageLoaded = false;
+        avatarImage.onload = () => {
+            console.log("loaded");
+            avatarImageLoaded = true;
+        }
+        avatarImage.src = user.avatar_url;
 
-                ipcRenderer.invoke('update-tray-icon', {
-                    enable: true,
-                    videoStatus,
-                    audioStatus,
-                    videoEnabled: that.state.room.video_enabled,
-                    screenSharingActive: that.state.screenSharingActive
-                });
+        const ctx = localVideoCanvas.getContext('2d');
 
-                that.handleRemoteStreams();
+        ipcRenderer.on('face-tracking-update', (event, args) => {
+            if (args.type == "updated_coordinates") {
+                personSegmentation = args.personSegmentation;
             }
         })
+
+        localVideo.onplaying = async () => {
+
+            async function bodySegmentationFrame() {
+
+                if (that._mounted == false) {
+                    return;
+                }
+
+                if (that.state.videoStatus == false || that.state.publishing == false) {
+                    return requestAnimationFrame(bodySegmentationFrame);
+                }
+
+                stats.begin();
+
+                if (!that.state.videoIsFaceOnly || personSegmentation == null) {
+
+                    personSegmentation = null;
+
+                    localVideoCanvas.width = localVideo.width;
+                    localVideoCanvas.height = localVideo.height;
+
+                    ctx.drawImage(
+                        localVideo, 0, 0
+                    );
+
+                    return requestAnimationFrame(bodySegmentationFrame);
+                }
+
+                if ((personSegmentation.allPoses.length == 0 || 
+                        (personSegmentation.allPoses[0].score < .3 && (drawParams.sourceNoseScore > 0 && drawParams.sourceNoseScore < .3))) 
+                        && avatarImageLoaded) 
+                    {
+                    //ctx.drawImage(avatarImage, 0, 0);
+
+                    if (localVideoCanvas.width != 400) {
+                        localVideoCanvas.width = 400;
+                        localVideoCanvas.height = 400;
+                    }
+
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+                    ctx.fillRect(0, 0, 400, 400);
+                    return requestAnimationFrame(bodySegmentationFrame);
+                }
+
+                let xBufferAmount = 200;
+                let yBufferAmount = 200;
+
+                if (drawParams.sourceX == 0 || drawParams.sourceY == 0) {
+
+                    drawParams = {
+                        sourceX: (personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount) > localVideo.width || (personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount) < 0 ? 0 : personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount,
+                        sourceY: (personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount) > localVideo.height || (personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount) < 0 ? 0 : personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount,
+                        sourceWidth: localVideo.width,
+                        sourceHeight: localVideo.height,
+                        destinationX: 0,
+                        destinationY: 0,
+                        destinationWidth: localVideo.width,
+                        destinationHeight: localVideo.height,
+                        sourceNoseScore: personSegmentation.allPoses[0].score,
+                    }
+                }
+
+                if (Math.abs(drawParams.sourceX - (personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount)) > 20 || Math.abs(drawParams.sourceY - (personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount)) > 20) {
+
+                    let drawParamsCopy = {...drawParams};
+
+                    return requestAnimationFrame(() => { 
+                        gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount, personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount);
+                    });
+
+                } 
+
+                if (localVideoCanvas.width != 400) {
+                    localVideoCanvas.width = 400;
+                    localVideoCanvas.height = 400;
+                }
+
+                //draw black every time so we don't see parts of previous frames if it jumps around a little bit
+                ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+                ctx.fillRect(0, 0, 400, 400);
+
+                ctx.drawImage(
+                    localVideo,
+                    drawParams.sourceX,
+                    drawParams.sourceY,
+                    drawParams.sourceWidth,
+                    drawParams.sourceHeight,
+                    drawParams.destinationX,
+                    drawParams.destinationY,
+                    drawParams.destinationWidth,
+                    drawParams.destinationHeight,
+                );
+
+                const backgroundBlurAmount = 3.5;
+                const edgeBlurAmount = 20;
+                const flipHorizontal = false;
+
+                /*let bokehSegmentation = await net.segmentPerson(localVideoCanvas);
+
+                bodyPix.drawBokehEffect(
+                    localVideoCanvas, 
+                    localVideoCanvas, 
+                    bokehSegmentation, 
+                    backgroundBlurAmount,
+                    edgeBlurAmount, 
+                    flipHorizontal
+                );*/
+
+                stats.end();
+
+                requestAnimationFrame(bodySegmentationFrame);
+                
+            }
+
+            async function gradualFrameMove(initialX, initialY, targetX, targetY) {
+
+                const { videoIsFaceOnly, videoStatus, publishing } = that.state;
+
+                if (!that._mounted) {
+                    return;
+                }
+
+                if (!videoIsFaceOnly || !videoStatus || !publishing) {
+                    return requestAnimationFrame(bodySegmentationFrame);
+                }
+
+                if (personSegmentation.allPoses.length == 0) {
+                    return requestAnimationFrame(bodySegmentationFrame);
+                }
+
+                if (personSegmentation.allPoses.length > 0) {
+                    if ((personSegmentation.allPoses[0].keypoints[0].position.x - 200) != targetX || (personSegmentation.allPoses[0].keypoints[0].position.y - 200) != targetY) {
+                        if (Math.abs(targetX - (personSegmentation.allPoses[0].keypoints[0].position.x - 200)) > 20 || Math.abs(targetY - (personSegmentation.allPoses[0].keypoints[0].position.y - 200)) > 20) {
+                            let drawParamsCopy = {...drawParams};
+
+                            return requestAnimationFrame(() => { 
+                                gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, personSegmentation.allPoses[0].keypoints[0].position.x - 200, personSegmentation.allPoses[0].keypoints[0].position.y - 200);
+                            });
+                        }
+                    }
+                }
+
+                stats.begin();
+
+                if (initialX > targetX) {
+                    //going to the right
+
+                    if (drawParams.sourceX > targetX) {
+                        var newX = drawParams.sourceX - 2;
+                    }
+
+                } else {
+                    //going to the left
+
+                    if (drawParams.sourceX < targetX) {
+                        var newX = drawParams.sourceX + 2;
+                    }
+                }
+
+                if (initialY > targetY) {
+                    //going down 
+
+                    if (drawParams.sourceY > targetY) {
+                        var newY = drawParams.sourceY - 2;
+                    }
+
+                } else {
+                    //going up
+
+                    if (drawParams.sourceY < targetY) {
+                        var newY = drawParams.sourceY + 2;
+                    }
+                }
+
+                drawParams = {
+                    sourceX: typeof newX != "undefined" ? newX : drawParams.sourceX,
+                    sourceY: typeof newY != "undefined" ? newY : drawParams.sourceY,
+                    sourceWidth: localVideo.width,
+                    sourceHeight: localVideo.height,
+                    destinationX: 0,
+                    destinationY: 0,
+                    destinationWidth: localVideo.width,
+                    destinationHeight: localVideo.height,
+                    sourceNoseScore: personSegmentation.allPoses[0].score,
+                }
+
+                if (localVideoCanvas.width != 400) {
+                    localVideoCanvas.width = 400;
+                    localVideoCanvas.height = 400;
+                }
+
+                ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+                ctx.fillRect(0, 0, 400, 400);
+
+                ctx.drawImage(
+                    localVideo,
+                    drawParams.sourceX,
+                    drawParams.sourceY,
+                    drawParams.sourceWidth,
+                    drawParams.sourceHeight,
+                    drawParams.destinationX,
+                    drawParams.destinationY,
+                    drawParams.destinationWidth,
+                    drawParams.destinationHeight,
+                );
+
+                stats.end();
+
+                if (typeof newX == "undefined" && typeof newY == "undefined") {
+                    //nothing changed, break out of this loop
+                    return requestAnimationFrame(bodySegmentationFrame);
+                }
+
+                requestAnimationFrame(() => { 
+                    gradualFrameMove(initialX, initialY, targetX, targetY);
+                })
+            };
+        
+            bodySegmentationFrame();
+
+            const local_stream = localVideoCanvas.captureStream(60);
+
+            let raw_tracks = raw_local_stream.getTracks();
+            raw_tracks.forEach(track => {
+                if (track.kind == "audio") {
+                    local_stream.addTrack(track);
+                }
+            })
+            
+            var speechEvents = hark(local_stream);
+
+            speechEvents.on('speaking', function() {
+                const { publishers } = that.state;
+                let dataMsg = {
+                    type: "started_speaking",
+                    publisher_id: user.id
+                };
+
+                videoRoomStreamerHandle.data({
+                    text: JSON.stringify(dataMsg)
+                });
+
+                let updatedPublishers = [...publishers];
+
+                updatedPublishers.forEach(publisher => {
+                    if (publisher.member.id == user.id) {
+                        publisher.speaking = true;
+                    }
+                })
+
+                that.setState({ publishers: updatedPublishers });
+            });
+
+            speechEvents.on('stopped_speaking', function() {
+                const { publishers } = that.state;
+                let dataMsg = {
+                    type: "stopped_speaking",
+                    publisher_id: user.id
+                };
+
+                videoRoomStreamerHandle.data({
+                    text: JSON.stringify(dataMsg)
+                });
+
+                let updatedPublishers = [...publishers];
+
+                updatedPublishers.forEach(publisher => {
+                    if (publisher.member.id == user.id) {
+                        publisher.speaking = false;
+                    }
+                })
+
+                that.setState({ publishers: updatedPublishers });
+            });
+
+            const tracks = raw_local_stream.getTracks();
+
+            tracks.forEach(function(track) {
+                if (track.kind == "video") {
+                    track.enabled = videoStatus;
+                } else {
+                    track.enabled = audioStatus;
+                }
+            });
+
+            this.setState({ local_stream: raw_local_stream, localVideoContainer: localVideo, localVideoCanvasContainer });
+
+            //publish our feed
+            videoRoomStreamerHandle.createOffer({
+                stream: local_stream,
+                media: { audioRecv: false, videoRecv: false, audioSend: true, videoSend: true, data: true },
+                success: function(jsep) {
+                    var request = {
+                        "request": "publish",
+                        "audio": true,
+                        "video": true,
+                        "data": true,
+                        "videocodec": "vp9"
+                    }
+                    /*var request = {
+                        "request": "publish",
+                        "captureDesktopAudio": false,
+                        "video": "screen",
+                        "data": true,
+                        "videocodec": "vp9"
+                    }*/
+
+                    videoRoomStreamerHandle.send({ "message": request, "jsep": jsep });
+
+                    const { containerBackgroundColors, me } = that.state;
+
+                    var rand = Math.floor(Math.random() * containerBackgroundColors.length);
+
+                    let newPublisher = {
+                        containerBackgroundColor: containerBackgroundColors[rand],
+                        loading: false,
+                        member: me.info,
+                        hasVideo: videoStatus,
+                        hasAudio: audioStatus,
+                        id: me.id.toString(),
+                        stream: local_stream
+                    }
+
+                    var updatedPublishers = [...that.state.publishers]; 
+
+                    updatedPublishers = updatedPublishers.filter(publisher => {
+                        return publisher.id != me.id;
+                    })
+
+                    updatedPublishers.push(newPublisher);
+
+                    let heartbeatInterval = setInterval(() => {
+
+                        let dataMsg = {
+                            type: "participant_status_update",
+                            publisher_id: user.id,
+                            video_status: that.state.videoStatus,
+                            audio_status: that.state.audioStatus,
+                            face_only_status: that.state.videoIsFaceOnly,
+                        };
+    
+                        videoRoomStreamerHandle.data({
+                            text: JSON.stringify(dataMsg)
+                        });
+            
+                    }, 30000);
+
+                    that.setState({ publishing: true, publishers: updatedPublishers, heartbeatInterval });
+
+                    ipcRenderer.invoke('update-tray-icon', {
+                        enable: true,
+                        videoStatus,
+                        audioStatus,
+                        videoEnabled: that.state.room.video_enabled,
+                        screenSharingActive: that.state.screenSharingActive
+                    });
+                    
+
+                    that.handleRemoteStreams();
+                }
+            })
+        
+        }
+
     }
 
     stopPublishingStream() {
-        const { videoRoomStreamerHandle, screenSharingHandle, screenSharingStream, screenSharingWindow, local_stream, publishers } = this.state;
+        const { videoRoomStreamerHandle, screenSharingHandle, screenSharingStream, screenSharingWindow, faceTrackingNetWindow, local_stream, localVideoContainer, localVideoCanvasContainer, publishers, me } = this.state;
+
+        if (faceTrackingNetWindow != null) {
+            faceTrackingNetWindow.destroy();
+        }
 
         if (videoRoomStreamerHandle == null) {
             return;
@@ -779,28 +1191,107 @@ class Room extends React.Component {
             })
         }
 
-        publishers.forEach((publisher, key) => {
+        if (typeof localVideoContainer != "undefined") {
+            localVideoContainer.remove();
+        }
+
+        if (typeof localVideoCanvasContainer != "undefined") {
+            localVideoCanvasContainer.remove();
+        }
+
+        var updatedPublishers = [...publishers];
+
+        updatedPublishers = updatedPublishers.filter(publisher => {
             if (typeof publisher.handle != "undefined" && publisher.handle != null) {
                 publisher.handle.detach();
             }
 
-            publishers[key].stream = null;
-            publishers[key].handle = null;
-            publishers[key].active = false;
-        })
+            publisher.handle = null;
+            publisher.active = false;
+            publisher.stream = null;
 
-        publishers.filter(publisher => {
-            return publisher.active;
+            return publisher.member.id != me.id;
+            
         })
 
         ipcRenderer.invoke('update-tray-icon', {
             disable: true
         });
 
-        this.setState({ publishing: false, local_stream: null, publishers, screenSharingActive: false, screenSharingWindow: null })
+        if (heartbeatInterval != null) {
+            clearInterval(heartbeatInterval);
+        }
+
+        this.setState({ 
+            publishing: false, 
+            local_stream: null, 
+            publishers: 
+            updatedPublishers, 
+            screenSharingActive: false, 
+            screenSharingWindow: null, 
+            heartbeatInterval: null 
+        })
         
     }
+
+    startFaceTracking() {
+        const { user } = this.props;
+        const { videoRoomStreamerHandle } = this.state;
+
+        let faceTrackingNetWindow = new BrowserWindow({ 
+            show: false,
+            webPreferences: {
+                nodeIntegration: true,
+                preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+                devTools: false,
+                backgroundThrottling: false
+            }
+        })
+
+        faceTrackingNetWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/face_tracking_net_background");
+
+        if (videoRoomStreamerHandle != null) {
+            let dataMsg = {
+                type: "face_only_status_toggled",
+                publisher_id: user.id,
+                face_only_status: true
+            };
     
+            videoRoomStreamerHandle.data({
+                text: JSON.stringify(dataMsg)
+            });
+        }
+
+        this.setState({ faceTrackingNetWindow });
+    }
+
+    stopFaceTracking() {
+        const { user } = this.props;
+        const { faceTrackingNetWindow, videoRoomStreamerHandle, videoIsFaceOnly } = this.state;
+
+        if (faceTrackingNetWindow != null) {
+            faceTrackingNetWindow.destroy();
+        }
+
+        if (videoRoomStreamerHandle != null) {
+            let dataMsg = {
+                type: "face_only_status_toggled",
+                publisher_id: user.id,
+                face_only_status: false
+            };
+    
+            videoRoomStreamerHandle.data({
+                text: JSON.stringify(dataMsg)
+            });
+        }
+
+        if (videoIsFaceOnly) {
+            this.setState({ videoIsFaceOnly: false })
+        }
+
+        this.setState({ faceTrackingNetWindow: null })
+    }   
+
     openScreenSharingHandle() {
         var { rootStreamerHandle, me, room } = this.state;
 
@@ -854,6 +1345,7 @@ class Room extends React.Component {
 
         screenSharingHandle.createOffer({
             stream: screenSharingStream,
+            media: { screenshareFrameRate: 30 },
             success: function(jsep) {
                 var request = {
                     "request": "publish",
@@ -910,10 +1402,11 @@ class Room extends React.Component {
     }
 
     handleRemoteStreams() {
-        var { publishers } = this.state;
+        const { user } = this.props;
+        const { publishers } = this.state;
 
         publishers.forEach((publisher, key) => {
-            if (typeof publisher.handle == "undefined" || publisher.handle == null) {
+            if ((typeof publisher.handle == "undefined" || publisher.handle == null) && publisher.member.id != user.id) {
                 this.subscribeToRemoteStream(publisher, key);
                 
                 if (publisher.id.includes("_screensharing")) {
@@ -947,7 +1440,8 @@ class Room extends React.Component {
     }
 
     subscribeToRemoteStream(publisher, key) {
-        const { me, room, publishers, rootStreamerHandle } = this.state;
+        const { user } = this.props;
+        const { me, room, publishers, rootStreamerHandle, videoRoomStreamerHandle } = this.state;
 
         var handle;
         var that = this;
@@ -984,7 +1478,7 @@ class Room extends React.Component {
                     if (typeof msg.display != "undefined") {
                         handle.createAnswer({
                             jsep: jsep,
-                            media: { audioSend: false, videoSend: false},
+                            media: { audioSend: false, videoSend: false, data: true },
                             success: function(jsep) {
                                 var request = {
                                     "request": "start",
@@ -999,34 +1493,97 @@ class Room extends React.Component {
             },
             onremotestream: function(remote_stream) {
                 var tracks = remote_stream.getTracks();
-                var hasVideo = false;
-                var hasAudio = false;
-                tracks.forEach(track => {
-                    if (track.kind == "video" && track.enabled) {
-                        hasVideo = true;
-                    }
-                    if (track.kind == "audio" && track.enabled) {
-                        hasAudio = true;
+                let updatedPublishers = [...publishers];
+
+                if (typeof updatedPublishers[key] != "undefined") {
+                    updatedPublishers[key].stream = remote_stream;
+                    updatedPublishers[key].hasVideo = updatedPublishers[key].id.includes("_screensharing");
+                    updatedPublishers[key].hasAudio = true;
+                    updatedPublishers[key].handle = handle;
+                    updatedPublishers[key].active = true;
+
+                    that.setState({ publishers: updatedPublishers });
+                }
+            },
+            ondataopen: function(data) {
+                const { videoRoomStreamerHandle, videoStatus, audioStatus, videoIsFaceOnly } = that.state;
+                let dataMsg = {
+                    type: "initial_video_audio_status",
+                    publisher_id: user.id,
+                    video_status: that.state.videoStatus,
+                    audio_status: that.state.audioStatus,
+                    face_only_status: that.state.videoIsFaceOnly,
+                };
+        
+                setTimeout(() => { 
+                    videoRoomStreamerHandle.data({
+                        text: JSON.stringify(dataMsg)
+                    });
+                 }, 1000);
+            },
+            ondata: function(data) {
+                const { publishers } = that.state;
+                let dataMsg = JSON.parse(data);
+
+                if (dataMsg.type == "initial_video_audio_status_response" && dataMsg.requesting_publisher_id != user.id) {
+                    return;
+                }
+
+                let updatedPublishers = [...publishers];
+
+                updatedPublishers.forEach(publisher => {
+                    if (publisher.member.id == dataMsg.publisher_id) {
+                        if (dataMsg.type == "audio_toggled") {
+                            publisher.hasAudio = dataMsg.audio_status;
+                        }
+
+                        if (dataMsg.type == "video_toggled") {
+                            publisher.hasVideo = dataMsg.video_status;
+                        }
+
+                        if (dataMsg.type == "face_only_status_toggled") {
+                            publisher.videoIsFaceOnly = dataMsg.face_only_status;
+                        }
+
+                        if (dataMsg.type == "initial_video_audio_status") {
+                            publisher.hasAudio = dataMsg.audio_status;
+                            publisher.hasVideo = dataMsg.video_status;
+                            publisher.videoIsFaceOnly = dataMsg.face_only_status;
+                        }
+
+                        if (dataMsg.type == "started_speaking") {
+                            publisher.speaking = true;
+                        }
+                        
+                        if (dataMsg.type == "stopped_speaking") {
+                            publisher.speaking = false;
+                        }
+
+                        if (dataMsg.type == "participant_status_update") {
+                            publisher.hasAudio = dataMsg.audio_status;
+                            publisher.hasVideo = dataMsg.video_status;
+                            publisher.videoIsFaceOnly = dataMsg.face_only_status;
+                        }
                     }
                 })
 
-                //make sure this publisher still exists
-                if (typeof publishers[key] != "undefined") {
-                    publishers[key].stream = remote_stream;
-                    publishers[key].hasVideo = hasVideo;
-                    publishers[key].hasAudio = hasAudio;
-                    publishers[key].handle = handle;
-                    publishers[key].active = true;
-
-                    that.setState({ publishers });
+                if (dataMsg.type == "initial_video_audio_status") {
+                    let dataMsgResponse = {
+                        type: "initial_video_audio_status_response",
+                        publisher_id: user.id,
+                        requesting_publisher_id: dataMsg.publisher_id,
+                        video_status: that.state.videoStatus,
+                        audio_status: that.state.audioStatus,
+                        face_only_status: that.state.videoIsFaceOnly,
+                    };
+    
+                    videoRoomStreamerHandle.data({
+                        text: JSON.stringify(dataMsgResponse)
+                    });
                 }
 
-            },
-            ondataopen: function(data) {
+                that.setState({ publishers: updatedPublishers });
 
-            },
-            ondata: function(data) {
-                
             },
             slowLink: function(slowLink) {
 
@@ -1047,9 +1604,7 @@ class Room extends React.Component {
         var newWidth = window.innerWidth;
         var newHeight = window.innerHeight;
 
-        if (publishers.length > 0) {
-            this.setState({ dimensions: { width: newWidth, height: newHeight, sidebarWidth: dimensions.sidebarWidth } });
-        }
+        this.setState({ dimensions: { width: newWidth, height: newHeight, sidebarWidth: dimensions.sidebarWidth } });
 
     }
 
@@ -1162,16 +1717,26 @@ class Room extends React.Component {
                 height: height,
                 width: width,
                 display: display,
-                containerHeight: dimensions.height - 80,
+                containerHeight: dimensions.height - 60,
                 pinnedHeight,
                 pinnedWidth,
                 rows,
                 columns
             }
 
-            this.setState({ videoSizes });
+            return this.setState({ videoSizes });
             
         } 
+
+
+        this.setState({ videoSizes: {
+                width: 0,
+                height: 0,
+                display: "row align-items-center justify-content-center h-100",
+                containerHeight: window.innerHeight - 114
+            }
+        });
+        
     }
 
     renderVideo(source) {
@@ -1186,7 +1751,11 @@ class Room extends React.Component {
     }
 
     toggleVideoOrAudio(type) {
-        var { videoRoomStreamerHandle, local_stream, videoStatus, audioStatus, screenSharingWindow, room } = this.state;
+        const { user } = this.props;
+        const { videoRoomStreamerHandle, local_stream, videoStatus, audioStatus, screenSharingWindow, room, publishers } = this.state;
+
+        let updatedVideoStatus = clone(videoStatus);
+        let updatedAudioStatus = clone(audioStatus);
 
         if (typeof local_stream !== 'undefined') {
             var tracks = local_stream.getTracks();
@@ -1196,64 +1765,76 @@ class Room extends React.Component {
                     track.enabled = track.enabled ? false : true;
 
                     if (type == "video") {
-                        videoStatus = track.enabled ? true : false;
+                        updatedVideoStatus = track.enabled ? true : false;
                     } else {
-                        audioStatus = track.enabled ? true : false;
+                        updatedAudioStatus = track.enabled ? true : false;
                     }
                 }
             })
 
-            if (videoRoomStreamerHandle != null) {
+            /*if (videoRoomStreamerHandle != null) {
                 //update our published stream
                 var request = {
                     "request": "configure",
-                    "audio": audioStatus,
-                    "video": videoStatus,
+                    "audio": updatedAudioStatus,
+                    "video": updatedVideoStatus,
                     "videocodec": "vp9"
                 }
 
                 videoRoomStreamerHandle.send({ "message": request });
-            }
-
-            if (type == "video") {
-                var local_video_container = [];
-                if (videoStatus) {
-                    local_video_container.push(
-                        <div style={{width:106.66,height:80}} key={999} className="align-self-center">
-                            <video autoPlay muted ref={this.renderVideo(this.state.local_stream)} style={{height:80 }} className="rounded shadow video-flip"></video>
-                        </div>
-                    )
-                } 
-            }
+            }*/
 
             if (screenSharingWindow != null) {
 
                 ipcRenderer.invoke('update-screen-sharing-controls', {
-                    videoStatus,
-                    audioStatus,
+                    updatedVideoStatus,
+                    updatedAudioStatus,
                     videoEnabled: this.state.room.video_enabled,
                     screenSharingWindow: screenSharingWindow.id
                 });
             }
 
             ipcRenderer.invoke('update-tray-icon', {
-                videoStatus,
-                audioStatus,
+                updatedVideoStatus,
+                updatedAudioStatus,
                 videoEnabled: this.state.room.video_enabled,
                 screenSharingActive: this.state.screenSharingActive
             });
 
-            if (typeof local_video_container != "undefined") {
-                return this.setState({ local_video_container, videoStatus, audioStatus });
-            }
-
             if (type == "video") {
-                posthog.capture('video-toggled', {"room_id": room.id, "video-enabled": videoStatus});
+                posthog.capture('video-toggled', {"room_id": room.id, "video-enabled": updatedVideoStatus});
             } else {
-                posthog.capture('audio-toggled', {"room_id": room.id, "audio-enabled": audioStatus});
+                posthog.capture('audio-toggled', {"room_id": room.id, "audio-enabled": updatedAudioStatus});
             }
 
-            this.setState({ videoStatus, audioStatus });  
+            let updatedPublishers = [...publishers];
+
+            updatedPublishers.forEach(publisher => {
+                if (publisher.member.id == user.id) {
+                    publisher.hasAudio = updatedAudioStatus;
+                    publisher.hasVideo = updatedVideoStatus;
+                }
+            })
+
+            let dataMsg = {
+                type: "video_toggled",
+                publisher_id: user.id,
+                video_status: updatedVideoStatus
+            };
+
+            if (type == "audio") {
+                dataMsg = {
+                    type: "audio_toggled",
+                    publisher_id: user.id,
+                    audio_status: updatedAudioStatus
+                };
+            }   
+
+            videoRoomStreamerHandle.data({
+                text: JSON.stringify(dataMsg)
+            });
+
+            this.setState({ videoStatus: updatedVideoStatus, audioStatus: updatedAudioStatus, publishers: updatedPublishers });  
 
         }
     }
@@ -1384,26 +1965,26 @@ class Room extends React.Component {
             billing,
             addUserToRoom,
             addUserLoading,
-            currentTime
+            currentTime,
+            settings,
         } = this.props;
 
         const { 
             isCall,
             room, 
-            loading, 
             room_at_capacity,
+            loading,
             publishers, 
             publishing,
-            talking,
             screenSharingActive,
             screenSources,
             screenSourcesLoading,
             showScreenSharingModal,
             showScreenSharingDropdown,
             local_stream, 
-            local_video_container,
             videoStatus, 
             audioStatus, 
+            videoIsFaceOnly,
             videoSizes, 
             pinned,
             currentLoadingMessage,
@@ -1433,26 +2014,29 @@ class Room extends React.Component {
                     onShow={() => this.getAvailableScreensToShare()}
                     onHide={() => this.setState({ showScreenSharingModal: false })}
                 />
-                <Row className="text-light pl-0 ml-0" style={{height:80,backgroundColor:"#121422"}}>
+                <Row className="pl-0 ml-0 w-100" style={{height:60}}> 
                     <Col xs={{span:4}} md={{span:5}}>
                         <div className="d-flex flex-row justify-content-start">
                             <div className="align-self-center">
-                                <p style={{fontWeight:"bolder",fontSize:"1rem"}} className="pb-0 mb-0">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".7rem",marginRight:".2rem"}} /> : <span style={{marginRight:".2rem"}}>#</span>} {room.name}</p>
+                                <p style={{fontWeight:"bolder",fontSize:"1.4rem"}} className="pb-0 mb-0">{room.name}</p>
                                 {room.is_private ?
-                                    <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-view-members">View current members of this private room and add new ones.</Tooltip>}>
-                                        <span className="d-inline-block">
-                                        <Button variant="link" className="pl-0 pt-0" style={{color:"#fff",fontSize:".7rem"}} onClick={() => this.setState({ showAddUserToRoomModal: true })}><FontAwesomeIcon icon={faUser} /> {roomUsers.length > 0 ? roomUsers.length : '' }</Button>
-                                        </span>
-                                    </OverlayTrigger>
+                                    <React.Fragment>
+                                        <FontAwesomeIcon icon={faLock} style={{fontSize:".7rem",marginRight:".3rem",marginBottom:3}} />
+                                        <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-view-members">View current members of this private room and add new ones.</Tooltip>}>
+                                            <span className="d-inline-block">
+                                            <Button variant="link" className="pt-0 pl-1" style={{color:"black",fontSize:".7rem"}} onClick={() => this.setState({ showAddUserToRoomModal: true })}><FontAwesomeIcon icon={faUser} /> {roomUsers.length > 0 ? roomUsers.length : '' }</Button>
+                                            </span>
+                                        </OverlayTrigger>
+                                    </React.Fragment>
                                 :
-                                <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-view-members">This room is visible to everyone on your team.</Tooltip>}>
+                                /*<OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-view-members">This room is visible to everyone on your team.</Tooltip>}>
                                     <span className="d-inline-block">
-                                    <Button variant="link" className="pl-0 pt-0" style={{color:"#fff",fontSize:".7rem", pointerEvents: 'none'}}><FontAwesomeIcon icon={faUser} /></Button>
+                                    <Button variant="link" className="pl-0 pt-0" style={{color:"black",fontSize:".7rem", pointerEvents: 'none'}}><FontAwesomeIcon icon={faUser} /></Button>
                                     </span>
-                                </OverlayTrigger>
+                                </OverlayTrigger>*/''
                                 }
                             </div>
-                            <div style={{height:80}}></div>
+                            <div style={{height:60}}></div>
                         </div>
                     </Col>
                     <Col xs={{span:4}} md={{span:2}}>
@@ -1464,19 +2048,19 @@ class Room extends React.Component {
                                         :
                                             local_stream === null ?
                                                 !room_at_capacity ?
-                                                    <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                                    <Button variant="success" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
                                                 :
-                                                    <Button variant="outline-success" style={{whiteSpace:'nowrap'}} className="mx-1" disabled><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                                    <Button variant="success" style={{whiteSpace:'nowrap'}} className="mx-1" disabled><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
                                             :   
-                                                <Button variant="outline-danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
+                                                <Button variant="danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
                                     :
                                         loading || local_stream === null ?
                                             ''
                                         :
-                                            <Button variant="outline-danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
+                                            <Button variant="danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
                                 }
                             </div>
-                            <div style={{height:80}}></div>
+                            <div style={{height:60}}></div>
                         </div>
                     </Col>
                     <Col xs={{span:4}} md={{span:5}} className="pr-0">
@@ -1487,47 +2071,49 @@ class Room extends React.Component {
                                         ?
                                             <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Screen sharing is unavailable on the free plan.</Tooltip>}>
                                                 <span className="d-inline-block">
-                                                    <Button variant="outline-info" className="mx-1" style={{ pointerEvents: 'none' }} disabled><FontAwesomeIcon icon={faDesktop} /></Button>
+                                                    <Button variant="info" className="mx-1" style={{ pointerEvents: 'none' }} disabled><FontAwesomeIcon icon={faDesktop} /></Button>
                                                 </span>
                                             </OverlayTrigger> 
                                         :
                                             screenSharingActive ? 
-                                                <Button variant="outline-danger" className="mx-1" onClick={() => this.toggleScreenSharing()}><FontAwesomeIcon icon={faDesktop} /></Button>
+                                                <Button variant="danger" className="mx-1" onClick={() => this.toggleScreenSharing()}><FontAwesomeIcon icon={faDesktop} /></Button>
                                             :
-                                                <Dropdown className="btn p-0 m-0" as="span">
-                                                    <Dropdown.Toggle variant="outline-info" id="screensharing-dropdown" className="mx-1 no-carat">
+                                                <Dropdown className="p-0 m-0" as="span">
+                                                    <Dropdown.Toggle variant="info" id="screensharing-dropdown" className="mx-1 no-carat">
                                                         <FontAwesomeIcon icon={faDesktop} />
                                                     </Dropdown.Toggle>
                                                     <Dropdown.Menu show={showScreenSharingDropdown}>
-                                                        <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block ph-no-capture" onClick={() => this.toggleScreenSharing("entire-screen")}><FontAwesomeIcon icon={faDesktop} /> Share Whole Screen</Button></Dropdown.Item>
-                                                        <Dropdown.Item className="no-hover-bg"><Button variant="outline-info" className="btn-block ph-no-capture" onClick={() => this.setState({ showScreenSharingModal: true, screenSourcesLoading: true, showScreenSharingDropdown: false })}><FontAwesomeIcon icon={faWindowMaximize} /> Share a Window</Button></Dropdown.Item>
+                                                        <Dropdown.Item className="no-hover-bg"><Button variant="info" className="btn-block ph-no-capture" onClick={() => this.toggleScreenSharing("entire-screen")}><FontAwesomeIcon icon={faDesktop} /> Share Whole Screen</Button></Dropdown.Item>
+                                                        <Dropdown.Item className="no-hover-bg"><Button variant="info" className="btn-block ph-no-capture" onClick={() => this.setState({ showScreenSharingModal: true, screenSourcesLoading: true, showScreenSharingDropdown: false })}><FontAwesomeIcon icon={faWindowMaximize} /> Share a Window</Button></Dropdown.Item>
                                                     </Dropdown.Menu>
                                                 </Dropdown>
                                     }
-                                    <Button variant={audioStatus ? "outline-success" : "outline-danger"} className="mx-1 ph-no-capture" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
+                                    <Button variant={audioStatus ? "success" : "danger"} className="mx-1 ph-no-capture" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
                                     {billing.plan == "Free"
                                         ?
                                             <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Video is unavailable on the free plan.</Tooltip>}>
                                                 <span className="d-inline-block">
                                             
-                                                <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1 ph-no-capture" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                                <Button variant={videoStatus ? "success" : "danger"} className="mx-1 ph-no-capture" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                                 </span>
                                             </OverlayTrigger> 
                                         :
                                             room.video_enabled ?
-                                                <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1 ph-no-capture" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                                <React.Fragment>
+                                                    {videoStatus && settings.experimentalSettings.faceTracking ? <Button variant={videoIsFaceOnly ? "success" : "danger"} className="mx-1" onClick={() => this.setState({ videoIsFaceOnly: videoIsFaceOnly ? false : true }) }><FontAwesomeIcon icon={faSmile} /></Button> : ''}
+                                                    <Button variant={videoStatus ? "success" : "danger"} className="mx-1 ph-no-capture" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                                </React.Fragment>
                                             :
                                             <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Video is disabled in this room.</Tooltip>}>
                                                 <span className="d-inline-block">
                                             
-                                                <Button variant={videoStatus ? "outline-success" : "outline-danger"} className="mx-1 ph-no-capture" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                                <Button variant={videoStatus ? "success" : "danger"} className="mx-1 ph-no-capture" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                                 </span>
                                             </OverlayTrigger> 
                                     }
                                 </div>
-                                <div style={{height:80}}></div>
+                                <div style={{height:60}}></div>
                                 {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}
-                                {local_video_container}
                             </div>
                         : '' }
                     </Col>
@@ -1535,10 +2121,10 @@ class Room extends React.Component {
                 <Container className="ml-0 stage-container" fluid style={{height:videoSizes.containerHeight - 20}}>
 
                     {loading ? 
-                        <React.Fragment>
+                        <div style={{overflowY:"scroll"}}>
                             <h1 className="text-center mt-5">Loading Room...</h1>
                             <center><FontAwesomeIcon icon={faCircleNotch} className="mt-3" style={{fontSize:"2.4rem",color:"#6772ef"}} spin /></center> 
-                        </React.Fragment>  
+                        </div>  
                     : 
                         !room_at_capacity ?
                             <React.Fragment>
@@ -1550,7 +2136,6 @@ class Room extends React.Component {
                                             publishing={publishing}
                                             currentTime={currentTime}
                                             user={user}
-                                            talking={talking}
                                             renderVideo={this.renderVideo}
                                             togglePinned={this.togglePinned}
                                             pinned={pinned}

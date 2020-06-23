@@ -29,6 +29,6 @@ export default function user(state = initialState, action = {}) {
             //do nothing
             return state;
     }
-    const newState = Object.assign({}, state, updatedState);
+    const newState = Object.assign({}, state, { ...state, ...updatedState });
     return newState;
 };

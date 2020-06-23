@@ -5,12 +5,27 @@ import { each, debounce } from 'lodash';
 import { DateTime } from 'luxon';
 import { Row, Col, Button, Navbar, Dropdown, Modal } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faCircleNotch, faCircle, faSignOutAlt, faUserFriends, faPlusSquare, faCog, faUserPlus, faUsers, faLock, faCamera } from '@fortawesome/free-solid-svg-icons';
+import { 
+    faCircleNotch, 
+    faCircle, 
+    faSignOutAlt, 
+    faUserFriends, 
+    faPlusSquare, 
+    faCog, 
+    faUserPlus, 
+    faUsers, 
+    faLock, 
+    faCamera,
+    faVideo,
+    faMicrophone 
+} from '@fortawesome/free-solid-svg-icons';
 import { getOrganizationUsers } from '../actions/organization';
 import EnsureLoggedInContainer from '../containers/EnsureLoggedInContainer';
 import RoomPage from '../containers/RoomPage';
 import TeamPage from '../containers/TeamPage';
 import ErrorBoundary from './ErrorBoundary';
+import SettingsModal from './SettingsModal';
+import ExperimentalSettingsModal from './ExperimentalSettingsModal';
 import ManageUsersModal from './ManageUsersModal';
 import InviteUsersModal from './InviteUsersModal';
 import ManageCameraModal from './ManageCameraModal';
@@ -35,6 +50,8 @@ class Sidebar extends React.Component {
                 width: 0,
                 height: 0
             },
+            showSettingsModal: false,
+            showExperimentalSettingsModal: false,
             showInviteUsersModal: false,
             showManageUsersModal: false,
             showManageCameraModal: false,
@@ -52,12 +69,17 @@ class Sidebar extends React.Component {
         
         this.userLogout = this.userLogout.bind(this);
         this.handleIncomingCall = this.handleIncomingCall.bind(this);
+        this.handleShowModal = this.handleShowModal.bind(this);
 
     }
 
     componentDidMount() {
         var { pusherInstance, organizationPresenceChannel, userPrivateNotificationChannel } = this.state;
         const { push, auth, user, organization, getOrganizations, updateUserDetails } = this.props;
+
+        if (!auth.isLoggedIn) {
+            return;
+        }
 
         posthog.identify(user.id);
         posthog.people.set({email: user.email});
@@ -194,9 +216,9 @@ class Sidebar extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        const { createRoomSuccess, lastCreatedRoomSlug, location, billing, getOrganizations } = this.props;
+        const { createRoomSuccess, lastCreatedRoomSlug, location, billing, getOrganizations, auth } = this.props;
 
-        if (Object.keys(billing).length === 0) {
+        if (auth.isLoggedIn && Object.keys(billing).length === 0) {
             getOrganizations();
         }
 
@@ -209,7 +231,6 @@ class Sidebar extends React.Component {
     componentWillUnmount() {
         const { organization, user } = this.props;
         const { organizationPresenceChannel, pusherInstance, timeInterval, updateInterval } = this.state;
-        window.removeEventListener('resize', this.handleResize);
 
         if (timeInterval != null) {
             clearInterval(timeInterval);
@@ -253,6 +274,21 @@ class Sidebar extends React.Component {
 
     }
 
+    handleShowModal(modalToShow) {
+
+        if (modalToShow == "inviteUsers") {
+            return this.setState({ showSettingsModal: false, showInviteUsersModal: true });
+        }
+
+        if (modalToShow == "cameraSettings") {
+            return this.setState({ showSettingsModal: false, showManageCameraModal: true });
+        }
+
+        if (modalToShow == "experimentalSettings") {
+            return this.setState({ showSettingsModal: false, showExperimentalSettingsModal: true });
+        }
+    }
+
     render() {
         const { 
             organization, 
@@ -269,6 +305,7 @@ class Sidebar extends React.Component {
             inviteUsersSuccess, 
             getAvailableDevices, 
             settings, 
+            updateExperimentalSettings,
             updateDefaultDevices, 
             createRoom,
             createRoomSuccess,
@@ -277,6 +314,8 @@ class Sidebar extends React.Component {
         } = this.props;
         const { 
             currentTime,
+            showSettingsModal,
+            showExperimentalSettingsModal,
             showInviteUsersModal, 
             showManageUsersModal, 
             showRoomsModal, 
@@ -319,8 +358,7 @@ class Sidebar extends React.Component {
                                     <li key={roomKey} className="nav-item">
                                         <NavLink exact={true} 
                                                 activeStyle={{
-                                                    fontWeight: "bold",
-                                                    backgroundColor:"#4381ff"
+                                                    fontWeight: "bold"
                                                 }} 
                                                 className="d-block py-1 ph-no-capture"
                                                 to={{
@@ -330,7 +368,15 @@ class Sidebar extends React.Component {
                                                         room: room
                                                     }
                                                 }}>
-                                            <p className="text-light mb-0 pl-3 ph-no-capture">{room.is_private ? <FontAwesomeIcon icon={faLock} style={{fontSize:".7rem",marginRight:".2rem"}} /> : <span style={{marginRight:".2rem"}}>#</span>} {room.name}</p>
+                                            <p className="mb-0 pl-3 ph-no-capture">
+                                                {room.is_private ? 
+                                                    <FontAwesomeIcon icon={faLock} style={{fontSize:".7rem",marginRight:".2rem"}} /> 
+                                                    : 
+                                                        room.video_enabled && billing.plan != "Free" ?
+                                                            <FontAwesomeIcon icon={faVideo} style={{fontSize:".7rem",marginRight:".2rem"}} />    
+                                                        :
+                                                            <FontAwesomeIcon icon={faMicrophone} style={{fontSize:".7rem",marginRight:".2rem"}} />   
+                                                } {room.name}</p>
                                         </NavLink>
                                     </li>
                                 )}
@@ -464,86 +510,85 @@ class Sidebar extends React.Component {
                                 onShow={() => getAvailableDevices()}
                                 onHide={() => this.setState({ showManageCameraModal: false })}
                             />
+                            <SettingsModal 
+                                show={showSettingsModal}
+                                handleShowModal={this.handleShowModal}
+                                handleLogOut={() => this.userLogout()}
+                                organization={organization}
+                                onHide={() => this.setState({ showSettingsModal: false })}
+                            />
+                            <ExperimentalSettingsModal
+                                show={showExperimentalSettingsModal}
+                                settings={settings}
+                                updateExperimentalSettings={updateExperimentalSettings}
+                                onHide={() => this.setState({ showExperimentalSettingsModal: false })}
+                            />
                         </ErrorBoundary>
-                        <div style={{backgroundColor:"#1b1e2f",width:240}} className="vh-100 pr-0 float-left">
-                            
-                            <Navbar className="text-light pt-4" style={{height:80,backgroundColor:"#121422",borderBottom:"1px solid #1c2046"}}>
-                                <ErrorBoundary showError={false}>
-                                    <Navbar.Brand>
-                                        {organization != null ? 
-                                            <p className="text-light p-0 m-0" style={{fontSize:".9rem",fontWeight:800}}>{organization.name}</p>
-                                        : '' }
-                                        {user != null ? 
-                                            <p className="text-light pt-0 pb-1" style={{fontSize:".8rem"}}><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#3ecf8e",fontSize:".5rem",verticalAlign:'middle'}} /> {user.first_name}</p>
-                                        : '' }
-                                    </Navbar.Brand>
-                                    <div className="ml-auto" style={{height:60}}>
+                        <div className="d-flex">
+                            <div style={{width:280}} className="vh-100 pr-0">
                                 
-                                        <Dropdown className="dropdownSettings text-light">
-                                            <Dropdown.Toggle><FontAwesomeIcon icon={faCog} style={{color:"#fff"}} /></Dropdown.Toggle>
-                                            <Dropdown.Menu>
-                                                <Dropdown.Item onClick={() => this.setState({ showInviteUsersModal: true })}>
-                                                    <FontAwesomeIcon icon={faUserPlus} /> Invite People to {organization != null ? organization.name : ''}
-                                                </Dropdown.Item>
-                                                <Dropdown.Item onClick={() => this.setState({ showManageCameraModal: true })}>
-                                                    <FontAwesomeIcon icon={faCamera} /> Camera Settings
-                                                </Dropdown.Item>
-                                                <Dropdown.Item onClick={() => this.userLogout() }>
-                                                    <FontAwesomeIcon icon={faSignOutAlt}/> Sign Out
-                                                </Dropdown.Item>
-                                            </Dropdown.Menu>
-                                        </Dropdown>
-
+                                <Navbar className="text-light pt-4" style={{height:70,backgroundColor:"#121422",borderBottom:"1px solid #1c2046"}}>
+                                    <ErrorBoundary showError={false}>
+                                        <Navbar.Brand>
+                                            {organization != null ? 
+                                                <p className="text-light p-0 m-0" style={{fontSize:".9rem",fontWeight:800}}>{organization.name}</p>
+                                            : '' }
+                                            {user != null ? 
+                                                <p className="text-light pt-0 pb-1" style={{fontSize:".8rem"}}><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#3ecf8e",fontSize:".4rem",verticalAlign:'middle'}} /> {user.first_name}</p>
+                                            : '' }
+                                        </Navbar.Brand>
+                                    </ErrorBoundary>
+                                </Navbar>
+                                <div className="sidebar-scroll">
+                                    <div>
+                                        <ul className="nav flex-column mt-1">
+                                            <li key="people-nav-button" className="nav-item">
+                                                <NavLink exact={true} 
+                                                    activeStyle={{
+                                                        fontWeight: "bold"
+                                                    }} 
+                                                    className="d-block py-1"
+                                                    to={{
+                                                        pathname: `/team`
+                                                    }}>
+                                                        <p className="mb-0 pl-3"><FontAwesomeIcon icon={faUsers} style={{fontSize:".65rem"}} />  Team</p>
+                                                </NavLink>
+                                            </li>
+                                            <li key="settings-nav-button" className="nav-item">
+                                                <Button variant="link" className="mb-0 pl-3 d-block py-1" onClick={() => this.setState({ showSettingsModal: true })}><FontAwesomeIcon icon={faCog} style={{fontSize:".65rem"}} />  Settings</Button>
+                                            </li>
+                                        </ul>
                                     </div>
-                                </ErrorBoundary>
-                            </Navbar>
-                            <div className="sidebar-scroll">
-                                <div>
-                                    <ul className="nav flex-column mt-1">
-                                        <li key="people-nav-button" className="nav-item">
-                                            <NavLink exact={true} 
-                                                activeStyle={{
-                                                    fontWeight: "bold",
-                                                    backgroundColor:"#4381ff"
-                                                }} 
-                                                className="d-block py-1"
-                                                to={{
-                                                    pathname: `/team`
-                                                }}>
-                                                    <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faUsers} style={{fontSize:".65rem"}} />  Team</p>
-                                            </NavLink>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div>
-                                    {rooms}
-                                    {/*calls*/}
+                                    <div>
+                                        {rooms}
+                                        {/*calls*/}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div className="pl-0 ml-auto" style={{borderLeft:"1px solid #1c2046",width:"100%"}}>
+                            <div className="pl-0" style={{borderLeft:"1px solid #1c2046",width:"100%",borderRadius:15,marginLeft:0,marginRight:0,marginTop:0,marginBottom:20,backgroundColor:"#fff"}}>
+                        
+                                    <>
+                                        <Route 
+                                            path={routes.ROOM} 
+                                            render={(routeProps) => (
+                                                <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} userPrivateNotificationChannel={userPrivateNotificationChannel} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
+                                            )}
+                                        />
+                                        <Route 
+                                            path={routes.CALL} 
+                                            render={(routeProps) => (
+                                                <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} userPrivateNotificationChannel={userPrivateNotificationChannel} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
+                                            )}
+                                        />
+                                        <Route 
+                                            path={routes.TEAM} 
+                                            render={(routeProps) => (
+                                                <ErrorBoundary showError={true}><TeamPage {...routeProps} organizationUsersOnline={organizationUsersOnline} currentTime={currentTime} /></ErrorBoundary>
+                                            )}
+                                        />
+                                    </>
                     
-                                <>
-                                    <Route 
-                                        path={routes.ROOM} 
-                                        render={(routeProps) => (
-                                            <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} userPrivateNotificationChannel={userPrivateNotificationChannel} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
-                                        )}
-                                    />
-                                    <Route 
-                                        path={routes.CALL} 
-                                        render={(routeProps) => (
-                                            <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} userPrivateNotificationChannel={userPrivateNotificationChannel} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
-                                        )}
-                                    />
-                                    <Route 
-                                        path={routes.TEAM} 
-                                        render={(routeProps) => (
-                                            <ErrorBoundary showError={true}><TeamPage {...routeProps} organizationUsersOnline={organizationUsersOnline} currentTime={currentTime} /></ErrorBoundary>
-                                        )}
-                                    />
-                                </>
-                
+                            </div>
                         </div>
                     </EnsureLoggedInContainer>
                 </Switch>
