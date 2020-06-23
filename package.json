@@ -1,7 +1,7 @@
 {
   "name": "watercooler",
   "productName": "Water Cooler",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Bring natural conversation back to remote teams",
   "main": ".webpack/main",
   "scripts": {
@@ -31,6 +31,7 @@
     "@electron-forge/publisher-github": "^6.0.0-beta.51",
     "@marshallofsound/webpack-asset-relocator-loader": "^0.5.0",
     "@sentry/cli": "^1.52.3",
+    "@sentry/webpack-plugin": "^1.11.1",
     "babel-loader": "^8.1.0",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "css-loader": "^3.0.0",

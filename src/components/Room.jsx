@@ -1151,7 +1151,19 @@ class Room extends React.Component {
     }
 
     stopPublishingStream() {
-        const { videoRoomStreamerHandle, screenSharingHandle, screenSharingStream, screenSharingWindow, faceTrackingNetWindow, local_stream, localVideoContainer, localVideoCanvasContainer, publishers, me } = this.state;
+        const { 
+            videoRoomStreamerHandle, 
+            screenSharingHandle, 
+            screenSharingStream, 
+            screenSharingWindow, 
+            faceTrackingNetWindow, 
+            local_stream, 
+            localVideoContainer, 
+            localVideoCanvasContainer, 
+            publishers, 
+            me,
+            heartbeatInterval
+        } = this.state;
 
         if (faceTrackingNetWindow != null) {
             faceTrackingNetWindow.destroy();
