@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Row, Col, Button, Navbar, Dropdown, Modal, Card, Image, Form, Alert } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faCircleNotch, faWindowClose } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faWindowClose, faUserPlus } from '@fortawesome/free-solid-svg-icons';
 
 
 function InviteUsersModal(props) {
@@ -37,7 +37,7 @@ function InviteUsersModal(props) {
       >
         <Modal.Header>
           <Modal.Title className="font-weight-bolder">
-            Invite Someone New
+            <FontAwesomeIcon icon={faUserPlus} className="mr-2" /> Invite Someone New
           </Modal.Title>
           <Button variant="outline-secondary" style={{borderColor:"transparent"}} onClick={() => handleHide()}><FontAwesomeIcon icon={faWindowClose}></FontAwesomeIcon></Button>
         </Modal.Header>

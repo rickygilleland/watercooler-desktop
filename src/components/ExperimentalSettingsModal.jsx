@@ -28,7 +28,7 @@ function ExperimentalSettingsModal(props) {
       >
         <Modal.Header>
           <Modal.Title className="font-weight-bolder">
-            Experimental Features
+            <FontAwesomeIcon icon={faFlask} className="mr-2" /> Experimental Features
           </Modal.Title>
           <Button variant="outline-secondary" style={{borderColor:"transparent"}} onClick={() => props.onHide()}><FontAwesomeIcon icon={faWindowClose}></FontAwesomeIcon></Button>
         </Modal.Header>

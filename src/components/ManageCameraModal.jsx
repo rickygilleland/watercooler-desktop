@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Row, Col, Button, Navbar, Dropdown, Modal, Card, Image, Form } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faCircleNotch, faWindowClose } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faWindowClose, faCamera } from '@fortawesome/free-solid-svg-icons';
 
 function ManageCameraModal(props) {
     const { loading, users, settings } = props;
@@ -37,7 +37,7 @@ function ManageCameraModal(props) {
       >
         <Modal.Header>
           <Modal.Title className="font-weight-bolder">
-            Camera Settings
+            <FontAwesomeIcon icon={faCamera} className="mr-2" /> Camera Settings
           </Modal.Title>
           <Button variant="outline-secondary" style={{borderColor:"transparent"}} onClick={() => props.onHide()}><FontAwesomeIcon icon={faWindowClose}></FontAwesomeIcon></Button>
         </Modal.Header>

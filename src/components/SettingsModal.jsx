@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Row, Col, Button, Navbar, Dropdown, Modal, Card, Image, Form } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faWindowClose, faUserPlus, faCamera, faSignOutAlt, faFlask } from '@fortawesome/free-solid-svg-icons';
+import { faWindowClose, faUserPlus, faCamera, faSignOutAlt, faFlask, faCog } from '@fortawesome/free-solid-svg-icons';
 
 function SettingsModal(props) {
     
@@ -19,7 +19,7 @@ function SettingsModal(props) {
       >
         <Modal.Header>
           <Modal.Title className="font-weight-bolder">
-            Water Cooler Settings
+            <FontAwesomeIcon icon={faCog} className="mr-2" /> Water Cooler Settings
           </Modal.Title>
           <Button variant="outline-secondary" style={{borderColor:"transparent"}} onClick={() => props.onHide()}><FontAwesomeIcon icon={faWindowClose}></FontAwesomeIcon></Button>
         </Modal.Header>
@@ -31,9 +31,11 @@ function SettingsModal(props) {
             <Button variant="primary" className="my-3" size="lg" block onClick={() => handleShowModal("cameraSettings")}>
                 <FontAwesomeIcon icon={faCamera} /> Camera Settings
             </Button>
-            <Button variant="primary" className="my-3" size="lg" block onClick={() => handleShowModal("experimentalSettings")}>
-                <FontAwesomeIcon icon={faFlask} /> Experimental Features
-            </Button>
+            <center>
+              <Button variant="danger" className="my-3" size="lg" onClick={() => handleShowModal("experimentalSettings")}>
+                  <FontAwesomeIcon icon={faFlask} /> Experimental Features
+              </Button>
+            </center>
             <center>
                 <Button variant="danger" className="mt-3" onClick={() => handleLogOut()}>
                     <FontAwesomeIcon icon={faSignOutAlt}/> Sign Out
