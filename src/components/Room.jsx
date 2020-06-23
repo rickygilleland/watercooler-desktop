@@ -1115,7 +1115,23 @@ class Room extends React.Component {
 
                     updatedPublishers.push(newPublisher);
 
-                    that.setState({ publishing: true, publishers: updatedPublishers });
+                    let heartbeatInterval = setInterval(() => {
+
+                        let dataMsg = {
+                            type: "participant_status_update",
+                            publisher_id: user.id,
+                            video_status: that.state.videoStatus,
+                            audio_status: that.state.audioStatus,
+                            face_only_status: that.state.videoIsFaceOnly,
+                        };
+    
+                        videoRoomStreamerHandle.data({
+                            text: JSON.stringify(dataMsg)
+                        });
+            
+                    }, 30000);
+
+                    that.setState({ publishing: true, publishers: updatedPublishers, heartbeatInterval });
 
                     ipcRenderer.invoke('update-tray-icon', {
                         enable: true,
@@ -1124,6 +1140,7 @@ class Room extends React.Component {
                         videoEnabled: that.state.room.video_enabled,
                         screenSharingActive: that.state.screenSharingActive
                     });
+                    
 
                     that.handleRemoteStreams();
                 }
@@ -1201,7 +1218,19 @@ class Room extends React.Component {
             disable: true
         });
 
-        this.setState({ publishing: false, local_stream: null, publishers: updatedPublishers, screenSharingActive: false, screenSharingWindow: null })
+        if (heartbeatInterval != null) {
+            clearInterval(heartbeatInterval);
+        }
+
+        this.setState({ 
+            publishing: false, 
+            local_stream: null, 
+            publishers: 
+            updatedPublishers, 
+            screenSharingActive: false, 
+            screenSharingWindow: null, 
+            heartbeatInterval: null 
+        })
         
     }
 
@@ -1491,7 +1520,6 @@ class Room extends React.Component {
                         text: JSON.stringify(dataMsg)
                     });
                  }, 1000);
-                 
             },
             ondata: function(data) {
                 const { publishers } = that.state;
