@@ -1,5 +1,7 @@
 const rules = require('./webpack.rules');
 const webpack = require('webpack');
+const SentryWebpackPlugin = require('@sentry/webpack-plugin');
+const package = require('./package.json')
 
 rules.push({
   test: /\.css$/,
@@ -23,6 +25,13 @@ module.exports = {
     // janus.js does not use 'import' to access to the functionality of webrtc-adapter,
     // instead it expects a global object called 'adapter' for that.
     // Let's make that object available.
-    new webpack.ProvidePlugin({ adapter: 'webrtc-adapter' })
+    new webpack.ProvidePlugin({ adapter: 'webrtc-adapter' }),
+    new SentryWebpackPlugin({
+      include: '.',
+      ignoreFile: '.sentrycliignore',
+      ignore: ['node_modules', 'webpack.config.js'],
+      configFile: 'sentry.properties',
+      release: "watercooler-desktop@" + package.version,
+    })
   ]
 };
