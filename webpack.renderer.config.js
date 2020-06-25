@@ -26,12 +26,5 @@ module.exports = {
     // instead it expects a global object called 'adapter' for that.
     // Let's make that object available.
     new webpack.ProvidePlugin({ adapter: 'webrtc-adapter' }),
-    new SentryWebpackPlugin({
-      include: '.',
-      ignoreFile: '.sentrycliignore',
-      ignore: ['node_modules', 'webpack.config.js'],
-      configFile: 'sentry.properties',
-      release: "watercooler-desktop@" + package.version,
-    })
   ]
 };
