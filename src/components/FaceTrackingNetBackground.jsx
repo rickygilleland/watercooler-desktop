@@ -4,6 +4,7 @@ import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import '@tensorflow/tfjs-backend-cpu';
 const bodyPix = require('@tensorflow-models/body-pix');
+const blazeface = require('@tensorflow-models/blazeface');
 
 class FaceTrackingNetBackground extends React.Component {
 
@@ -18,7 +19,7 @@ class FaceTrackingNetBackground extends React.Component {
     }
 
     componentDidMount() {
-       this.startNet();
+        this.startNet();
     }
 
     async startNet() {
@@ -44,11 +45,7 @@ class FaceTrackingNetBackground extends React.Component {
 
         const raw_local_stream = await navigator.mediaDevices.getUserMedia(streamOptions);
 
-        console.log("steam", raw_local_stream);
-        console.log("settings", streamOptions);
-
         let tracks = raw_local_stream.getTracks();
-        console.log("tracks", tracks);
 
         this.setState({ raw_local_stream })
 
@@ -62,37 +59,30 @@ class FaceTrackingNetBackground extends React.Component {
             localVideo.height = localVideo.videoHeight;
         }
 
-        const net = await bodyPix.load({
-            architecture: 'MobileNetV1',
-            outputStride: 16,
-            multiplier: 0.5,
-            quantBytes: 2
-        });
+        const model = await blazeface.load();
 
-        var personSegmentation = null;
+        var facePrediction = null;
+        var newPrediction = {};
 
-        localVideo.onplaying = async () => {
-            async function getUpdatedCoords() {
-                const curDate = new Date();
-    
-                if (personSegmentation == null || (curDate.getTime() - personSegmentation.generated) > 200) {
-    
-                    personSegmentation = await net.segmentPersonParts(localVideo, {
-                        internalResolution: 'low',
-                        segmentationThreshold: .6,
-                        maxDetections: 1,
-                    });  
-                    
-                    personSegmentation.generated = curDate.getTime();
-    
-                    ipcRenderer.invoke('face-tracking-update', { type: 'updated_coordinates', personSegmentation });
+        async function getUpdatedCoords() {
+            const curDate = new Date();
+
+            if (facePrediction == null || (curDate.getTime() - newPrediction.generated) > 200) {
+
+                facePrediction = await model.estimateFaces(localVideo, false);
+
+                newPrediction = {
+                    prediction: facePrediction[0],
+                    generated: curDate.getTime()
                 }
-    
-                requestAnimationFrame(getUpdatedCoords);
+
+                ipcRenderer.invoke('face-tracking-update', { type: 'updated_coordinates', facePrediction: newPrediction });
             }
-    
-            getUpdatedCoords();
+
+            requestAnimationFrame(getUpdatedCoords);
         }
+
+        getUpdatedCoords();
 
     }
 

@@ -754,7 +754,7 @@ class Room extends React.Component {
         statsDiv.style.top = null;
         statsDiv.style.bottom = 0;*/
 
-        var personSegmentation = null;
+        var facePrediction = null;
 
         var drawParams = {
             sourceX: 0,
@@ -780,8 +780,10 @@ class Room extends React.Component {
 
         ipcRenderer.on('face-tracking-update', (event, args) => {
             if (args.type == "updated_coordinates") {
-                personSegmentation = args.personSegmentation;
+                facePrediction = args.facePrediction;
             }
+
+            console.log("new coords", facePrediction);
         })
 
         localVideo.onplaying = async () => {
@@ -798,9 +800,9 @@ class Room extends React.Component {
 
                 stats.begin();
 
-                if (!that.state.videoIsFaceOnly || personSegmentation == null) {
+                if (!that.state.videoIsFaceOnly || facePrediction == null) {
 
-                    personSegmentation = null;
+                    facePrediction = null;
 
                     localVideoCanvas.width = localVideo.width;
                     localVideoCanvas.height = localVideo.height;
@@ -812,13 +814,10 @@ class Room extends React.Component {
                     return requestAnimationFrame(bodySegmentationFrame);
                 }
 
-                if ((personSegmentation.allPoses.length == 0 || 
-                        (personSegmentation.allPoses[0].score < .3 && (drawParams.sourceNoseScore > 0 && drawParams.sourceNoseScore < .3))) 
-                        && avatarImageLoaded) 
-                    {
-                    //ctx.drawImage(avatarImage, 0, 0);
+                if (typeof facePrediction.prediction.landmarks == "undefined" || facePrediction.prediction.probability[0] < .2 && avatarImageLoaded) {
+                     //ctx.drawImage(avatarImage, 0, 0);
 
-                    if (localVideoCanvas.width != 400) {
+                     if (localVideoCanvas.width != 400) {
                         localVideoCanvas.width = 400;
                         localVideoCanvas.height = 400;
                     }
@@ -828,30 +827,43 @@ class Room extends React.Component {
                     return requestAnimationFrame(bodySegmentationFrame);
                 }
 
-                let xBufferAmount = 200;
-                let yBufferAmount = 200;
-
                 if (drawParams.sourceX == 0 || drawParams.sourceY == 0) {
 
                     drawParams = {
-                        sourceX: (personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount) > localVideo.width || (personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount) < 0 ? 0 : personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount,
-                        sourceY: (personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount) > localVideo.height || (personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount) < 0 ? 0 : personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount,
-                        sourceWidth: localVideo.width,
-                        sourceHeight: localVideo.height,
+                        sourceX: facePrediction.prediction.topLeft[0] - 100,
+                        sourceY: facePrediction.prediction.topLeft[1] - 100,
+                        sourceWidth: 400,
+                        sourceHeight: 400,
                         destinationX: 0,
                         destinationY: 0,
-                        destinationWidth: localVideo.width,
-                        destinationHeight: localVideo.height,
-                        sourceNoseScore: personSegmentation.allPoses[0].score,
+                        destinationWidth: 400,
+                        destinationHeight: 400,
+                        sourceNoseScore: facePrediction.prediction.probability[0],
                     }
+
+                    /*
+
+                     drawParams = {
+                        sourceX: facePrediction.prediction.topLeft[0],
+                        sourceY: facePrediction.prediction.topLeft[1],
+                        sourceWidth: facePrediction.prediction.bottomRight[0] - facePrediction.prediction.topLeft[0],
+                        sourceHeight: facePrediction.prediction.bottomRight[1] - facePrediction.prediction.topLeft[1],
+                        destinationX: 0,
+                        destinationY: 0,
+                        destinationWidth: facePrediction.prediction.bottomRight[0] - facePrediction.prediction.topLeft[0],
+                        destinationHeight: facePrediction.prediction.bottomRight[1] - facePrediction.prediction.topLeft[1],
+                        sourceNoseScore: facePrediction.prediction.probability[0],
+                    }
+
+                    */
                 }
 
-                if (Math.abs(drawParams.sourceX - (personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount)) > 20 || Math.abs(drawParams.sourceY - (personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount)) > 20) {
+                if (Math.abs(drawParams.sourceX - (facePrediction.prediction.topLeft[0] - 100)) > 20 || Math.abs(drawParams.sourceY - (facePrediction.prediction.topLeft[1] - 100)) > 20) {
 
                     let drawParamsCopy = {...drawParams};
 
                     return requestAnimationFrame(() => { 
-                        gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount, personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount);
+                        gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, facePrediction.prediction.topLeft[0] - 100, facePrediction.prediction.topLeft[1] - 100);
                     });
 
                 } 
@@ -910,17 +922,17 @@ class Room extends React.Component {
                     return requestAnimationFrame(bodySegmentationFrame);
                 }
 
-                if (personSegmentation.allPoses.length == 0) {
+                if (facePrediction.prediction.length == 0) {
                     return requestAnimationFrame(bodySegmentationFrame);
                 }
 
-                if (personSegmentation.allPoses.length > 0) {
-                    if ((personSegmentation.allPoses[0].keypoints[0].position.x - 200) != targetX || (personSegmentation.allPoses[0].keypoints[0].position.y - 200) != targetY) {
-                        if (Math.abs(targetX - (personSegmentation.allPoses[0].keypoints[0].position.x - 200)) > 20 || Math.abs(targetY - (personSegmentation.allPoses[0].keypoints[0].position.y - 200)) > 20) {
+                if (facePrediction.prediction.length > 0) {
+                    if ((facePrediction.prediction.topLeft[0] - 100) != targetX || (facePrediction.prediction.topLeft[1] - 100) != targetY) {
+                        if (Math.abs(targetX - (facePrediction.prediction.topLeft[0] - 100)) > 20 || Math.abs(targetY - (facePrediction.prediction.topLeft[1] - 100)) > 20) {
                             let drawParamsCopy = {...drawParams};
 
                             return requestAnimationFrame(() => { 
-                                gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, personSegmentation.allPoses[0].keypoints[0].position.x - 200, personSegmentation.allPoses[0].keypoints[0].position.y - 200);
+                                gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, facePrediction.prediction.topLeft[0] - 100, facePrediction.prediction.topLeft[1]- 100);
                             });
                         }
                     }
@@ -967,8 +979,9 @@ class Room extends React.Component {
                     destinationY: 0,
                     destinationWidth: localVideo.width,
                     destinationHeight: localVideo.height,
-                    sourceNoseScore: personSegmentation.allPoses[0].score,
+                    sourceNoseScore: facePrediction.prediction.probability[0],
                 }
+                
 
                 if (localVideoCanvas.width != 400) {
                     localVideoCanvas.width = 400;
@@ -1255,7 +1268,7 @@ class Room extends React.Component {
             webPreferences: {
                 nodeIntegration: true,
                 preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-                devTools: false,
+                devTools: true,
                 backgroundThrottling: false
             }
         })

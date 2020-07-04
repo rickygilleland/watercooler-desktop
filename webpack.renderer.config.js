@@ -13,6 +13,15 @@ rules.push({
   use: 'exports-loader?Janus=Janus'
 });
 
+rules.push({
+  test: /\.wasm$/i,
+  use: [
+    {
+      loader: 'file-loader',
+    },
+  ],
+})
+
 module.exports = {
   // Put your normal webpack config below here
   module: {
