@@ -67,7 +67,7 @@ class FaceTrackingNetBackground extends React.Component {
         async function getUpdatedCoords() {
             const curDate = new Date();
 
-            if (facePrediction == null || (curDate.getTime() - newPrediction.generated) > 200) {
+            if (facePrediction == null || (curDate.getTime() - newPrediction.generated) > 100) {
 
                 facePrediction = await model.estimateFaces(localVideo, false);
 

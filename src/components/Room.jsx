@@ -770,18 +770,15 @@ class Room extends React.Component {
 
         let localVideoCanvas = document.createElement("canvas");
 
+        let backgroundBlurVideoCanvasCopy = document.createElement("canvas");
+        const backgroundBlurCanvasCtx = backgroundBlurVideoCanvasCopy.getContext('2d');
+
         localVideo.onloadedmetadata = () => {
             localVideo.width = localVideo.videoWidth;
             localVideo.height = localVideo.videoHeight;
         }
 
         var that = this;
-
-        const stats = new Stats();
-        stats.showPanel(0);
-        /*let statsDiv = document.body.appendChild(stats.dom);
-        statsDiv.style.top = null;
-        statsDiv.style.bottom = 0;*/
 
         var facePrediction = null;
 
@@ -811,8 +808,6 @@ class Room extends React.Component {
             if (args.type == "updated_coordinates") {
                 facePrediction = args.facePrediction;
             }
-
-            console.log("new coords", facePrediction);
         })
 
         var personSegmentation = null;
@@ -839,8 +834,6 @@ class Room extends React.Component {
                 if (that.state.videoStatus == false || that.state.publishing == false) {
                     return requestAnimationFrame(bodySegmentationFrame);
                 }
-
-                stats.begin();
 
                 if (!that.state.videoIsFaceOnly || facePrediction == null) {    
 
@@ -870,7 +863,7 @@ class Room extends React.Component {
                     return requestAnimationFrame(bodySegmentationFrame);
                 }
 
-                if (typeof facePrediction.prediction.landmarks == "undefined" || facePrediction.prediction.probability[0] < .2 && avatarImageLoaded) {
+                if (typeof facePrediction.prediction == "undefined" || facePrediction.prediction.probability[0] < .2 && avatarImageLoaded) {
                      //ctx.drawImage(avatarImage, 0, 0);
 
                      if (localVideoCanvas.width != 400) {
@@ -887,7 +880,7 @@ class Room extends React.Component {
 
                     drawParams = {
                         sourceX: facePrediction.prediction.topLeft[0] - 100,
-                        sourceY: facePrediction.prediction.topLeft[1] - 100,
+                        sourceY: facePrediction.prediction.topLeft[1] - 125,
                         sourceWidth: 400,
                         sourceHeight: 400,
                         destinationX: 0,
@@ -914,12 +907,12 @@ class Room extends React.Component {
                     */
                 }
 
-                if (Math.abs(drawParams.sourceX - (facePrediction.prediction.topLeft[0] - 100)) > 20 || Math.abs(drawParams.sourceY - (facePrediction.prediction.topLeft[1] - 100)) > 20) {
+                if (Math.abs(drawParams.sourceX - (facePrediction.prediction.topLeft[0] - 100)) > 20 || Math.abs(drawParams.sourceY - (facePrediction.prediction.topLeft[1] - 125)) > 20) {
 
                     let drawParamsCopy = {...drawParams};
 
                     return requestAnimationFrame(() => { 
-                        gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, facePrediction.prediction.topLeft[0] - 100, facePrediction.prediction.topLeft[1] - 100);
+                        gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, facePrediction.prediction.topLeft[0] - 100, facePrediction.prediction.topLeft[1] - 125);
                     });
 
                 } 
@@ -929,9 +922,38 @@ class Room extends React.Component {
                     localVideoCanvas.height = 400;
                 }
 
+                backgroundBlurCanvasCtx
+
                 //draw black every time so we don't see parts of previous frames if it jumps around a little bit
                 ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
                 ctx.fillRect(0, 0, 400, 400);
+
+                if (personSegmentation != null && that.state.backgroundBlurEnabled) {
+
+                    bodyPix.drawBokehEffect(
+                        backgroundBlurVideoCanvasCopy, 
+                        localVideo, 
+                        personSegmentation, 
+                        backgroundBlurAmount,
+                        edgeBlurAmount, 
+                        flipHorizontal
+                    );
+
+                    ctx.drawImage(
+                        backgroundBlurVideoCanvasCopy,
+                        drawParams.sourceX,
+                        drawParams.sourceY,
+                        drawParams.sourceWidth,
+                        drawParams.sourceHeight,
+                        drawParams.destinationX,
+                        drawParams.destinationY,
+                        drawParams.destinationWidth,
+                        drawParams.destinationHeight,
+                    );
+
+                    return requestAnimationFrame(bodySegmentationFrame);
+
+                }
 
                 ctx.drawImage(
                     localVideo,
@@ -944,21 +966,6 @@ class Room extends React.Component {
                     drawParams.destinationWidth,
                     drawParams.destinationHeight,
                 );
-
-                            
-
-                /*let bokehSegmentation = await net.segmentPerson(localVideoCanvas);
-
-                bodyPix.drawBokehEffect(
-                    localVideoCanvas, 
-                    localVideoCanvas, 
-                    bokehSegmentation, 
-                    backgroundBlurAmount,
-                    edgeBlurAmount, 
-                    flipHorizontal
-                );*/
-
-                stats.end();
 
                 requestAnimationFrame(bodySegmentationFrame);
                 
@@ -976,23 +983,21 @@ class Room extends React.Component {
                     return requestAnimationFrame(bodySegmentationFrame);
                 }
 
-                if (facePrediction.prediction.length == 0) {
+                if (typeof facePrediction.prediction == "undefined" || facePrediction.prediction.length == 0) {
                     return requestAnimationFrame(bodySegmentationFrame);
                 }
 
                 if (facePrediction.prediction.length > 0) {
-                    if ((facePrediction.prediction.topLeft[0] - 100) != targetX || (facePrediction.prediction.topLeft[1] - 100) != targetY) {
-                        if (Math.abs(targetX - (facePrediction.prediction.topLeft[0] - 100)) > 20 || Math.abs(targetY - (facePrediction.prediction.topLeft[1] - 100)) > 20) {
+                    if ((facePrediction.prediction.topLeft[0] - 100) != targetX || (facePrediction.prediction.topLeft[1] - 125) != targetY) {
+                        if (Math.abs(targetX - (facePrediction.prediction.topLeft[0] - 100)) > 20 || Math.abs(targetY - (facePrediction.prediction.topLeft[1] - 125)) > 20) {
                             let drawParamsCopy = {...drawParams};
 
                             return requestAnimationFrame(() => { 
-                                gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, facePrediction.prediction.topLeft[0] - 100, facePrediction.prediction.topLeft[1]- 100);
+                                gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, facePrediction.prediction.topLeft[0] - 100, facePrediction.prediction.topLeft[1]- 125);
                             });
                         }
                     }
                 }
-
-                stats.begin();
 
                 if (initialX > targetX) {
                     //going to the right
@@ -1045,19 +1050,42 @@ class Room extends React.Component {
                 ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
                 ctx.fillRect(0, 0, 400, 400);
 
-                ctx.drawImage(
-                    localVideo,
-                    drawParams.sourceX,
-                    drawParams.sourceY,
-                    drawParams.sourceWidth,
-                    drawParams.sourceHeight,
-                    drawParams.destinationX,
-                    drawParams.destinationY,
-                    drawParams.destinationWidth,
-                    drawParams.destinationHeight,
-                );
+                if (personSegmentation != null && that.state.backgroundBlurEnabled) {
 
-                stats.end();
+                    bodyPix.drawBokehEffect(
+                        backgroundBlurVideoCanvasCopy, 
+                        localVideo, 
+                        personSegmentation, 
+                        backgroundBlurAmount,
+                        edgeBlurAmount, 
+                        flipHorizontal
+                    );
+
+                    ctx.drawImage(
+                        backgroundBlurVideoCanvasCopy,
+                        drawParams.sourceX,
+                        drawParams.sourceY,
+                        drawParams.sourceWidth,
+                        drawParams.sourceHeight,
+                        drawParams.destinationX,
+                        drawParams.destinationY,
+                        drawParams.destinationWidth,
+                        drawParams.destinationHeight,
+                    );
+
+                } else {
+                    ctx.drawImage(
+                        localVideo,
+                        drawParams.sourceX,
+                        drawParams.sourceY,
+                        drawParams.sourceWidth,
+                        drawParams.sourceHeight,
+                        drawParams.destinationX,
+                        drawParams.destinationY,
+                        drawParams.destinationWidth,
+                        drawParams.destinationHeight,
+                    );
+                }
 
                 if (typeof newX == "undefined" && typeof newY == "undefined") {
                     //nothing changed, break out of this loop

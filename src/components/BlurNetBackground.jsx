@@ -60,9 +60,9 @@ class BlurNetBackground extends React.Component {
 
         const net = await bodyPix.load({
             architecture: 'MobileNetV1',
-            outputStride: 16,
-            multiplier: 0.5,
-            quantBytes: 2
+            outputStride: 32,
+            multiplier: 1,
+            quantBytes: 4
         });
 
         var personSegmentation = null;
@@ -71,12 +71,12 @@ class BlurNetBackground extends React.Component {
             async function getUpdatedCoords() {
                 const curDate = new Date();
     
-                if (personSegmentation == null || (curDate.getTime() - personSegmentation.generated) > 200) {
+                if (personSegmentation == null || (curDate.getTime() - personSegmentation.generated) > 100) {
     
                     personSegmentation = await net.segmentPerson(localVideo, {
-                        internalResolution: 'low',
-                        segmentationThreshold: .6,
-                        maxDetections: 1,
+                        internalResolution: 'medium',
+                        segmentationThreshold: .75,
+                        maxDetections: 5,
                     });  
                     
                     personSegmentation.generated = curDate.getTime();
