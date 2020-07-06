@@ -25,6 +25,7 @@ import RoomPage from '../containers/RoomPage';
 import TeamPage from '../containers/TeamPage';
 import ErrorBoundary from './ErrorBoundary';
 import SettingsModal from './SettingsModal';
+import RoomSettingsModal from './RoomSettingsModal';
 import ExperimentalSettingsModal from './ExperimentalSettingsModal';
 import ManageUsersModal from './ManageUsersModal';
 import InviteUsersModal from './InviteUsersModal';
@@ -55,6 +56,7 @@ class Sidebar extends React.Component {
             showInviteUsersModal: false,
             showManageUsersModal: false,
             showManageCameraModal: false,
+            showRoomSettingsModal: false,
             showRoomsModal: false,
             showCallsModal: false,
             showIncomingCallModal: false,
@@ -287,6 +289,10 @@ class Sidebar extends React.Component {
         if (modalToShow == "experimentalSettings") {
             return this.setState({ showSettingsModal: false, showExperimentalSettingsModal: true });
         }
+
+        if (modalToShow == "roomSettings") {
+            return this.setState({ showSettingsModal: false, showRoomSettingsModal: true });
+        }
     }
 
     render() {
@@ -306,6 +312,7 @@ class Sidebar extends React.Component {
             getAvailableDevices, 
             settings, 
             updateExperimentalSettings,
+            updateRoomSettings,
             updateDefaultDevices, 
             createRoom,
             createRoomSuccess,
@@ -315,6 +322,7 @@ class Sidebar extends React.Component {
         const { 
             currentTime,
             showSettingsModal,
+            showRoomSettingsModal,
             showExperimentalSettingsModal,
             showInviteUsersModal, 
             showManageUsersModal, 
@@ -509,6 +517,12 @@ class Sidebar extends React.Component {
                                 handleSubmit={updateDefaultDevices}
                                 onShow={() => getAvailableDevices()}
                                 onHide={() => this.setState({ showManageCameraModal: false })}
+                            />
+                            <RoomSettingsModal
+                                show={showRoomSettingsModal}
+                                settings={settings}
+                                updateRoomSettings={updateRoomSettings}
+                                onHide={() => this.setState({ showRoomSettingsModal: false })}
                             />
                             <SettingsModal 
                                 show={showSettingsModal}

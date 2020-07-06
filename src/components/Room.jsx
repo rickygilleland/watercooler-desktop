@@ -37,6 +37,7 @@ import ScreenSharingModal from './ScreenSharingModal';
 import posthog from 'posthog-js';
 import hark from 'hark';
 import Stats from 'stats.js';
+import { setTensorTracker } from '@tensorflow/tfjs-core/dist/tensor';
 const bodyPix = require('@tensorflow-models/body-pix');
 const { BrowserWindow } = require('electron').remote
 
@@ -84,12 +85,12 @@ class Room extends React.Component {
                 sidebarWidth: 280
             },
             pinned: false,
-            videoStatus: false,
-            audioStatus: true,
+            videoStatus: settings.roomSettings.videoEnabled,
+            audioStatus: settings.roomSettings.audioEnabled,
             videoIsFaceOnly: false,
             faceTrackingNetWindow: null,
             backgroundBlurWindow: null,
-            backgroundBlurEnabled: settings.roomDefaults.backgroundBlur,
+            backgroundBlurEnabled: settings.roomSettings.backgroundBlurEnabled,
             showMoreSettingsDropdown: false,
             streamer_server_connected: false,
             videoRoomStreamerHandle: null,
@@ -310,7 +311,7 @@ class Room extends React.Component {
             }
         }
 
-        if (videoStatus && !prevState.videoStatus && settings.roomDefaults.backgroundBlur) {
+        if (videoStatus && !prevState.videoStatus && settings.roomSettings.backgroundBlurEnabled) {
             this.startBackgroundBlur();
         }
 

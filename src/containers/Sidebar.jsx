@@ -12,6 +12,7 @@ import {
   getAvailableDevices, 
   updateDefaultDevices,
   updateExperimentalSettings, 
+  updateRoomSettings,
 } from '../actions/settings';
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
@@ -49,6 +50,7 @@ function mapDispatchToProps(dispatch) {
         getAvailableDevices,
         updateDefaultDevices,
         updateExperimentalSettings,
+        updateRoomSettings,
         push,
       },
       dispatch
