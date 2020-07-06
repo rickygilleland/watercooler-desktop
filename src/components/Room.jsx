@@ -45,6 +45,8 @@ class Room extends React.Component {
     
         super(props);
 
+        const { settings } = this.props;
+
         this.state = {
             room: {},
             team: {},
@@ -87,7 +89,7 @@ class Room extends React.Component {
             videoIsFaceOnly: false,
             faceTrackingNetWindow: null,
             backgroundBlurWindow: null,
-            backgroundBlurEnabled: false,
+            backgroundBlurEnabled: settings.roomDefaults.backgroundBlur,
             showMoreSettingsDropdown: false,
             streamer_server_connected: false,
             videoRoomStreamerHandle: null,
@@ -308,6 +310,10 @@ class Room extends React.Component {
             }
         }
 
+        if (videoStatus && !prevState.videoStatus && settings.roomDefaults.backgroundBlur) {
+            this.startBackgroundBlur();
+        }
+
         if (prevProps.settings.experimentalSettings.faceTracking != settings.experimentalSettings.faceTracking) {
             if (settings.experimentalSettings.faceTracking == false && videoIsFaceOnly) {
                 this.stopFaceTracking();
@@ -325,9 +331,6 @@ class Room extends React.Component {
             publishers, 
             local_stream, 
             publishing, 
-            screenSharingWindow, 
-            faceTrackingNetWindow, 
-            backgroundBlurWindow,
             localVideoContainer, 
             heartbeatInterval 
         } = this.state;
@@ -353,18 +356,6 @@ class Room extends React.Component {
             });
         } catch (error) {
             //do something
-        }
-
-        if (screenSharingWindow != null) {
-            screenSharingWindow.destroy();
-        }
-
-        if (faceTrackingNetWindow != null) {
-            faceTrackingNetWindow.destroy();
-        }
-
-        if (backgroundBlurWindow != null) {
-            backgroundBlurWindow.destroy();
         }
 
         if (userPrivateNotificationChannel !== false) {
@@ -1252,6 +1243,7 @@ class Room extends React.Component {
             screenSharingStream, 
             screenSharingWindow, 
             faceTrackingNetWindow, 
+            backgroundBlurWindow,
             local_stream, 
             localVideoContainer, 
             localVideoCanvasContainer, 
@@ -1262,6 +1254,10 @@ class Room extends React.Component {
 
         if (faceTrackingNetWindow != null) {
             faceTrackingNetWindow.destroy();
+        }
+
+        if (backgroundBlurWindow != null) {
+            backgroundBlurWindow.destroy();
         }
 
         if (videoRoomStreamerHandle == null) {
@@ -2253,10 +2249,10 @@ class Room extends React.Component {
                                         </Dropdown.Toggle>
                                         <Dropdown.Menu show={showMoreSettingsDropdown}>
                                             <Dropdown.Item className="no-hover-bg">
-                                                <Button variant={backgroundBlurEnabled ? "success" : "danger"} className="mx-1 ph-no-capture" disabled={videoStatus ? false : true} onClick={() => backgroundBlurEnabled ? this.stopBackgroundBlur() : this.startBackgroundBlur() } block><FontAwesomeIcon icon={backgroundBlurEnabled ? faTint : faTintSlash} /> {backgroundBlurEnabled ? 'Disable' : 'Enable' } Background Blur</Button>
+                                                <Button variant={backgroundBlurEnabled ? "danger" : "success"} className="mx-1 ph-no-capture" disabled={videoStatus ? false : true} onClick={() => backgroundBlurEnabled ? this.stopBackgroundBlur() : this.startBackgroundBlur() } block><FontAwesomeIcon icon={backgroundBlurEnabled ? faTint : faTintSlash} /> {backgroundBlurEnabled ? 'Disable' : 'Enable' } Background Blur</Button>
                                             </Dropdown.Item>
                                             <Dropdown.Item className="no-hover-bg">
-                                                {settings.experimentalSettings.faceTracking ? <Button variant={videoIsFaceOnly ? "success" : "danger"} className="mx-1" disabled={videoStatus ? false : true} onClick={() => this.setState({ videoIsFaceOnly: videoIsFaceOnly ? false : true }) } block><FontAwesomeIcon icon={faSmile} /> {videoIsFaceOnly ? 'Disable' : 'Enable' } Face Tracking</Button> : ''}
+                                                {settings.experimentalSettings.faceTracking ? <Button variant={videoIsFaceOnly ? "danger" : "success"} className="mx-1" disabled={videoStatus ? false : true} onClick={() => this.setState({ videoIsFaceOnly: videoIsFaceOnly ? false : true }) } block><FontAwesomeIcon icon={faSmile} /> {videoIsFaceOnly ? 'Disable' : 'Enable' } Face Tracking</Button> : ''}
                                             </Dropdown.Item>
                                         </Dropdown.Menu>
                                     </Dropdown>

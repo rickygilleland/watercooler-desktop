@@ -12,6 +12,9 @@ const initialState = {
     defaultDevices: {},
     experimentalSettings: {
         faceTracking: false
+    },
+    roomDefaults: {
+        backgroundBlur: false
     }
 }
 
