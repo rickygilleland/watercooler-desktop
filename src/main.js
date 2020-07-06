@@ -310,6 +310,14 @@ app.on('ready', () => {
     }
   })
 
+  ipcMain.handle('background-blur-update', async (event, args) => {
+    if (typeof args.type != "undefined") {
+      if (args.type == "updated_coordinates") {
+        mainWindow.webContents.send('background-blur-update', args);
+      }
+    }
+  })
+
 });
 
 // Quit when all windows are closed.

@@ -3,7 +3,16 @@ import Video from './Video';
 import { computeScreenAwareSize } from 'custom-electron-titlebar/lib/common/dom';
 
 function VideoList(props) {
-    const { publishing, user, publishers, videoSizes, renderVideo, togglePinned, pinned, currentTime } = props;
+    const { 
+        publishing, 
+        user, 
+        publishers, 
+        videoSizes, 
+        renderVideo, 
+        togglePinned, 
+        pinned, 
+        currentTime,  
+    } = props;
 
     const [ processedPublishers, setProcessedPublishers ] = useState([...publishers]);
 

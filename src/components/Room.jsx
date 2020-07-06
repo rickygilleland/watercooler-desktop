@@ -1,7 +1,7 @@
 import React from 'react';
 import { ipcRenderer, desktopCapturer, systemPreferences } from 'electron';
 import update from 'immutability-helper';
-import { each, clone } from 'lodash';
+import { each, clone, truncate } from 'lodash';
 import { 
     Container, 
     Button, 
@@ -24,7 +24,10 @@ import {
     faLock,
     faDesktop,
     faWindowMaximize,
-    faSmile
+    faSmile,
+    faEllipsisV,
+    faTint,
+    faTintSlash,
 } from '@fortawesome/free-solid-svg-icons';
 import { Janus } from 'janus-gateway';
 import Pusher from 'pusher-js';
@@ -34,6 +37,7 @@ import ScreenSharingModal from './ScreenSharingModal';
 import posthog from 'posthog-js';
 import hark from 'hark';
 import Stats from 'stats.js';
+const bodyPix = require('@tensorflow-models/body-pix');
 const { BrowserWindow } = require('electron').remote
 
 class Room extends React.Component {
@@ -82,6 +86,9 @@ class Room extends React.Component {
             audioStatus: true,
             videoIsFaceOnly: false,
             faceTrackingNetWindow: null,
+            backgroundBlurWindow: null,
+            backgroundBlurEnabled: false,
+            showMoreSettingsDropdown: false,
             streamer_server_connected: false,
             videoRoomStreamerHandle: null,
             rootStreamerHandle: null,
@@ -119,6 +126,8 @@ class Room extends React.Component {
 
         this.startFaceTracking = this.startFaceTracking.bind(this);
         this.stopFaceTracking = this.stopFaceTracking.bind(this);
+        this.startBackgroundBlur = this.startBackgroundBlur.bind(this);
+        this.stopBackgroundBlur = this.stopBackgroundBlur.bind(this);
 
         this.stopPublishingStream = this.stopPublishingStream.bind(this);
 
@@ -214,7 +223,16 @@ class Room extends React.Component {
 
     componentDidUpdate(prevProps, prevState) {
         const { match, location, pusherInstance, user, settings } = this.props;
-        const { initialized, dimensions, publishers, publishing, rootStreamerHandle, videoIsFaceOnly, videoStatus } = this.state;
+        const { 
+            initialized, 
+            dimensions, 
+            publishers, 
+            publishing, 
+            rootStreamerHandle, 
+            videoIsFaceOnly, 
+            videoStatus, 
+            backgroundBlurEnabled 
+        } = this.state;
 
         if (pusherInstance != null && initialized == false) {
             this.setState({ initialized: true }, () => {
@@ -280,8 +298,14 @@ class Room extends React.Component {
             }
         }
 
-        if (!videoStatus && prevState.videoStatus && videoIsFaceOnly) {
-            this.stopFaceTracking();
+        if (!videoStatus && prevState.videoStatus) {
+            if (videoIsFaceOnly) {
+                this.stopFaceTracking();
+            }
+
+            if (backgroundBlurEnabled) {
+                this.stopBackgroundBlur();
+            }
         }
 
         if (prevProps.settings.experimentalSettings.faceTracking != settings.experimentalSettings.faceTracking) {
@@ -303,6 +327,7 @@ class Room extends React.Component {
             publishing, 
             screenSharingWindow, 
             faceTrackingNetWindow, 
+            backgroundBlurWindow,
             localVideoContainer, 
             heartbeatInterval 
         } = this.state;
@@ -336,6 +361,10 @@ class Room extends React.Component {
 
         if (faceTrackingNetWindow != null) {
             faceTrackingNetWindow.destroy();
+        }
+
+        if (backgroundBlurWindow != null) {
+            backgroundBlurWindow.destroy();
         }
 
         if (userPrivateNotificationChannel !== false) {
@@ -786,6 +815,19 @@ class Room extends React.Component {
             console.log("new coords", facePrediction);
         })
 
+        var personSegmentation = null;
+
+        ipcRenderer.on('background-blur-update', (event, args) => {
+            if (args.type == "updated_coordinates") {
+                personSegmentation = args.personSegmentation;
+            }
+        })
+
+        const backgroundBlurAmount = 3.5;
+        const edgeBlurAmount = 20;
+        const flipHorizontal = false;
+
+
         localVideo.onplaying = async () => {
 
             async function bodySegmentationFrame() {
@@ -800,12 +842,26 @@ class Room extends React.Component {
 
                 stats.begin();
 
-                if (!that.state.videoIsFaceOnly || facePrediction == null) {
-
-                    facePrediction = null;
+                if (!that.state.videoIsFaceOnly || facePrediction == null) {    
 
                     localVideoCanvas.width = localVideo.width;
                     localVideoCanvas.height = localVideo.height;
+
+                    if (personSegmentation != null && that.state.backgroundBlurEnabled) {
+
+                        bodyPix.drawBokehEffect(
+                            localVideoCanvas, 
+                            localVideo, 
+                            personSegmentation, 
+                            backgroundBlurAmount,
+                            edgeBlurAmount, 
+                            flipHorizontal
+                        );
+
+                        return requestAnimationFrame(bodySegmentationFrame);
+                    }
+
+                    facePrediction = null;
 
                     ctx.drawImage(
                         localVideo, 0, 0
@@ -889,9 +945,7 @@ class Room extends React.Component {
                     drawParams.destinationHeight,
                 );
 
-                const backgroundBlurAmount = 3.5;
-                const edgeBlurAmount = 20;
-                const flipHorizontal = false;
+                            
 
                 /*let bokehSegmentation = await net.segmentPerson(localVideoCanvas);
 
@@ -1315,6 +1369,35 @@ class Room extends React.Component {
         }
 
         this.setState({ faceTrackingNetWindow: null })
+    }   
+
+    startBackgroundBlur() {
+        const { user } = this.props;
+
+        let backgroundBlurWindow = new BrowserWindow({ 
+            show: false,
+            webPreferences: {
+                nodeIntegration: true,
+                preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+                devTools: true,
+                backgroundThrottling: false
+            }
+        })
+
+        backgroundBlurWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/blur_net_background");
+
+        this.setState({ backgroundBlurWindow, backgroundBlurEnabled: true });
+    }
+
+    stopBackgroundBlur() {
+        const { user } = this.props;
+        const { backgroundBlurWindow, backgroundBlurEnabled } = this.state;
+
+        if (backgroundBlurWindow != null) {
+            backgroundBlurWindow.destroy();
+        }
+
+        this.setState({ backgroundBlurWindow: null, backgroundBlurEnabled: false })
     }   
 
     openScreenSharingHandle() {
@@ -2013,7 +2096,9 @@ class Room extends React.Component {
             videoSizes, 
             pinned,
             currentLoadingMessage,
-            showAddUserToRoomModal 
+            showAddUserToRoomModal,
+            backgroundBlurEnabled,
+            showMoreSettingsDropdown,
         } = this.state;
 
         return (
@@ -2125,17 +2210,28 @@ class Room extends React.Component {
                                         :
                                             room.video_enabled ?
                                                 <React.Fragment>
-                                                    {videoStatus && settings.experimentalSettings.faceTracking ? <Button variant={videoIsFaceOnly ? "success" : "danger"} className="mx-1" onClick={() => this.setState({ videoIsFaceOnly: videoIsFaceOnly ? false : true }) }><FontAwesomeIcon icon={faSmile} /></Button> : ''}
                                                     <Button variant={videoStatus ? "success" : "danger"} className="mx-1 ph-no-capture" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                                 </React.Fragment>
                                             :
                                             <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Video is disabled in this room.</Tooltip>}>
                                                 <span className="d-inline-block">
-                                            
                                                 <Button variant={videoStatus ? "success" : "danger"} className="mx-1 ph-no-capture" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                                 </span>
                                             </OverlayTrigger> 
                                     }
+                                    <Dropdown className="p-0 m-0" as="span">
+                                        <Dropdown.Toggle variant="info" id="more-settings-dropdown" className="mx-1 no-carat">
+                                            <FontAwesomeIcon icon={faEllipsisV} />
+                                        </Dropdown.Toggle>
+                                        <Dropdown.Menu show={showMoreSettingsDropdown}>
+                                            <Dropdown.Item className="no-hover-bg">
+                                                <Button variant={backgroundBlurEnabled ? "success" : "danger"} className="mx-1 ph-no-capture" disabled={videoStatus ? false : true} onClick={() => backgroundBlurEnabled ? this.stopBackgroundBlur() : this.startBackgroundBlur() } block><FontAwesomeIcon icon={backgroundBlurEnabled ? faTint : faTintSlash} /> {backgroundBlurEnabled ? 'Disable' : 'Enable' } Background Blur</Button>
+                                            </Dropdown.Item>
+                                            <Dropdown.Item className="no-hover-bg">
+                                                {settings.experimentalSettings.faceTracking ? <Button variant={videoIsFaceOnly ? "success" : "danger"} className="mx-1" disabled={videoStatus ? false : true} onClick={() => this.setState({ videoIsFaceOnly: videoIsFaceOnly ? false : true }) } block><FontAwesomeIcon icon={faSmile} /> {videoIsFaceOnly ? 'Disable' : 'Enable' } Face Tracking</Button> : ''}
+                                            </Dropdown.Item>
+                                        </Dropdown.Menu>
+                                    </Dropdown>
                                 </div>
                                 <div style={{height:60}}></div>
                                 {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}
