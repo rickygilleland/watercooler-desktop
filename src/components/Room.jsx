@@ -824,7 +824,7 @@ class Room extends React.Component {
             this.startBackgroundBlur();
         }
 
-        const edgeBlurAmount = 20;
+        const edgeBlurAmount = 5;
         const flipHorizontal = false;
 
 

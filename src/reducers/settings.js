@@ -19,7 +19,7 @@ const initialState = {
         videoEnabled: false,
         audioEnabled: true,
         backgroundBlurEnabled: false,
-        backgroundBlurAmount: 50
+        backgroundBlurAmount: 30
     }
 }
 

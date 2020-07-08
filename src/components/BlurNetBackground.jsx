@@ -72,12 +72,12 @@ class BlurNetBackground extends React.Component {
             async function getUpdatedCoords() {
                 const curDate = new Date();
 
-                if (personSegmentation == null || (curDate.getTime() - personSegmentation.generated) > 100) {
+                if (personSegmentation == null || (curDate.getTime() - personSegmentation.generated) > 50) {
     
                     personSegmentation = await net.segmentPerson(localVideo, {
-                        internalResolution: 'full',
+                        internalResolution: 'high',
                         segmentationThreshold: .8,
-                        maxDetections: 5,
+                        maxDetections: 3,
                     });  
                     
                     personSegmentation.generated = curDate.getTime();
