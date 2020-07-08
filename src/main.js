@@ -140,30 +140,6 @@ const createWindow = () => {
 
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
-};
-
-app.commandLine.appendSwitch('force-fieldtrials', 'WebRTC-SupportVP9SVC/EnabledByFlag_2SL3TL/');
-app.commandLine.appendSwitch('webrtc-max-cpu-consumption-percentage', 100);
-app.commandLine.appendSwitch('enable-precise-memory-info');
-app.commandLine.appendSwitch('enable-gpu-rasterization');
-app.commandLine.appendSwitch('enable-native-gpu-memory-buffers');
-app.commandLine.appendSwitch('enable-accelerated-video');
-app.commandLine.appendSwitch('ignore-gpu-blacklist');
-
-if (process.platform == "darwin") {
-  app.commandLine.appendSwitch('enable-oop-rasterization');
-  app.commandLine.appendSwitch('enable-features', 'metal');
-}
-
-let tray = null;
-let trayMenu = null;
-let iconPath = path.resolve(__dirname, 'icons', 'appIconTemplate.png');
-
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on('ready', () => {
-  createWindow();
 
   powerMonitor.on('suspend', () => {
     mainWindow.webContents.send('power_update', 'suspend');
@@ -318,6 +294,53 @@ app.on('ready', () => {
     }
   })
 
+  mainWindow.on('closed', () => {
+    let allWindows = BrowserWindow.getAllWindows();
+
+    if (allWindows.length !== 0) {
+      allWindows.forEach(backgroundWindow => {
+        if (backgroundWindow.isDestroyed() === false) {
+          backgroundWindow.destroy();
+        }
+      })
+    }
+
+    ipcMain.removeHandler('get-current-window-dimensions');
+    ipcMain.removeHandler('get-media-access-status');
+    ipcMain.removeHandler('update-tray-icon');
+    ipcMain.removeHandler('update-screen-sharing-controls');
+    ipcMain.removeHandler('face-tracking-update');
+    ipcMain.removeHandler('background-blur-update');
+
+    powerMonitor.removeAllListeners('suspend');
+    powerMonitor.removeAllListeners('lock-screen');
+
+  })
+
+};
+
+app.commandLine.appendSwitch('force-fieldtrials', 'WebRTC-SupportVP9SVC/EnabledByFlag_2SL3TL/');
+app.commandLine.appendSwitch('webrtc-max-cpu-consumption-percentage', 100);
+app.commandLine.appendSwitch('enable-precise-memory-info');
+app.commandLine.appendSwitch('enable-gpu-rasterization');
+app.commandLine.appendSwitch('enable-native-gpu-memory-buffers');
+app.commandLine.appendSwitch('enable-accelerated-video');
+app.commandLine.appendSwitch('ignore-gpu-blacklist');
+
+if (process.platform == "darwin") {
+  app.commandLine.appendSwitch('enable-oop-rasterization');
+  app.commandLine.appendSwitch('enable-features', 'metal');
+}
+
+let tray = null;
+let trayMenu = null;
+let iconPath = path.resolve(__dirname, 'icons', 'appIconTemplate.png');
+
+// This method will be called when Electron has finished
+// initialization and is ready to create browser windows.
+// Some APIs can only be used after this event occurs.
+app.on('ready', () => {
+  createWindow();
 });
 
 // Quit when all windows are closed.

@@ -371,7 +371,10 @@ class Room extends React.Component {
         window.removeEventListener('online', this.reconnectNetworkConnections);
         window.removeEventListener('offline', this.disconnectNetworkConnections);
 
-        ipcRenderer.removeAllListeners();
+        ipcRenderer.removeAllListeners('power_update');
+        ipcRenderer.removeAllListeners('update-screen-sharing-controls');
+        ipcRenderer.removeAllListeners('face-tracking-update');
+        ipcRenderer.removeAllListeners('background-blur-update');
     }
 
     initializeRoom() {
@@ -796,6 +799,7 @@ class Room extends React.Component {
 
         const ctx = localVideoCanvas.getContext('2d');
 
+        ipcRenderer.removeAllListeners('face-tracking-update');
         ipcRenderer.on('face-tracking-update', (event, args) => {
             if (args.type == "updated_coordinates") {
                 facePrediction = args.facePrediction;
@@ -804,6 +808,7 @@ class Room extends React.Component {
 
         var personSegmentation = null;
 
+        ipcRenderer.removeAllListeners('background-blur-update');
         ipcRenderer.on('background-blur-update', (event, args) => {
             if (args.type == "updated_coordinates") {
                 personSegmentation = args.personSegmentation;
