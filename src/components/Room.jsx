@@ -810,6 +810,10 @@ class Room extends React.Component {
             }
         })
 
+        if (settings.roomSettings.backgroundBlurEnabled) {
+            this.startBackgroundBlur();
+        }
+
         const backgroundBlurAmount = 3.5;
         const edgeBlurAmount = 20;
         const flipHorizontal = false;

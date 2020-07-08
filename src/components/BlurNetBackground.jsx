@@ -58,16 +58,17 @@ class BlurNetBackground extends React.Component {
             localVideo.height = localVideo.videoHeight;
         }
 
-        const net = await bodyPix.load({
-            architecture: 'MobileNetV1',
-            outputStride: 16,
-            multiplier: 0.75,
-            quantBytes: 2
-        });
-
         var personSegmentation = null;
 
         localVideo.onplaying = async () => {
+
+            const net = await bodyPix.load({
+                architecture: 'MobileNetV1',
+                outputStride: 16,
+                multiplier: 0.75,
+                quantBytes: 2
+            });
+
             async function getUpdatedCoords() {
                 const curDate = new Date();
 
