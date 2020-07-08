@@ -9,6 +9,8 @@ function ManageCameraModal(props) {
     const [ defaultVideoInput, setDefaultVideoInput ] = useState(settings.defaultDevices != null && typeof settings.defaultDevices.videoInput != "undefined" ? settings.defaultDevices.videoInput : typeof settings.devices.videoInputs != "undefined" && typeof settings.devices.videoInputs[0] != "undefined" ? settings.devices.videoInputs[0].deviceId : "");
     const [ defaultAudioInput, setDefaultAudioInput ] = useState(settings.defaultDevices != null && typeof settings.defaultDevices.audioInput != "undefined" ? settings.defaultDevices.audioInput : typeof settings.devices.audioInputs != "undefined" && typeof settings.devices.audioInputs[0] != "undefined" ? settings.devices.audioInputs[0].deviceId : "");
     const [ defaultAudioOutput, setDefaultAudioOutput ] = useState(settings.defaultDevices != null && typeof settings.defaultDevices.audioOutput != "undefined" ? settings.defaultDevices.audioOutput : typeof settings.devices.audioOutputs != "undefined" && typeof settings.devices.audioOutputs[0] != "undefined" ? settings.devices.audioOutputs[0].deviceId : "");
+    const [ backgroundBlurAmount, setBackgroundBlurAmount ] = useState(settings.roomSettings.backgroundBlurAmount);
+
 
     function handleVideoInputChange(event) {
         setDefaultVideoInput(event.target.value);
@@ -17,11 +19,15 @@ function ManageCameraModal(props) {
     function handleAudioInputChange(event) {
         setDefaultAudioInput(event.target.value);
     }
+
+    function handleBackgroundBlurAmountChange(event) {
+        setBackgroundBlurAmount(event.target.value);
+    }
     
     function handleSubmit(event) {
         event.preventDefault();
         
-        props.handleSubmit(defaultVideoInput, defaultAudioInput, defaultAudioOutput);
+        props.handleSubmit(defaultVideoInput, defaultAudioInput, defaultAudioOutput, backgroundBlurAmount);
         props.onHide();
     }
 
@@ -66,10 +72,13 @@ function ManageCameraModal(props) {
                             <option value={input.deviceId} key={input.deviceId}>{input.label}</option>    
                         )}
                     </Form.Control>
-                
-                    <p className="mt-4 text-muted" style={{fontSize:".8rem"}}><i>Note:</i> If you're already connected to a room, you will need to leave the room and re-join for these settings to take effect.</p>
 
-                    <Button className="mt-1" variant="primary" type="submit">Update Camera Settings</Button>
+                    <p className="mt-3 mb-0 pb-0 text-muted" style={{fontSize:".8rem"}}><i>Note:</i> If you're already connected to a room, you will need to re-join for your new video input or audio input settings to take effect.</p>
+
+                    <Form.Label className="pt-3">Background Blur Amount</Form.Label>
+                    <Form.Control type="range" className="mb-3" name="backgroundBlurAmount" value={backgroundBlurAmount} onChange={handleBackgroundBlurAmountChange} />
+
+                    <Button className="mt-3" variant="primary" type="submit">Update Camera Settings</Button>
                 </Form>
 
             : '' }

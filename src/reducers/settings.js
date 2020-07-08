@@ -18,7 +18,8 @@ const initialState = {
     roomSettings: {
         videoEnabled: false,
         audioEnabled: true,
-        backgroundBlurEnabled: false
+        backgroundBlurEnabled: false,
+        backgroundBlurAmount: 50
     }
 }
 
@@ -73,6 +74,10 @@ export default function user(state = initialState, action = {}) {
                     videoInput: action.payload.videoInput,
                     audioInput: action.payload.audioInput,
                     audioOutput: action.payload.audioOutput,
+                },
+                roomSettings: {
+                    ...state.roomSettings,
+                    backgroundBlurAmount: action.payload.backgroundBlurAmount
                 }
             }
 

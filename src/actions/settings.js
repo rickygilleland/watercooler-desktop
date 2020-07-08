@@ -59,7 +59,7 @@ export function getAvailableDevices() {
     }
 }
 
-export function updateDefaultDevices(defaultVideoInput, defaultAudioInput, defaultAudioOutput) {
+export function updateDefaultDevices(defaultVideoInput, defaultAudioInput, defaultAudioOutput, backgroundBlurAmount) {
     return (dispatch, getState) => {
         const state = getState();
 
@@ -67,7 +67,8 @@ export function updateDefaultDevices(defaultVideoInput, defaultAudioInput, defau
             var payload = {
                 videoInput: defaultVideoInput,
                 audioInput: defaultAudioInput,
-                audioOutput: defaultAudioOutput
+                audioOutput: defaultAudioOutput,
+                backgroundBlurAmount
             }
     
             dispatch(updateDefaultDevicesSuccess(payload));        

@@ -91,6 +91,7 @@ class Room extends React.Component {
             faceTrackingNetWindow: null,
             backgroundBlurWindow: null,
             backgroundBlurEnabled: settings.roomSettings.backgroundBlurEnabled,
+            backgroundBlurAmount: settings.roomSettings.backgroundBlurAmount / 5,
             showMoreSettingsDropdown: false,
             streamer_server_connected: false,
             videoRoomStreamerHandle: null,
@@ -320,6 +321,10 @@ class Room extends React.Component {
                 this.stopFaceTracking();
                 this.setState({ videoIsFaceOnly: false });
             }
+        }
+
+        if (settings.roomSettings.backgroundBlurAmount != prevProps.settings.roomSettings.backgroundBlurAmount) {
+            this.setState({ backgroundBlurAmount: settings.roomSettings.backgroundBlurAmount / 5 });
         }
     }
     
@@ -819,7 +824,6 @@ class Room extends React.Component {
             this.startBackgroundBlur();
         }
 
-        const backgroundBlurAmount = 3.5;
         const edgeBlurAmount = 20;
         const flipHorizontal = false;
 
@@ -847,7 +851,7 @@ class Room extends React.Component {
                             localVideoCanvas, 
                             localVideo, 
                             personSegmentation, 
-                            backgroundBlurAmount,
+                            that.state.backgroundBlurAmount,
                             edgeBlurAmount, 
                             flipHorizontal
                         );
@@ -923,8 +927,6 @@ class Room extends React.Component {
                     localVideoCanvas.height = 400;
                 }
 
-                backgroundBlurCanvasCtx
-
                 //draw black every time so we don't see parts of previous frames if it jumps around a little bit
                 ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
                 ctx.fillRect(0, 0, 400, 400);
@@ -935,7 +937,7 @@ class Room extends React.Component {
                         backgroundBlurVideoCanvasCopy, 
                         localVideo, 
                         personSegmentation, 
-                        backgroundBlurAmount,
+                        that.state.backgroundBlurAmount,
                         edgeBlurAmount, 
                         flipHorizontal
                     );
@@ -1057,7 +1059,7 @@ class Room extends React.Component {
                         backgroundBlurVideoCanvasCopy, 
                         localVideo, 
                         personSegmentation, 
-                        backgroundBlurAmount,
+                        that.state.backgroundBlurAmount,
                         edgeBlurAmount, 
                         flipHorizontal
                     );

@@ -75,8 +75,8 @@ class BlurNetBackground extends React.Component {
                 if (personSegmentation == null || (curDate.getTime() - personSegmentation.generated) > 100) {
     
                     personSegmentation = await net.segmentPerson(localVideo, {
-                        internalResolution: 'medium',
-                        segmentationThreshold: .75,
+                        internalResolution: 'full',
+                        segmentationThreshold: .8,
                         maxDetections: 5,
                     });  
                     
