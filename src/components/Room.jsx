@@ -36,8 +36,10 @@ import AddUserToRoomModal from './AddUserToRoomModal';
 import ScreenSharingModal from './ScreenSharingModal';
 import posthog from 'posthog-js';
 import hark from 'hark';
-import Stats from 'stats.js';
 import { setTensorTracker } from '@tensorflow/tfjs-core/dist/tensor';
+import * as tf from '@tensorflow/tfjs-core';
+import '@tensorflow/tfjs-backend-webgl';
+import '@tensorflow/tfjs-backend-cpu';
 const bodyPix = require('@tensorflow-models/body-pix');
 const { BrowserWindow } = require('electron').remote
 
