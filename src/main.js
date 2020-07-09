@@ -286,6 +286,12 @@ const createWindow = () => {
     }
   })
 
+  ipcMain.handle('net-status-update', async (event, args) => {
+    if (typeof args.net != "undefined" && args.window != "undefined") {
+      BrowserWindow.fromId(args.window).webContents.send('net-status-update', args);
+    }
+  })
+
   ipcMain.handle('background-blur-update', async (event, args) => {
     if (typeof args.type != "undefined") {
       if (args.type == "updated_coordinates") {
@@ -311,6 +317,7 @@ const createWindow = () => {
     ipcMain.removeHandler('update-screen-sharing-controls');
     ipcMain.removeHandler('face-tracking-update');
     ipcMain.removeHandler('background-blur-update');
+    ipcMain.removeHandler('net-status-update');
 
     powerMonitor.removeAllListeners('suspend');
     powerMonitor.removeAllListeners('lock-screen');

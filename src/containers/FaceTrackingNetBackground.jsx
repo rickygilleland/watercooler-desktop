@@ -5,7 +5,7 @@ import FaceTrackingNetBackground from '../components/FaceTrackingNetBackground';
 
 function mapStateToProps(state) {
     return {
-        settings: state.settings
+        settings: state.settings,
     }
 }
 

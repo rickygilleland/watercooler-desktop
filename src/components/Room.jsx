@@ -1254,8 +1254,6 @@ class Room extends React.Component {
             screenSharingHandle, 
             screenSharingStream, 
             screenSharingWindow, 
-            faceTrackingNetWindow, 
-            backgroundBlurWindow,
             local_stream, 
             localVideoContainer, 
             localVideoCanvasContainer, 
@@ -1263,14 +1261,6 @@ class Room extends React.Component {
             me,
             heartbeatInterval
         } = this.state;
-
-        if (faceTrackingNetWindow != null) {
-            faceTrackingNetWindow.destroy();
-        }
-
-        if (backgroundBlurWindow != null) {
-            backgroundBlurWindow.destroy();
-        }
 
         if (videoRoomStreamerHandle == null) {
             return;
@@ -1350,20 +1340,15 @@ class Room extends React.Component {
     }
 
     startFaceTracking() {
-        const { user } = this.props;
+        const { user, faceTrackingNetWindow } = this.props;
         const { videoRoomStreamerHandle } = this.state;
 
-        let faceTrackingNetWindow = new BrowserWindow({ 
-            show: false,
-            webPreferences: {
-                nodeIntegration: true,
-                preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-                devTools: true,
-                backgroundThrottling: false
-            }
-        })
+        ipcRenderer.invoke('net-status-update', {
+            window: faceTrackingNetWindow.id,
+            net: 'faceTracking',
+            status: true,
+        });
 
-        faceTrackingNetWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/face_tracking_net_background");
 
         if (videoRoomStreamerHandle != null) {
             let dataMsg = {
@@ -1376,17 +1361,11 @@ class Room extends React.Component {
                 text: JSON.stringify(dataMsg)
             });
         }
-
-        this.setState({ faceTrackingNetWindow });
     }
 
     stopFaceTracking() {
-        const { user } = this.props;
-        const { faceTrackingNetWindow, videoRoomStreamerHandle, videoIsFaceOnly } = this.state;
-
-        if (faceTrackingNetWindow != null) {
-            faceTrackingNetWindow.destroy();
-        }
+        const { user, faceTrackingNetWindow } = this.props;
+        const { videoRoomStreamerHandle, videoIsFaceOnly } = this.state;
 
         if (videoRoomStreamerHandle != null) {
             let dataMsg = {
@@ -1404,36 +1383,35 @@ class Room extends React.Component {
             this.setState({ videoIsFaceOnly: false })
         }
 
-        this.setState({ faceTrackingNetWindow: null })
+        ipcRenderer.invoke('net-status-update', {
+            window: faceTrackingNetWindow.id,
+            net: 'faceTracking',
+            status: false,
+        });
     }   
 
     startBackgroundBlur() {
-        const { user } = this.props;
+        const { backgroundBlurWindow } = this.props;
 
-        let backgroundBlurWindow = new BrowserWindow({ 
-            show: false,
-            webPreferences: {
-                nodeIntegration: true,
-                preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-                devTools: true,
-                backgroundThrottling: false
-            }
-        })
+        ipcRenderer.invoke('net-status-update', {
+            window: backgroundBlurWindow.id,
+            net: 'backgroundBlur',
+            status: true,
+        });
 
-        backgroundBlurWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/blur_net_background");
-
-        this.setState({ backgroundBlurWindow, backgroundBlurEnabled: true });
+        this.setState({ backgroundBlurEnabled: true });
     }
 
     stopBackgroundBlur() {
-        const { user } = this.props;
-        const { backgroundBlurWindow, backgroundBlurEnabled } = this.state;
+        const { backgroundBlurWindow } = this.props;
 
-        if (backgroundBlurWindow != null) {
-            backgroundBlurWindow.destroy();
-        }
+        ipcRenderer.invoke('net-status-update', {
+            window: backgroundBlurWindow.id,
+            net: 'backgroundBlur',
+            status: false,
+        });
 
-        this.setState({ backgroundBlurWindow: null, backgroundBlurEnabled: false })
+        this.setState({ backgroundBlurEnabled: false });
     }   
 
     openScreenSharingHandle() {

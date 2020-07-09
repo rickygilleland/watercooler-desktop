@@ -12,10 +12,15 @@ class FaceTrackingNetBackground extends React.Component {
         super(props);
 
         this.state = {
-            raw_local_stream: null
+            raw_local_stream: null,
+            active: false
         }
 
         this.startNet = this.startNet.bind(this);
+        this.startFaceTracking = this.startFaceTracking.bind(this);
+        this.stopFaceTracking = this.stopFaceTracking.bind(this);
+
+        this.net = null;
     }
 
     componentDidMount() {
@@ -23,6 +28,26 @@ class FaceTrackingNetBackground extends React.Component {
     }
 
     async startNet() {
+        this.net = await blazeface.load();
+
+        ipcRenderer.on('net-status-update', (event, args) => {
+            if (args.net == "faceTracking") {
+                if (args.status) {
+                    if (this.state.raw_local_stream == null) {
+
+                        this.setState({ active: true });
+                        return this.startFaceTracking();
+                    }
+                } else {
+
+                    this.setState({ active: false });
+                    this.stopFaceTracking();
+                }
+            }
+        })
+    }
+
+    async startFaceTracking() {
         const { settings } = this.props;
         
         let streamOptions;
@@ -45,8 +70,6 @@ class FaceTrackingNetBackground extends React.Component {
 
         const raw_local_stream = await navigator.mediaDevices.getUserMedia(streamOptions);
 
-        let tracks = raw_local_stream.getTracks();
-
         this.setState({ raw_local_stream })
 
         let localVideo = document.createElement("video")
@@ -59,37 +82,47 @@ class FaceTrackingNetBackground extends React.Component {
             localVideo.height = localVideo.videoHeight;
         }
 
-        const model = await blazeface.load();
-
         var facePrediction = null;
         var newPrediction = {};
 
-        async function getUpdatedCoords() {
-            const curDate = new Date();
+        const that = this;
 
-            if (facePrediction == null || (curDate.getTime() - newPrediction.generated) > 100) {
+        localVideo.onplaying = async () => {
 
-                facePrediction = await model.estimateFaces(localVideo, false);
+            async function getUpdatedCoords() {
+                const curDate = new Date();
 
-                newPrediction = {
-                    prediction: facePrediction[0],
-                    generated: curDate.getTime()
+                if (that.state.active == false) {
+                    return;
                 }
 
-                ipcRenderer.invoke('face-tracking-update', { type: 'updated_coordinates', facePrediction: newPrediction });
+                if (facePrediction == null || (curDate.getTime() - newPrediction.generated) > 100) {
+
+                    try {
+                        facePrediction = await that.net.estimateFaces(localVideo, false);
+
+                        newPrediction = {
+                            prediction: facePrediction[0],
+                            generated: curDate.getTime()
+                        }
+        
+                        ipcRenderer.invoke('face-tracking-update', { type: 'updated_coordinates', facePrediction: newPrediction });
+
+                    } catch (error) {
+                        //do nothing
+                    }
+
+                }
+
+                requestAnimationFrame(getUpdatedCoords);
             }
 
-            requestAnimationFrame(getUpdatedCoords);
+            getUpdatedCoords();
         }
 
-        getUpdatedCoords();
-
     }
 
-    componentDidUpdate(prevProps, prevState) {
-    }
-
-    componentWillUnmount() {
+    stopFaceTracking() {
         const { raw_local_stream } = this.state;
 
         if (raw_local_stream != null) {
@@ -99,6 +132,13 @@ class FaceTrackingNetBackground extends React.Component {
                 track.stop();
             })
         }
+    }
+
+    componentDidUpdate(prevProps, prevState) {
+    }
+
+    componentWillUnmount() {
+        this.stopFaceTracking();
     }
 
     render() {

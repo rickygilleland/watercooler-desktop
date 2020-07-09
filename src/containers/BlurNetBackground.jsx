@@ -5,7 +5,7 @@ import BlurNetBackground from '../components/BlurNetBackground';
 
 function mapStateToProps(state) {
     return {
-        settings: state.settings
+        settings: state.settings,
     }
 }
 
