@@ -23,7 +23,7 @@ const initialState = {
     }
 }
 
-export default function user(state = initialState, action = {}) {
+export default function settings(state = initialState, action = {}) {
     var updatedState = {};
     switch (action.type) {
         case GET_AVAILABLE_DEVICES_STARTED:

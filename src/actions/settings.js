@@ -34,7 +34,7 @@ export function updateExperimentalSettingsSuccess(payload) {
 }
 
 
-export function updatetRoomSettingsSuccess(payload) {
+export function updateRoomSettingsSuccess(payload) {
     return {
         type: UPDATE_ROOM_SETTINGS_SUCCESS,
         payload
@@ -107,7 +107,7 @@ export function updateRoomSettings(settingToChange, updatedValue) {
                 updatedValue
             }
     
-            dispatch(updatetRoomSettingsSuccess(payload));        
+            dispatch(updateRoomSettingsSuccess(payload));        
         } catch (error) {
             //silently fail
         }
