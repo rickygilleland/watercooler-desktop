@@ -1261,7 +1261,9 @@ class Room extends React.Component {
             localVideoCanvasContainer, 
             publishers, 
             me,
-            heartbeatInterval
+            heartbeatInterval,
+            backgroundBlurEnabled,
+            videoIsFaceOnly,
         } = this.state;
 
         if (videoRoomStreamerHandle == null) {
@@ -1306,6 +1308,14 @@ class Room extends React.Component {
             localVideoCanvasContainer.remove();
         }
 
+        if (backgroundBlurEnabled) {
+            this.stopBackgroundBlur();
+        }
+
+        if (videoIsFaceOnly) {
+            this.stopFaceTracking();
+        }
+
         var updatedPublishers = [...publishers];
 
         updatedPublishers = updatedPublishers.filter(publisher => {
@@ -1343,7 +1353,7 @@ class Room extends React.Component {
 
     startFaceTracking() {
         const { user, faceTrackingNetWindow } = this.props;
-        const { videoRoomStreamerHandle } = this.state;
+        const { videoRoomStreamerHandle, room } = this.state;
 
         ipcRenderer.invoke('net-status-update', {
             window: faceTrackingNetWindow.id,
@@ -1363,11 +1373,13 @@ class Room extends React.Component {
                 text: JSON.stringify(dataMsg)
             });
         }
+
+        posthog.capture('face-tracking-started', {"room_id": room.id});
     }
 
     stopFaceTracking() {
         const { user, faceTrackingNetWindow } = this.props;
-        const { videoRoomStreamerHandle, videoIsFaceOnly } = this.state;
+        const { videoRoomStreamerHandle, videoIsFaceOnly, room } = this.state;
 
         if (videoRoomStreamerHandle != null) {
             let dataMsg = {
@@ -1390,10 +1402,13 @@ class Room extends React.Component {
             net: 'faceTracking',
             status: false,
         });
+
+        posthog.capture('face-tracking-stopped', {"room_id": room.id});
     }   
 
     startBackgroundBlur() {
         const { backgroundBlurWindow } = this.props;
+        const { room } = this.state;
 
         ipcRenderer.invoke('net-status-update', {
             window: backgroundBlurWindow.id,
@@ -1402,10 +1417,13 @@ class Room extends React.Component {
         });
 
         this.setState({ backgroundBlurEnabled: true });
+
+        posthog.capture('background-blur-started', {"room_id": room.id});
     }
 
     stopBackgroundBlur() {
         const { backgroundBlurWindow } = this.props;
+        const { room } = this.state;
 
         ipcRenderer.invoke('net-status-update', {
             window: backgroundBlurWindow.id,
@@ -1414,6 +1432,10 @@ class Room extends React.Component {
         });
 
         this.setState({ backgroundBlurEnabled: false });
+
+        console.log("RICKY STOPPED");
+
+        posthog.capture('background-blur-stopped', {"room_id": room.id});
     }   
 
     openScreenSharingHandle() {

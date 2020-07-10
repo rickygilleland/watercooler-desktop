@@ -54,6 +54,8 @@ class BlurNetBackground extends React.Component {
     async startBackgroundBlur() {
         const { settings } = this.props;
 
+        console.log("STARTED");
+
         let streamOptions;
         if (settings.defaultDevices != null && Object.keys(settings.defaultDevices).length !== 0) {
             streamOptions = {
@@ -92,10 +94,12 @@ class BlurNetBackground extends React.Component {
 
         localVideo.onplaying = async () => {
 
+            console.log("PLAYING");
+
             async function getUpdatedCoords() {
                 const curDate = new Date();
 
-                if (that.state.active == null) {
+                if (that.state.active == false) {
                     return;
                 }
 
@@ -104,6 +108,7 @@ class BlurNetBackground extends React.Component {
                     personSegmentation = await that.net.segmentPerson(localVideo, {
                         internalResolution: 'full',
                         segmentationThreshold: .8,
+                        scoreThreshold: 0.2,
                         maxDetections: 3,
                     });  
 
@@ -121,6 +126,8 @@ class BlurNetBackground extends React.Component {
 
     stopBackgroundBlur() {
         const { raw_local_stream } = this.state;
+
+        console.log("STOPPED")
 
         if (raw_local_stream != null) {
             const tracks = raw_local_stream.getTracks();
