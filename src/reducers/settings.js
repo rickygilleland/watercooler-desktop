@@ -5,17 +5,25 @@ import {
     GET_AVAILABLE_DEVICES_FAILURE,
     UPDATE_DEFAULT_DEVICES_SUCCESS,
     UPDATE_EXPERIMENTAL_SETTINGS_SUCCESS,
+    UPDATE_ROOM_SETTINGS_SUCCESS,
  } from '../actions/settings';
+import { StaticRouter } from 'react-router';
 
 const initialState = {
     devices: [],
     defaultDevices: {},
     experimentalSettings: {
         faceTracking: false
+    },
+    roomSettings: {
+        videoEnabled: false,
+        audioEnabled: true,
+        backgroundBlurEnabled: false,
+        backgroundBlurAmount: 30
     }
 }
 
-export default function user(state = initialState, action = {}) {
+export default function settings(state = initialState, action = {}) {
     var updatedState = {};
     switch (action.type) {
         case GET_AVAILABLE_DEVICES_STARTED:
@@ -66,6 +74,10 @@ export default function user(state = initialState, action = {}) {
                     videoInput: action.payload.videoInput,
                     audioInput: action.payload.audioInput,
                     audioOutput: action.payload.audioOutput,
+                },
+                roomSettings: {
+                    ...state.roomSettings,
+                    backgroundBlurAmount: action.payload.backgroundBlurAmount
                 }
             }
 
@@ -77,6 +89,16 @@ export default function user(state = initialState, action = {}) {
                     [action.payload.settingToChange]: action.payload.updatedValue
                 }
             }
+
+            break;
+        case UPDATE_ROOM_SETTINGS_SUCCESS:
+
+            updatedState = {
+                roomSettings: {
+                    ...state.roomSettings,
+                    [action.payload.settingToChange]: action.payload.updatedValue
+                }
+            }    
 
             break;
         default:

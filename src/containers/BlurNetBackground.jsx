@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { bindActionCreators, Dispatch } from 'redux';
-import FaceTrackingNetBackground from '../components/FaceTrackingNetBackground';
+import BlurNetBackground from '../components/BlurNetBackground';
 
 function mapStateToProps(state) {
     return {
@@ -9,4 +9,4 @@ function mapStateToProps(state) {
     }
 }
 
-export default connect(mapStateToProps)(FaceTrackingNetBackground)
+export default connect(mapStateToProps)(BlurNetBackground)

@@ -25,6 +25,7 @@ import RoomPage from '../containers/RoomPage';
 import TeamPage from '../containers/TeamPage';
 import ErrorBoundary from './ErrorBoundary';
 import SettingsModal from './SettingsModal';
+import RoomSettingsModal from './RoomSettingsModal';
 import ExperimentalSettingsModal from './ExperimentalSettingsModal';
 import ManageUsersModal from './ManageUsersModal';
 import InviteUsersModal from './InviteUsersModal';
@@ -32,6 +33,7 @@ import ManageCameraModal from './ManageCameraModal';
 import RoomsModal from './RoomsModal';
 import NewCallModal from './NewCallModal';
 import IncomingCallModal from './IncomingCallModal';
+const { BrowserWindow } = require('electron').remote
 
 import posthog from 'posthog-js';
 
@@ -55,6 +57,7 @@ class Sidebar extends React.Component {
             showInviteUsersModal: false,
             showManageUsersModal: false,
             showManageCameraModal: false,
+            showRoomSettingsModal: false,
             showRoomsModal: false,
             showCallsModal: false,
             showIncomingCallModal: false,
@@ -64,7 +67,9 @@ class Sidebar extends React.Component {
             organizationPresenceChannel: false,
             userPrivateNotificationChannel: false,
             organizationUsersOnline: [],
-            currentTime: DateTime.local()
+            currentTime: DateTime.local(),
+            backgroundBlurWindow: null,
+            faceTrackingNetWindow: null,
         }
         
         this.userLogout = this.userLogout.bind(this);
@@ -213,6 +218,32 @@ class Sidebar extends React.Component {
             pusherInstance.disconnect();
             this.setState({ organizationPresenceChannel: false, userPrivateNotificationChannel: false, pusherInstance: null });
         }
+
+        let backgroundBlurWindow = new BrowserWindow({ 
+            show: false,
+            webPreferences: {
+                nodeIntegration: true,
+                preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+                devTools: true,
+                backgroundThrottling: false
+            }
+        })
+
+        backgroundBlurWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/blur_net_background");
+
+        let faceTrackingNetWindow = new BrowserWindow({ 
+            show: false,
+            webPreferences: {
+                nodeIntegration: true,
+                preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+                devTools: true,
+                backgroundThrottling: false
+            }
+        })
+
+        faceTrackingNetWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/face_tracking_net_background");
+
+        this.setState({ backgroundBlurWindow, faceTrackingNetWindow });
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -230,7 +261,14 @@ class Sidebar extends React.Component {
 
     componentWillUnmount() {
         const { organization, user } = this.props;
-        const { organizationPresenceChannel, pusherInstance, timeInterval, updateInterval } = this.state;
+        const { 
+            organizationPresenceChannel, 
+            pusherInstance, 
+            timeInterval, 
+            updateInterval,
+            faceTrackingNetWindow,
+            backgroundBlurWindow
+        } = this.state;
 
         if (timeInterval != null) {
             clearInterval(timeInterval);
@@ -244,7 +282,14 @@ class Sidebar extends React.Component {
             pusherInstance.unsubscribe(`presence-room.${organization.id}`);
             pusherInstance.unsubscribe(`user.${user.id}`);
             pusherInstance.disconnect();
+        }
 
+        if (faceTrackingNetWindow != null) {
+            faceTrackingNetWindow.destroy();
+        }
+
+        if (backgroundBlurWindow != null) {
+            backgroundBlurWindow.destroy();
         }
     }
 
@@ -287,6 +332,10 @@ class Sidebar extends React.Component {
         if (modalToShow == "experimentalSettings") {
             return this.setState({ showSettingsModal: false, showExperimentalSettingsModal: true });
         }
+
+        if (modalToShow == "roomSettings") {
+            return this.setState({ showSettingsModal: false, showRoomSettingsModal: true });
+        }
     }
 
     render() {
@@ -306,6 +355,7 @@ class Sidebar extends React.Component {
             getAvailableDevices, 
             settings, 
             updateExperimentalSettings,
+            updateRoomSettings,
             updateDefaultDevices, 
             createRoom,
             createRoomSuccess,
@@ -315,6 +365,7 @@ class Sidebar extends React.Component {
         const { 
             currentTime,
             showSettingsModal,
+            showRoomSettingsModal,
             showExperimentalSettingsModal,
             showInviteUsersModal, 
             showManageUsersModal, 
@@ -326,7 +377,9 @@ class Sidebar extends React.Component {
             showManageCameraModal, 
             pusherInstance,
             userPrivateNotificationChannel,
-            organizationUsersOnline
+            organizationUsersOnline,
+            backgroundBlurWindow,
+            faceTrackingNetWindow,
         } = this.state;
 
         teams.forEach(team => {
@@ -510,6 +563,12 @@ class Sidebar extends React.Component {
                                 onShow={() => getAvailableDevices()}
                                 onHide={() => this.setState({ showManageCameraModal: false })}
                             />
+                            <RoomSettingsModal
+                                show={showRoomSettingsModal}
+                                settings={settings}
+                                updateRoomSettings={updateRoomSettings}
+                                onHide={() => this.setState({ showRoomSettingsModal: false })}
+                            />
                             <SettingsModal 
                                 show={showSettingsModal}
                                 handleShowModal={this.handleShowModal}
@@ -571,7 +630,19 @@ class Sidebar extends React.Component {
                                         <Route 
                                             path={routes.ROOM} 
                                             render={(routeProps) => (
-                                                <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} userPrivateNotificationChannel={userPrivateNotificationChannel} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
+                                                <ErrorBoundary 
+                                                showError={true}
+                                                >
+                                                    <RoomPage 
+                                                    {...routeProps} 
+                                                    pusherInstance={pusherInstance} 
+                                                    userPrivateNotificationChannel={userPrivateNotificationChannel} 
+                                                    key={routeProps.match.params.roomSlug} 
+                                                    currentTime={currentTime}  
+                                                    backgroundBlurWindow={backgroundBlurWindow}
+                                                    faceTrackingNetWindow={faceTrackingNetWindow}
+                                                />
+                                                </ErrorBoundary>
                                             )}
                                         />
                                         <Route 

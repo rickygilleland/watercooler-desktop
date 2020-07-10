@@ -4,52 +4,58 @@ import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import '@tensorflow/tfjs-backend-cpu';
 const bodyPix = require('@tensorflow-models/body-pix');
-const blazeface = require('@tensorflow-models/blazeface');
 
-class FaceTrackingNetBackground extends React.Component {
+class BlurNetBackground extends React.Component {
 
     constructor(props) {
         super(props);
 
         this.state = {
             raw_local_stream: null,
-            active: false
+            active: false,
         }
 
         this.startNet = this.startNet.bind(this);
-        this.startFaceTracking = this.startFaceTracking.bind(this);
-        this.stopFaceTracking = this.stopFaceTracking.bind(this);
+        this.startBackgroundBlur = this.startBackgroundBlur.bind(this);
+        this.stopBackgroundBlur = this.stopBackgroundBlur.bind(this);
 
         this.net = null;
     }
 
     componentDidMount() {
-        this.startNet();
+       this.startNet();
     }
 
     async startNet() {
-        this.net = await blazeface.load();
+        this.net = await bodyPix.load({
+            architecture: 'MobileNetV1',
+            outputStride: 16,
+            multiplier: 0.75,
+            quantBytes: 2
+        });
 
         ipcRenderer.on('net-status-update', (event, args) => {
-            if (args.net == "faceTracking") {
+            if (args.net == "backgroundBlur") {
                 if (args.status) {
                     if (this.state.raw_local_stream == null) {
 
                         this.setState({ active: true });
-                        return this.startFaceTracking();
+                        return this.startBackgroundBlur();
                     }
                 } else {
 
                     this.setState({ active: false });
-                    this.stopFaceTracking();
+                    this.stopBackgroundBlur();
                 }
             }
         })
     }
 
-    async startFaceTracking() {
+    async startBackgroundBlur() {
         const { settings } = this.props;
-        
+
+        console.log("STARTED");
+
         let streamOptions;
         if (settings.defaultDevices != null && Object.keys(settings.defaultDevices).length !== 0) {
             streamOptions = {
@@ -82,12 +88,13 @@ class FaceTrackingNetBackground extends React.Component {
             localVideo.height = localVideo.videoHeight;
         }
 
-        var facePrediction = null;
-        var newPrediction = {};
+        var personSegmentation = null;
 
         const that = this;
 
         localVideo.onplaying = async () => {
+
+            console.log("PLAYING");
 
             async function getUpdatedCoords() {
                 const curDate = new Date();
@@ -96,34 +103,31 @@ class FaceTrackingNetBackground extends React.Component {
                     return;
                 }
 
-                if (facePrediction == null || (curDate.getTime() - newPrediction.generated) > 100) {
+                if (that.net != null && personSegmentation == null || (curDate.getTime() - personSegmentation.generated) > 50) {
+    
+                    personSegmentation = await that.net.segmentPerson(localVideo, {
+                        internalResolution: 'full',
+                        segmentationThreshold: .8,
+                        scoreThreshold: 0.2,
+                        maxDetections: 3,
+                    });  
 
-                    try {
-                        facePrediction = await that.net.estimateFaces(localVideo, false);
-
-                        newPrediction = {
-                            prediction: facePrediction[0],
-                            generated: curDate.getTime()
-                        }
-        
-                        ipcRenderer.invoke('face-tracking-update', { type: 'updated_coordinates', facePrediction: newPrediction });
-
-                    } catch (error) {
-                        //do nothing
-                    }
-
+                    personSegmentation.generated = curDate.getTime();
+    
+                    ipcRenderer.invoke('background-blur-update', { type: 'updated_coordinates', personSegmentation });
                 }
-
+    
                 requestAnimationFrame(getUpdatedCoords);
             }
-
+    
             getUpdatedCoords();
         }
-
     }
 
-    stopFaceTracking() {
+    stopBackgroundBlur() {
         const { raw_local_stream } = this.state;
+
+        console.log("STOPPED")
 
         if (raw_local_stream != null) {
             const tracks = raw_local_stream.getTracks();
@@ -132,13 +136,12 @@ class FaceTrackingNetBackground extends React.Component {
                 track.stop();
             })
         }
-    }
 
-    componentDidUpdate(prevProps, prevState) {
+        this.setState({ raw_local_stream : null })
     }
 
     componentWillUnmount() {
-        this.stopFaceTracking();
+        this.stopBackgroundBlur();
     }
 
     render() {
@@ -146,4 +149,4 @@ class FaceTrackingNetBackground extends React.Component {
     }
 }
 
-export default FaceTrackingNetBackground;
+export default BlurNetBackground;

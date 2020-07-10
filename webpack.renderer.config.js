@@ -13,6 +13,15 @@ rules.push({
   use: 'exports-loader?Janus=Janus'
 });
 
+rules.push({
+  test: /\.wasm$/i,
+  use: [
+    {
+      loader: 'file-loader',
+    },
+  ],
+})
+
 module.exports = {
   // Put your normal webpack config below here
   module: {
@@ -26,12 +35,5 @@ module.exports = {
     // instead it expects a global object called 'adapter' for that.
     // Let's make that object available.
     new webpack.ProvidePlugin({ adapter: 'webrtc-adapter' }),
-    new SentryWebpackPlugin({
-      include: '.',
-      ignoreFile: '.sentrycliignore',
-      ignore: ['node_modules', 'webpack.config.js'],
-      configFile: 'sentry.properties',
-      release: "watercooler-desktop@" + package.version,
-    })
   ]
 };

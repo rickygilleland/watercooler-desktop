@@ -3,6 +3,7 @@ export const GET_AVAILABLE_DEVICES_SUCCESS = 'GET_AVAILABLE_DEVICES_SUCCESS';
 export const GET_AVAILABLE_DEVICES_FAILURE = 'GET_AVAILABLE_DEVICES_FAILURE';
 export const UPDATE_DEFAULT_DEVICES_SUCCESS = 'UPDATE_DEFAULT_DEVICES_SUCCESS';
 export const UPDATE_EXPERIMENTAL_SETTINGS_SUCCESS = 'UPDATE_EXPERIMENTAL_SETTINGS_SUCCESS';
+export const UPDATE_ROOM_SETTINGS_SUCCESS = 'UPDATE_ROOM_SETTINGS_SUCCESS';
 
 export function getAvailableDevicesSuccess(payload) {
     return {
@@ -32,6 +33,14 @@ export function updateExperimentalSettingsSuccess(payload) {
     };
 }
 
+
+export function updateRoomSettingsSuccess(payload) {
+    return {
+        type: UPDATE_ROOM_SETTINGS_SUCCESS,
+        payload
+    };
+}
+
 export function getAvailableDevices() {
     return (dispatch, getState) => {
         const state = getState();
@@ -50,7 +59,7 @@ export function getAvailableDevices() {
     }
 }
 
-export function updateDefaultDevices(defaultVideoInput, defaultAudioInput, defaultAudioOutput) {
+export function updateDefaultDevices(defaultVideoInput, defaultAudioInput, defaultAudioOutput, backgroundBlurAmount) {
     return (dispatch, getState) => {
         const state = getState();
 
@@ -58,7 +67,8 @@ export function updateDefaultDevices(defaultVideoInput, defaultAudioInput, defau
             var payload = {
                 videoInput: defaultVideoInput,
                 audioInput: defaultAudioInput,
-                audioOutput: defaultAudioOutput
+                audioOutput: defaultAudioOutput,
+                backgroundBlurAmount
             }
     
             dispatch(updateDefaultDevicesSuccess(payload));        
@@ -68,7 +78,6 @@ export function updateDefaultDevices(defaultVideoInput, defaultAudioInput, defau
 
     }
 }
-
 
 export function updateExperimentalSettings(settingToChange, updatedValue) {
     return (dispatch, getState) => {
@@ -81,6 +90,24 @@ export function updateExperimentalSettings(settingToChange, updatedValue) {
             }
     
             dispatch(updateExperimentalSettingsSuccess(payload));        
+        } catch (error) {
+            //silently fail
+        }
+
+    }
+}
+
+export function updateRoomSettings(settingToChange, updatedValue) {
+    return (dispatch, getState) => {
+        const state = getState();
+
+        try {
+            var payload = {
+                settingToChange,
+                updatedValue
+            }
+    
+            dispatch(updateRoomSettingsSuccess(payload));        
         } catch (error) {
             //silently fail
         }

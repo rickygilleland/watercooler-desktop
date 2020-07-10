@@ -1,7 +1,7 @@
 import React from 'react';
 import { ipcRenderer, desktopCapturer, systemPreferences } from 'electron';
 import update from 'immutability-helper';
-import { each, clone } from 'lodash';
+import { each, clone, truncate } from 'lodash';
 import { 
     Container, 
     Button, 
@@ -24,7 +24,10 @@ import {
     faLock,
     faDesktop,
     faWindowMaximize,
-    faSmile
+    faSmile,
+    faEllipsisV,
+    faTint,
+    faTintSlash,
 } from '@fortawesome/free-solid-svg-icons';
 import { Janus } from 'janus-gateway';
 import Pusher from 'pusher-js';
@@ -33,13 +36,19 @@ import AddUserToRoomModal from './AddUserToRoomModal';
 import ScreenSharingModal from './ScreenSharingModal';
 import posthog from 'posthog-js';
 import hark from 'hark';
-import Stats from 'stats.js';
+import { setTensorTracker } from '@tensorflow/tfjs-core/dist/tensor';
+import * as tf from '@tensorflow/tfjs-core';
+import '@tensorflow/tfjs-backend-webgl';
+import '@tensorflow/tfjs-backend-cpu';
+const bodyPix = require('@tensorflow-models/body-pix');
 const { BrowserWindow } = require('electron').remote
 
 class Room extends React.Component {
     constructor(props) {
     
         super(props);
+
+        const { settings } = this.props;
 
         this.state = {
             room: {},
@@ -78,10 +87,14 @@ class Room extends React.Component {
                 sidebarWidth: 280
             },
             pinned: false,
-            videoStatus: false,
-            audioStatus: true,
+            videoStatus: settings.roomSettings.videoEnabled,
+            audioStatus: settings.roomSettings.audioEnabled,
             videoIsFaceOnly: false,
             faceTrackingNetWindow: null,
+            backgroundBlurWindow: null,
+            backgroundBlurEnabled: settings.roomSettings.backgroundBlurEnabled,
+            backgroundBlurAmount: settings.roomSettings.backgroundBlurAmount / 5,
+            showMoreSettingsDropdown: false,
             streamer_server_connected: false,
             videoRoomStreamerHandle: null,
             rootStreamerHandle: null,
@@ -119,6 +132,8 @@ class Room extends React.Component {
 
         this.startFaceTracking = this.startFaceTracking.bind(this);
         this.stopFaceTracking = this.stopFaceTracking.bind(this);
+        this.startBackgroundBlur = this.startBackgroundBlur.bind(this);
+        this.stopBackgroundBlur = this.stopBackgroundBlur.bind(this);
 
         this.stopPublishingStream = this.stopPublishingStream.bind(this);
 
@@ -214,7 +229,16 @@ class Room extends React.Component {
 
     componentDidUpdate(prevProps, prevState) {
         const { match, location, pusherInstance, user, settings } = this.props;
-        const { initialized, dimensions, publishers, publishing, rootStreamerHandle, videoIsFaceOnly, videoStatus } = this.state;
+        const { 
+            initialized, 
+            dimensions, 
+            publishers, 
+            publishing, 
+            rootStreamerHandle, 
+            videoIsFaceOnly, 
+            videoStatus, 
+            backgroundBlurEnabled 
+        } = this.state;
 
         if (pusherInstance != null && initialized == false) {
             this.setState({ initialized: true }, () => {
@@ -280,8 +304,18 @@ class Room extends React.Component {
             }
         }
 
-        if (!videoStatus && prevState.videoStatus && videoIsFaceOnly) {
-            this.stopFaceTracking();
+        if (!videoStatus && prevState.videoStatus) {
+            if (videoIsFaceOnly) {
+                this.stopFaceTracking();
+            }
+
+            if (backgroundBlurEnabled) {
+                this.stopBackgroundBlur();
+            }
+        }
+
+        if (videoStatus && !prevState.videoStatus && settings.roomSettings.backgroundBlurEnabled) {
+            this.startBackgroundBlur();
         }
 
         if (prevProps.settings.experimentalSettings.faceTracking != settings.experimentalSettings.faceTracking) {
@@ -289,6 +323,10 @@ class Room extends React.Component {
                 this.stopFaceTracking();
                 this.setState({ videoIsFaceOnly: false });
             }
+        }
+
+        if (settings.roomSettings.backgroundBlurAmount != prevProps.settings.roomSettings.backgroundBlurAmount) {
+            this.setState({ backgroundBlurAmount: settings.roomSettings.backgroundBlurAmount / 5 });
         }
     }
     
@@ -301,8 +339,6 @@ class Room extends React.Component {
             publishers, 
             local_stream, 
             publishing, 
-            screenSharingWindow, 
-            faceTrackingNetWindow, 
             localVideoContainer, 
             heartbeatInterval 
         } = this.state;
@@ -330,14 +366,6 @@ class Room extends React.Component {
             //do something
         }
 
-        if (screenSharingWindow != null) {
-            screenSharingWindow.destroy();
-        }
-
-        if (faceTrackingNetWindow != null) {
-            faceTrackingNetWindow.destroy();
-        }
-
         if (userPrivateNotificationChannel !== false) {
             userPrivateNotificationChannel.unbind('call.declined');
         }
@@ -350,7 +378,10 @@ class Room extends React.Component {
         window.removeEventListener('online', this.reconnectNetworkConnections);
         window.removeEventListener('offline', this.disconnectNetworkConnections);
 
-        ipcRenderer.removeAllListeners();
+        ipcRenderer.removeAllListeners('power_update');
+        ipcRenderer.removeAllListeners('update-screen-sharing-controls');
+        ipcRenderer.removeAllListeners('face-tracking-update');
+        ipcRenderer.removeAllListeners('background-blur-update');
     }
 
     initializeRoom() {
@@ -741,6 +772,9 @@ class Room extends React.Component {
 
         let localVideoCanvas = document.createElement("canvas");
 
+        let backgroundBlurVideoCanvasCopy = document.createElement("canvas");
+        const backgroundBlurCanvasCtx = backgroundBlurVideoCanvasCopy.getContext('2d');
+
         localVideo.onloadedmetadata = () => {
             localVideo.width = localVideo.videoWidth;
             localVideo.height = localVideo.videoHeight;
@@ -748,13 +782,7 @@ class Room extends React.Component {
 
         var that = this;
 
-        const stats = new Stats();
-        stats.showPanel(0);
-        /*let statsDiv = document.body.appendChild(stats.dom);
-        statsDiv.style.top = null;
-        statsDiv.style.bottom = 0;*/
-
-        var personSegmentation = null;
+        var facePrediction = null;
 
         var drawParams = {
             sourceX: 0,
@@ -778,11 +806,29 @@ class Room extends React.Component {
 
         const ctx = localVideoCanvas.getContext('2d');
 
+        ipcRenderer.removeAllListeners('face-tracking-update');
         ipcRenderer.on('face-tracking-update', (event, args) => {
+            if (args.type == "updated_coordinates") {
+                facePrediction = args.facePrediction;
+            }
+        })
+
+        var personSegmentation = null;
+
+        ipcRenderer.removeAllListeners('background-blur-update');
+        ipcRenderer.on('background-blur-update', (event, args) => {
             if (args.type == "updated_coordinates") {
                 personSegmentation = args.personSegmentation;
             }
         })
+
+        if (settings.roomSettings.backgroundBlurEnabled) {
+            this.startBackgroundBlur();
+        }
+
+        const edgeBlurAmount = 5;
+        const flipHorizontal = false;
+
 
         localVideo.onplaying = async () => {
 
@@ -796,14 +842,26 @@ class Room extends React.Component {
                     return requestAnimationFrame(bodySegmentationFrame);
                 }
 
-                stats.begin();
-
-                if (!that.state.videoIsFaceOnly || personSegmentation == null) {
-
-                    personSegmentation = null;
+                if (!that.state.videoIsFaceOnly || facePrediction == null) {    
 
                     localVideoCanvas.width = localVideo.width;
                     localVideoCanvas.height = localVideo.height;
+
+                    if (personSegmentation != null && that.state.backgroundBlurEnabled) {
+
+                        bodyPix.drawBokehEffect(
+                            localVideoCanvas, 
+                            localVideo, 
+                            personSegmentation, 
+                            that.state.backgroundBlurAmount,
+                            edgeBlurAmount, 
+                            flipHorizontal
+                        );
+
+                        return requestAnimationFrame(bodySegmentationFrame);
+                    }
+
+                    facePrediction = null;
 
                     ctx.drawImage(
                         localVideo, 0, 0
@@ -812,13 +870,10 @@ class Room extends React.Component {
                     return requestAnimationFrame(bodySegmentationFrame);
                 }
 
-                if ((personSegmentation.allPoses.length == 0 || 
-                        (personSegmentation.allPoses[0].score < .3 && (drawParams.sourceNoseScore > 0 && drawParams.sourceNoseScore < .3))) 
-                        && avatarImageLoaded) 
-                    {
-                    //ctx.drawImage(avatarImage, 0, 0);
+                if (typeof facePrediction.prediction == "undefined" || facePrediction.prediction.probability[0] < .2 && avatarImageLoaded) {
+                     //ctx.drawImage(avatarImage, 0, 0);
 
-                    if (localVideoCanvas.width != 400) {
+                     if (localVideoCanvas.width != 400) {
                         localVideoCanvas.width = 400;
                         localVideoCanvas.height = 400;
                     }
@@ -828,30 +883,43 @@ class Room extends React.Component {
                     return requestAnimationFrame(bodySegmentationFrame);
                 }
 
-                let xBufferAmount = 200;
-                let yBufferAmount = 200;
-
                 if (drawParams.sourceX == 0 || drawParams.sourceY == 0) {
 
                     drawParams = {
-                        sourceX: (personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount) > localVideo.width || (personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount) < 0 ? 0 : personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount,
-                        sourceY: (personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount) > localVideo.height || (personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount) < 0 ? 0 : personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount,
-                        sourceWidth: localVideo.width,
-                        sourceHeight: localVideo.height,
+                        sourceX: facePrediction.prediction.topLeft[0] - 100,
+                        sourceY: facePrediction.prediction.topLeft[1] - 125,
+                        sourceWidth: 400,
+                        sourceHeight: 400,
                         destinationX: 0,
                         destinationY: 0,
-                        destinationWidth: localVideo.width,
-                        destinationHeight: localVideo.height,
-                        sourceNoseScore: personSegmentation.allPoses[0].score,
+                        destinationWidth: 400,
+                        destinationHeight: 400,
+                        sourceNoseScore: facePrediction.prediction.probability[0],
                     }
+
+                    /*
+
+                     drawParams = {
+                        sourceX: facePrediction.prediction.topLeft[0],
+                        sourceY: facePrediction.prediction.topLeft[1],
+                        sourceWidth: facePrediction.prediction.bottomRight[0] - facePrediction.prediction.topLeft[0],
+                        sourceHeight: facePrediction.prediction.bottomRight[1] - facePrediction.prediction.topLeft[1],
+                        destinationX: 0,
+                        destinationY: 0,
+                        destinationWidth: facePrediction.prediction.bottomRight[0] - facePrediction.prediction.topLeft[0],
+                        destinationHeight: facePrediction.prediction.bottomRight[1] - facePrediction.prediction.topLeft[1],
+                        sourceNoseScore: facePrediction.prediction.probability[0],
+                    }
+
+                    */
                 }
 
-                if (Math.abs(drawParams.sourceX - (personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount)) > 20 || Math.abs(drawParams.sourceY - (personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount)) > 20) {
+                if (Math.abs(drawParams.sourceX - (facePrediction.prediction.topLeft[0] - 100)) > 20 || Math.abs(drawParams.sourceY - (facePrediction.prediction.topLeft[1] - 125)) > 20) {
 
                     let drawParamsCopy = {...drawParams};
 
                     return requestAnimationFrame(() => { 
-                        gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, personSegmentation.allPoses[0].keypoints[0].position.x - xBufferAmount, personSegmentation.allPoses[0].keypoints[0].position.y - yBufferAmount);
+                        gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, facePrediction.prediction.topLeft[0] - 100, facePrediction.prediction.topLeft[1] - 125);
                     });
 
                 } 
@@ -865,6 +933,33 @@ class Room extends React.Component {
                 ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
                 ctx.fillRect(0, 0, 400, 400);
 
+                if (personSegmentation != null && that.state.backgroundBlurEnabled) {
+
+                    bodyPix.drawBokehEffect(
+                        backgroundBlurVideoCanvasCopy, 
+                        localVideo, 
+                        personSegmentation, 
+                        that.state.backgroundBlurAmount,
+                        edgeBlurAmount, 
+                        flipHorizontal
+                    );
+
+                    ctx.drawImage(
+                        backgroundBlurVideoCanvasCopy,
+                        drawParams.sourceX,
+                        drawParams.sourceY,
+                        drawParams.sourceWidth,
+                        drawParams.sourceHeight,
+                        drawParams.destinationX,
+                        drawParams.destinationY,
+                        drawParams.destinationWidth,
+                        drawParams.destinationHeight,
+                    );
+
+                    return requestAnimationFrame(bodySegmentationFrame);
+
+                }
+
                 ctx.drawImage(
                     localVideo,
                     drawParams.sourceX,
@@ -876,23 +971,6 @@ class Room extends React.Component {
                     drawParams.destinationWidth,
                     drawParams.destinationHeight,
                 );
-
-                const backgroundBlurAmount = 3.5;
-                const edgeBlurAmount = 20;
-                const flipHorizontal = false;
-
-                /*let bokehSegmentation = await net.segmentPerson(localVideoCanvas);
-
-                bodyPix.drawBokehEffect(
-                    localVideoCanvas, 
-                    localVideoCanvas, 
-                    bokehSegmentation, 
-                    backgroundBlurAmount,
-                    edgeBlurAmount, 
-                    flipHorizontal
-                );*/
-
-                stats.end();
 
                 requestAnimationFrame(bodySegmentationFrame);
                 
@@ -910,23 +988,21 @@ class Room extends React.Component {
                     return requestAnimationFrame(bodySegmentationFrame);
                 }
 
-                if (personSegmentation.allPoses.length == 0) {
+                if (typeof facePrediction.prediction == "undefined" || facePrediction.prediction.length == 0) {
                     return requestAnimationFrame(bodySegmentationFrame);
                 }
 
-                if (personSegmentation.allPoses.length > 0) {
-                    if ((personSegmentation.allPoses[0].keypoints[0].position.x - 200) != targetX || (personSegmentation.allPoses[0].keypoints[0].position.y - 200) != targetY) {
-                        if (Math.abs(targetX - (personSegmentation.allPoses[0].keypoints[0].position.x - 200)) > 20 || Math.abs(targetY - (personSegmentation.allPoses[0].keypoints[0].position.y - 200)) > 20) {
+                if (facePrediction.prediction.length > 0) {
+                    if ((facePrediction.prediction.topLeft[0] - 100) != targetX || (facePrediction.prediction.topLeft[1] - 125) != targetY) {
+                        if (Math.abs(targetX - (facePrediction.prediction.topLeft[0] - 100)) > 20 || Math.abs(targetY - (facePrediction.prediction.topLeft[1] - 125)) > 20) {
                             let drawParamsCopy = {...drawParams};
 
                             return requestAnimationFrame(() => { 
-                                gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, personSegmentation.allPoses[0].keypoints[0].position.x - 200, personSegmentation.allPoses[0].keypoints[0].position.y - 200);
+                                gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, facePrediction.prediction.topLeft[0] - 100, facePrediction.prediction.topLeft[1]- 125);
                             });
                         }
                     }
                 }
-
-                stats.begin();
 
                 if (initialX > targetX) {
                     //going to the right
@@ -967,8 +1043,9 @@ class Room extends React.Component {
                     destinationY: 0,
                     destinationWidth: localVideo.width,
                     destinationHeight: localVideo.height,
-                    sourceNoseScore: personSegmentation.allPoses[0].score,
+                    sourceNoseScore: facePrediction.prediction.probability[0],
                 }
+                
 
                 if (localVideoCanvas.width != 400) {
                     localVideoCanvas.width = 400;
@@ -978,19 +1055,42 @@ class Room extends React.Component {
                 ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
                 ctx.fillRect(0, 0, 400, 400);
 
-                ctx.drawImage(
-                    localVideo,
-                    drawParams.sourceX,
-                    drawParams.sourceY,
-                    drawParams.sourceWidth,
-                    drawParams.sourceHeight,
-                    drawParams.destinationX,
-                    drawParams.destinationY,
-                    drawParams.destinationWidth,
-                    drawParams.destinationHeight,
-                );
+                if (personSegmentation != null && that.state.backgroundBlurEnabled) {
 
-                stats.end();
+                    bodyPix.drawBokehEffect(
+                        backgroundBlurVideoCanvasCopy, 
+                        localVideo, 
+                        personSegmentation, 
+                        that.state.backgroundBlurAmount,
+                        edgeBlurAmount, 
+                        flipHorizontal
+                    );
+
+                    ctx.drawImage(
+                        backgroundBlurVideoCanvasCopy,
+                        drawParams.sourceX,
+                        drawParams.sourceY,
+                        drawParams.sourceWidth,
+                        drawParams.sourceHeight,
+                        drawParams.destinationX,
+                        drawParams.destinationY,
+                        drawParams.destinationWidth,
+                        drawParams.destinationHeight,
+                    );
+
+                } else {
+                    ctx.drawImage(
+                        localVideo,
+                        drawParams.sourceX,
+                        drawParams.sourceY,
+                        drawParams.sourceWidth,
+                        drawParams.sourceHeight,
+                        drawParams.destinationX,
+                        drawParams.destinationY,
+                        drawParams.destinationWidth,
+                        drawParams.destinationHeight,
+                    );
+                }
 
                 if (typeof newX == "undefined" && typeof newY == "undefined") {
                     //nothing changed, break out of this loop
@@ -1156,18 +1256,15 @@ class Room extends React.Component {
             screenSharingHandle, 
             screenSharingStream, 
             screenSharingWindow, 
-            faceTrackingNetWindow, 
             local_stream, 
             localVideoContainer, 
             localVideoCanvasContainer, 
             publishers, 
             me,
-            heartbeatInterval
+            heartbeatInterval,
+            backgroundBlurEnabled,
+            videoIsFaceOnly,
         } = this.state;
-
-        if (faceTrackingNetWindow != null) {
-            faceTrackingNetWindow.destroy();
-        }
 
         if (videoRoomStreamerHandle == null) {
             return;
@@ -1211,6 +1308,14 @@ class Room extends React.Component {
             localVideoCanvasContainer.remove();
         }
 
+        if (backgroundBlurEnabled) {
+            this.stopBackgroundBlur();
+        }
+
+        if (videoIsFaceOnly) {
+            this.stopFaceTracking();
+        }
+
         var updatedPublishers = [...publishers];
 
         updatedPublishers = updatedPublishers.filter(publisher => {
@@ -1247,20 +1352,15 @@ class Room extends React.Component {
     }
 
     startFaceTracking() {
-        const { user } = this.props;
-        const { videoRoomStreamerHandle } = this.state;
+        const { user, faceTrackingNetWindow } = this.props;
+        const { videoRoomStreamerHandle, room } = this.state;
 
-        let faceTrackingNetWindow = new BrowserWindow({ 
-            show: false,
-            webPreferences: {
-                nodeIntegration: true,
-                preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-                devTools: false,
-                backgroundThrottling: false
-            }
-        })
+        ipcRenderer.invoke('net-status-update', {
+            window: faceTrackingNetWindow.id,
+            net: 'faceTracking',
+            status: true,
+        });
 
-        faceTrackingNetWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/face_tracking_net_background");
 
         if (videoRoomStreamerHandle != null) {
             let dataMsg = {
@@ -1274,16 +1374,12 @@ class Room extends React.Component {
             });
         }
 
-        this.setState({ faceTrackingNetWindow });
+        posthog.capture('face-tracking-started', {"room_id": room.id});
     }
 
     stopFaceTracking() {
-        const { user } = this.props;
-        const { faceTrackingNetWindow, videoRoomStreamerHandle, videoIsFaceOnly } = this.state;
-
-        if (faceTrackingNetWindow != null) {
-            faceTrackingNetWindow.destroy();
-        }
+        const { user, faceTrackingNetWindow } = this.props;
+        const { videoRoomStreamerHandle, videoIsFaceOnly, room } = this.state;
 
         if (videoRoomStreamerHandle != null) {
             let dataMsg = {
@@ -1301,7 +1397,45 @@ class Room extends React.Component {
             this.setState({ videoIsFaceOnly: false })
         }
 
-        this.setState({ faceTrackingNetWindow: null })
+        ipcRenderer.invoke('net-status-update', {
+            window: faceTrackingNetWindow.id,
+            net: 'faceTracking',
+            status: false,
+        });
+
+        posthog.capture('face-tracking-stopped', {"room_id": room.id});
+    }   
+
+    startBackgroundBlur() {
+        const { backgroundBlurWindow } = this.props;
+        const { room } = this.state;
+
+        ipcRenderer.invoke('net-status-update', {
+            window: backgroundBlurWindow.id,
+            net: 'backgroundBlur',
+            status: true,
+        });
+
+        this.setState({ backgroundBlurEnabled: true });
+
+        posthog.capture('background-blur-started', {"room_id": room.id});
+    }
+
+    stopBackgroundBlur() {
+        const { backgroundBlurWindow } = this.props;
+        const { room } = this.state;
+
+        ipcRenderer.invoke('net-status-update', {
+            window: backgroundBlurWindow.id,
+            net: 'backgroundBlur',
+            status: false,
+        });
+
+        this.setState({ backgroundBlurEnabled: false });
+
+        console.log("RICKY STOPPED");
+
+        posthog.capture('background-blur-stopped', {"room_id": room.id});
     }   
 
     openScreenSharingHandle() {
@@ -2000,7 +2134,9 @@ class Room extends React.Component {
             videoSizes, 
             pinned,
             currentLoadingMessage,
-            showAddUserToRoomModal 
+            showAddUserToRoomModal,
+            backgroundBlurEnabled,
+            showMoreSettingsDropdown,
         } = this.state;
 
         return (
@@ -2112,17 +2248,28 @@ class Room extends React.Component {
                                         :
                                             room.video_enabled ?
                                                 <React.Fragment>
-                                                    {videoStatus && settings.experimentalSettings.faceTracking ? <Button variant={videoIsFaceOnly ? "success" : "danger"} className="mx-1" onClick={() => this.setState({ videoIsFaceOnly: videoIsFaceOnly ? false : true }) }><FontAwesomeIcon icon={faSmile} /></Button> : ''}
                                                     <Button variant={videoStatus ? "success" : "danger"} className="mx-1 ph-no-capture" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                                 </React.Fragment>
                                             :
                                             <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Video is disabled in this room.</Tooltip>}>
                                                 <span className="d-inline-block">
-                                            
                                                 <Button variant={videoStatus ? "success" : "danger"} className="mx-1 ph-no-capture" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                                 </span>
                                             </OverlayTrigger> 
                                     }
+                                    <Dropdown className="p-0 m-0" as="span">
+                                        <Dropdown.Toggle variant="info" id="more-settings-dropdown" className="mx-1 no-carat">
+                                            <FontAwesomeIcon icon={faEllipsisV} />
+                                        </Dropdown.Toggle>
+                                        <Dropdown.Menu show={showMoreSettingsDropdown}>
+                                            <Dropdown.Item className="no-hover-bg">
+                                                <Button variant={backgroundBlurEnabled ? "danger" : "success"} className="mx-1 ph-no-capture" disabled={videoStatus ? false : true} onClick={() => backgroundBlurEnabled ? this.stopBackgroundBlur() : this.startBackgroundBlur() } block><FontAwesomeIcon icon={backgroundBlurEnabled ? faTint : faTintSlash} /> {backgroundBlurEnabled ? 'Disable' : 'Enable' } Background Blur</Button>
+                                            </Dropdown.Item>
+                                            <Dropdown.Item className="no-hover-bg">
+                                                {settings.experimentalSettings.faceTracking ? <Button variant={videoIsFaceOnly ? "danger" : "success"} className="mx-1" disabled={videoStatus ? false : true} onClick={() => this.setState({ videoIsFaceOnly: videoIsFaceOnly ? false : true }) } block><FontAwesomeIcon icon={faSmile} /> {videoIsFaceOnly ? 'Disable' : 'Enable' } Face Tracking</Button> : ''}
+                                            </Dropdown.Item>
+                                        </Dropdown.Menu>
+                                    </Dropdown>
                                 </div>
                                 <div style={{height:60}}></div>
                                 {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}
