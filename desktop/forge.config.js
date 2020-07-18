@@ -1,6 +1,6 @@
 module.exports = {
     "packagerConfig": {
-        "icon": "icons/app",
+        "icon": "../icons/app",
         "extendInfo": "./src/info.plist",
         "osxSign": {
             "hardened-runtime": true,
