@@ -65,7 +65,7 @@
     "electron-context-menu": "^1.0.0",
     "electron-squirrel-startup": "^1.0.0",
     "electron-store": "^5.1.1",
-    "exports-loader": "^0.7.0",
+    "exports-loader": "^1.1.0",
     "hark": "^1.2.3",
     "immutability-helper": "^3.0.2",
     "immutable": "^4.0.0-rc.12",

@@ -9,25 +9,8 @@ import Sidebar from './containers/Sidebar';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoginPage from './containers/LoginPage';
 import MagicLoginPage from './containers/MagicLoginPage';
-import ScreenShareControls from './components/ScreenShareControls';
-import FaceTrackingNetBackground from './containers/FaceTrackingNetBackground';
-import BlurNetBackground from './containers/BlurNetBackground';
 import LoadingPage from './containers/LoadingPage';
 import posthog from 'posthog-js';
-
-if (process.env.REACT_APP_PLATFORM != "web") {
-  const customTitlebar = require('custom-electron-titlebar');
-
-  var path = window.location.href;
-  path = path.substring(path.lastIndexOf("#") + 1);
-
-  if (path != "/screensharing_controls") {
-    new customTitlebar.Titlebar({
-      backgroundColor: customTitlebar.Color.fromHex('#121422'),
-      overflow: "hidden",
-    });
-  }
-}
 
 posthog.init('64tUVTgJhFVIV7BADDLYHN-zG2Ja1yqzOI_SE8Pytc4', {api_host: 'https://analytics.watercooler.work'});
 
@@ -47,9 +30,6 @@ export default class App extends React.Component {
               <Route path={routes.LOGIN} component={LoginPage} />
               <Route path={routes.MAGIC_LOGIN} component={MagicLoginPage} />
               <Route path={routes.LOADING} component={LoadingPage} />
-              <Route path="/screensharing_controls" exact component={ScreenShareControls} />
-              <Route path="/face_tracking_net_background" exact component={FaceTrackingNetBackground} />
-              <Route path="/blur_net_background" exact component={BlurNetBackground} />
               <Route path="/*" component={Sidebar} />
             </Switch>
           </ConnectedRouter>

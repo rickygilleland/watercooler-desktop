@@ -1,5 +1,4 @@
 import React from 'react';
-import { ipcRenderer, desktopCapturer, systemPreferences } from 'electron';
 import update from 'immutability-helper';
 import { each, clone, truncate } from 'lodash';
 import { 
@@ -41,7 +40,19 @@ import * as tf from '@tensorflow/tfjs-core';
 import '@tensorflow/tfjs-backend-webgl';
 import '@tensorflow/tfjs-backend-cpu';
 const bodyPix = require('@tensorflow-models/body-pix');
-const { BrowserWindow } = require('electron').remote
+if (process.env.REACT_APP_PLATFORM != "web") {
+    const { BrowserWindow } = require('electron').remote
+    const ipcRenderer = require('electron');
+    const desktopCapturer = require('electron');
+    const systemPreferences = require('electron');
+} else {
+    var BrowserWindow = null;
+    var MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY = null;
+    var MAIN_WINDOW_WEBPACK_ENTRY = null;
+    var ipcRenderer = null;
+    var desktopCapturer = null;
+    var systemPreferences = null;
+}
 
 class Room extends React.Component {
     constructor(props) {
@@ -159,11 +170,13 @@ class Room extends React.Component {
             this.setState({ isCall: true });
         }
 
-        ipcRenderer.invoke('get-media-access-status', { mediaType: "screen" }).then(response => {
-            if (response == "granted") {
-                this.getAvailableScreensToShare();
-            }
-        })
+        if (process.env.REACT_APP_PLATFORM != "web") {
+            ipcRenderer.invoke('get-media-access-status', { mediaType: "screen" }).then(response => {
+                if (response == "granted") {
+                    this.getAvailableScreensToShare();
+                }
+            })
+        }
 
         window.addEventListener('resize', this.handleResize);
         this.handleResize();
@@ -171,45 +184,48 @@ class Room extends React.Component {
         window.addEventListener('online',  this.reconnectNetworkConnections);
         window.addEventListener('offline',  this.disconnectNetworkConnections);
 
-        ipcRenderer.on('power_update', (event, arg) => {
-            if (arg == "suspend" || arg == "lock-screen") {
-                this.disconnectNetworkConnections();
-            }
-            if (arg == "unlock-screen" || arg == "resume") {
-                this.reconnectNetworkConnections();
-            }
-        })
-
-        ipcRenderer.on('update-screen-sharing-controls', (event, args) => {
-            if (typeof args.toggleVideoOrAudio != "undefined") {
-                return this.toggleVideoOrAudio(args.toggleVideoOrAudio);
-            }
-
-            if (typeof args.toggleScreenSharing != "undefined") {
-                if (typeof args.entireScreen != "undefined" && args.toggleScreenSharing == true) {
-                    return this.toggleScreenSharing("entire-screen");
+        if (process.env.REACT_APP_PLATFORM != "web") {
+            ipcRenderer.on('power_update', (event, arg) => {
+                if (arg == "suspend" || arg == "lock-screen") {
+                    this.disconnectNetworkConnections();
                 }
-                return this.toggleScreenSharing();
-            }
+                if (arg == "unlock-screen" || arg == "resume") {
+                    this.reconnectNetworkConnections();
+                }
+            })
+        
 
-            if (typeof args.leaveRoom != "undefined") {
-                return this.stopPublishingStream();
-            }
+            ipcRenderer.on('update-screen-sharing-controls', (event, args) => {
+                if (typeof args.toggleVideoOrAudio != "undefined") {
+                    return this.toggleVideoOrAudio(args.toggleVideoOrAudio);
+                }
 
-            ipcRenderer.invoke('update-screen-sharing-controls', {
-                videoStatus: this.state.videoStatus,
-                audioStatus: this.state.audioStatus,
-                videoEnabled: this.state.room.video_enabled,
-                screenSharingWindow: this.state.screenSharingWindow.id
-            });
+                if (typeof args.toggleScreenSharing != "undefined") {
+                    if (typeof args.entireScreen != "undefined" && args.toggleScreenSharing == true) {
+                        return this.toggleScreenSharing("entire-screen");
+                    }
+                    return this.toggleScreenSharing();
+                }
 
-            ipcRenderer.invoke('update-tray-icon', {
-                videoStatus: this.state.videoStatus,
-                audioStatus: this.state.audioStatus,
-                videoEnabled: this.state.room.video_enabled,
-                screenSharingActive: this.state.screenSharingActive
-            });
-        })
+                if (typeof args.leaveRoom != "undefined") {
+                    return this.stopPublishingStream();
+                }
+
+                ipcRenderer.invoke('update-screen-sharing-controls', {
+                    videoStatus: this.state.videoStatus,
+                    audioStatus: this.state.audioStatus,
+                    videoEnabled: this.state.room.video_enabled,
+                    screenSharingWindow: this.state.screenSharingWindow.id
+                });
+
+                ipcRenderer.invoke('update-tray-icon', {
+                    videoStatus: this.state.videoStatus,
+                    audioStatus: this.state.audioStatus,
+                    videoEnabled: this.state.room.video_enabled,
+                    screenSharingActive: this.state.screenSharingActive
+                });
+            })
+        }
 
         Janus.init({
             debug: true,
@@ -378,14 +394,16 @@ class Room extends React.Component {
         window.removeEventListener('online', this.reconnectNetworkConnections);
         window.removeEventListener('offline', this.disconnectNetworkConnections);
 
-        ipcRenderer.removeAllListeners('power_update');
-        ipcRenderer.removeAllListeners('update-screen-sharing-controls');
-        ipcRenderer.removeAllListeners('face-tracking-update');
-        ipcRenderer.removeAllListeners('background-blur-update');
+        if (process.env.REACT_APP_PLATFORM != "web") {
+            ipcRenderer.removeAllListeners('power_update');
+            ipcRenderer.removeAllListeners('update-screen-sharing-controls');
+            ipcRenderer.removeAllListeners('face-tracking-update');
+            ipcRenderer.removeAllListeners('background-blur-update');
+        }
     }
 
     initializeRoom() {
-        const { teams, match, location, pusherInstance, getRoomUsers, userPrivateNotificationChannel } = this.props;
+        const { push, teams, match, location, pusherInstance, getRoomUsers, userPrivateNotificationChannel } = this.props;
 
         var curTeam = {};
         var curRoom = {};
@@ -463,7 +481,7 @@ class Room extends React.Component {
     }
 
     reconnectNetworkConnections() {
-        const { pusherInstance } = this.props;
+        const { pusherInstance, getRoomUsers } = this.props;
         const { room, showAddUserToRoomModal } = this.state
 
         Janus.init({
@@ -484,7 +502,7 @@ class Room extends React.Component {
             }
 
             if (event == "room.user.invited" && that.state.showAddUserToRoomModal == false) {
-                getRoomUsers(curRoom.id);
+                getRoomUsers(room.id);
             }
 
         });
@@ -767,8 +785,9 @@ class Room extends React.Component {
 
         let localVideo = document.createElement("video")
         localVideo.srcObject = raw_local_stream;
-        localVideo.autoplay = true;
         localVideo.muted = true;
+        localVideo.autoplay = true;
+        localVideo.play();
 
         let localVideoCanvas = document.createElement("canvas");
 
@@ -799,28 +818,31 @@ class Room extends React.Component {
         var avatarImage = new Image;
         var avatarImageLoaded = false;
         avatarImage.onload = () => {
-            console.log("loaded");
             avatarImageLoaded = true;
         }
         avatarImage.src = user.avatar_url;
 
         const ctx = localVideoCanvas.getContext('2d');
 
-        ipcRenderer.removeAllListeners('face-tracking-update');
-        ipcRenderer.on('face-tracking-update', (event, args) => {
-            if (args.type == "updated_coordinates") {
-                facePrediction = args.facePrediction;
-            }
-        })
+        if (process.env.REACT_APP_PLATFORM != "web") {
+            ipcRenderer.removeAllListeners('face-tracking-update');
+            ipcRenderer.on('face-tracking-update', (event, args) => {
+                if (args.type == "updated_coordinates") {
+                    facePrediction = args.facePrediction;
+                }
+            })
+        }
 
         var personSegmentation = null;
 
-        ipcRenderer.removeAllListeners('background-blur-update');
-        ipcRenderer.on('background-blur-update', (event, args) => {
-            if (args.type == "updated_coordinates") {
-                personSegmentation = args.personSegmentation;
-            }
-        })
+        if (process.env.REACT_APP_PLATFORM != "web") {
+            ipcRenderer.removeAllListeners('background-blur-update');
+            ipcRenderer.on('background-blur-update', (event, args) => {
+                if (args.type == "updated_coordinates") {
+                    personSegmentation = args.personSegmentation;
+                }
+            })
+        }
 
         if (settings.roomSettings.backgroundBlurEnabled) {
             this.startBackgroundBlur();
@@ -828,7 +850,6 @@ class Room extends React.Component {
 
         const edgeBlurAmount = 5;
         const flipHorizontal = false;
-
 
         localVideo.onplaying = async () => {
 
@@ -1101,10 +1122,14 @@ class Room extends React.Component {
                     gradualFrameMove(initialX, initialY, targetX, targetY);
                 })
             };
+
+            console.log("called 6");
         
             bodySegmentationFrame();
 
             const local_stream = localVideoCanvas.captureStream(60);
+
+            console.log("called stream", local_stream);
 
             let raw_tracks = raw_local_stream.getTracks();
             raw_tracks.forEach(track => {
@@ -1181,7 +1206,7 @@ class Room extends React.Component {
                         "audio": true,
                         "video": true,
                         "data": true,
-                        "videocodec": "vp9"
+                        "videocodec": "vp8"
                     }
                     /*var request = {
                         "request": "publish",
@@ -1233,13 +1258,15 @@ class Room extends React.Component {
 
                     that.setState({ publishing: true, publishers: updatedPublishers, heartbeatInterval });
 
-                    ipcRenderer.invoke('update-tray-icon', {
-                        enable: true,
-                        videoStatus,
-                        audioStatus,
-                        videoEnabled: that.state.room.video_enabled,
-                        screenSharingActive: that.state.screenSharingActive
-                    });
+                    if (process.env.REACT_APP_PLATFORM != "web") {
+                        ipcRenderer.invoke('update-tray-icon', {
+                            enable: true,
+                            videoStatus,
+                            audioStatus,
+                            videoEnabled: that.state.room.video_enabled,
+                            screenSharingActive: that.state.screenSharingActive
+                        });
+                    }
                     
 
                     that.handleRemoteStreams();
@@ -1331,9 +1358,11 @@ class Room extends React.Component {
             
         })
 
-        ipcRenderer.invoke('update-tray-icon', {
-            disable: true
-        });
+        if (process.env.REACT_APP_PLATFORM != "web") {
+            ipcRenderer.invoke('update-tray-icon', {
+                disable: true
+            });
+        }
 
         if (heartbeatInterval != null) {
             clearInterval(heartbeatInterval);
@@ -1497,7 +1526,7 @@ class Room extends React.Component {
                     "request": "publish",
                     "audio": false,
                     "video": true,
-                    "videocodec": "vp9"
+                    "videocodec": "vp8"
                 }
 
                 screenSharingHandle.send({ "message": request, "jsep": jsep });
@@ -1940,12 +1969,14 @@ class Room extends React.Component {
                 });
             }
 
-            ipcRenderer.invoke('update-tray-icon', {
-                updatedVideoStatus,
-                updatedAudioStatus,
-                videoEnabled: this.state.room.video_enabled,
-                screenSharingActive: this.state.screenSharingActive
-            });
+            if (process.env.REACT_APP_PLATFORM != "web") {
+                ipcRenderer.invoke('update-tray-icon', {
+                    updatedVideoStatus,
+                    updatedAudioStatus,
+                    videoEnabled: this.state.room.video_enabled,
+                    screenSharingActive: this.state.screenSharingActive
+                });
+            }
 
             if (type == "video") {
                 posthog.capture('video-toggled', {"room_id": room.id, "video-enabled": updatedVideoStatus});
@@ -2215,9 +2246,9 @@ class Room extends React.Component {
                         {local_stream ?
                             <div className="d-flex flex-row flex-nowrap justify-content-end">
                                 <div className="align-self-center pr-4">
-                                    {billing.plan == "Free"
+                                    {billing.plan == "Free" || process.env.REACT_APP_PLATFORM == "web"
                                         ?
-                                            <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Screen sharing is unavailable on the free plan.</Tooltip>}>
+                                            <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">{process.env.REACT_APP_PLATFORM == "web" ? 'Screen sharing is only available in the Water Cooler desktop app' : 'Screen sharing is unavailable on the free plan.' }</Tooltip>}>
                                                 <span className="d-inline-block">
                                                     <Button variant="info" className="mx-1" style={{ pointerEvents: 'none' }} disabled><FontAwesomeIcon icon={faDesktop} /></Button>
                                                 </span>
@@ -2263,7 +2294,16 @@ class Room extends React.Component {
                                         </Dropdown.Toggle>
                                         <Dropdown.Menu show={showMoreSettingsDropdown}>
                                             <Dropdown.Item className="no-hover-bg">
-                                                <Button variant={backgroundBlurEnabled ? "danger" : "success"} className="mx-1 ph-no-capture" disabled={videoStatus ? false : true} onClick={() => backgroundBlurEnabled ? this.stopBackgroundBlur() : this.startBackgroundBlur() } block><FontAwesomeIcon icon={backgroundBlurEnabled ? faTint : faTintSlash} /> {backgroundBlurEnabled ? 'Disable' : 'Enable' } Background Blur</Button>
+                                            {process.env.REACT_APP_PLATFORM == "web"
+                                                ?
+                                                    <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="background-blur-disabled">Background Blur is only available on the Water Cooler desktop app.</Tooltip>}>
+                                                        <span className="d-inline-block">
+                                                            <Button variant={backgroundBlurEnabled ? "danger" : "success"} className="mx-1 ph-no-capture" disabled={true} style={{ pointerEvents: 'none' }} block><FontAwesomeIcon icon={backgroundBlurEnabled ? faTint : faTintSlash} /> Background Blur Unavailable</Button>
+                                                        </span>
+                                                    </OverlayTrigger> 
+                                                :
+                                                    <Button variant={backgroundBlurEnabled ? "danger" : "success"} className="mx-1 ph-no-capture" disabled={videoStatus ? false : true} onClick={() => backgroundBlurEnabled ? this.stopBackgroundBlur() : this.startBackgroundBlur() } block><FontAwesomeIcon icon={backgroundBlurEnabled ? faTint : faTintSlash} /> {backgroundBlurEnabled ? 'Disable' : 'Enable' } Background Blur</Button>
+                                            }
                                             </Dropdown.Item>
                                             <Dropdown.Item className="no-hover-bg">
                                                 {settings.experimentalSettings.faceTracking ? <Button variant={videoIsFaceOnly ? "danger" : "success"} className="mx-1" disabled={videoStatus ? false : true} onClick={() => this.setState({ videoIsFaceOnly: videoIsFaceOnly ? false : true }) } block><FontAwesomeIcon icon={faSmile} /> {videoIsFaceOnly ? 'Disable' : 'Enable' } Face Tracking</Button> : ''}

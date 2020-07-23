@@ -7,7 +7,11 @@ import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
 import { getOrganizations } from '../actions/organization';
 import posthog from 'posthog-js';
 
-const { ipcRenderer } = require('electron')
+if (process.env.REACT_APP_PLATFORM != "web") {
+    const ipcRenderer = require('electron');
+} else {
+    var ipcRenderer = null;
+}
 
 
 class Login extends React.Component {
@@ -36,13 +40,16 @@ class Login extends React.Component {
             push(routes.LOADING);
         }
 
-        ipcRenderer.on('url_update', (event, arg) => {
-            let pushUrl = arg.slice(13);
+        if (process.env.REACT_APP_PLATFORM != "web") {
 
-            if (pushUrl.includes('magic')) {
-                push(arg.slice(13));
-            }
-        })
+            ipcRenderer.on('url_update', (event, arg) => {
+                let pushUrl = arg.slice(13);
+
+                if (pushUrl.includes('magic')) {
+                    push(arg.slice(13));
+                }
+            })
+        }
 
     }
 
@@ -63,7 +70,9 @@ class Login extends React.Component {
     }
 
     componentWillUnmount() {
-        ipcRenderer.removeAllListeners('url_update');
+        if (process.env.REACT_APP_PLATFORM != "web") {
+            ipcRenderer.removeAllListeners('url_update');
+        }
     }
 
     handleUsernameChange(event) {

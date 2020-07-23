@@ -10,7 +10,10 @@ rules.push({
 
 rules.push({
   test: require.resolve('janus-gateway'),
-  use: 'exports-loader?Janus=Janus'
+  loader: 'exports-loader',
+  options: {
+    exports: 'Janus',
+  },
 });
 
 rules.push({

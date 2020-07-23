@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Video from './Video';
-import { computeScreenAwareSize } from 'custom-electron-titlebar/lib/common/dom';
 
 function VideoList(props) {
     const { 

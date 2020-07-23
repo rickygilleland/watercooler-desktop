@@ -33,12 +33,16 @@ import ManageCameraModal from './ManageCameraModal';
 import RoomsModal from './RoomsModal';
 import NewCallModal from './NewCallModal';
 import IncomingCallModal from './IncomingCallModal';
-const { BrowserWindow } = require('electron').remote
-
 import posthog from 'posthog-js';
+import Pusher from 'pusher-js';
 
-const { ipcRenderer } = require('electron')
-
+if (process.env.REACT_APP_PLATFORM != "web") {
+    const { BrowserWindow } = require('electron').remote
+} else {
+    var BrowserWindow = null;
+    var MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY = null;
+    var MAIN_WINDOW_WEBPACK_ENTRY = null;
+}
 
 class Sidebar extends React.Component {
 
@@ -89,10 +93,12 @@ class Sidebar extends React.Component {
         posthog.identify(user.id);
         posthog.people.set({email: user.email});
 
-        posthog.register({
-            "organization_id": organization.id,
-            "version": require("electron").remote.app.getVersion()
-        });
+        if (process.env.REACT_APP_PLATFORM != "web") {
+            posthog.register({
+                "organization_id": organization.id,
+                "version": require("electron").remote.app.getVersion()
+            });
+        }
 
         if (organizationPresenceChannel && !auth.isLoggedIn) {
             pusherInstance.disconnect();
@@ -219,31 +225,33 @@ class Sidebar extends React.Component {
             this.setState({ organizationPresenceChannel: false, userPrivateNotificationChannel: false, pusherInstance: null });
         }
 
-        let backgroundBlurWindow = new BrowserWindow({ 
-            show: false,
-            webPreferences: {
-                nodeIntegration: true,
-                preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-                devTools: true,
-                backgroundThrottling: false
-            }
-        })
+        if (process.env.REACT_APP_PLATFORM != "web") {
+            let backgroundBlurWindow = new BrowserWindow({ 
+                show: false,
+                webPreferences: {
+                    nodeIntegration: true,
+                    preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+                    devTools: true,
+                    backgroundThrottling: false
+                }
+            })
 
-        backgroundBlurWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/blur_net_background");
+            backgroundBlurWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/blur_net_background");
 
-        let faceTrackingNetWindow = new BrowserWindow({ 
-            show: false,
-            webPreferences: {
-                nodeIntegration: true,
-                preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-                devTools: true,
-                backgroundThrottling: false
-            }
-        })
+            let faceTrackingNetWindow = new BrowserWindow({ 
+                show: false,
+                webPreferences: {
+                    nodeIntegration: true,
+                    preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+                    devTools: true,
+                    backgroundThrottling: false
+                }
+            })
 
-        faceTrackingNetWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/face_tracking_net_background");
+            faceTrackingNetWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/face_tracking_net_background");
 
-        this.setState({ backgroundBlurWindow, faceTrackingNetWindow });
+            this.setState({ backgroundBlurWindow, faceTrackingNetWindow });
+        }
     }
 
     componentDidUpdate(prevProps, prevState) {
