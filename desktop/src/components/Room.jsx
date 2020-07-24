@@ -407,8 +407,11 @@ class Room extends React.Component {
 
         var curTeam = {};
         var curRoom = {};
+
+        console.log("RICKY", location)
         
         if (typeof location.state != 'undefined' 
+            && location.state != null
             && typeof location.state.room != 'undefined'
             && typeof location.state.team != 'undefined'
         ) {
