@@ -38,5 +38,8 @@ module.exports = {
     // instead it expects a global object called 'adapter' for that.
     // Let's make that object available.
     new webpack.ProvidePlugin({ adapter: 'webrtc-adapter' }),
+    new webpack.DefinePlugin({
+      'process.env.REACT_APP_PLATFORM': JSON.stringify('electron')
+  }),
   ]
 };

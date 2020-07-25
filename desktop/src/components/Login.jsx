@@ -8,7 +8,7 @@ import { getOrganizations } from '../actions/organization';
 import posthog from 'posthog-js';
 
 if (process.env.REACT_APP_PLATFORM != "web") {
-    const ipcRenderer = require('electron');
+    var { ipcRenderer } = require('electron');
 } else {
     var ipcRenderer = null;
 }

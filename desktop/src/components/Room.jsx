@@ -41,10 +41,10 @@ import '@tensorflow/tfjs-backend-webgl';
 import '@tensorflow/tfjs-backend-cpu';
 const bodyPix = require('@tensorflow-models/body-pix');
 if (process.env.REACT_APP_PLATFORM != "web") {
-    const { BrowserWindow } = require('electron').remote
-    const ipcRenderer = require('electron');
-    const desktopCapturer = require('electron');
-    const systemPreferences = require('electron');
+    var { BrowserWindow } = require('electron').remote;
+    var { ipcRenderer } = require('electron');
+    var { desktopCapturer } = require('electron');
+    var { systemPreferences } = require('electron');
 } else {
     var BrowserWindow = null;
     var MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY = null;

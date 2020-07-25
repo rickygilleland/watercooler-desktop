@@ -39,7 +39,7 @@ import posthog from 'posthog-js';
 import Pusher from 'pusher-js';
 
 if (process.env.REACT_APP_PLATFORM != "web") {
-    const { BrowserWindow } = require('electron').remote
+    var { BrowserWindow } = require('electron').remote;
 } else {
     var BrowserWindow = null;
     var MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY = null;
