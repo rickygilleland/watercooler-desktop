@@ -788,7 +788,7 @@ class Room extends React.Component {
         localVideo.srcObject = raw_local_stream;
         localVideo.muted = true;
         localVideo.autoplay = true;
-        localVideo.setAttribute('playsinline', true);
+        localVideo.setAttribute('playsinline', '');
         localVideo.play();
 
         let localVideoCanvas = document.createElement("canvas");
