@@ -408,8 +408,6 @@ class Room extends React.Component {
         var curTeam = {};
         var curRoom = {};
 
-        console.log("RICKY", location)
-        
         if (typeof location.state != 'undefined' 
             && location.state != null
             && typeof location.state.room != 'undefined'
@@ -1209,7 +1207,7 @@ class Room extends React.Component {
                         "audio": true,
                         "video": true,
                         "data": true,
-                        "videocodec": "vp8"
+                        "videocodec": "h264"
                     }
                     /*var request = {
                         "request": "publish",
@@ -1529,7 +1527,7 @@ class Room extends React.Component {
                     "request": "publish",
                     "audio": false,
                     "video": true,
-                    "videocodec": "vp8"
+                    "videocodec": "h264"
                 }
 
                 screenSharingHandle.send({ "message": request, "jsep": jsep });
