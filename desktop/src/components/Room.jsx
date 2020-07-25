@@ -1207,7 +1207,6 @@ class Room extends React.Component {
                         "audio": true,
                         "video": true,
                         "data": true,
-                        "videocodec": "h264"
                     }
                     /*var request = {
                         "request": "publish",
@@ -1527,7 +1526,6 @@ class Room extends React.Component {
                     "request": "publish",
                     "audio": false,
                     "video": true,
-                    "videocodec": "h264"
                 }
 
                 screenSharingHandle.send({ "message": request, "jsep": jsep });
