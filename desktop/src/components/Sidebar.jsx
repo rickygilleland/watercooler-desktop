@@ -596,7 +596,7 @@ class Sidebar extends React.Component {
                             />
                         </ErrorBoundary>
                         <Row>
-                            <Navbar className="vh-100 pr-0 sidebar" collapseOnSelect expand={false} expanded={sidebarIsVisible} onToggle={() => this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })}>
+                            <Navbar className="vh-100 pr-0 sidebar" expand={false} expanded={sidebarIsVisible} onToggle={() => this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })}>
                                 <Navbar.Collapse id="responsive-navbar-nav">
                                 
                                     <Navbar className="text-light pt-4" style={{height:70,backgroundColor:"#121422",borderBottom:"1px solid #1c2046"}}>
@@ -648,21 +648,22 @@ class Sidebar extends React.Component {
                                             showError={true}
                                             >
                                                 <RoomPage 
-                                                {...routeProps} 
-                                                pusherInstance={pusherInstance} 
-                                                userPrivateNotificationChannel={userPrivateNotificationChannel} 
-                                                key={routeProps.match.params.roomSlug} 
-                                                currentTime={currentTime}  
-                                                backgroundBlurWindow={backgroundBlurWindow}
-                                                faceTrackingNetWindow={faceTrackingNetWindow}
-                                            />
+                                                    {...routeProps} 
+                                                    pusherInstance={pusherInstance} 
+                                                    userPrivateNotificationChannel={userPrivateNotificationChannel} 
+                                                    key={routeProps.match.params.roomSlug} 
+                                                    currentTime={currentTime}  
+                                                    backgroundBlurWindow={backgroundBlurWindow}
+                                                    faceTrackingNetWindow={faceTrackingNetWindow}
+                                                    sidebarIsVisible={sidebarIsVisible}
+                                                />
                                             </ErrorBoundary>
                                         )}
                                     />
                                     <Route 
                                         path={routes.CALL} 
                                         render={(routeProps) => (
-                                            <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} userPrivateNotificationChannel={userPrivateNotificationChannel} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
+                                            <ErrorBoundary showError={true}><RoomPage {...routeProps} sidebarIsVisible={sidebarIsVisible} pusherInstance={pusherInstance} userPrivateNotificationChannel={userPrivateNotificationChannel} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
                                         )}
                                     />
                                     <Route 

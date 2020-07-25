@@ -244,7 +244,7 @@ class Room extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        const { match, location, pusherInstance, user, settings } = this.props;
+        const { match, location, pusherInstance, user, settings, sidebarIsVisible } = this.props;
         const { 
             initialized, 
             dimensions, 
@@ -294,7 +294,7 @@ class Room extends React.Component {
             }
         }
 
-        if (prevState.dimensions != dimensions || prevState.publishers.length != publishers.length) {
+        if (prevState.dimensions != dimensions || prevState.publishers.length != publishers.length || prevProps.sidebarIsVisible != sidebarIsVisible) {
             this.updateDisplayedVideosSizes(null, true);
         }
 
@@ -344,6 +344,7 @@ class Room extends React.Component {
         if (settings.roomSettings.backgroundBlurAmount != prevProps.settings.roomSettings.backgroundBlurAmount) {
             this.setState({ backgroundBlurAmount: settings.roomSettings.backgroundBlurAmount / 5 });
         }
+
     }
     
     componentWillUnmount() {
@@ -1808,18 +1809,22 @@ class Room extends React.Component {
 
     updateDisplayedVideosSizes() {
         var { dimensions, videoSizes, publishers} = this.state;
+        const { sidebarIsVisible } = this.props;
 
         if (remote_streams == null) {
             var { remote_streams } = this.state;
         }
 
         let width = dimensions.width;
-        width -= dimensions.sidebarWidth;
         let height = dimensions.height;
+        let maxWidth = dimensions.width;
+
+        if (sidebarIsVisible) {
+            width -= 300;
+            maxWidth -= 300;
+        }
 
         var remote_streams_count = publishers.length;
-
-        width -= 80;
 
         var rows = 1;
         var columns = 1;
@@ -1888,16 +1893,23 @@ class Room extends React.Component {
 
             }
 
+            console.log("RICKY col", columns);
+            console.log("RICKY rows", rows);
+
             var aspectRatio = 4 / 3;
 
             height = Math.round( width / aspectRatio );
 
-            while(((height * rows) > (dimensions.height - 250)) || ((width * columns) > (dimensions.width - 375))) {
+            console.log("RICKY width 1", width);
+            console.log("RICKY height 1", height);
+            console.log("RICKY dimensions", dimensions);
+
+            while(((height * rows) > (dimensions.height - 250)) || ((width * columns) > (maxWidth - 100))) {
                 width = width - 5;
                 height = Math.round( width / aspectRatio );
             }
 
-            var pinnedWidth = dimensions.width - 275;
+            var pinnedWidth = dimensions.width - 25;
             var pinnedHeight = Math.round(pinnedWidth / aspectRatio);
 
             while(pinnedHeight > (dimensions.height - 120)) {
@@ -1910,6 +1922,9 @@ class Room extends React.Component {
             if (dimensions.width < 1080) {
                 display = "row align-items-center justify-content-center h-100";
             }
+
+            console.log("RICKY width", width);
+            console.log("RICKY height", height);
 
             videoSizes = {
                 height: height,
@@ -2216,8 +2231,8 @@ class Room extends React.Component {
                     onShow={() => this.getAvailableScreensToShare()}
                     onHide={() => this.setState({ showScreenSharingModal: false })}
                 />
-                <Row className="pl-0 ml-0 w-100" style={{height:60}}> 
-                    <Col xs={{span:4}} md={{span:5}}>
+                <Row className="pl-0 ml-0 w-100" style={{minHeight:60, maxHeight: 120}}> 
+                    <Col xs={{span:8}} md={{span:5}}>
                         <div className="d-flex flex-row justify-content-start">
                             <div className="align-self-center">
                                 <p style={{fontWeight:"bolder",fontSize:"1.4rem"}} className="pb-0 mb-0">{room.name}</p>
@@ -2265,7 +2280,7 @@ class Room extends React.Component {
                             <div style={{height:60}}></div>
                         </div>
                     </Col>
-                    <Col xs={{span:4}} md={{span:5}} className="pr-0">
+                    <Col xs={{span:12}} md={{span:5}} className="pr-0 mx-auto">
                         {local_stream ?
                             <div className="d-flex flex-row flex-nowrap justify-content-end">
                                 <div className="align-self-center pr-4">
