@@ -1129,16 +1129,21 @@ class Room extends React.Component {
         
             bodySegmentationFrame();
 
-            const local_stream = localVideoCanvas.captureStream(60);
+            var local_stream;
 
-            console.log("called stream", local_stream);
+            if (process.env.REACT_APP_PLATFORM != "web") {
+                local_stream = localVideoCanvas.captureStream(60);
 
-            let raw_tracks = raw_local_stream.getTracks();
-            raw_tracks.forEach(track => {
-                if (track.kind == "audio") {
-                    local_stream.addTrack(track);
-                }
-            })
+                let raw_tracks = raw_local_stream.getTracks();
+                raw_tracks.forEach(track => {
+                    if (track.kind == "audio") {
+                        local_stream.addTrack(track);
+                    }
+                })
+
+            } else {
+                local_stream = raw_local_stream;
+            }
             
             var speechEvents = hark(local_stream);
 

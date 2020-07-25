@@ -30,7 +30,7 @@ class VideoPlayer extends React.PureComponent {
         }
 
         return(
-            <video autoPlay ref={renderVideo(stream)} muted={isLocal} playsInline className={className} style={{height:"100%",width:"100%", borderRadius: 25}}></video>
+            <video autoPlay ref={renderVideo(stream)} muted={isLocal} className={className} style={{height:"100%",width:"100%", borderRadius: 25}}></video>
         )
     }
 }
