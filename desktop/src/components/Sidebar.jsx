@@ -17,7 +17,9 @@ import {
     faLock, 
     faCamera,
     faVideo,
-    faMicrophone 
+    faMicrophone,
+    faChevronCircleLeft,
+    faChevronCircleRight,
 } from '@fortawesome/free-solid-svg-icons';
 import { getOrganizationUsers } from '../actions/organization';
 import EnsureLoggedInContainer from '../containers/EnsureLoggedInContainer';
@@ -74,6 +76,7 @@ class Sidebar extends React.Component {
             currentTime: DateTime.local(),
             backgroundBlurWindow: null,
             faceTrackingNetWindow: null,
+            sidebarIsVisible: true,
         }
         
         this.userLogout = this.userLogout.bind(this);
@@ -388,6 +391,7 @@ class Sidebar extends React.Component {
             organizationUsersOnline,
             backgroundBlurWindow,
             faceTrackingNetWindow,
+            sidebarIsVisible,
         } = this.state;
 
         teams.forEach(team => {
@@ -591,84 +595,85 @@ class Sidebar extends React.Component {
                                 onHide={() => this.setState({ showExperimentalSettingsModal: false })}
                             />
                         </ErrorBoundary>
-                        <div className="d-flex">
-                            <div style={{width:280}} className="vh-100 pr-0">
+                        <Row>
+                            <Navbar className="vh-100 pr-0 sidebar" collapseOnSelect expand={false} expanded={sidebarIsVisible} onToggle={() => this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })}>
+                                <Navbar.Collapse id="responsive-navbar-nav">
                                 
-                                <Navbar className="text-light pt-4" style={{height:70,backgroundColor:"#121422",borderBottom:"1px solid #1c2046"}}>
-                                    <ErrorBoundary showError={false}>
-                                        <Navbar.Brand>
-                                            {organization != null ? 
-                                                <p className="text-light p-0 m-0" style={{fontSize:".9rem",fontWeight:800}}>{organization.name}</p>
-                                            : '' }
-                                            {user != null ? 
-                                                <p className="text-light pt-0 pb-1" style={{fontSize:".8rem"}}><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#3ecf8e",fontSize:".4rem",verticalAlign:'middle'}} /> {user.first_name}</p>
-                                            : '' }
-                                        </Navbar.Brand>
-                                    </ErrorBoundary>
-                                </Navbar>
-                                <div className="sidebar-scroll">
-                                    <div>
-                                        <ul className="nav flex-column mt-1">
-                                            <li key="people-nav-button" className="nav-item">
-                                                <NavLink exact={true} 
-                                                    activeStyle={{
-                                                        fontWeight: "bold"
-                                                    }} 
-                                                    className="d-block py-1"
-                                                    to={{
-                                                        pathname: `/team`
-                                                    }}>
-                                                        <p className="mb-0 pl-3"><FontAwesomeIcon icon={faUsers} style={{fontSize:".65rem"}} />  Team</p>
-                                                </NavLink>
-                                            </li>
-                                            <li key="settings-nav-button" className="nav-item">
-                                                <Button variant="link" className="mb-0 pl-3 d-block py-1" onClick={() => this.setState({ showSettingsModal: true })}><FontAwesomeIcon icon={faCog} style={{fontSize:".65rem"}} />  Settings</Button>
-                                            </li>
-                                        </ul>
+                                    <Navbar className="text-light pt-4" style={{height:70,backgroundColor:"#121422",borderBottom:"1px solid #1c2046"}}>
+                                        <ErrorBoundary showError={false}>
+                                            <Navbar.Brand>
+                                                {organization != null ? 
+                                                    <p className="text-light p-0 m-0" style={{fontSize:".9rem",fontWeight:800}}>{organization.name}</p>
+                                                : '' }
+                                                {user != null ? 
+                                                    <p className="text-light pt-0 pb-1" style={{fontSize:".8rem"}}><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#3ecf8e",fontSize:".4rem",verticalAlign:'middle'}} /> {user.first_name}</p>
+                                                : '' }
+                                            </Navbar.Brand>
+                                        </ErrorBoundary>
+                                    </Navbar>
+                                    <div className="sidebar-scroll" style={{minWidth: 250}}>
+                                        <div>
+                                            <ul className="nav flex-column mt-1">
+                                                <li key="people-nav-button" className="nav-item">
+                                                    <NavLink exact={true} 
+                                                        activeStyle={{
+                                                            fontWeight: "bold"
+                                                        }} 
+                                                        className="d-block py-1"
+                                                        to={{
+                                                            pathname: `/team`
+                                                        }}>
+                                                            <p className="mb-0 pl-3"><FontAwesomeIcon icon={faUsers} style={{fontSize:".65rem"}} />  Team</p>
+                                                    </NavLink>
+                                                </li>
+                                                <li key="settings-nav-button" className="nav-item">
+                                                    <Button variant="link" className="mb-0 pl-3 d-block py-1" onClick={() => this.setState({ showSettingsModal: true })}><FontAwesomeIcon icon={faCog} style={{fontSize:".65rem"}} />  Settings</Button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div>
+                                            {rooms}
+                                            {/*calls*/}
+                                        </div>
                                     </div>
-                                    <div>
-                                        {rooms}
-                                        {/*calls*/}
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="pl-0" style={{borderLeft:"1px solid #1c2046",width:"100%",borderRadius:15,marginLeft:0,marginRight:0,marginTop:0,marginBottom:20,backgroundColor:"#fff"}}>
-                        
-                                    <>
-                                        <Route 
-                                            path={routes.ROOM} 
-                                            render={(routeProps) => (
-                                                <ErrorBoundary 
-                                                showError={true}
-                                                >
-                                                    <RoomPage 
-                                                    {...routeProps} 
-                                                    pusherInstance={pusherInstance} 
-                                                    userPrivateNotificationChannel={userPrivateNotificationChannel} 
-                                                    key={routeProps.match.params.roomSlug} 
-                                                    currentTime={currentTime}  
-                                                    backgroundBlurWindow={backgroundBlurWindow}
-                                                    faceTrackingNetWindow={faceTrackingNetWindow}
-                                                />
-                                                </ErrorBoundary>
-                                            )}
-                                        />
-                                        <Route 
-                                            path={routes.CALL} 
-                                            render={(routeProps) => (
-                                                <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} userPrivateNotificationChannel={userPrivateNotificationChannel} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
-                                            )}
-                                        />
-                                        <Route 
-                                            path={routes.TEAM} 
-                                            render={(routeProps) => (
-                                                <ErrorBoundary showError={true}><TeamPage {...routeProps} organizationUsersOnline={organizationUsersOnline} currentTime={currentTime} /></ErrorBoundary>
-                                            )}
-                                        />
-                                    </>
-                    
-                            </div>
-                        </div>
+                                </Navbar.Collapse>
+                                <Navbar.Toggle aria-controls="responsive-navbar-nav" className="border-0" style={{outline: 'none'}}><FontAwesomeIcon icon={sidebarIsVisible ? faChevronCircleLeft : faChevronCircleRight} className="mr-1" style={{color:"#3ecf8e"}} /> </Navbar.Toggle>
+                            </Navbar>
+                            <Col className="pl-0" style={{borderLeft:"1px solid #1c2046",width:"100%",borderRadius:15,marginLeft:0,marginRight:0,marginTop:0,marginBottom:20,backgroundColor:"#fff"}}>
+                                <>
+                                    <Route 
+                                        path={routes.ROOM} 
+                                        render={(routeProps) => (
+                                            <ErrorBoundary 
+                                            showError={true}
+                                            >
+                                                <RoomPage 
+                                                {...routeProps} 
+                                                pusherInstance={pusherInstance} 
+                                                userPrivateNotificationChannel={userPrivateNotificationChannel} 
+                                                key={routeProps.match.params.roomSlug} 
+                                                currentTime={currentTime}  
+                                                backgroundBlurWindow={backgroundBlurWindow}
+                                                faceTrackingNetWindow={faceTrackingNetWindow}
+                                            />
+                                            </ErrorBoundary>
+                                        )}
+                                    />
+                                    <Route 
+                                        path={routes.CALL} 
+                                        render={(routeProps) => (
+                                            <ErrorBoundary showError={true}><RoomPage {...routeProps} pusherInstance={pusherInstance} userPrivateNotificationChannel={userPrivateNotificationChannel} key={routeProps.match.params.roomSlug} currentTime={currentTime} /></ErrorBoundary>
+                                        )}
+                                    />
+                                    <Route 
+                                        path={routes.TEAM} 
+                                        render={(routeProps) => (
+                                            <ErrorBoundary showError={true}><TeamPage {...routeProps} organizationUsersOnline={organizationUsersOnline} currentTime={currentTime} /></ErrorBoundary>
+                                        )}
+                                    />
+                                </>
+                            </Col>
+                        </Row>
                     </EnsureLoggedInContainer>
                 </Switch>
             </>
