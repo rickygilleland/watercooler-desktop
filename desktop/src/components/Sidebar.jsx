@@ -611,7 +611,7 @@ class Sidebar extends React.Component {
                                             </Navbar.Brand>
                                         </ErrorBoundary>
                                     </Navbar>
-                                    <div className="sidebar-scroll" style={{minWidth: 250}}>
+                                    <div className="sidebar-scroll" style={{minWidth: 200}}>
                                         <div>
                                             <ul className="nav flex-column mt-1">
                                                 <li key="people-nav-button" className="nav-item">

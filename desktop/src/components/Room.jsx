@@ -1820,8 +1820,8 @@ class Room extends React.Component {
         let maxWidth = dimensions.width;
 
         if (sidebarIsVisible) {
-            width -= 300;
-            maxWidth -= 300;
+            width -= 250;
+            maxWidth -= 250;
         }
 
         var remote_streams_count = publishers.length;
