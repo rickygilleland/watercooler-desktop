@@ -784,350 +784,13 @@ class Room extends React.Component {
             localVideoCanvasContainer.remove();
         }
 
-        let localVideo = document.createElement("video")
-        localVideo.srcObject = raw_local_stream;
-        localVideo.muted = true;
-        localVideo.autoplay = true;
-        localVideo.setAttribute('playsinline', '');
-        localVideo.play();
-
-        let localVideoCanvas = document.createElement("canvas");
-
-        let backgroundBlurVideoCanvasCopy = document.createElement("canvas");
-        const backgroundBlurCanvasCtx = backgroundBlurVideoCanvasCopy.getContext('2d');
-
-        localVideo.onloadedmetadata = () => {
-            localVideo.width = localVideo.videoWidth;
-            localVideo.height = localVideo.videoHeight;
-        }
+        let localVideo;
+        let localVideoCanvas;
+        let backgroundBlurVideoCanvasCopy;
 
         var that = this;
 
-        var facePrediction = null;
-
-        var drawParams = {
-            sourceX: 0,
-            sourceY: 0,
-            sourceWidth: 0,
-            sourceHeight: 0,
-            destinationX: 0,
-            destinationY: 0,
-            destinationWidth: 0,
-            destinationHeight: 0,
-            sourceNoseScore: 0,
-        }
-
-        var avatarImage = new Image;
-        var avatarImageLoaded = false;
-        avatarImage.onload = () => {
-            avatarImageLoaded = true;
-        }
-        avatarImage.src = user.avatar_url;
-
-        const ctx = localVideoCanvas.getContext('2d');
-
-        if (process.env.REACT_APP_PLATFORM != "web") {
-            ipcRenderer.removeAllListeners('face-tracking-update');
-            ipcRenderer.on('face-tracking-update', (event, args) => {
-                if (args.type == "updated_coordinates") {
-                    facePrediction = args.facePrediction;
-                }
-            })
-        }
-
-        var personSegmentation = null;
-
-        if (process.env.REACT_APP_PLATFORM != "web") {
-            ipcRenderer.removeAllListeners('background-blur-update');
-            ipcRenderer.on('background-blur-update', (event, args) => {
-                if (args.type == "updated_coordinates") {
-                    personSegmentation = args.personSegmentation;
-                }
-            })
-        }
-
-        if (settings.roomSettings.backgroundBlurEnabled) {
-            this.startBackgroundBlur();
-        }
-
-        const edgeBlurAmount = 5;
-        const flipHorizontal = false;
-
-        localVideo.onplaying = async () => {
-
-            async function bodySegmentationFrame() {
-
-                if (that._mounted == false) {
-                    return;
-                }
-
-                if (that.state.videoStatus == false || that.state.publishing == false) {
-                    return requestAnimationFrame(bodySegmentationFrame);
-                }
-
-                if (!that.state.videoIsFaceOnly || facePrediction == null) {    
-
-                    localVideoCanvas.width = localVideo.width;
-                    localVideoCanvas.height = localVideo.height;
-
-                    if (personSegmentation != null && that.state.backgroundBlurEnabled) {
-
-                        bodyPix.drawBokehEffect(
-                            localVideoCanvas, 
-                            localVideo, 
-                            personSegmentation, 
-                            that.state.backgroundBlurAmount,
-                            edgeBlurAmount, 
-                            flipHorizontal
-                        );
-
-                        return requestAnimationFrame(bodySegmentationFrame);
-                    }
-
-                    facePrediction = null;
-
-                    ctx.drawImage(
-                        localVideo, 0, 0
-                    );
-
-                    return requestAnimationFrame(bodySegmentationFrame);
-                }
-
-                if (typeof facePrediction.prediction == "undefined" || facePrediction.prediction.probability[0] < .2 && avatarImageLoaded) {
-                     //ctx.drawImage(avatarImage, 0, 0);
-
-                     if (localVideoCanvas.width != 400) {
-                        localVideoCanvas.width = 400;
-                        localVideoCanvas.height = 400;
-                    }
-
-                    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-                    ctx.fillRect(0, 0, 400, 400);
-                    return requestAnimationFrame(bodySegmentationFrame);
-                }
-
-                if (drawParams.sourceX == 0 || drawParams.sourceY == 0) {
-
-                    drawParams = {
-                        sourceX: facePrediction.prediction.topLeft[0] - 100,
-                        sourceY: facePrediction.prediction.topLeft[1] - 125,
-                        sourceWidth: 400,
-                        sourceHeight: 400,
-                        destinationX: 0,
-                        destinationY: 0,
-                        destinationWidth: 400,
-                        destinationHeight: 400,
-                        sourceNoseScore: facePrediction.prediction.probability[0],
-                    }
-
-                    /*
-
-                     drawParams = {
-                        sourceX: facePrediction.prediction.topLeft[0],
-                        sourceY: facePrediction.prediction.topLeft[1],
-                        sourceWidth: facePrediction.prediction.bottomRight[0] - facePrediction.prediction.topLeft[0],
-                        sourceHeight: facePrediction.prediction.bottomRight[1] - facePrediction.prediction.topLeft[1],
-                        destinationX: 0,
-                        destinationY: 0,
-                        destinationWidth: facePrediction.prediction.bottomRight[0] - facePrediction.prediction.topLeft[0],
-                        destinationHeight: facePrediction.prediction.bottomRight[1] - facePrediction.prediction.topLeft[1],
-                        sourceNoseScore: facePrediction.prediction.probability[0],
-                    }
-
-                    */
-                }
-
-                if (Math.abs(drawParams.sourceX - (facePrediction.prediction.topLeft[0] - 100)) > 20 || Math.abs(drawParams.sourceY - (facePrediction.prediction.topLeft[1] - 125)) > 20) {
-
-                    let drawParamsCopy = {...drawParams};
-
-                    return requestAnimationFrame(() => { 
-                        gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, facePrediction.prediction.topLeft[0] - 100, facePrediction.prediction.topLeft[1] - 125);
-                    });
-
-                } 
-
-                if (localVideoCanvas.width != 400) {
-                    localVideoCanvas.width = 400;
-                    localVideoCanvas.height = 400;
-                }
-
-                //draw black every time so we don't see parts of previous frames if it jumps around a little bit
-                ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-                ctx.fillRect(0, 0, 400, 400);
-
-                if (personSegmentation != null && that.state.backgroundBlurEnabled) {
-
-                    bodyPix.drawBokehEffect(
-                        backgroundBlurVideoCanvasCopy, 
-                        localVideo, 
-                        personSegmentation, 
-                        that.state.backgroundBlurAmount,
-                        edgeBlurAmount, 
-                        flipHorizontal
-                    );
-
-                    ctx.drawImage(
-                        backgroundBlurVideoCanvasCopy,
-                        drawParams.sourceX,
-                        drawParams.sourceY,
-                        drawParams.sourceWidth,
-                        drawParams.sourceHeight,
-                        drawParams.destinationX,
-                        drawParams.destinationY,
-                        drawParams.destinationWidth,
-                        drawParams.destinationHeight,
-                    );
-
-                    return requestAnimationFrame(bodySegmentationFrame);
-
-                }
-
-                ctx.drawImage(
-                    localVideo,
-                    drawParams.sourceX,
-                    drawParams.sourceY,
-                    drawParams.sourceWidth,
-                    drawParams.sourceHeight,
-                    drawParams.destinationX,
-                    drawParams.destinationY,
-                    drawParams.destinationWidth,
-                    drawParams.destinationHeight,
-                );
-
-                requestAnimationFrame(bodySegmentationFrame);
-                
-            }
-
-            async function gradualFrameMove(initialX, initialY, targetX, targetY) {
-
-                const { videoIsFaceOnly, videoStatus, publishing } = that.state;
-
-                if (!that._mounted) {
-                    return;
-                }
-
-                if (!videoIsFaceOnly || !videoStatus || !publishing) {
-                    return requestAnimationFrame(bodySegmentationFrame);
-                }
-
-                if (typeof facePrediction.prediction == "undefined" || facePrediction.prediction.length == 0) {
-                    return requestAnimationFrame(bodySegmentationFrame);
-                }
-
-                if (facePrediction.prediction.length > 0) {
-                    if ((facePrediction.prediction.topLeft[0] - 100) != targetX || (facePrediction.prediction.topLeft[1] - 125) != targetY) {
-                        if (Math.abs(targetX - (facePrediction.prediction.topLeft[0] - 100)) > 20 || Math.abs(targetY - (facePrediction.prediction.topLeft[1] - 125)) > 20) {
-                            let drawParamsCopy = {...drawParams};
-
-                            return requestAnimationFrame(() => { 
-                                gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, facePrediction.prediction.topLeft[0] - 100, facePrediction.prediction.topLeft[1]- 125);
-                            });
-                        }
-                    }
-                }
-
-                if (initialX > targetX) {
-                    //going to the right
-
-                    if (drawParams.sourceX > targetX) {
-                        var newX = drawParams.sourceX - 2;
-                    }
-
-                } else {
-                    //going to the left
-
-                    if (drawParams.sourceX < targetX) {
-                        var newX = drawParams.sourceX + 2;
-                    }
-                }
-
-                if (initialY > targetY) {
-                    //going down 
-
-                    if (drawParams.sourceY > targetY) {
-                        var newY = drawParams.sourceY - 2;
-                    }
-
-                } else {
-                    //going up
-
-                    if (drawParams.sourceY < targetY) {
-                        var newY = drawParams.sourceY + 2;
-                    }
-                }
-
-                drawParams = {
-                    sourceX: typeof newX != "undefined" ? newX : drawParams.sourceX,
-                    sourceY: typeof newY != "undefined" ? newY : drawParams.sourceY,
-                    sourceWidth: localVideo.width,
-                    sourceHeight: localVideo.height,
-                    destinationX: 0,
-                    destinationY: 0,
-                    destinationWidth: localVideo.width,
-                    destinationHeight: localVideo.height,
-                    sourceNoseScore: facePrediction.prediction.probability[0],
-                }
-                
-
-                if (localVideoCanvas.width != 400) {
-                    localVideoCanvas.width = 400;
-                    localVideoCanvas.height = 400;
-                }
-
-                ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-                ctx.fillRect(0, 0, 400, 400);
-
-                if (personSegmentation != null && that.state.backgroundBlurEnabled) {
-
-                    bodyPix.drawBokehEffect(
-                        backgroundBlurVideoCanvasCopy, 
-                        localVideo, 
-                        personSegmentation, 
-                        that.state.backgroundBlurAmount,
-                        edgeBlurAmount, 
-                        flipHorizontal
-                    );
-
-                    ctx.drawImage(
-                        backgroundBlurVideoCanvasCopy,
-                        drawParams.sourceX,
-                        drawParams.sourceY,
-                        drawParams.sourceWidth,
-                        drawParams.sourceHeight,
-                        drawParams.destinationX,
-                        drawParams.destinationY,
-                        drawParams.destinationWidth,
-                        drawParams.destinationHeight,
-                    );
-
-                } else {
-                    ctx.drawImage(
-                        localVideo,
-                        drawParams.sourceX,
-                        drawParams.sourceY,
-                        drawParams.sourceWidth,
-                        drawParams.sourceHeight,
-                        drawParams.destinationX,
-                        drawParams.destinationY,
-                        drawParams.destinationWidth,
-                        drawParams.destinationHeight,
-                    );
-                }
-
-                if (typeof newX == "undefined" && typeof newY == "undefined") {
-                    //nothing changed, break out of this loop
-                    return requestAnimationFrame(bodySegmentationFrame);
-                }
-
-                requestAnimationFrame(() => { 
-                    gradualFrameMove(initialX, initialY, targetX, targetY);
-                })
-            };
-
-            console.log("called 6");
-        
-            bodySegmentationFrame();
+        const publishStream = async () => {
 
             var local_stream;
 
@@ -1278,7 +941,362 @@ class Room extends React.Component {
                     that.handleRemoteStreams();
                 }
             })
-        
+        }
+
+        if (process.env.REACT_APP_PLATFORM != "web") {
+
+            localVideo = document.createElement("video")
+            localVideo.srcObject = raw_local_stream;
+            localVideo.muted = true;
+            localVideo.autoplay = true;
+            localVideo.setAttribute('playsinline', '');
+            localVideo.play();
+
+            localVideoCanvas = document.createElement("canvas");
+
+            backgroundBlurVideoCanvasCopy = document.createElement("canvas");
+            const backgroundBlurCanvasCtx = backgroundBlurVideoCanvasCopy.getContext('2d');
+
+
+
+            localVideo.onloadedmetadata = () => {
+                localVideo.width = localVideo.videoWidth;
+                localVideo.height = localVideo.videoHeight;
+            }
+            
+
+            var facePrediction = null;
+
+            var drawParams = {
+                sourceX: 0,
+                sourceY: 0,
+                sourceWidth: 0,
+                sourceHeight: 0,
+                destinationX: 0,
+                destinationY: 0,
+                destinationWidth: 0,
+                destinationHeight: 0,
+                sourceNoseScore: 0,
+            }
+
+            var avatarImage = new Image;
+            var avatarImageLoaded = false;
+            avatarImage.onload = () => {
+                avatarImageLoaded = true;
+            }
+            avatarImage.src = user.avatar_url;
+
+            const ctx = localVideoCanvas.getContext('2d');
+
+            if (process.env.REACT_APP_PLATFORM != "web") {
+                ipcRenderer.removeAllListeners('face-tracking-update');
+                ipcRenderer.on('face-tracking-update', (event, args) => {
+                    if (args.type == "updated_coordinates") {
+                        facePrediction = args.facePrediction;
+                    }
+                })
+            }
+
+            var personSegmentation = null;
+
+            if (process.env.REACT_APP_PLATFORM != "web") {
+                ipcRenderer.removeAllListeners('background-blur-update');
+                ipcRenderer.on('background-blur-update', (event, args) => {
+                    if (args.type == "updated_coordinates") {
+                        personSegmentation = args.personSegmentation;
+                    }
+                })
+            }
+
+            if (settings.roomSettings.backgroundBlurEnabled) {
+                this.startBackgroundBlur();
+            }
+
+            const edgeBlurAmount = 5;
+            const flipHorizontal = false;
+
+            localVideo.onplaying = async () => {
+
+                async function bodySegmentationFrame() {
+
+                    if (that._mounted == false) {
+                        return;
+                    }
+
+                    if (that.state.videoStatus == false || that.state.publishing == false) {
+                        return requestAnimationFrame(bodySegmentationFrame);
+                    }
+
+                    if (!that.state.videoIsFaceOnly || facePrediction == null) {    
+
+                        localVideoCanvas.width = localVideo.width;
+                        localVideoCanvas.height = localVideo.height;
+
+                        if (personSegmentation != null && that.state.backgroundBlurEnabled) {
+
+                            bodyPix.drawBokehEffect(
+                                localVideoCanvas, 
+                                localVideo, 
+                                personSegmentation, 
+                                that.state.backgroundBlurAmount,
+                                edgeBlurAmount, 
+                                flipHorizontal
+                            );
+
+                            return requestAnimationFrame(bodySegmentationFrame);
+                        }
+
+                        facePrediction = null;
+
+                        ctx.drawImage(
+                            localVideo, 0, 0
+                        );
+
+                        return requestAnimationFrame(bodySegmentationFrame);
+                    }
+
+                    if (typeof facePrediction.prediction == "undefined" || facePrediction.prediction.probability[0] < .2 && avatarImageLoaded) {
+                        //ctx.drawImage(avatarImage, 0, 0);
+
+                        if (localVideoCanvas.width != 400) {
+                            localVideoCanvas.width = 400;
+                            localVideoCanvas.height = 400;
+                        }
+
+                        ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+                        ctx.fillRect(0, 0, 400, 400);
+                        return requestAnimationFrame(bodySegmentationFrame);
+                    }
+
+                    if (drawParams.sourceX == 0 || drawParams.sourceY == 0) {
+
+                        drawParams = {
+                            sourceX: facePrediction.prediction.topLeft[0] - 100,
+                            sourceY: facePrediction.prediction.topLeft[1] - 125,
+                            sourceWidth: 400,
+                            sourceHeight: 400,
+                            destinationX: 0,
+                            destinationY: 0,
+                            destinationWidth: 400,
+                            destinationHeight: 400,
+                            sourceNoseScore: facePrediction.prediction.probability[0],
+                        }
+
+                        /*
+
+                        drawParams = {
+                            sourceX: facePrediction.prediction.topLeft[0],
+                            sourceY: facePrediction.prediction.topLeft[1],
+                            sourceWidth: facePrediction.prediction.bottomRight[0] - facePrediction.prediction.topLeft[0],
+                            sourceHeight: facePrediction.prediction.bottomRight[1] - facePrediction.prediction.topLeft[1],
+                            destinationX: 0,
+                            destinationY: 0,
+                            destinationWidth: facePrediction.prediction.bottomRight[0] - facePrediction.prediction.topLeft[0],
+                            destinationHeight: facePrediction.prediction.bottomRight[1] - facePrediction.prediction.topLeft[1],
+                            sourceNoseScore: facePrediction.prediction.probability[0],
+                        }
+
+                        */
+                    }
+
+                    if (Math.abs(drawParams.sourceX - (facePrediction.prediction.topLeft[0] - 100)) > 20 || Math.abs(drawParams.sourceY - (facePrediction.prediction.topLeft[1] - 125)) > 20) {
+
+                        let drawParamsCopy = {...drawParams};
+
+                        return requestAnimationFrame(() => { 
+                            gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, facePrediction.prediction.topLeft[0] - 100, facePrediction.prediction.topLeft[1] - 125);
+                        });
+
+                    } 
+
+                    if (localVideoCanvas.width != 400) {
+                        localVideoCanvas.width = 400;
+                        localVideoCanvas.height = 400;
+                    }
+
+                    //draw black every time so we don't see parts of previous frames if it jumps around a little bit
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+                    ctx.fillRect(0, 0, 400, 400);
+
+                    if (personSegmentation != null && that.state.backgroundBlurEnabled) {
+
+                        bodyPix.drawBokehEffect(
+                            backgroundBlurVideoCanvasCopy, 
+                            localVideo, 
+                            personSegmentation, 
+                            that.state.backgroundBlurAmount,
+                            edgeBlurAmount, 
+                            flipHorizontal
+                        );
+
+                        ctx.drawImage(
+                            backgroundBlurVideoCanvasCopy,
+                            drawParams.sourceX,
+                            drawParams.sourceY,
+                            drawParams.sourceWidth,
+                            drawParams.sourceHeight,
+                            drawParams.destinationX,
+                            drawParams.destinationY,
+                            drawParams.destinationWidth,
+                            drawParams.destinationHeight,
+                        );
+
+                        return requestAnimationFrame(bodySegmentationFrame);
+
+                    }
+
+                    ctx.drawImage(
+                        localVideo,
+                        drawParams.sourceX,
+                        drawParams.sourceY,
+                        drawParams.sourceWidth,
+                        drawParams.sourceHeight,
+                        drawParams.destinationX,
+                        drawParams.destinationY,
+                        drawParams.destinationWidth,
+                        drawParams.destinationHeight,
+                    );
+
+                    requestAnimationFrame(bodySegmentationFrame);
+                    
+                }
+
+                async function gradualFrameMove(initialX, initialY, targetX, targetY) {
+
+                    const { videoIsFaceOnly, videoStatus, publishing } = that.state;
+
+                    if (!that._mounted) {
+                        return;
+                    }
+
+                    if (!videoIsFaceOnly || !videoStatus || !publishing) {
+                        return requestAnimationFrame(bodySegmentationFrame);
+                    }
+
+                    if (typeof facePrediction.prediction == "undefined" || facePrediction.prediction.length == 0) {
+                        return requestAnimationFrame(bodySegmentationFrame);
+                    }
+
+                    if (facePrediction.prediction.length > 0) {
+                        if ((facePrediction.prediction.topLeft[0] - 100) != targetX || (facePrediction.prediction.topLeft[1] - 125) != targetY) {
+                            if (Math.abs(targetX - (facePrediction.prediction.topLeft[0] - 100)) > 20 || Math.abs(targetY - (facePrediction.prediction.topLeft[1] - 125)) > 20) {
+                                let drawParamsCopy = {...drawParams};
+
+                                return requestAnimationFrame(() => { 
+                                    gradualFrameMove(drawParamsCopy.sourceX, drawParamsCopy.sourceY, facePrediction.prediction.topLeft[0] - 100, facePrediction.prediction.topLeft[1]- 125);
+                                });
+                            }
+                        }
+                    }
+
+                    if (initialX > targetX) {
+                        //going to the right
+
+                        if (drawParams.sourceX > targetX) {
+                            var newX = drawParams.sourceX - 2;
+                        }
+
+                    } else {
+                        //going to the left
+
+                        if (drawParams.sourceX < targetX) {
+                            var newX = drawParams.sourceX + 2;
+                        }
+                    }
+
+                    if (initialY > targetY) {
+                        //going down 
+
+                        if (drawParams.sourceY > targetY) {
+                            var newY = drawParams.sourceY - 2;
+                        }
+
+                    } else {
+                        //going up
+
+                        if (drawParams.sourceY < targetY) {
+                            var newY = drawParams.sourceY + 2;
+                        }
+                    }
+
+                    drawParams = {
+                        sourceX: typeof newX != "undefined" ? newX : drawParams.sourceX,
+                        sourceY: typeof newY != "undefined" ? newY : drawParams.sourceY,
+                        sourceWidth: localVideo.width,
+                        sourceHeight: localVideo.height,
+                        destinationX: 0,
+                        destinationY: 0,
+                        destinationWidth: localVideo.width,
+                        destinationHeight: localVideo.height,
+                        sourceNoseScore: facePrediction.prediction.probability[0],
+                    }
+                    
+
+                    if (localVideoCanvas.width != 400) {
+                        localVideoCanvas.width = 400;
+                        localVideoCanvas.height = 400;
+                    }
+
+                    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+                    ctx.fillRect(0, 0, 400, 400);
+
+                    if (personSegmentation != null && that.state.backgroundBlurEnabled) {
+
+                        bodyPix.drawBokehEffect(
+                            backgroundBlurVideoCanvasCopy, 
+                            localVideo, 
+                            personSegmentation, 
+                            that.state.backgroundBlurAmount,
+                            edgeBlurAmount, 
+                            flipHorizontal
+                        );
+
+                        ctx.drawImage(
+                            backgroundBlurVideoCanvasCopy,
+                            drawParams.sourceX,
+                            drawParams.sourceY,
+                            drawParams.sourceWidth,
+                            drawParams.sourceHeight,
+                            drawParams.destinationX,
+                            drawParams.destinationY,
+                            drawParams.destinationWidth,
+                            drawParams.destinationHeight,
+                        );
+
+                    } else {
+                        ctx.drawImage(
+                            localVideo,
+                            drawParams.sourceX,
+                            drawParams.sourceY,
+                            drawParams.sourceWidth,
+                            drawParams.sourceHeight,
+                            drawParams.destinationX,
+                            drawParams.destinationY,
+                            drawParams.destinationWidth,
+                            drawParams.destinationHeight,
+                        );
+                    }
+
+                    if (typeof newX == "undefined" && typeof newY == "undefined") {
+                        //nothing changed, break out of this loop
+                        return requestAnimationFrame(bodySegmentationFrame);
+                    }
+
+                    requestAnimationFrame(() => { 
+                        gradualFrameMove(initialX, initialY, targetX, targetY);
+                    })
+                };
+            
+                bodySegmentationFrame();
+
+                publishStream(raw_local_stream, localVideoCanvas);
+            
+            }
+
+        }
+
+        if (process.env.REACT_APP_PLATFORM == "web") {
+            publishStream(raw_local_stream, localVideoCanvas);
         }
 
     }
