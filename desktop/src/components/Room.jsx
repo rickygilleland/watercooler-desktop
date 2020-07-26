@@ -1893,16 +1893,9 @@ class Room extends React.Component {
 
             }
 
-            console.log("RICKY col", columns);
-            console.log("RICKY rows", rows);
-
             var aspectRatio = 4 / 3;
 
             height = Math.round( width / aspectRatio );
-
-            console.log("RICKY width 1", width);
-            console.log("RICKY height 1", height);
-            console.log("RICKY dimensions", dimensions);
 
             while(((height * rows) > (dimensions.height - 250)) || ((width * columns) > (maxWidth - 100))) {
                 width = width - 5;
@@ -1922,9 +1915,6 @@ class Room extends React.Component {
             if (dimensions.width < 1080) {
                 display = "row align-items-center justify-content-center h-100";
             }
-
-            console.log("RICKY width", width);
-            console.log("RICKY height", height);
 
             videoSizes = {
                 height: height,
