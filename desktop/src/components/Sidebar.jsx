@@ -595,8 +595,24 @@ class Sidebar extends React.Component {
                                 onHide={() => this.setState({ showExperimentalSettingsModal: false })}
                             />
                         </ErrorBoundary>
+                        {process.env.REACT_APP_PLATFORM == "web" && (
+                            <Row style={{
+                                height: 30,
+                                color: '#fff'
+                            }}>
+                                <p className="font-weight-bold mx-auto text-center">For the best experience, <a href="https://updater.watercooler.work" target="_blank" className="font-weight-bold">download the Water Cooler desktop app.</a></p>
+                            </Row>
+                        )}
                         <Row>
-                            <Navbar className="vh-100 pr-0 sidebar" expand={false} expanded={sidebarIsVisible} onToggle={() => this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })}>
+                            <Navbar 
+                                className="pr-0 sidebar" 
+                                expand={false} 
+                                expanded={sidebarIsVisible} 
+                                onToggle={() => this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })}
+                                style={{
+                                    height: process.env.REACT_APP_PLATFORM === "web" ? 'calc(100vh - 30px)' : '100vh'
+                                }}
+                            >
                                 <Navbar.Collapse id="responsive-navbar-nav">
                                 
                                     <Navbar className="text-light" style={{height:70,backgroundColor:"#121422",borderBottom:"1px solid #1c2046",paddingTop: process.env.REACT_APP_PLATFORM == "electron" ? '1.5rem!important' : 0}}>
