@@ -12,7 +12,13 @@ import logger from 'redux-logger'
 const browserHistory = createBrowserHistory();
 const rootReducer = createRootReducer(browserHistory);
 const router = routerMiddleware(browserHistory);
-const enhancer = applyMiddleware(thunk.withExtraArgument(axios), router, logger);
+
+var enhancer;
+if (process.env.NODE_ENV !== 'production') {
+    enhancer = applyMiddleware(thunk.withExtraArgument(axios), router, logger);
+} else {
+    enhancer = applyMiddleware(thunk.withExtraArgument(axios), router);
+}
 
 const persistConfig = {
     key: 'root',
