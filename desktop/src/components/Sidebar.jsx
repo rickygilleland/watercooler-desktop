@@ -35,6 +35,7 @@ import ManageCameraModal from './ManageCameraModal';
 import RoomsModal from './RoomsModal';
 import NewCallModal from './NewCallModal';
 import IncomingCallModal from './IncomingCallModal';
+import { isMobile } from 'react-device-detect';
 import posthog from 'posthog-js';
 import Pusher from 'pusher-js';
 
@@ -327,7 +328,6 @@ class Sidebar extends React.Component {
 
     handleIncomingCall(acceptOrDecline) {
         const { userPrivateNotificationChannel, incomingCall } = this.state;
-
     }
 
     handleShowModal(modalToShow) {
@@ -519,6 +519,14 @@ class Sidebar extends React.Component {
             //silently fail
         }
 
+        if (isMobile) {
+            return (
+                <Row>
+                    <h2>Oops! Water Cooler is not optimized for mobile yet. Please try again from a desktop browser.</h2>
+                </Row>
+            )
+        }
+
         return (
             <>
                 <Switch>
@@ -653,7 +661,7 @@ class Sidebar extends React.Component {
                                         </div>
                                     </div>
                                 </Navbar.Collapse>
-                                <Navbar.Toggle aria-controls="responsive-navbar-nav" className="border-0" style={{outline: 'none'}}><FontAwesomeIcon icon={sidebarIsVisible ? faChevronCircleLeft : faChevronCircleRight} className="mr-1" style={{color:"#3ecf8e"}} /> </Navbar.Toggle>
+                                <Navbar.Toggle aria-controls="responsive-navbar-nav" className="border-0" style={{outline: 'none'}}><FontAwesomeIcon icon={sidebarIsVisible ? faChevronCircleLeft : faChevronCircleRight} className="mr-1" style={{color:"#3ecf8e"}} /></Navbar.Toggle>
                             </Navbar>
                             <Col className="pl-0" style={{borderLeft:"1px solid #1c2046",width:"100%",borderRadius:15,marginLeft:0,marginRight:0,marginTop:0,marginBottom:20,backgroundColor:"#fff"}}>
                                 <>
