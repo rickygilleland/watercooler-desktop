@@ -599,7 +599,7 @@ class Sidebar extends React.Component {
                             <Navbar className="vh-100 pr-0 sidebar" expand={false} expanded={sidebarIsVisible} onToggle={() => this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })}>
                                 <Navbar.Collapse id="responsive-navbar-nav">
                                 
-                                    <Navbar className="text-light pt-4" style={{height:70,backgroundColor:"#121422",borderBottom:"1px solid #1c2046"}}>
+                                    <Navbar className="text-light" style={{height:70,backgroundColor:"#121422",borderBottom:"1px solid #1c2046",paddingTop: process.env.REACT_APP_PLATFORM == "electron" ? '1.5rem!important' : 0}}>
                                         <ErrorBoundary showError={false}>
                                             <Navbar.Brand>
                                                 {organization != null ? 
@@ -656,6 +656,11 @@ class Sidebar extends React.Component {
                                                     backgroundBlurWindow={backgroundBlurWindow}
                                                     faceTrackingNetWindow={faceTrackingNetWindow}
                                                     sidebarIsVisible={sidebarIsVisible}
+                                                    onClick={() => {
+                                                        if (window.innerWidth < 768) {
+                                                            this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
+                                                        }
+                                                    }}
                                                 />
                                             </ErrorBoundary>
                                         )}
@@ -669,7 +674,18 @@ class Sidebar extends React.Component {
                                     <Route 
                                         path={routes.TEAM} 
                                         render={(routeProps) => (
-                                            <ErrorBoundary showError={true}><TeamPage {...routeProps} organizationUsersOnline={organizationUsersOnline} currentTime={currentTime} /></ErrorBoundary>
+                                            <ErrorBoundary showError={true}>
+                                                <TeamPage 
+                                                    {...routeProps} 
+                                                    organizationUsersOnline={organizationUsersOnline} 
+                                                    currentTime={currentTime} 
+                                                    onClick={() => {
+                                                        if (window.innerWidth < 768) {
+                                                            this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
+                                                        }
+                                                    }}
+                                                />
+                                            </ErrorBoundary>
                                         )}
                                     />
                                 </>
