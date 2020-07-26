@@ -20,6 +20,7 @@ import {
     faMicrophone,
     faChevronCircleLeft,
     faChevronCircleRight,
+    faDesktop,
 } from '@fortawesome/free-solid-svg-icons';
 import { getOrganizationUsers } from '../actions/organization';
 import EnsureLoggedInContainer from '../containers/EnsureLoggedInContainer';
@@ -522,9 +523,10 @@ class Sidebar extends React.Component {
         if (isMobile) {
             return (
                 <Row>
-                     <Col xs={12} className="p-3">
-                        <h2 style={{color: '#fff'}}>Oops!</h2>
-                        <p className="lead" style={{color: '#fff'}}>Water Cooler is not optimized for mobile yet. Please try again from a desktop browser.</p>
+                     <Col xs={12}>
+                        <h1 className="text-center px-5 pt-5" style={{color: '#fff'}}>Oops!</h1>
+                        <p className="lead text-center px-5" style={{color: '#fff'}}>Water Cooler is not optimized for mobile yet. Please try again from a desktop browser.</p>
+                        <center><FontAwesomeIcon icon={faDesktop} className="pt-4" style={{color:"#3ecf8e",fontSize:"8rem"}} /></center>
                      </Col>
                 </Row>
             )
