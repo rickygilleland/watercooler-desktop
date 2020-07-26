@@ -522,7 +522,10 @@ class Sidebar extends React.Component {
         if (isMobile) {
             return (
                 <Row>
-                    <h2>Oops! Water Cooler is not optimized for mobile yet. Please try again from a desktop browser.</h2>
+                     <Col xs={12} className="p-3">
+                        <h2 style={{color: '#fff'}}>Oops!</h2>
+                        <p className="lead" style={{color: '#fff'}}>Water Cooler is not optimized for mobile yet. Please try again from a desktop browser.</p>
+                     </Col>
                 </Row>
             )
         }
