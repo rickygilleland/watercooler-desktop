@@ -228,7 +228,7 @@ class Room extends React.Component {
         }
 
         Janus.init({
-            debug: true,
+            debug: process.env.NODE_ENV == "production" ? false : true,
             dependencies: Janus.useDefaultDependencies(),
             callback: function() {
                     // Done!
@@ -487,7 +487,7 @@ class Room extends React.Component {
         const { room, showAddUserToRoomModal } = this.state
 
         Janus.init({
-            debug: true,
+            debug: process.env.NODE_ENV == "production" ? false : true,
             dependencies: Janus.useDefaultDependencies(),
             callback: function() {
             }
@@ -578,15 +578,11 @@ class Room extends React.Component {
                     onmessage: function(msg, jsep) {
                         var { videoRoomStreamerHandle, currentLoadingMessage, containerBackgroundColors, members, me } = that.state;
 
-                        console.log("debug msg", msg);
-                        console.log("debug jsep", jsep);
-
                         if (jsep != null) {
                             videoRoomStreamerHandle.handleRemoteJsep({ "jsep": jsep });
                         }
 
                         if (msg.videoroom == "joined") {
-                            console.log("debug joined", msg);
 
                             var updatedMe = that.state.me;
                             updatedMe.info.private_id = msg.private_id;
@@ -701,13 +697,8 @@ class Room extends React.Component {
                     },
                     ondataopen: function(data) {
                         const {videoRoomStreamerHandle, videoStatus, audioStatus } = that.state;
-                        console.log("DATA CHANNEL open");
-
-                
-
                     },
                     ondata: function(data) {
-                        console.log("DATA received", data);
                     },
                     slowLink: function(slowLink) {
 
@@ -716,10 +707,8 @@ class Room extends React.Component {
 
                     },
                     webrtcState: function(state) {
-                        console.log("debug webrtcstate", state);
                     },
                     iceState: function(state) {
-                        console.log("debug icestate", state);
                     },
                     oncleanup: function() {
                             // PeerConnection with the plugin closed, clean the UI
@@ -1487,8 +1476,6 @@ class Room extends React.Component {
 
         this.setState({ backgroundBlurEnabled: false });
 
-        console.log("RICKY STOPPED");
-
         posthog.capture('background-blur-stopped', {"room_id": room.id});
     }   
 
@@ -1537,7 +1524,6 @@ class Room extends React.Component {
         var { screenSharingHandle, screenSharingStream, me, room } = this.state;
 
         if (screenSharingHandle == null) {
-            console.log("debug creating new screen sharinig handle", screenSharingHandle);
             return this.openScreenSharingHandle();
         }
 
