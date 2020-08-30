@@ -606,7 +606,7 @@ class Sidebar extends React.Component {
                 <Row>
                      <Col xs={12}>
                         <h1 className="text-center px-5 pt-5" style={{color: '#fff'}}>Oops!</h1>
-                        <p className="lead text-center px-5" style={{color: '#fff'}}>Water Cooler is not optimized for mobile yet. Please try again from a desktop browser.</p>
+                        <p className="lead text-center px-5" style={{color: '#fff'}}>Blab is not optimized for mobile yet. Please try again from a desktop browser.</p>
                         <center><FontAwesomeIcon icon={faDesktop} className="pt-4" style={{color:"#3ecf8e",fontSize:"8rem"}} /></center>
                      </Col>
                 </Row>
@@ -694,7 +694,7 @@ class Sidebar extends React.Component {
                                 height: 30,
                                 color: '#fff'
                             }}>
-                                <p className="font-weight-bold mx-auto text-center">For the best experience, <a href="https://updater.watercooler.work" target="_blank" className="font-weight-bold">download the Water Cooler desktop app.</a></p>
+                                <p className="font-weight-bold mx-auto text-center">For the best experience, <a href="https://updater.watercooler.work" target="_blank" className="font-weight-bold">download the Blab desktop app.</a></p>
                             </Row>
                         )}
                         <Row>

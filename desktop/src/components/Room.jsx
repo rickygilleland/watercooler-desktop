@@ -2041,7 +2041,7 @@ class Room extends React.Component {
         });
 
         sources.forEach(source => {
-            if (!source.name.includes("Water Cooler")) {
+            if (!source.name.includes("Blab")) {
                 var icon = null;
                 if (source.appIcon != null) {
                     icon = source.appIcon.toDataURL();
@@ -2262,7 +2262,7 @@ class Room extends React.Component {
                                 <div className="align-self-center pr-4">
                                     {billing.plan == "Free" || process.env.REACT_APP_PLATFORM == "web"
                                         ?
-                                            <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">{process.env.REACT_APP_PLATFORM == "web" ? 'Screen sharing is only available in the Water Cooler desktop app' : 'Screen sharing is unavailable on the free plan.' }</Tooltip>}>
+                                            <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">{process.env.REACT_APP_PLATFORM == "web" ? 'Screen sharing is only available in the Blab desktop app' : 'Screen sharing is unavailable on the free plan.' }</Tooltip>}>
                                                 <span className="d-inline-block">
                                                     <Button variant="info" className="mx-1" style={{ pointerEvents: 'none' }} disabled><FontAwesomeIcon icon={faDesktop} /></Button>
                                                 </span>
@@ -2310,7 +2310,7 @@ class Room extends React.Component {
                                             <Dropdown.Item className="no-hover-bg">
                                             {process.env.REACT_APP_PLATFORM == "web"
                                                 ?
-                                                    <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="background-blur-disabled">Background Blur is only available on the Water Cooler desktop app.</Tooltip>}>
+                                                    <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="background-blur-disabled">Background Blur is only available on the Blab desktop app.</Tooltip>}>
                                                         <span className="d-inline-block">
                                                             <Button variant={backgroundBlurEnabled ? "danger" : "success"} className="mx-1 ph-no-capture" disabled={true} style={{ pointerEvents: 'none' }} block><FontAwesomeIcon icon={backgroundBlurEnabled ? faTint : faTintSlash} /> Background Blur Unavailable</Button>
                                                         </span>

@@ -46,7 +46,7 @@ function InviteUsersModal(props) {
           {props.inviteuserssuccess && formSubmitted ? 
 
             <Alert variant="success" className="text-center">
-              Your invites were successfully sent. Let them know to check their email to get started with Water Cooler!
+              Your invites were successfully sent. Let them know to check their email to get started with Blab!
             </Alert>
 
           : ''}

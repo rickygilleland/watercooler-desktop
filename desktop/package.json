@@ -1,8 +1,7 @@
 {
-  "name": "watercooler",
-  "productName": "Water Cooler",
+  "name": "blab",
+  "productName": "Blab",
   "version": "1.6.0",
-  "description": "Bring natural conversation back to remote teams",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",

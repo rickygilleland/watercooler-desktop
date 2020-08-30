@@ -27,7 +27,7 @@ function SettingsModal(props) {
       >
         <Modal.Header>
           <Modal.Title className="font-weight-bolder">
-            <FontAwesomeIcon icon={faCog} className="mr-2" /> Water Cooler Settings
+            <FontAwesomeIcon icon={faCog} className="mr-2" /> Blab Settings
           </Modal.Title>
           <Button variant="outline-secondary" style={{borderColor:"transparent"}} onClick={() => props.onHide()}><FontAwesomeIcon icon={faWindowClose}></FontAwesomeIcon></Button>
         </Modal.Header>

@@ -35,7 +35,7 @@ if (!isDevMode) {
     if (Notification.isSupported()) {
       const updateNotification = new Notification({
         title: 'An Update is Available',
-        body: 'Click on this notification to restart Water Cooler and update now.',
+        body: 'Click on this notification to restart Blab and update now.',
         closeButtonText: 'Later'
       });
 
@@ -48,7 +48,7 @@ if (!isDevMode) {
       const dialogOpts = {
         type: 'info',
         buttons: ['Restart', 'Later'],
-        title: 'Update available for Water Cooler',
+        title: 'Update available for Blab',
         message: process.platform === 'win32' ? releaseNotes : releaseName,
         detail: 'A new version has been downloaded. Click the Restart button to apply the updates.'
       }
@@ -165,7 +165,7 @@ const createWindow = () => {
   ipcMain.handle('update-tray-icon', async (event, args) => {
     if (typeof args.enable != "undefined" && tray == null) {
       tray = new Tray(iconPath);
-      tray.setToolTip('Water Cooler');
+      tray.setToolTip('Blab');
     }
 
     if (typeof args.disable != "undefined" && tray != null) {
@@ -174,9 +174,9 @@ const createWindow = () => {
     }
 
     if (typeof args.screenSharingActive != "undefined") {
-      tray.setToolTip('Water Cooler');
+      tray.setToolTip('Blab');
       if (args.screenSharingActive) {
-        tray.setToolTip('Water Cooler is Sharing Your Screen');
+        tray.setToolTip('Blab is Sharing Your Screen');
       }
       if (args.videoEnabled) {
         trayMenu = Menu.buildFromTemplate([
