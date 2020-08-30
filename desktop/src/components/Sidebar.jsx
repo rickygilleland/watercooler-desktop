@@ -21,6 +21,7 @@ import {
     faChevronCircleLeft,
     faChevronCircleRight,
     faDesktop,
+    faGlobe
 } from '@fortawesome/free-solid-svg-icons';
 import { getOrganizationUsers } from '../actions/organization';
 import EnsureLoggedInContainer from '../containers/EnsureLoggedInContainer';
@@ -406,6 +407,7 @@ class Sidebar extends React.Component {
         let curTeam = teams[0];
         let rooms;
         let calls;
+        let messages;
 
         try {
             rooms = (
@@ -488,6 +490,84 @@ class Sidebar extends React.Component {
                                 )}
                             </ul>
                         : '' }
+                    </div>
+                </div>
+            )
+
+            messages = (
+                <div key={"messages_" + curTeam.id} className="mt-2">
+                    <Row>
+                        <Col xs={9}>
+                            <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:800}}>Blabs</p>
+                        </Col>
+                        <Col xs={3}>
+                            <NavLink exact={true} 
+                                activeStyle={{
+                                    fontWeight: "bold"
+                                }} 
+                                className="d-block py-1"
+                                to={{
+                                    pathname: `/messages/new`
+                                }}>
+                                    <FontAwesomeIcon icon={faPlusSquare} />
+                            </NavLink>
+                        </Col>
+                    </Row>
+                    <div>
+                        <ul className="nav flex-column mt-1">
+                            <li key="1" className="nav-item">
+                                <NavLink exact={true} 
+                                    activeStyle={{
+                                        fontWeight: "bold",
+                                        backgroundColor:"#4381ff"
+                                    }} 
+                                    className="d-block py-1"
+                                    to={{
+                                        pathname: `/call/`,
+                                    }}>
+                                    <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faGlobe} style={{fontSize:".7rem",marginRight:".2rem"}} /> Public Blabs</p>
+                                </NavLink>
+                            </li>
+                            <li key="2" className="nav-item">
+                                <NavLink exact={true} 
+                                    activeStyle={{
+                                        fontWeight: "bold",
+                                        backgroundColor:"#4381ff"
+                                    }} 
+                                    className="d-block py-1"
+                                    to={{
+                                        pathname: `/call/`,
+                                    }}>
+                                    <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#3ecf8e",fontSize:".5rem",verticalAlign:'middle'}} /> Hannah Katherine</p>
+                                </NavLink>
+                            </li>
+                            <li key="3" className="nav-item">
+                                <NavLink exact={true} 
+                                    activeStyle={{
+                                        fontWeight: "bold",
+                                        backgroundColor:"#4381ff"
+                                    }} 
+                                    className="d-block py-1"
+                                    to={{
+                                        pathname: `/call/`,
+                                    }}>
+                                    <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#3ecf8e",fontSize:".5rem",verticalAlign:'middle'}} /> George</p>
+                                </NavLink>
+                            </li>
+                            <li key="4" className="nav-item">
+                                <NavLink exact={true} 
+                                    activeStyle={{
+                                        fontWeight: "bold",
+                                        backgroundColor:"#4381ff"
+                                    }} 
+                                    className="d-block py-1"
+                                    to={{
+                                        pathname: `/call/`,
+                                    }}>
+                                    <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#f9426c",fontSize:".5rem",verticalAlign:'middle'}} /> Lucy</p>
+                                </NavLink>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             )
@@ -656,24 +736,13 @@ class Sidebar extends React.Component {
                                                             <p className="mb-0 pl-3"><FontAwesomeIcon icon={faUsers} style={{fontSize:".65rem"}} />  Team</p>
                                                     </NavLink>
                                                 </li>
-                                                <li key="new-message-nav-button" className="nav-item">
-                                                    <NavLink exact={true} 
-                                                        activeStyle={{
-                                                            fontWeight: "bold"
-                                                        }} 
-                                                        className="d-block py-1"
-                                                        to={{
-                                                            pathname: `/messages/new`
-                                                        }}>
-                                                            <p className="mb-0 pl-3"><FontAwesomeIcon icon={faMicrophone} style={{fontSize:".65rem"}} />  New Voice Message</p>
-                                                    </NavLink>
-                                                </li>
                                                 <li key="settings-nav-button" className="nav-item">
                                                     <Button variant="link" className="mb-0 pl-3 d-block py-1" onClick={() => this.setState({ showSettingsModal: true })}><FontAwesomeIcon icon={faCog} style={{fontSize:".65rem"}} />  Settings</Button>
                                                 </li>
                                             </ul>
                                         </div>
                                         <div>
+                                            {messages}
                                             {rooms}
                                             {/*calls*/}
                                         </div>

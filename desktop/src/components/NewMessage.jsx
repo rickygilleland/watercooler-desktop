@@ -161,7 +161,7 @@ class NewMessage extends React.Component {
                     <Row>
                         <Col>
                             {isRecording && (
-                                <p>Recording: {duration}</p>  
+                                <p>Recording: {duration} / 5:00</p>  
                             )}
                         </Col>
                     </Row>
