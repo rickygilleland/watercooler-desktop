@@ -61,7 +61,7 @@ export function requestLoginCode(email) {
         const state = getState();
 
         try {
-            axios.post(`https://blab.work/api/login_code`, {
+            axios.post(`https://blab.to/api/login_code`, {
                 email: email
             })
             .then(response => {
@@ -82,7 +82,7 @@ export function authenticateUser(email, password) {
 
         const state = getState();
         try {
-            axios.post(`https://blab.work/oauth/token`, {
+            axios.post(`https://blab.to/oauth/token`, {
                 grant_type: "password",
                 client_id: 2,
                 client_secret: "c1bE8I6EMEG8TEHt9PTsLaJwvoyo8L8LtNP25mIv",
@@ -109,7 +109,7 @@ export function authenticateUserMagicLink(code) {
         const state = getState();
         
         try {
-            axios.post(`https://blab.work/api/magic/auth`, {
+            axios.post(`https://blab.to/api/magic/auth`, {
                 code: code
             })
             .then(response => {

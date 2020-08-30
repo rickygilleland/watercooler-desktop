@@ -44,7 +44,7 @@ export function getUserDetails() {
         //check if we need to do some state stuff
 
         try {
-            axios.get("https://blab.work/api/user", {
+            axios.get("https://blab.to/api/user", {
                 headers: {
                     'Accept': 'application/json',
                     'Authorization': 'Bearer '+state.auth.authKey,
@@ -70,7 +70,7 @@ export function updateUserDetails(timezone) {
         try {
             axios({
                 method: 'patch',
-                url: `https://blab.work/api/user/${state.user.id}`,
+                url: `https://blab.to/api/user/${state.user.id}`,
                 data: { 
                     timezone
                 },

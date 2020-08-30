@@ -17,7 +17,7 @@ if (!isDevMode) {
     release: 'blab@' + app.getVersion()
   });
 
-  const server = 'https://updater.blab.work'
+  const server = 'https://updater.blab.to'
   const feed = `${server}/update/${process.platform}/${app.getVersion()}`
 
   autoUpdater.setFeedURL(feed);

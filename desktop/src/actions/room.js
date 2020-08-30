@@ -67,7 +67,7 @@ export function getRooms() {
         //check if we need to do some state stuff
 
         try {
-            axios.get("https://blab.work/api/organization", {
+            axios.get("https://blab.to/api/organization", {
                 headers: {
                     'Accept': 'application/json',
                     'Authorization': 'Bearer '+state.auth.authKey,
@@ -92,7 +92,7 @@ export function getRoomUsers(roomId) {
         dispatch(getRoomUsersStarted());
 
         try {
-            axios.get(`https://blab.work/api/room/${roomId}/users`, {
+            axios.get(`https://blab.to/api/room/${roomId}/users`, {
                 headers: {
                     'Accept': 'application/json',
                     'Authorization': 'Bearer '+state.auth.authKey,
@@ -118,7 +118,7 @@ export function addUserToRoom(roomId, userId) {
         try {
             axios({
                 method: 'post',
-                url: `https://blab.work/api/room/${roomId}/users`,
+                url: `https://blab.to/api/room/${roomId}/users`,
                 data: { 
                     user_id: userId
                 },
