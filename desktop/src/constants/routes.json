@@ -7,6 +7,10 @@
     "CALLBACK": "/callback/:type/:code",
     "LOADING": "/loading",
     "REDIRECT": "/redirect",
-    "TEAM": "/team"
+    "TEAM": "/team",
+    "MESSAGE": {
+      "NEW": "/messages/new",
+      "ALL": "/messages"
+    }
   }
   

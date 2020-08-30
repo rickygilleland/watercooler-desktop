@@ -36,6 +36,7 @@ import ManageCameraModal from './ManageCameraModal';
 import RoomsModal from './RoomsModal';
 import NewCallModal from './NewCallModal';
 import IncomingCallModal from './IncomingCallModal';
+import NewMessagePage from '../containers/NewMessagePage';
 import { isMobile } from 'react-device-detect';
 import posthog from 'posthog-js';
 import Pusher from 'pusher-js';
@@ -655,6 +656,18 @@ class Sidebar extends React.Component {
                                                             <p className="mb-0 pl-3"><FontAwesomeIcon icon={faUsers} style={{fontSize:".65rem"}} />  Team</p>
                                                     </NavLink>
                                                 </li>
+                                                <li key="new-message-nav-button" className="nav-item">
+                                                    <NavLink exact={true} 
+                                                        activeStyle={{
+                                                            fontWeight: "bold"
+                                                        }} 
+                                                        className="d-block py-1"
+                                                        to={{
+                                                            pathname: `/messages/new`
+                                                        }}>
+                                                            <p className="mb-0 pl-3"><FontAwesomeIcon icon={faMicrophone} style={{fontSize:".65rem"}} />  New Voice Message</p>
+                                                    </NavLink>
+                                                </li>
                                                 <li key="settings-nav-button" className="nav-item">
                                                     <Button variant="link" className="mb-0 pl-3 d-block py-1" onClick={() => this.setState({ showSettingsModal: true })}><FontAwesomeIcon icon={faCog} style={{fontSize:".65rem"}} />  Settings</Button>
                                                 </li>
@@ -708,6 +721,21 @@ class Sidebar extends React.Component {
                                                     {...routeProps} 
                                                     organizationUsersOnline={organizationUsersOnline} 
                                                     currentTime={currentTime} 
+                                                    onClick={() => {
+                                                        if (window.innerWidth < 768) {
+                                                            this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
+                                                        }
+                                                    }}
+                                                />
+                                            </ErrorBoundary>
+                                        )}
+                                    />
+                                    <Route 
+                                        path={routes.MESSAGE.NEW} 
+                                        render={(routeProps) => (
+                                            <ErrorBoundary showError={true}>
+                                                <NewMessagePage 
+                                                    {...routeProps} 
                                                     onClick={() => {
                                                         if (window.innerWidth < 768) {
                                                             this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
