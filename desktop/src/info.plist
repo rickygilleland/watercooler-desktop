@@ -6,7 +6,7 @@
             <string>Wattercooler</string>
             <key>CFBundleURLSchemes</key>
             <array>
-                <string>watercooler</string>
+                <string>blab</string>
             </array>
 	    <key>NSUserNotificationAlertStyle</key>
 	    <string>alert</string>

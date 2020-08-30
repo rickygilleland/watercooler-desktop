@@ -29,7 +29,7 @@ if (process.env.REACT_APP_PLATFORM != "web") {
   }
 }
 
-posthog.init('64tUVTgJhFVIV7BADDLYHN-zG2Ja1yqzOI_SE8Pytc4', {api_host: 'https://analytics.watercooler.work'});
+posthog.init('64tUVTgJhFVIV7BADDLYHN-zG2Ja1yqzOI_SE8Pytc4', {api_host: 'https://analytics.blab.work'});
 
 export default class App extends React.Component {
   render() {

@@ -10,7 +10,7 @@
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\""
   },
-  "author": "watercooler",
+  "author": "blab",
   "keywords": [],
   "config": {
     "forge": "./forge.config.js"

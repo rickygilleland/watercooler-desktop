@@ -145,7 +145,7 @@ class Sidebar extends React.Component {
                 pusherInstance = new Pusher('3eb4f9d419966b6e1e0b', {
                     forceTLS: true,
                     cluster: 'mt1',
-                    authEndpoint: 'https://watercooler.work/broadcasting/auth',
+                    authEndpoint: 'https://blab.work/broadcasting/auth',
                     authTransport: "ajax",
                     auth: {
                         headers: {
@@ -694,7 +694,7 @@ class Sidebar extends React.Component {
                                 height: 30,
                                 color: '#fff'
                             }}>
-                                <p className="font-weight-bold mx-auto text-center">For the best experience, <a href="https://updater.watercooler.work" target="_blank" className="font-weight-bold">download the Blab desktop app.</a></p>
+                                <p className="font-weight-bold mx-auto text-center">For the best experience, <a href="https://updater.blab.work" target="_blank" className="font-weight-bold">download the Blab desktop app.</a></p>
                             </Row>
                         )}
                         <Row>

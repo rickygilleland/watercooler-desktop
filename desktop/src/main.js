@@ -14,10 +14,10 @@ if (!isDevMode) {
 
   init({
     dsn: 'https://20e5d4f5d6d94630a28e5684a3048940@o281199.ingest.sentry.io/5176374',
-    release: 'watercooler-desktop@' + app.getVersion()
+    release: 'blab@' + app.getVersion()
   });
 
-  const server = 'https://updater.watercooler.work'
+  const server = 'https://updater.blab.work'
   const feed = `${server}/update/${process.platform}/${app.getVersion()}`
 
   autoUpdater.setFeedURL(feed);
@@ -369,7 +369,7 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
-app.setAsDefaultProtocolClient("watercooler");
+app.setAsDefaultProtocolClient("blab");
 
 app.on('open-url', (ev, url) => {
   ev.preventDefault();

@@ -7,16 +7,16 @@ module.exports = {
             "gatekeeper-assess": false,
             "entitlements": "./src/entitlements.plist",
             "entitlements-inherit": "./src/entitlements.plist",
-            "appBundleId": "com.watercooler.app"
+            "appBundleId": "com.blab.app"
         },
-        "appBundleId": "com.watercooler.app",
+        "appBundleId": "com.blab.app",
         "asar": true
     },
       "makers": [
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "watercooler"
+            "name": "blab"
           }
         },
         {
