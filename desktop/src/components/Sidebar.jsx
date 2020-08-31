@@ -814,6 +814,21 @@ class Sidebar extends React.Component {
                                             </ErrorBoundary>
                                         )}
                                     />
+                                    <Route 
+                                        path={routes.MESSAGE.THREAD} 
+                                        render={(routeProps) => (
+                                            <ErrorBoundary showError={true}>
+                                                <MessageThread 
+                                                    {...routeProps} 
+                                                    onClick={() => {
+                                                        if (window.innerWidth < 768) {
+                                                            this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
+                                                        }
+                                                    }}
+                                                />
+                                            </ErrorBoundary>
+                                        )}
+                                    />
                                 </>
                             </Col>
                         </Row>

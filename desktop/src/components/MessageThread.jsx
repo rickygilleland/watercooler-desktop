@@ -1,7 +1,6 @@
 import React from 'react';
 import routes from '../constants/routes.json';
 import { Link } from 'react-router-dom';
-import SendMessage from './SendMessage';
 import { Container, Image, Button, Card, CardColumns, Navbar, Row, Col, OverlayTrigger, Overlay, Popover, Tooltip } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faMicrophone, faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons';
@@ -10,13 +9,12 @@ import { StereoAudioRecorder } from 'recordrtc';
 import videojs from 'video.js'
 import posthog from 'posthog-js';
 
-class NewMessage extends React.Component {
+class MessageThread extends React.Component {
 
     constructor(props) {
         super(props);
         this.state = {
         };
-
     }
 
     componentDidMount() {
@@ -31,10 +29,10 @@ class NewMessage extends React.Component {
     render() {
 
         return (
-            <SendMessage />
+            
         )
     }
 
 }
 
-export default NewMessage;
+export default MessageThread;

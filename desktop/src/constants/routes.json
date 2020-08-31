@@ -10,7 +10,8 @@
     "TEAM": "/team",
     "MESSAGE": {
       "NEW": "/messages/new",
-      "ALL": "/messages"
+      "ALL": "/messages",
+      "THREAD": "/messages/thread/:user"
     }
   }
   
