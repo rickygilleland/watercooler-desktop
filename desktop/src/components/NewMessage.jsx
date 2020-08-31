@@ -35,7 +35,7 @@ class NewMessage extends React.Component {
 
         organizationUsers.forEach(user => {
             users.push({
-                id: user.id,
+                id: user.id.toString(),
                 name: user.first_name + ' ' + user.last_name,
                 avatar_url: user.avatar_url,
             });
@@ -104,7 +104,7 @@ class NewMessage extends React.Component {
                         onChange: this.handleSuggestionChange
                     }}
                     theme={{
-                        input: 'form-control',
+                        input: 'form-control form-control-lg',
                         suggestionsList: 'list-group',
                         suggestion: 'list-group-item',
                     }}
