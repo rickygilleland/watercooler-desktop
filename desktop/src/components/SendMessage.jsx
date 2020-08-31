@@ -3,7 +3,7 @@ import routes from '../constants/routes.json';
 import { Link } from 'react-router-dom';
 import { Container, Image, Button, Card, CardColumns, Navbar, Row, Col, OverlayTrigger, Overlay, Popover, Tooltip } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faMicrophone, faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons';
+import { faMicrophone, faMicrophoneSlash, faCircle } from '@fortawesome/free-solid-svg-icons';
 import RecordRTC from 'recordrtc';
 import { StereoAudioRecorder } from 'recordrtc';
 import Autosuggest from 'react-autosuggest';
@@ -153,20 +153,22 @@ class SendMessage extends React.Component {
         const { isRecording, raw_local_stream, duration } = this.state;
 
         return (
-            <Row>
-                <Col xs={{span:12}} className="text-center">
-                    <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"2rem"}} className="mx-auto mt-3" onClick={() => this.startRecording()}>
-                        <FontAwesomeIcon icon={isRecording ? faMicrophoneSlash : faMicrophone} />
-                    </Button>
-                    <Row>
-                        <Col xs={{span:12}}>
-                            {isRecording && (
-                                <p style={{fontWeight:700,fontSize:"1.2em"}}>Recording Blab<br/> {duration} / 5:00</p>  
-                            )}
-                        </Col>
-                    </Row>
-                </Col>
-            </Row>
+            <Card className="mt-auto" style={{height: 190}}>
+                <Row className="mt-3 mb-4">
+                    <Col xs={{span:12}} className="text-center">
+                        <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"1.8rem"}} className="mx-auto mt-3" onClick={() => this.startRecording()}>
+                            <FontAwesomeIcon icon={isRecording ? faMicrophoneSlash : faMicrophone} />
+                        </Button>
+                        <Row className="mt-3">
+                            <Col xs={{span:12}}>
+                                {isRecording && (
+                                    <p style={{fontWeight:700,fontSize:"1.2em"}}><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#f9426c",fontSize:".5rem",verticalAlign:'middle'}} /> Recording Blab<br/> {duration} / 5:00</p>  
+                                )}
+                            </Col>
+                        </Row>
+                    </Col>
+                </Row>
+            </Card>
         )
     }
 
