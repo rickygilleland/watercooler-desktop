@@ -4,6 +4,7 @@ import { bindActionCreators } from 'redux';
 import { push } from 'connected-react-router';
 import { withRouter } from 'react-router-dom';
 import NewMessage from '../components/NewMessage';
+import { createMessage } from '../actions/message';
 
 function mapStateToProps(state) {
     return {
@@ -12,12 +13,14 @@ function mapStateToProps(state) {
         organization: state.organization.organization,
         organizationUsers: state.organization.users,
         settings: state.settings,
+        messageLoading: state.message.loading,
     }
 }
 
 function mapDispatchToProps(dispatch) {
     return bindActionCreators(
       {
+        createMessage,
         push
       },
       dispatch

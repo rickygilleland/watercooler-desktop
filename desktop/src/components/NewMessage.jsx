@@ -81,8 +81,8 @@ class NewMessage extends React.Component {
     }
 
     render() {
-        const { settings, user } = this.props;
-        const { suggestions, suggestionDisplayValue } = this.state;
+        const { settings, user, createMessage, organization, messageLoading } = this.props;
+        const { suggestions, suggestionValue, suggestionDisplayValue } = this.state;
 
         return (
             <div className="d-flex flex-column" style={{height: process.env.REACT_APP_PLATFORM === "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'}}>
@@ -114,7 +114,14 @@ class NewMessage extends React.Component {
                         suggestion: 'list-group-item',
                     }}
                 />
-                <SendMessage settings={settings} user={user} />
+                <SendMessage 
+                    settings={settings} 
+                    user={user} 
+                    recipientId={suggestionValue} 
+                    createMessage={createMessage} 
+                    organization={organization} 
+                    messageLoading={messageLoading}
+                />
             </div>
         )
     }

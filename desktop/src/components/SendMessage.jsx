@@ -111,6 +111,8 @@ class SendMessage extends React.Component {
 
     async stopRecording() {
         const { recorder, isRecording, raw_local_stream } = this.state;
+
+        this.setState({ loadingRecording: true });
         
         if (recorder !== null && isRecording) {
             recorder.stopRecording(() => {
@@ -138,7 +140,8 @@ class SendMessage extends React.Component {
                     timeInterval: null, 
                     duration: "00:00", 
                     recordingBlob, 
-                    recordingBlobUrl 
+                    recordingBlobUrl ,
+                    loadingRecording: false
                 })
             })
         }
@@ -149,10 +152,36 @@ class SendMessage extends React.Component {
     }
 
     sendRecording() {
+        const { createMessage, organization, recipientId } = this.props;
+        const { recordingBlob } = this.state;
 
+        var attachment = new File([recordingBlob], 'blab.wav', {
+            type: 'audio/wav'
+        });
+    
+        var formData = new FormData();
+        formData.append('attachment', attachment);
+
+        let message = {
+            organization_id: organization.id,
+            is_public: false,
+            recipient_id: recipientId,
+            attachment
+        }
+
+        for ( var key in message ) {
+            formData.append(key, message[key]);
+        }
+
+        return createMessage(formData);
     }
 
     calculateTimeDuration(secs) {
+
+        if (secs > 300) {
+            this.stopRecording();
+        }
+
         var min = Math.floor(secs / 60);
         var sec = Math.floor(secs - (min * 60));
     
@@ -179,27 +208,37 @@ class SendMessage extends React.Component {
     }
 
     render() {
-
+        const { messageLoading } = this.props;
         const { isRecording, recordingBlob, recordingBlobUrl, duration, loadingRecording, showDeleteConfirm } = this.state;
+
+        if (messageLoading || loadingRecording) {
+            return(
+                <Card className="mt-auto" style={{height: 190,backgroundColor:"#1b1e2f",borderRadius:0}}>
+                    <Row className="mt-3 mb-4">
+                        <Col xs={{span:12}} className="text-center">
+                            <p className="text-light" style={{fontSize:"1.2rem",fontWeight:700}}>{loadingRecording ? 'Creating' : 'Uploading'} Blab...</p>
+                            <FontAwesomeIcon icon={faCircleNotch} className="mt-3 mx-auto" style={{fontSize:"2.4rem",color:"#6772ef"}} spin />
+                        </Col>
+                    </Row>
+                </Card>
+            )
+        }
 
         return (
             <Card className="mt-auto" style={{height: 190,backgroundColor:"#1b1e2f",borderRadius:0}}>
                 <Row className="mt-3 mb-4">
                     <Col xs={{span:12}} className="text-center">
-                        {loadingRecording && (
-                            <FontAwesomeIcon icon={faCircleNotch} className="mt-3 mx-auto" style={{fontSize:"2.4rem",color:"#6772ef"}} spin />
-                        )}
                         {recordingBlobUrl == null && (
-                            <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"1.8rem",minWidth:"4rem",minHeight:"4rem"}} className="mx-auto mt-3" onClick={() => !isRecording ? this.startRecording() : this.stopRecording()}>
+                            <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"1.5rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className="mx-auto mt-3" onClick={() => !isRecording ? this.startRecording() : this.stopRecording()}>
                                 <FontAwesomeIcon icon={isRecording ? faMicrophoneSlash : faMicrophone} />
                             </Button>
                         )}
                         {recordingBlobUrl != null && !showDeleteConfirm && (
                             <div className="mx-auto">
-                                <Button variant="danger" style={{color:"#fff",fontSize:"1rem",minWidth:"4rem",minHeight:"4rem"}} className="mx-3 mt-3" onClick={() => this.setState({ showDeleteConfirm: true })}>
-                                    <FontAwesomeIcon icon={faTimesCircle} style={{fontSize:"2.2rem"}} /><br />
+                                <Button variant="danger" style={{color:"#fff",fontSize:"1rem",minWidth:"3rem",minHeight:"3rem"}} className="mx-3 mt-3" onClick={() => this.setState({ showDeleteConfirm: true })}>
+                                    <FontAwesomeIcon icon={faTimesCircle} style={{fontSize:"1.5rem"}} /><br />
                                 </Button>
-                                <Button variant="success" style={{color:"#fff",fontSize:"1.8rem",minWidth:"4rem",minHeight:"4rem"}} className="mx-3 mt-3" onClick={() => this.sendRecording()}>
+                                <Button variant="success" style={{color:"#fff",fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} className="mx-3 mt-3" onClick={() => this.sendRecording()}>
                                     <FontAwesomeIcon icon={faPaperPlane} />
                                 </Button>
                             </div>
@@ -207,10 +246,10 @@ class SendMessage extends React.Component {
                         {showDeleteConfirm && (
                             <div className="mx-auto">
                                 <p className="text-light mb-0" style={{fontWeight:700,fontSize:"1.2rem"}}>Are you sure you want to delete this Blab?<br /><small>This cannot be undone.</small></p>
-                                <Button variant="danger" style={{color:"#fff",fontSize:"2rem",minWidth:"4rem",minHeight:"4rem"}} className="mx-3 mt-3" onClick={() => this.clearRecording()}>
+                                <Button variant="danger" style={{color:"#fff",fontSize:"1.5rem",minWidth:"3rem",minHeight:"3rem"}} className="mx-3 mt-3" onClick={() => this.clearRecording()}>
                                     <FontAwesomeIcon icon={faTrashAlt} />
                                 </Button>
-                                <Button variant="success" style={{color:"#fff",fontSize:"2rem",minWidth:"4rem",minHeight:"4rem"}} className="mx-3 mt-3" onClick={() => this.setState({ showDeleteConfirm: false })}>
+                                <Button variant="success" style={{color:"#fff",fontSize:"1.5rem",minWidth:"3rem",minHeight:"3rem"}} className="mx-3 mt-3" onClick={() => this.setState({ showDeleteConfirm: false })}>
                                     <FontAwesomeIcon icon={faSave} />
                                 </Button>
                             </div>
