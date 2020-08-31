@@ -18,7 +18,8 @@ class NewMessage extends React.Component {
         this.state = {
             users: [],
             suggestions: [],
-            suggestionValue: '',
+            suggestionValue: null,
+            suggestionDisplayValue: '',
         };
 
         this.getSuggestions = this.getSuggestions.bind(this);
@@ -35,7 +36,7 @@ class NewMessage extends React.Component {
 
         organizationUsers.forEach(user => {
             users.push({
-                id: user.id.toString(),
+                id: user.id,
                 name: user.first_name + ' ' + user.last_name,
                 avatar_url: user.avatar_url,
             });
@@ -62,7 +63,11 @@ class NewMessage extends React.Component {
     }
 
     handleSuggestionChange(event, { newValue }) {
-        this.setState({ suggestionValue: newValue });
+        if (typeof newValue.id !== "undefined") {
+            return this.setState({ suggestionValue: newValue.id, suggestionDisplayValue: newValue.name });
+        }
+
+        this.setState({ suggestionDisplayValue: newValue });
     }
 
     onSuggestionsFetchRequested({ value }) {
@@ -77,14 +82,14 @@ class NewMessage extends React.Component {
 
     render() {
         const { settings, user } = this.props;
-        const { suggestions, suggestionValue } = this.state;
+        const { suggestions, suggestionDisplayValue } = this.state;
 
         return (
             <div className="d-flex flex-column" style={{height: process.env.REACT_APP_PLATFORM === "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'}}>
                 <Autosuggest
                     suggestions={suggestions}
                     getSuggestionValue={(suggestion) => {
-                        return suggestion.id;
+                        return suggestion;
                     }}
                     renderSuggestion={(suggestion) => {
                         return (
@@ -100,7 +105,7 @@ class NewMessage extends React.Component {
                     onSuggestionsClearRequested={this.onSuggestionsClearRequested}
                     inputProps={{
                         placeholder: "Type the name of a teammate",
-                        value: suggestionValue,
+                        value: suggestionDisplayValue,
                         onChange: this.handleSuggestionChange
                     }}
                     theme={{

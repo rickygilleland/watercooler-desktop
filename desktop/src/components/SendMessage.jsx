@@ -6,7 +6,6 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faMicrophone, faMicrophoneSlash, faCircle, faCircleNotch, faTimesCircle, faPaperPlane, faTrashAlt, faSave } from '@fortawesome/free-solid-svg-icons';
 import RecordRTC from 'recordrtc';
 import { StereoAudioRecorder } from 'recordrtc';
-import Autosuggest from 'react-autosuggest';
 import videojs from 'video.js'
 import posthog from 'posthog-js';
 
