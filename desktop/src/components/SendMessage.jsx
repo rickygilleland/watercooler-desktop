@@ -3,7 +3,7 @@ import routes from '../constants/routes.json';
 import { Link } from 'react-router-dom';
 import { Container, Image, Button, Card, CardColumns, Navbar, Row, Col, OverlayTrigger, Overlay, Popover, Tooltip } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faMicrophone, faMicrophoneSlash, faCircle, faCircleNotch, faTimesCircle, faPaperPlane, faTrashAlt, faSave } from '@fortawesome/free-solid-svg-icons';
+import { faMicrophone, faMicrophoneSlash, faCircle, faCircleNotch, faTimesCircle, faPaperPlane, faTrashAlt, faSave, faGlobe } from '@fortawesome/free-solid-svg-icons';
 import RecordRTC from 'recordrtc';
 import { StereoAudioRecorder } from 'recordrtc';
 import videojs from 'video.js'
@@ -70,7 +70,8 @@ class SendMessage extends React.Component {
             type: 'audio',
             mimeType: 'audio/wav',
             recorderType: StereoAudioRecorder,
-            desiredSampRate: 16000
+            desiredSampRate: 16000,
+            numberOfAudioChannels: 1,
         });
 
         recorder.startRecording();
@@ -151,7 +152,7 @@ class SendMessage extends React.Component {
         this.setState({ recordingBlob: null, recordingBlobUrl: null, showDeleteConfirm: false })
     }
 
-    sendRecording() {
+    sendRecording(isPublic = false) {
         const { createMessage, organization, recipientId } = this.props;
         const { recordingBlob } = this.state;
 
@@ -164,7 +165,7 @@ class SendMessage extends React.Component {
 
         let message = {
             organization_id: organization.id,
-            is_public: false,
+            is_public: isPublic,
             recipient_id: recipientId,
             attachment
         }
@@ -208,7 +209,7 @@ class SendMessage extends React.Component {
     }
 
     render() {
-        const { messageLoading } = this.props;
+        const { messageLoading, recipientId, recipientName } = this.props;
         const { isRecording, recordingBlob, recordingBlobUrl, duration, loadingRecording, showDeleteConfirm } = this.state;
 
         if (messageLoading || loadingRecording) {
@@ -235,21 +236,53 @@ class SendMessage extends React.Component {
                         )}
                         {recordingBlobUrl != null && !showDeleteConfirm && (
                             <div className="mx-auto">
-                                <Button variant="danger" style={{color:"#fff",fontSize:"1rem",minWidth:"3rem",minHeight:"3rem"}} className="mx-3 mt-3" onClick={() => this.setState({ showDeleteConfirm: true })}>
-                                    <FontAwesomeIcon icon={faTimesCircle} style={{fontSize:"1.5rem"}} /><br />
-                                </Button>
-                                <Button variant="success" style={{color:"#fff",fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} className="mx-3 mt-3" onClick={() => this.sendRecording()}>
-                                    <FontAwesomeIcon icon={faPaperPlane} />
-                                </Button>
+                                <OverlayTrigger
+                                    placement="top"
+                                    overlay={
+                                        <Tooltip id="tooltip-delete-button">
+                                            Delete this Blab.
+                                        </Tooltip>
+                                    }
+                                    >
+                                    <Button variant="danger" style={{color:"#fff",fontSize:"1rem",minWidth:"3rem",minHeight:"3rem"}} className="mx-2 mt-3" onClick={() => this.setState({ showDeleteConfirm: true })}>
+                                        <FontAwesomeIcon icon={faTimesCircle} style={{fontSize:"1.5rem"}} /><br />
+                                    </Button>
+                                </OverlayTrigger>
+                                <OverlayTrigger
+                                    placement="top"
+                                    overlay={
+                                        <Tooltip id="tooltip-send-button">
+                                            {recipientId == null 
+                                                ? 'Select a recipient to send this Blab, or use the globe button to get a shareable link.' 
+                                                : `Send this Blab to ${recipientName}`}
+                                        </Tooltip>
+                                    }
+                                    >
+                                    <Button variant="success" style={{color:"#fff",fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} disabled={recipientId == null} className="mx-2 mt-3" onClick={() => this.sendRecording()}>
+                                        <FontAwesomeIcon icon={faPaperPlane} />
+                                    </Button>
+                                </OverlayTrigger>
+                                <OverlayTrigger
+                                    placement="top"
+                                    overlay={
+                                        <Tooltip id="tooltip-make-public-button">
+                                            Get a shareable public link for this Blab for sharing outside of the Blab app.
+                                        </Tooltip>
+                                    }
+                                    >
+                                    <Button variant="success" style={{color:"#fff",fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} className="mx-2 mt-3" onClick={() => this.sendRecording(true)}>
+                                        <FontAwesomeIcon icon={faGlobe} />
+                                    </Button>
+                                </OverlayTrigger>
                             </div>
                         )}
                         {showDeleteConfirm && (
                             <div className="mx-auto">
                                 <p className="text-light mb-0" style={{fontWeight:700,fontSize:"1.2rem"}}>Are you sure you want to delete this Blab?<br /><small>This cannot be undone.</small></p>
-                                <Button variant="danger" style={{color:"#fff",fontSize:"1.5rem",minWidth:"3rem",minHeight:"3rem"}} className="mx-3 mt-3" onClick={() => this.clearRecording()}>
+                                <Button variant="danger" style={{color:"#fff",fontSize:"1.5rem",minWidth:"3rem",minHeight:"3rem"}} className="mx-2 mt-3" onClick={() => this.clearRecording()}>
                                     <FontAwesomeIcon icon={faTrashAlt} />
                                 </Button>
-                                <Button variant="success" style={{color:"#fff",fontSize:"1.5rem",minWidth:"3rem",minHeight:"3rem"}} className="mx-3 mt-3" onClick={() => this.setState({ showDeleteConfirm: false })}>
+                                <Button variant="success" style={{color:"#fff",fontSize:"1.5rem",minWidth:"3rem",minHeight:"3rem"}} className="mx-2 mt-3" onClick={() => this.setState({ showDeleteConfirm: false })}>
                                     <FontAwesomeIcon icon={faSave} />
                                 </Button>
                             </div>
@@ -257,6 +290,9 @@ class SendMessage extends React.Component {
                         {!showDeleteConfirm && (
                             <Row className="mt-3 text-light">
                                 <Col xs={{span:12}}>
+                                    {!isRecording && !recordingBlobUrl && (
+                                        <p className="text-light mb-0" style={{fontWeight:700,fontSize:"1.2rem"}}>Click the microphone to start recording your Blab.</p>
+                                    )}
                                     {isRecording && (
                                         <p style={{fontWeight:700,fontSize:"1.2em"}}><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#f9426c",fontSize:".5rem",verticalAlign:'middle'}} /> Recording Blab<br/> {duration} / 5:00</p>  
                                     )}

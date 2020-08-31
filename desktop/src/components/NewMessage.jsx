@@ -118,6 +118,7 @@ class NewMessage extends React.Component {
                     settings={settings} 
                     user={user} 
                     recipientId={suggestionValue} 
+                    recipientName={suggestionDisplayValue}
                     createMessage={createMessage} 
                     organization={organization} 
                     messageLoading={messageLoading}
