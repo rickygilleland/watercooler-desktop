@@ -74,6 +74,7 @@
     "posthog-js": "^1.2.1",
     "pusher-js": "^5.1.1",
     "react": "^16.13.1",
+    "react-autosuggest": "^10.0.2",
     "react-bootstrap": "^1.0.0",
     "react-device-detect": "^1.13.1",
     "react-dom": "^16.13.1",
