@@ -8,6 +8,7 @@ import {
   createRoom,
   createCall
 } from '../actions/organization';
+import { getUserThreads } from '../actions/thread';
 import { 
   getAvailableDevices, 
   updateDefaultDevices,
@@ -47,6 +48,7 @@ function mapDispatchToProps(dispatch) {
         inviteUsers,
         createRoom,
         createCall,
+        getUserThreads,
         getAvailableDevices,
         updateDefaultDevices,
         updateExperimentalSettings,

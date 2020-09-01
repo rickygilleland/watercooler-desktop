@@ -41,6 +41,7 @@ import NewMessagePage from '../containers/NewMessagePage';
 import { isMobile } from 'react-device-detect';
 import posthog from 'posthog-js';
 import Pusher from 'pusher-js';
+import { getUserThreads } from '../actions/thread';
 
 if (process.env.REACT_APP_PLATFORM != "web") {
     var { BrowserWindow } = require('electron').remote;
@@ -91,7 +92,7 @@ class Sidebar extends React.Component {
 
     componentDidMount() {
         var { pusherInstance, organizationPresenceChannel, userPrivateNotificationChannel } = this.state;
-        const { push, auth, user, organization, getOrganizations, updateUserDetails } = this.props;
+        const { push, auth, user, organization, getOrganizations, updateUserDetails, getUserThreads } = this.props;
 
         if (!auth.isLoggedIn) {
             return;
@@ -259,6 +260,8 @@ class Sidebar extends React.Component {
 
             this.setState({ backgroundBlurWindow, faceTrackingNetWindow });
         }
+
+        getUserThreads();
     }
 
     componentDidUpdate(prevProps, prevState) {

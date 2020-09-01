@@ -1,3 +1,5 @@
+import { getThread } from './thread';
+
 export const CREATE_MESSAGE_STARTED = 'CREATE_MESSAGE_STARTED';
 export const CREATE_MESSAGE_SUCCESS = 'CREATE_MESSAGE_SUCCESS';
 export const CREATE_MESSAGE_FAILURE = 'CREATE_MESSAGE_FAILURE';
@@ -40,6 +42,15 @@ export function createMessage(message) {
             })
             .then(response => {
                 dispatch(createMessageSuccess({ data: response.data}));
+
+                var threadFound = false;
+                state.thread.threads.forEach(thread => {
+                    threadFound = threadFound ? true : thread.id == response.data.thread_id;
+                })
+
+                if (!threadFound) {
+                    dispatch(getThread(response.data.thread_id));
+                }
             })
             .catch(error => {
                 dispatch(createMessageFailure({ error: error.message }));
