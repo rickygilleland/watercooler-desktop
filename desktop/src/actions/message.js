@@ -43,13 +43,15 @@ export function createMessage(message) {
             .then(response => {
                 dispatch(createMessageSuccess({ data: response.data}));
 
-                var threadFound = false;
-                state.thread.threads.forEach(thread => {
-                    threadFound = threadFound ? true : thread.id == response.data.thread_id;
-                })
+                if (typeof response.data.thread_id != "undefined" && response.datta.thread_id != null) {
+                    var threadFound = false;
+                    state.thread.threads.forEach(thread => {
+                        threadFound = threadFound ? true : thread.id == response.data.thread_id;
+                    })
 
-                if (!threadFound) {
-                    dispatch(getThread(response.data.thread_id));
+                    if (!threadFound) {
+                        dispatch(getThread(response.data.thread_id));
+                    }
                 }
             })
             .catch(error => {
