@@ -153,7 +153,7 @@ class SendMessage extends React.Component {
     }
 
     sendRecording(isPublic = false) {
-        const { createMessage, organization, recipientId } = this.props;
+        const { createMessage, organization, recipients } = this.props;
         const { recordingBlob } = this.state;
 
         var attachment = new File([recordingBlob], 'blab.wav', {
@@ -166,12 +166,18 @@ class SendMessage extends React.Component {
         let message = {
             organization_id: organization.id,
             is_public: isPublic,
-            recipient_id: recipientId,
+            recipient_ids: recipients,
             attachment
         }
 
         for ( var key in message ) {
-            formData.append(key, message[key]);
+            if (key == "recipient_ids") {
+                message[key].forEach((recipient, index) => {
+                    formData.append(`recipient_ids[${index}]`, recipient);
+                })
+            } else {
+                formData.append(key, message[key]);
+            }
         }
 
         return createMessage(formData);
@@ -209,7 +215,7 @@ class SendMessage extends React.Component {
     }
 
     render() {
-        const { messageLoading, recipientId, recipientName } = this.props;
+        const { messageLoading, recipients, recipientName } = this.props;
         const { isRecording, recordingBlob, recordingBlobUrl, duration, loadingRecording, showDeleteConfirm } = this.state;
 
         if (messageLoading || loadingRecording) {
@@ -252,13 +258,13 @@ class SendMessage extends React.Component {
                                     placement="top"
                                     overlay={
                                         <Tooltip id="tooltip-send-button">
-                                            {recipientId == null 
+                                            {recipients.length == 0 
                                                 ? 'Select a recipient to send this Blab, or use the globe button to get a shareable link.' 
                                                 : `Send this Blab to ${recipientName}`}
                                         </Tooltip>
                                     }
                                     >
-                                    <Button variant="success" style={{color:"#fff",fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} disabled={recipientId == null} className="mx-2 mt-3" onClick={() => this.sendRecording()}>
+                                    <Button variant="success" style={{color:"#fff",fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} disabled={recipients.length == 0} className="mx-2 mt-3" onClick={() => this.sendRecording()}>
                                         <FontAwesomeIcon icon={faPaperPlane} />
                                     </Button>
                                 </OverlayTrigger>

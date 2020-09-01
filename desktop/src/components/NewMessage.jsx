@@ -18,7 +18,7 @@ class NewMessage extends React.Component {
         this.state = {
             users: [],
             suggestions: [],
-            suggestionValue: null,
+            suggestionValue: [],
             suggestionDisplayValue: '',
         };
 
@@ -64,10 +64,10 @@ class NewMessage extends React.Component {
 
     handleSuggestionChange(event, { newValue }) {
         if (typeof newValue.id !== "undefined") {
-            return this.setState({ suggestionValue: newValue.id, suggestionDisplayValue: newValue.name });
+            return this.setState({ suggestionValue: [newValue.id], suggestionDisplayValue: newValue.name });
         }
 
-        this.setState({ suggestionDisplayValue: newValue });
+        this.setState({ suggestionDisplayValue: newValue, suggestionValue: [] });
     }
 
     onSuggestionsFetchRequested({ value }) {
@@ -93,7 +93,7 @@ class NewMessage extends React.Component {
                     }}
                     renderSuggestion={(suggestion) => {
                         return (
-                            <div className="align-items-center d-flex">
+                            <div className="align-items-center d-flex" style={{cursor:"pointer"}}>
                                 <p className="text-left align-self-center mb-0" style={{fontWeight:600,fontSize:"1rem",width:"100%",color:"black"}}>
                                     <Image src={suggestion.avatar_url} fluid rounded style={{maxHeight:30}} className="pr-2" />
                                     {suggestion.name}
@@ -117,7 +117,7 @@ class NewMessage extends React.Component {
                 <SendMessage 
                     settings={settings} 
                     user={user} 
-                    recipientId={suggestionValue} 
+                    recipients={suggestionValue} 
                     recipientName={suggestionDisplayValue}
                     createMessage={createMessage} 
                     organization={organization} 
