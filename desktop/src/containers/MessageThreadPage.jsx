@@ -5,6 +5,7 @@ import { push } from 'connected-react-router';
 import { withRouter } from 'react-router-dom';
 import MessageThread from '../components/MessageThread';
 import { getThreadMessages } from '../actions/thread';
+import { createMessage } from '../actions/message';
 
 function mapStateToProps(state) {
     return {
@@ -16,6 +17,9 @@ function mapStateToProps(state) {
         privateThreads: state.thread.privateThreads,
         sharedThreads: state.thread.sharedThreads,
         threadLoading: state.thread.loading,
+        messageLoading: state.message.loading,
+        lastCreatedMessage: state.message.lastCreatedMessage,
+        messageError: state.message.error,
         settings: state.settings,
     }
 }
@@ -23,6 +27,7 @@ function mapStateToProps(state) {
 function mapDispatchToProps(dispatch) {
     return bindActionCreators(
       {
+        createMessage,
         getThreadMessages,
         push
       },

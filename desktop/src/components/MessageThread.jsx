@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { Container, Image, Button, Card, CardColumns, Navbar, Row, Col, OverlayTrigger, Overlay, Popover, Tooltip } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
+import SendMessage from './SendMessage';
 import videojs from 'video.js'
 import posthog from 'posthog-js';
 
@@ -14,6 +15,8 @@ class MessageThread extends React.Component {
         this.state = {
             thread: {},
             messages: [],
+            recipients: [],
+            recipientName: null
         };
 
         this.initializeThread = this.initializeThread.bind(this);
@@ -84,7 +87,13 @@ class MessageThread extends React.Component {
 
         if (curThread != null) {
             getThreadMessages(curThread.id);
-            this.setState({ thread: curThread, messages: [] });
+            
+            var recipients = [];
+            curThread.users.forEach(threadUser => {
+                recipients.push(threadUser.id);
+            })
+
+            this.setState({ thread: curThread, messages: [], recipients });
         }
     }
 
@@ -92,8 +101,8 @@ class MessageThread extends React.Component {
     }
 
     render() {
-        const { threadLoading } = this.props;
-        const { thread, messages } = this.state;
+        const { threadLoading, settings, user, createMessage, organization, messageLoading, messageCreatedStateChange } = this.props;
+        const { thread, messages, recipients, recipientName } = this.state;
 
         return (
             <>
@@ -139,6 +148,16 @@ class MessageThread extends React.Component {
                         <p className="text-center mx-auto" style={{fontSize:"1.5rem",fontWeight:700,marginTop:"4rem"}}>You don't have any message history with this person yet.</p>
                     )}
                 </Container>
+                <SendMessage 
+                    settings={settings} 
+                    user={user} 
+                    recipients={recipients} 
+                    recipientName={recipientName}
+                    createMessage={createMessage} 
+                    organization={organization} 
+                    messageLoading={messageLoading}
+                    messageCreatedStateChange={() => this.setState({ messageCreated: true })}
+                />
             </>
         )
     }
