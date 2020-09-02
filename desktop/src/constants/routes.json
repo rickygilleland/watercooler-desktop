@@ -11,7 +11,7 @@
     "MESSAGE": {
       "NEW": "/messages/new",
       "ALL": "/messages",
-      "THREAD": "/messages/thread/:user"
+      "THREAD": "/thread/:type/:threadSlug"
     }
   }
   

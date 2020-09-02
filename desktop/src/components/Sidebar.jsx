@@ -38,10 +38,11 @@ import RoomsModal from './RoomsModal';
 import NewCallModal from './NewCallModal';
 import IncomingCallModal from './IncomingCallModal';
 import NewMessagePage from '../containers/NewMessagePage';
+import MessageThreadPage from '../containers/MessageThreadPage';
 import { isMobile } from 'react-device-detect';
 import posthog from 'posthog-js';
 import Pusher from 'pusher-js';
-import { getUserThreads } from '../actions/thread';
+import { getUserThreads, getThread } from '../actions/thread';
 
 if (process.env.REACT_APP_PLATFORM != "web") {
     var { BrowserWindow } = require('electron').remote;
@@ -224,6 +225,22 @@ class Sidebar extends React.Component {
                         that.setState({ showIncomingCallModal: true, incomingCall: data.room })
                     }*/
 
+                    if (event == "user.messages.created") {
+                        var activeThread = false;
+                        if (data.message.thread.type == "private") {
+                            that.props.privateThreads.forEach(thread => {
+                                if (thread.id == data.message.thread.id) {
+                                    activeThread = thread;
+                                }
+                            })
+                        }
+
+                        if (activeThread === false) {
+                            that.props.getThread(data.message.thread.id);
+                            return that.props.push(`/thread/${message.thread.type}/${message.thread.slug}`);
+                        }
+                    }
+
                 });
             }
         }
@@ -360,6 +377,8 @@ class Sidebar extends React.Component {
             organization, 
             billing,
             teams, 
+            publicThreads,
+            privateThreads,
             user, 
             auth, 
             push,
@@ -409,8 +428,7 @@ class Sidebar extends React.Component {
 
         let curTeam = teams[0];
         let rooms;
-        let calls;
-        let messages;
+        let sidebarPrivateThreads;
 
         try {
             rooms = (
@@ -458,57 +476,18 @@ class Sidebar extends React.Component {
                 </div>
             );
 
-            calls = (
-                <div key={"calls_" + curTeam.id} className="mt-2">
+            sidebarPrivateThreads = (
+                <div key={"threads_" + curTeam.id} className="mt-2">
                     <Row>
                         <Col xs={9}>
-                            <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:800}}>Calls</p>
-                        </Col>
-                        <Col xs={3}>
-                            <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} onClick={() => this.setState({ showCallsModal: true })}><FontAwesomeIcon icon={faPlusSquare} /></Button>
-                        </Col>
-                    </Row>
-                    <div>
-                        {typeof curTeam.calls != "undefined" && curTeam.calls.length > 0 ?
-                            <ul className="nav flex-column mt-1">
-                                {curTeam.calls.map((room, roomKey) => 
-                                    <li key={roomKey} className="nav-item">
-                                        <NavLink exact={true} 
-                                                activeStyle={{
-                                                    fontWeight: "bold",
-                                                    backgroundColor:"#4381ff"
-                                                }} 
-                                                className="d-block py-1"
-                                                to={{
-                                                    pathname: `/call/${room.slug}`,
-                                                    state: {
-                                                        team: curTeam,
-                                                        room: room,
-                                                        isCall: true
-                                                    }
-                                                }}>
-                                            <p className="text-light mb-0 pl-3">Direct Call Name</p>
-                                        </NavLink>
-                                    </li>
-                                )}
-                            </ul>
-                        : '' }
-                    </div>
-                </div>
-            )
-
-            messages = (
-                <div key={"messages_" + curTeam.id} className="mt-2">
-                    <Row>
-                        <Col xs={9}>
-                            <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:800}}>Blabs</p>
+                            <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:800}}>Direct Messages</p>
                         </Col>
                         <Col xs={3}>
                             <NavLink exact={true} 
                                 activeStyle={{
                                     fontWeight: "bold"
                                 }} 
-                                className="d-block py-1"
+                                className="d-block btn text-light"
                                 to={{
                                     pathname: `/messages/new`
                                 }}>
@@ -518,58 +497,33 @@ class Sidebar extends React.Component {
                     </Row>
                     <div>
                         <ul className="nav flex-column mt-1">
-                            <li key="1" className="nav-item">
-                                <NavLink exact={true} 
-                                    activeStyle={{
-                                        fontWeight: "bold",
-                                        backgroundColor:"#4381ff"
-                                    }} 
-                                    className="d-block py-1"
-                                    to={{
-                                        pathname: `/call/`,
-                                    }}>
-                                    <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faGlobe} style={{fontSize:".7rem",marginRight:".2rem"}} /> Public Blabs</p>
-                                </NavLink>
-                            </li>
-                            <li key="2" className="nav-item">
-                                <NavLink exact={true} 
-                                    activeStyle={{
-                                        fontWeight: "bold",
-                                        backgroundColor:"#4381ff"
-                                    }} 
-                                    className="d-block py-1"
-                                    to={{
-                                        pathname: `/call/`,
-                                    }}>
-                                    <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#3ecf8e",fontSize:".5rem",verticalAlign:'middle'}} /> Hannah Katherine</p>
-                                </NavLink>
-                            </li>
-                            <li key="3" className="nav-item">
-                                <NavLink exact={true} 
-                                    activeStyle={{
-                                        fontWeight: "bold",
-                                        backgroundColor:"#4381ff"
-                                    }} 
-                                    className="d-block py-1"
-                                    to={{
-                                        pathname: `/call/`,
-                                    }}>
-                                    <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#3ecf8e",fontSize:".5rem",verticalAlign:'middle'}} /> George</p>
-                                </NavLink>
-                            </li>
-                            <li key="4" className="nav-item">
-                                <NavLink exact={true} 
-                                    activeStyle={{
-                                        fontWeight: "bold",
-                                        backgroundColor:"#4381ff"
-                                    }} 
-                                    className="d-block py-1"
-                                    to={{
-                                        pathname: `/call/`,
-                                    }}>
-                                    <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#f9426c",fontSize:".5rem",verticalAlign:'middle'}} /> Lucy</p>
-                                </NavLink>
-                            </li>
+                            {privateThreads.map((thread, threadKey) => 
+                                <li key={threadKey} className="nav-item">
+                                    <NavLink exact={true} 
+                                        activeStyle={{
+                                            fontWeight: "bold",
+                                        }} 
+                                        className="d-block py-1"
+                                        to={{
+                                            pathname: `/thread/${thread.type}/${thread.slug}`,
+                                        }}>
+                                        <p className="text-light mb-0 pl-3">
+                                            {thread.users.length == 1 && (
+                                                <FontAwesomeIcon 
+                                                    icon={faCircle} 
+                                                    className="mr-1" 
+                                                    style={{
+                                                        color:organizationUsersOnline.includes(thread.users[0].id) ? "#3ecf8e" : "#f9426c",
+                                                        fontSize:".5rem",
+                                                        verticalAlign:'middle'
+                                                    }} 
+                                                /> 
+                                            )}
+                                            {thread.name}
+                                        </p>
+                                    </NavLink>
+                                </li>
+                            )}
                         </ul>
                     </div>
                 </div>
@@ -727,6 +681,18 @@ class Sidebar extends React.Component {
                                     <div className="sidebar-scroll" style={{minWidth: 200}}>
                                         <div>
                                             <ul className="nav flex-column mt-1">
+                                                <li key="public-blabs-nav-button" className="nav-item">
+                                                    <NavLink exact={true} 
+                                                        activeStyle={{
+                                                            fontWeight: "bold",
+                                                        }} 
+                                                        className="d-block py-1"
+                                                        to={{
+                                                            pathname: `/call/`,
+                                                        }}>
+                                                        <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faGlobe} style={{fontSize:".7rem",marginRight:".2rem"}} /> Public Blabs</p>
+                                                    </NavLink>
+                                                </li>
                                                 <li key="people-nav-button" className="nav-item">
                                                     <NavLink exact={true} 
                                                         activeStyle={{
@@ -745,9 +711,8 @@ class Sidebar extends React.Component {
                                             </ul>
                                         </div>
                                         <div>
-                                            {messages}
+                                            {sidebarPrivateThreads}
                                             {rooms}
-                                            {/*calls*/}
                                         </div>
                                     </div>
                                 </Navbar.Collapse>
@@ -821,7 +786,7 @@ class Sidebar extends React.Component {
                                         path={routes.MESSAGE.THREAD} 
                                         render={(routeProps) => (
                                             <ErrorBoundary showError={true}>
-                                                <MessageThread 
+                                                <MessageThreadPage 
                                                     {...routeProps} 
                                                     onClick={() => {
                                                         if (window.innerWidth < 768) {

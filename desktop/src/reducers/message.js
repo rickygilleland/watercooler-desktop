@@ -7,6 +7,7 @@ import {
 
 const initialState = {
     messages: [],
+    lastCreatedMessage: null,
     loading: false,
     error: false
 }
@@ -17,19 +18,22 @@ export default function message(state = initialState, action = {}) {
         case CREATE_MESSAGE_STARTED:
             updatedState = {
                 loading: true,
-                error: false
+                error: false,
+                lastCreatedMessage: null,
             }
             break;
         case CREATE_MESSAGE_SUCCESS:
             updatedState = {
                 loading: false,
                 error: false,
+                lastCreatedMessage: action.payload.data
             }
             break;
         case CREATE_MESSAGE_FAILURE:
             updatedState = {
                 loading: false,
                 error: true,
+                lastCreatedMessage: null,
             }
             break;
         default:

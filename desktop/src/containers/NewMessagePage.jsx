@@ -14,6 +14,8 @@ function mapStateToProps(state) {
         organizationUsers: state.organization.users,
         settings: state.settings,
         messageLoading: state.message.loading,
+        lastCreatedMessage: state.message.lastCreatedMessage,
+        messageError: state.message.error,
     }
 }
 

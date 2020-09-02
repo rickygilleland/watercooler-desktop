@@ -12,7 +12,9 @@ import {
 } from '../actions/thread';
 
 const initialState = {
-    threads: [],
+    privateThreads: [],
+    publicThreads: [],
+    sharedThreads: [],
     loading: false,
     error: false
 }
@@ -27,7 +29,29 @@ export default function thread(state = initialState, action = {}) {
             }
             break;
         case GET_THREAD_SUCCESS:
-            var updatedThreads = [...state.threads];
+            var updatedThreads;
+            var keyToUpdate = null;
+
+            if (action.payload.data.type == "private") {
+                keyToUpdate = "privateThreads";
+                updatedThreads = [...state.privateThreads];
+            }
+
+            if (action.payload.data.type == "public") {
+                keyToUpdate = "publicThreads";
+                updatedThreads = [...state.publicThreads];
+            }
+
+            if (action.payload.data.type == "shared") {
+                keyToUpdate = "sharedThreads";
+                updatedThreads = [...state.sharedThreads];
+            }
+
+            if (keyToUpdate == null) {
+                return state;
+            }
+
+            updatedThreads = [...state[keyToUpdate]];
 
             var updated = false;
             updatedThreads.forEach(thread => {
@@ -42,7 +66,7 @@ export default function thread(state = initialState, action = {}) {
             }
 
             updatedState = {
-                threads: updatedThreads,
+                [keyToUpdate]: updatedThreads,
                 loading: false,
                 error: false,
             }
@@ -60,8 +84,23 @@ export default function thread(state = initialState, action = {}) {
             }
             break;
         case GET_USER_THREADS_SUCCESS:
+            var currentPrivateThreads = [...state.privateThreads];
+            var newPrivateThreads = [...action.payload.data.private_threads];
+            var newPublicThreads = [...action.payload.data.public_threads];
+            var newSharedThreads = [...action.payload.data.shared_threads];
+
+            newPrivateThreads.forEach(newThread => {
+                currentPrivateThreads.forEach(curThread => {
+                    if (curThread.id == newThread.id) {
+                        newThread.messages = curThread.messages;
+                    }
+                })
+            })
+
             updatedState = {
-                threads: action.payload.data,
+                privateThreads: newPrivateThreads,
+                publicThreads: newPublicThreads,
+                sharedThreads: newSharedThreads,
                 loading: false,
                 error: false,
             }
@@ -79,7 +118,29 @@ export default function thread(state = initialState, action = {}) {
             }
             break;
         case GET_THREAD_MESSAGES_SUCCESS:
-            var updatedThreads = [...state.threads];
+            var updatedThreads;
+            var keyToUpdate = null;
+
+            if (action.payload.data.type == "private") {
+                keyToUpdate = "privateThreads";
+                updatedThreads = [...state.privateThreads];
+            }
+
+            if (action.payload.data.type == "public") {
+                keyToUpdate = "publicThreads";
+                updatedThreads = [...state.publicThreads];
+            }
+
+            if (action.payload.data.type == "shared") {
+                keyToUpdate = "sharedThreads";
+                updatedThreads = [...state.sharedThreads];
+            }
+
+            if (keyToUpdate == null) {
+                return state;
+            }
+
+            updatedThreads = [...state[keyToUpdate]];
 
             updatedThreads.forEach(thread => {
                 if (thread.id == action.payload.data.id) {
@@ -88,7 +149,7 @@ export default function thread(state = initialState, action = {}) {
             })
 
             updatedState = {
-                threads: updatedThreads,
+                [keyToUpdate]: updatedThreads,
                 loading: false,
                 error: false,
             }

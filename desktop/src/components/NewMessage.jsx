@@ -1,15 +1,9 @@
 import React from 'react';
-import routes from '../constants/routes.json';
-import { Link } from 'react-router-dom';
 import SendMessage from './SendMessage';
-import { Container, Image, Button, Card, CardColumns, Navbar, Row, Col, OverlayTrigger, Overlay, Popover, Tooltip, Form } from 'react-bootstrap';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faMicrophone, faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons';
-import RecordRTC from 'recordrtc';
-import { StereoAudioRecorder } from 'recordrtc';
+import { Image } from 'react-bootstrap';
 import Autosuggest from 'react-autosuggest';
 import videojs from 'video.js'
-import posthog from 'posthog-js';
+import posthog, { push } from 'posthog-js';
 
 class NewMessage extends React.Component {
 
@@ -20,6 +14,7 @@ class NewMessage extends React.Component {
             suggestions: [],
             suggestionValue: [],
             suggestionDisplayValue: '',
+            messageCreated: false,
         };
 
         this.getSuggestions = this.getSuggestions.bind(this);
@@ -30,7 +25,7 @@ class NewMessage extends React.Component {
     }
 
     componentDidMount() {
-        const { organizationUsers } = this.props;
+        const { organizationUsers, location } = this.props;
 
         let users = [];
 
@@ -43,9 +38,22 @@ class NewMessage extends React.Component {
         })
 
         this.setState({ users });
+
+        if (typeof location.state != "undefined" && typeof location.state.recipient != "undefined") {
+            this.setState({ 
+                suggestionValue: [location.state.recipient.id], 
+                suggestionDisplayValue: location.state.recipient.first_name + ' ' + location.state.recipient.last_name 
+            });
+        }
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps) {
+        const { push, messageLoading, lastCreatedMessage, messageError } = this.props;
+        const { messageCreated } = this.state;
+
+        if (messageCreated && !messageLoading && prevProps.message == null && messageError === false && lastCreatedMessage != null) {
+            return push(`/thread/${lastCreatedMessage.thread.type}/${lastCreatedMessage.thread.slug}`);
+        }
     }
 
     componentWillUnmount() {
@@ -122,6 +130,7 @@ class NewMessage extends React.Component {
                     createMessage={createMessage} 
                     organization={organization} 
                     messageLoading={messageLoading}
+                    messageCreatedStateChange={() => this.setState({ messageCreated: true })}
                 />
             </div>
         )

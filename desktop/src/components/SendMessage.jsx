@@ -111,7 +111,7 @@ class SendMessage extends React.Component {
     }
 
     async stopRecording() {
-        const { recorder, isRecording, raw_local_stream } = this.state;
+        const { recorder, isRecording, raw_local_stream, startTime } = this.state;
 
         this.setState({ loadingRecording: true });
         
@@ -144,6 +144,7 @@ class SendMessage extends React.Component {
                     recordingBlobUrl ,
                     loadingRecording: false
                 })
+
             })
         }
     }
@@ -153,7 +154,7 @@ class SendMessage extends React.Component {
     }
 
     sendRecording(isPublic = false) {
-        const { createMessage, organization, recipients } = this.props;
+        const { messageCreatedStateChange, createMessage, organization, recipients } = this.props;
         const { recordingBlob } = this.state;
 
         var attachment = new File([recordingBlob], 'blab.wav', {
@@ -180,6 +181,7 @@ class SendMessage extends React.Component {
             }
         }
 
+        messageCreatedStateChange();
         return createMessage(formData);
     }
 

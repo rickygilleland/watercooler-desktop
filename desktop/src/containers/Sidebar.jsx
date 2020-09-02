@@ -8,7 +8,7 @@ import {
   createRoom,
   createCall
 } from '../actions/organization';
-import { getUserThreads } from '../actions/thread';
+import { getUserThreads, getThread } from '../actions/thread';
 import { 
   getAvailableDevices, 
   updateDefaultDevices,
@@ -32,6 +32,9 @@ function mapStateToProps(state, ownProps) {
         createRoomSuccess: state.organization.createRoomSuccess,
         lastCreatedRoomSlug: state.organization.lastCreatedRoomSlug,
         teams: state.organization.teams,
+        publicThreads: state.thread.publicThreads,
+        privateThreads: state.thread.privateThreads,
+        sharedThreads: state.thread.sharedThreads,
         auth: state.auth,
         currentURL: ownProps.location.pathname,
         settings: state.settings
@@ -49,6 +52,7 @@ function mapDispatchToProps(dispatch) {
         createRoom,
         createCall,
         getUserThreads,
+        getThread,
         getAvailableDevices,
         updateDefaultDevices,
         updateExperimentalSettings,

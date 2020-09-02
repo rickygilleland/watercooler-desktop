@@ -43,9 +43,17 @@ export function createMessage(message) {
             .then(response => {
                 dispatch(createMessageSuccess({ data: response.data}));
 
-                if (typeof response.data.thread_id != "undefined" && response.datta.thread_id != null) {
+                if (typeof response.data.thread_id != "undefined" && response.data.thread_id != null) {
                     var threadFound = false;
-                    state.thread.threads.forEach(thread => {
+                    state.thread.privateThreads.forEach(thread => {
+                        threadFound = threadFound ? true : thread.id == response.data.thread_id;
+                    })
+
+                    state.thread.sharedThreads.forEach(thread => {
+                        threadFound = threadFound ? true : thread.id == response.data.thread_id;
+                    })
+
+                    state.thread.publicThreads.forEach(thread => {
                         threadFound = threadFound ? true : thread.id == response.data.thread_id;
                     })
 
