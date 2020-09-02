@@ -211,6 +211,10 @@ class Sidebar extends React.Component {
 
                 user_channel.bind_global(function(event, data) {
 
+                    console.log("NEW notification", data);
+                    console.log("NEW notification event", event);
+
+
                     if (event == "room.created") {
                         return getOrganizations();
                     }
@@ -227,17 +231,17 @@ class Sidebar extends React.Component {
 
                     if (event == "user.messages.created") {
                         var activeThread = false;
-                        if (data.message.thread.type == "private") {
+                        if (data.thread.type == "private") {
                             that.props.privateThreads.forEach(thread => {
-                                if (thread.id == data.message.thread.id) {
+                                if (thread.id == data.thread.id) {
                                     activeThread = thread;
                                 }
                             })
                         }
 
                         if (activeThread === false) {
-                            that.props.getThread(data.message.thread.id);
-                            return that.props.push(`/thread/${message.thread.type}/${message.thread.slug}`);
+                            that.props.getThread(data.thread.id);
+                            return that.props.push(`/thread/${data.thread.type}/${data.thread.slug}`);
                         }
                     }
 
