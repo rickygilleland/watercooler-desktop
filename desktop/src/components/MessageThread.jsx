@@ -5,6 +5,7 @@ import { Container, Image, Button, Card, CardColumns, Navbar, Row, Col, OverlayT
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
 import SendMessage from './SendMessage';
+import Message from './Message';
 import videojs from 'video.js'
 import posthog from 'posthog-js';
 
@@ -106,7 +107,7 @@ class MessageThread extends React.Component {
 
         return (
             <>
-                <Row className="pl-0 ml-0" style={{height:80}}>
+                <Row className="pl-0 ml-0 border-bottom" style={{height:80}}>
                     <Col xs={{span:4}}>
                         <div className="d-flex flex-row justify-content-start">
                             <div className="align-self-center">
@@ -132,15 +133,10 @@ class MessageThread extends React.Component {
                     {messages.length > 0 && (
                         messages.map((message, key) => {
                             return(
-                                <Row key={key}>
-                                    <Col xs={2}>
-                                        <Image src={message.user.avatar_url} fluid style={{maxHeight:80}} />
-                                    </Col>
-                                    <Col xs={10} className="pl-0">
-                                        <p style={{fontSize:"1.2rem",fontWeight:600}}>{message.user.first_name} {message.user.last_name}</p>
-                                        <audio controls src={message.attachment_url} />
-                                    </Col>
-                                </Row>
+                                <Message
+                                    key={key}
+                                    message={message}
+                                />
                             )
                         })
                     )}
