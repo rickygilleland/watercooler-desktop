@@ -1,4 +1,5 @@
 import { Action } from 'redux';
+import { orderBy } from 'lodash';
 import { 
     GET_THREAD_STARTED, 
     GET_THREAD_SUCCESS,
@@ -95,6 +96,8 @@ export default function thread(state = initialState, action = {}) {
                         newThread.messages = curThread.messages;
                     }
                 })
+
+                newThread.messages = orderBy(newThread.messages, ['created_at'], ['asc']);
             })
 
             updatedState = {
@@ -144,7 +147,7 @@ export default function thread(state = initialState, action = {}) {
 
             updatedThreads.forEach(thread => {
                 if (thread.id == action.payload.data.id) {
-                    thread.messages = action.payload.data.messages;
+                    thread.messages = orderBy(action.payload.data.messages, ['created_at'], ['asc']);
                 }
             })
 

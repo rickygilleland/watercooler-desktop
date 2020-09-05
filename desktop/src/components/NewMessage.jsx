@@ -122,16 +122,19 @@ class NewMessage extends React.Component {
                         suggestion: 'list-group-item',
                     }}
                 />
-                <SendMessage 
-                    settings={settings} 
-                    user={user} 
-                    recipients={suggestionValue} 
-                    recipientName={suggestionDisplayValue}
-                    createMessage={createMessage} 
-                    organization={organization} 
-                    messageLoading={messageLoading}
-                    messageCreatedStateChange={() => this.setState({ messageCreated: true })}
-                />
+                <div className="mt-auto">
+                    <SendMessage 
+                        settings={settings} 
+                        user={user} 
+                        expanded={true}
+                        recipients={suggestionValue} 
+                        recipientName={suggestionDisplayValue}
+                        createMessage={createMessage} 
+                        organization={organization} 
+                        messageLoading={messageLoading}
+                        messageCreatedStateChange={() => this.setState({ messageCreated: true })}
+                    />
+                </div>
             </div>
         )
     }

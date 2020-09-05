@@ -97,7 +97,7 @@ export default function organization(state = initialState, action = {}) {
             }
             break;
         case CREATE_ROOM_SUCCESS:
-            var updatedTeams = state.teams;
+            var updatedTeams = [...state.teams];
             updatedTeams.forEach(team => {
                 if (team.id == action.payload.data.team_id) {
                     team.rooms.push(action.payload.data);

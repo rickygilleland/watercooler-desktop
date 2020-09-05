@@ -21,18 +21,20 @@ class MessageThread extends React.Component {
         };
 
         this.initializeThread = this.initializeThread.bind(this);
+        this.scrollToBottom = this.scrollToBottom.bind(this);
     }
 
     componentDidMount() {
         this.initializeThread();
     }
 
-    componentDidUpdate(prevProps) {
+    componentDidUpdate(prevProps, prevState) {
         const { match, push, publicThreads, privateThreads, sharedThreads } = this.props;
         const { thread, messages } = this.state;
 
         if (prevProps.match != match && match.params.threadSlug != thread.slug || Object.keys(thread).length === 0) {
             this.initializeThread();
+            this.scrollToBottom();
         }
 
         var prevThreadToCompare;
@@ -59,6 +61,10 @@ class MessageThread extends React.Component {
                     this.setState({ messages: propThread.messages });
                 }
             })
+        }
+
+        if (messages.length != prevState.messages.length) {
+            this.scrollToBottom();
         }
     }
 
@@ -94,11 +100,25 @@ class MessageThread extends React.Component {
                 recipients.push(threadUser.id);
             })
 
-            this.setState({ thread: curThread, messages: [], recipients });
+            let messages = [];
+
+            if (typeof curThread.messages != "undefined") {
+                messages = curThread.messages;
+            }
+
+            this.setState({ thread: curThread, messages, recipients });
         }
+
+        this.scrollToBottom();
     }
 
     componentWillUnmount() {
+    }
+
+    scrollToBottom() {
+        if (typeof this.messagesContainer != "undefined") {
+            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+        }
     }
 
     render() {
@@ -106,7 +126,7 @@ class MessageThread extends React.Component {
         const { thread, messages, recipients, recipientName } = this.state;
 
         return (
-            <>
+            <div className="d-flex flex-column" style={{height: process.env.REACT_APP_PLATFORM === "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'}}>
                 <Row className="pl-0 ml-0 border-bottom" style={{height:80}}>
                     <Col xs={{span:4}}>
                         <div className="d-flex flex-row justify-content-start">
@@ -129,13 +149,20 @@ class MessageThread extends React.Component {
                         </Row>
                     </div>
                 )}
-                <Container style={{overflowY:"scroll",paddingBottom:100,height:"calc(100vh - 300px)"}}>
+                <Container style={{overflowY:"scroll"}} className="mt-auto" ref={(el) => { this.messagesContainer = el; }} fluid>
                     {messages.length > 0 && (
                         messages.map((message, key) => {
+                            let renderHeading = true;
+
+                            if (key > 0 && message.user_id == messages[key - 1].user_id) {
+                                renderHeading = false;
+                            }
+                            
                             return(
                                 <Message
                                     key={key}
                                     message={message}
+                                    renderHeading={renderHeading}
                                 />
                             )
                         })
@@ -147,14 +174,16 @@ class MessageThread extends React.Component {
                 <SendMessage 
                     settings={settings} 
                     user={user} 
+                    expanded={false}
                     recipients={recipients} 
                     recipientName={recipientName}
                     createMessage={createMessage} 
                     organization={organization} 
                     messageLoading={messageLoading}
                     messageCreatedStateChange={() => this.setState({ messageCreated: true })}
+                    messageOpened={() => this.scrollToBottom()}
                 />
-            </>
+            </div>
         )
     }
 

@@ -23,6 +23,7 @@ class SendMessage extends React.Component {
             recordingBlobUrl: null,
             loadingRecording: false,
             showDeleteConfirm: false,
+            overrideExpanded: false,
         };
 
         this.startRecording = this.startRecording.bind(this);
@@ -34,7 +35,13 @@ class SendMessage extends React.Component {
     componentDidMount() {
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps, prevState) {
+        const { messageOpened } = this.props;
+        const { overrideExpanded } = this.state;
+
+        if (typeof messageOpened != "undefined" && overrideExpanded != prevState.overrideExpanded) {
+            messageOpened();
+        }
     }
 
     componentWillUnmount() {
@@ -106,7 +113,7 @@ class SendMessage extends React.Component {
 
         }.bind(this), 1000);
 
-        this.setState({ recorder, isRecording: true, raw_local_stream, timeInterval, recordingBlob: null, recordingBlobUrl: null });
+        this.setState({ recorder, isRecording: true, raw_local_stream, timeInterval, recordingBlob: null, recordingBlobUrl: null, overrideExpanded: true });
         
     }
 
@@ -150,7 +157,8 @@ class SendMessage extends React.Component {
     }
 
     clearRecording() {
-        this.setState({ recordingBlob: null, recordingBlobUrl: null, showDeleteConfirm: false })
+        const { expanded } = this.props;
+        this.setState({ recordingBlob: null, recordingBlobUrl: null, showDeleteConfirm: false, overrideExpanded: expanded })
     }
 
     sendRecording(isPublic = false) {
@@ -217,12 +225,26 @@ class SendMessage extends React.Component {
     }
 
     render() {
-        const { messageLoading, recipients, recipientName } = this.props;
-        const { isRecording, recordingBlob, recordingBlobUrl, duration, loadingRecording, showDeleteConfirm } = this.state;
+        const { messageLoading, recipients, recipientName, expanded } = this.props;
+        const { isRecording, recordingBlob, recordingBlobUrl, duration, loadingRecording, showDeleteConfirm, overrideExpanded } = this.state;
+
+        if (expanded == false && overrideExpanded == false) {
+            return (
+                <Card style={{height: 85,backgroundColor:"#1b1e2f",borderRadius:0}}>
+                    <Row className="mt-3 mb-4">
+                        <Col xs={{span:12}} className="text-center">
+                            <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"1.5rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className="mx-auto" onClick={() => !isRecording ? this.startRecording() : this.stopRecording()}>
+                                <FontAwesomeIcon icon={isRecording ? faMicrophoneSlash : faMicrophone} />
+                            </Button>
+                        </Col>
+                    </Row>
+                </Card>
+            )
+        }
 
         if (messageLoading || loadingRecording) {
             return(
-                <Card className="mt-auto" style={{height: 190,backgroundColor:"#1b1e2f",borderRadius:0}}>
+                <Card style={{height: 190,backgroundColor:"#1b1e2f",borderRadius:0}}>
                     <Row className="mt-3 mb-4">
                         <Col xs={{span:12}} className="text-center">
                             <p className="text-light" style={{fontSize:"1.2rem",fontWeight:700}}>{loadingRecording ? 'Creating' : 'Uploading'} Blab...</p>
@@ -234,7 +256,7 @@ class SendMessage extends React.Component {
         }
 
         return (
-            <Card className="mt-auto" style={{height: 190,backgroundColor:"#1b1e2f",borderRadius:0}}>
+            <Card style={{height: 190,backgroundColor:"#1b1e2f",borderRadius:0}}>
                 <Row className="mt-3 mb-4">
                     <Col xs={{span:12}} className="text-center">
                         {recordingBlobUrl == null && (
