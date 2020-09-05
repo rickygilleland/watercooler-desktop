@@ -1,6 +1,7 @@
 import React from 'react';
 import routes from '../constants/routes.json';
 import { Link } from 'react-router-dom';
+import { DateTime } from 'luxon';
 import { Container, Image, Button, Card, CardColumns, Navbar, Row, Col, OverlayTrigger, Overlay, Popover, Tooltip } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
@@ -152,18 +153,31 @@ class MessageThread extends React.Component {
                 <Container style={{overflowY:"scroll"}} className="mt-auto" ref={(el) => { this.messagesContainer = el; }} fluid>
                     {messages.length > 0 && (
                         messages.map((message, key) => {
-                            let renderHeading = true;
+                            const localDate = DateTime.local();
+                            let curDate = DateTime.fromISO(message.created_at);
+                            let renderDateHeading = true;
 
-                            if (key > 0 && message.user_id == messages[key - 1].user_id) {
-                                renderHeading = false;
+                            const renderYearWithDate = curDate.startOf('year') < localDate.startOf('year');
+
+                            if (key > 0) {
+                                let prevDate = DateTime.fromISO(messages[key - 1].created_at);
+                                renderDateHeading = prevDate.startOf('day') < curDate.startOf('day');
                             }
+
+                            const renderHeading = key == 0 || key > 0 && message.user_id == messages[key - 1].user_id;
                             
                             return(
-                                <Message
-                                    key={key}
-                                    message={message}
-                                    renderHeading={renderHeading}
-                                />
+                                <div key={key}>
+                                    {renderDateHeading && (
+                                        <p className="text-center mt-2" style={{fontWeight:700}}>
+                                            {renderYearWithDate ? curDate.toLocaleString(DateTime.DATE_HUGE) : curDate.toFormat('EEEE, MMMM, d')}    
+                                        </p>
+                                    )}
+                                    <Message
+                                        message={message}
+                                        renderHeading={renderHeading}
+                                    />
+                                </div>
                             )
                         })
                     )}
