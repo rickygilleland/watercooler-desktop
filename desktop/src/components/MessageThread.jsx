@@ -97,8 +97,11 @@ class MessageThread extends React.Component {
             getThreadMessages(curThread.id);
             
             var recipients = [];
+            var recipientName = '';
             curThread.users.forEach(threadUser => {
                 recipients.push(threadUser.id);
+
+                recipientName = recipientName == '' ? threadUser.first_name : recipientName + ', ' + threadUser.first_name;
             })
 
             let messages = [];
@@ -107,7 +110,7 @@ class MessageThread extends React.Component {
                 messages = curThread.messages;
             }
 
-            this.setState({ thread: curThread, messages, recipients });
+            this.setState({ thread: curThread, messages, recipients, recipientName });
         }
 
         this.scrollToBottom();
@@ -175,7 +178,7 @@ class MessageThread extends React.Component {
                                     )}
                                     <Message
                                         message={message}
-                                        renderHeading={renderHeading}
+                                        renderHeading={renderHeading ? true : renderDateHeading}
                                     />
                                 </div>
                             )
