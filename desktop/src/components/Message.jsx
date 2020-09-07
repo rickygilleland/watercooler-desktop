@@ -61,8 +61,10 @@ class Message extends React.Component {
             <>
                 {renderHeading && (
                     <Row style={{marginLeft: 0}}>
-                        <Image src={message.user.avatar_url} fluid style={{height:40}} />
-                        <p style={{paddingLeft:12,marginTop:5}}>
+                        <div style={{width:50}}>
+                            <Image src={message.user.avatar_url} fluid style={{height:40}} />
+                        </div>  
+                        <p style={{paddingLeft:5,marginTop:5}}>
                             <span style={{fontSize:"1.0rem",fontWeight:700}}>
                                 {message.user.first_name} {message.user.last_name}
                             </span> 
@@ -72,9 +74,9 @@ class Message extends React.Component {
                         </p>
                     </Row>
                 )}
-                <Row style={{marginLeft: renderHeading ? 48 : 0}} className="mb-4">
+                <Row style={{marginLeft: renderHeading ? 55 : 0}} className="mb-4">
                     {!renderHeading && (
-                        <p className="align-self-center mb-0 mr-2" style={{fontSize:".7rem"}}>{formattedDate}</p>
+                        <p className="align-self-center mb-0 mr-2" style={{fontSize:".7rem",width:50}}>{formattedDate}</p>
                     )}
                     <MessageMediaPlayer
                         autoplay={false}
