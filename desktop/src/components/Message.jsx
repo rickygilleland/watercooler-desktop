@@ -28,8 +28,7 @@ import {
     faSave, 
     faGlobe 
 } from '@fortawesome/free-solid-svg-icons';
-import videojs from 'video.js'
-import posthog from 'posthog-js';
+import MessageMediaPlayer from './MessageMediaPlayer';
 
 class Message extends React.Component {
 
@@ -39,6 +38,7 @@ class Message extends React.Component {
         let date = DateTime.fromISO(this.props.message.created_at);
 
         this.state = {
+            waveSurfer: null,
             formattedDate: date.toLocaleString(DateTime.TIME_SIMPLE)
         };
     }
@@ -47,6 +47,7 @@ class Message extends React.Component {
     }
 
     componentDidUpdate() {
+        const { message } = this.props;
     }
 
     componentWillUnmount() {
@@ -75,7 +76,13 @@ class Message extends React.Component {
                     {!renderHeading && (
                         <p style={{fontSize:".7rem"}}>{formattedDate}</p>
                     )}
-                    <audio controls src={message.attachment_url} />
+                    <MessageMediaPlayer
+                        autoplay={false}
+                        controls={true}
+                        source={message.attachment_url}
+                        mediaType="audio/wav"
+                        id={`video_player_${message.id}`}
+                    />
                 </Row>
             </>
         )

@@ -7,7 +7,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
 import SendMessage from './SendMessage';
 import Message from './Message';
-import videojs from 'video.js'
 import posthog from 'posthog-js';
 
 class MessageThread extends React.Component {

@@ -6,7 +6,6 @@ import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { faMicrophone, faMicrophoneSlash, faCircle, faCircleNotch, faTimesCircle, faPaperPlane, faTrashAlt, faSave, faGlobe } from '@fortawesome/free-solid-svg-icons';
 import RecordRTC from 'recordrtc';
 import { StereoAudioRecorder } from 'recordrtc';
-import videojs from 'video.js'
 import posthog from 'posthog-js';
 
 class SendMessage extends React.Component {
@@ -85,20 +84,6 @@ class SendMessage extends React.Component {
         let startTime = Date.now();
 
         this.setState({ startTime });
-
-        /*const videoJsOptions = {
-            autoplay: false,
-            controls: false,
-            sources: [{
-              src: '/path/to/video.mp4',
-              type: 'audio/wav'
-            }]
-        }
-          
-
-        this.player = videojs(this.videoNode, this.props, function onPlayerReady() {
-            console.log('onPlayerReady', this)
-        });*/
 
         let timeInterval = setInterval(function () {
 

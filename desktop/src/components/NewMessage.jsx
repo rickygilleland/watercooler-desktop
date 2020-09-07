@@ -2,7 +2,6 @@ import React from 'react';
 import SendMessage from './SendMessage';
 import { Image } from 'react-bootstrap';
 import Autosuggest from 'react-autosuggest';
-import videojs from 'video.js'
 import posthog, { push } from 'posthog-js';
 
 class NewMessage extends React.Component {
