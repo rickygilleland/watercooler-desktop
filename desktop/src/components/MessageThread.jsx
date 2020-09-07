@@ -1,6 +1,7 @@
 import React from 'react';
 import routes from '../constants/routes.json';
 import { Link } from 'react-router-dom';
+import { isEqual } from 'lodash';
 import { DateTime } from 'luxon';
 import { Container, Image, Button, Card, CardColumns, Navbar, Row, Col, OverlayTrigger, Overlay, Popover, Tooltip } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -15,7 +16,7 @@ class MessageThread extends React.Component {
         super(props);
         this.state = {
             thread: {},
-            messages: [],
+            messages: {},
             recipients: [],
             recipientName: null
         };
@@ -29,7 +30,7 @@ class MessageThread extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        const { match, push, publicThreads, privateThreads, sharedThreads } = this.props;
+        const { match, push } = this.props;
         const { thread, messages } = this.state;
 
         if (prevProps.match != match && match.params.threadSlug != thread.slug || Object.keys(thread).length === 0) {
@@ -37,39 +38,20 @@ class MessageThread extends React.Component {
             this.scrollToBottom();
         }
 
-        var prevThreadToCompare;
-        var threadToCompare;
+        console.log("RICKY EQUAL", isEqual(this.props.messages[thread.id], prevProps.messages[thread.id]));
 
-        if (match.params.type == "private") {
-            prevThreadToCompare = prevProps.privateThreads;
-            threadToCompare = privateThreads;
-        }
+        if (isEqual(this.props.messages[thread.id], prevProps.messages[thread.id]) == false) {
+            console.log("RICKY MESSAGES UPDAED");
+            this.setState({ messages: this.props.messages[thread.id] });
+        }        
 
-        if (match.params.type == "public") {
-            prevThreadToCompare = prevProps.publicThreads;
-            threadToCompare = publicThreads;
-        }
-
-        if (match.params.type == "shared") {
-            prevThreadToCompare = prevProps.sharedThreads;
-            threadToCompare = sharedThreads;
-        }
-
-        if (prevThreadToCompare != threadToCompare) {
-            threadToCompare.forEach(propThread => {
-                if (propThread.id == thread.id && typeof propThread.messages != "undefined" && propThread.messages != messages) {
-                    this.setState({ messages: propThread.messages });
-                }
-            })
-        }
-
-        if (messages.length != prevState.messages.length) {
+        if (Object.keys(messages).length != Object.keys(prevState.messages).length) {
             this.scrollToBottom();
         }
     }
 
     initializeThread() {
-        const { match, push, publicThreads, privateThreads, sharedThreads, getThreadMessages } = this.props;
+        const { match, push, publicThreads, privateThreads, sharedThreads, getMessagesByThreadId } = this.props;
 
         var curThread = null;
         var threadsToCheck;
@@ -86,14 +68,14 @@ class MessageThread extends React.Component {
             threadsToCheck = sharedThreads;
         }
 
-        threadsToCheck.forEach(thread => {
-            if (thread.slug == match.params.threadSlug) {
-                curThread = thread;
+        Object.keys(threadsToCheck).forEach(threadId => {
+            if (threadsToCheck[threadId].slug == match.params.threadSlug) {
+                curThread = threadsToCheck[threadId];
             }
         })
 
         if (curThread != null) {
-            getThreadMessages(curThread.id);
+            getMessagesByThreadId(curThread.id);
             
             var recipients = [];
             var recipientName = '';
@@ -103,10 +85,10 @@ class MessageThread extends React.Component {
                 recipientName = recipientName == '' ? threadUser.first_name : recipientName + ', ' + threadUser.first_name;
             })
 
-            let messages = [];
+            let messages = {};
 
-            if (typeof curThread.messages != "undefined") {
-                messages = curThread.messages;
+            if (typeof this.props.messages[curThread.id] != "undefined") {
+                messages = this.props.messages[curThread.id];
             }
 
             this.setState({ thread: curThread, messages, recipients, recipientName });
@@ -127,6 +109,8 @@ class MessageThread extends React.Component {
     render() {
         const { threadLoading, settings, user, createMessage, organization, messageLoading, messageCreatedStateChange } = this.props;
         const { thread, messages, recipients, recipientName } = this.state;
+        
+        let messageKeys = Object.keys(messages);
 
         return (
             <div className="d-flex flex-column" style={{height: process.env.REACT_APP_PLATFORM === "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'}}>
@@ -142,7 +126,7 @@ class MessageThread extends React.Component {
                     <Col xs={{span:4,offset:4}}>
                     </Col>
                 </Row>
-                {threadLoading && messages.length == 0 && (
+                {threadLoading && messageKeys.length == 0 && (
                     <div style={{marginTop: "4rem"}}>
                         <Row className="mt-3 mb-4">
                             <Col xs={{span:12}} className="text-center">
@@ -153,8 +137,9 @@ class MessageThread extends React.Component {
                     </div>
                 )}
                 <Container style={{overflowY:"scroll"}} className="mt-auto" ref={(el) => { this.messagesContainer = el; }} fluid>
-                    {messages.length > 0 && (
-                        messages.map((message, key) => {
+                    {messageKeys.length > 0 && (
+                        messageKeys.map((messageId, key)  => {
+                            let message = messages[messageId];
                             const localDate = DateTime.local();
                             let curDate = DateTime.fromISO(message.created_at);
                             let renderDateHeading = true;
@@ -162,11 +147,11 @@ class MessageThread extends React.Component {
                             const renderYearWithDate = curDate.startOf('year') < localDate.startOf('year');
 
                             if (key > 0) {
-                                let prevDate = DateTime.fromISO(messages[key - 1].created_at);
+                                let prevDate = DateTime.fromISO(messages[messageKeys[key - 1]].created_at);
                                 renderDateHeading = prevDate.startOf('day') < curDate.startOf('day');
                             }
 
-                            const renderHeading = key == 0 || key > 0 && message.user_id == messages[key - 1].user_id;
+                            const renderHeading = key == 0 || key > 0 && message.user_id == messages[messageKeys[key - 1]].user_id;
                             
                             return(
                                 <div key={key}>
@@ -183,7 +168,7 @@ class MessageThread extends React.Component {
                             )
                         })
                     )}
-                    {!threadLoading && messages.length == 0 && (
+                    {!threadLoading && messageKeys.length == 0 && (
                         <p className="text-center mx-auto" style={{fontSize:"1.5rem",fontWeight:700,marginTop:"4rem"}}>You don't have any message history with this person yet.</p>
                     )}
                 </Container>

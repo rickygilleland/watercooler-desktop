@@ -4,8 +4,7 @@ import { bindActionCreators } from 'redux';
 import { push } from 'connected-react-router';
 import { withRouter } from 'react-router-dom';
 import MessageThread from '../components/MessageThread';
-import { getThreadMessages } from '../actions/thread';
-import { createMessage } from '../actions/message';
+import { createMessage, getMessagesByThreadId } from '../actions/message';
 
 function mapStateToProps(state) {
     return {
@@ -16,6 +15,7 @@ function mapStateToProps(state) {
         publicThreads: state.thread.publicThreads,
         privateThreads: state.thread.privateThreads,
         sharedThreads: state.thread.sharedThreads,
+        messages: state.message.messages,
         threadLoading: state.thread.loading,
         messageLoading: state.message.loading,
         lastCreatedMessage: state.message.lastCreatedMessage,
@@ -28,7 +28,7 @@ function mapDispatchToProps(dispatch) {
     return bindActionCreators(
       {
         createMessage,
-        getThreadMessages,
+        getMessagesByThreadId,
         push
       },
       dispatch

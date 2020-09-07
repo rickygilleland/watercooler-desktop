@@ -175,6 +175,11 @@ class SendMessage extends React.Component {
         }
 
         messageCreatedStateChange();
+
+        if (this.props.expanded == false) {
+            this.setState({ overrideExpanded: false });
+        }
+
         return createMessage(formData);
     }
 

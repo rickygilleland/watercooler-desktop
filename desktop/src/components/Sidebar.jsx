@@ -232,16 +232,15 @@ class Sidebar extends React.Component {
                     if (event == "user.messages.created") {
                         var activeThread = false;
                         if (data.thread.type == "private") {
-                            that.props.privateThreads.forEach(thread => {
-                                if (thread.id == data.thread.id) {
-                                    activeThread = thread;
+                            Object.keys(that.props.privateThreads).map(threadId => {
+                                if (threadId == data.thread.id) {
+                                    activeThread = that.props.privateThreads[threadId];
                                 }
                             })
                         }
 
-                        if (activeThread === false) {
+                        if (activeThread !== false) {
                             that.props.getThread(data.thread.id);
-                            return that.props.push(`/thread/${data.thread.type}/${data.thread.slug}`);
                         }
                     }
 
@@ -381,8 +380,8 @@ class Sidebar extends React.Component {
             organization, 
             billing,
             teams, 
-            publicThreads,
             privateThreads,
+            publicThreads,
             user, 
             auth, 
             push,
@@ -501,29 +500,29 @@ class Sidebar extends React.Component {
                     </Row>
                     <div>
                         <ul className="nav flex-column mt-1">
-                            {privateThreads.map((thread, threadKey) => 
-                                <li key={threadKey} className="nav-item">
+                            {Object.keys(privateThreads).map(threadId => 
+                                <li key={threadId} className="nav-item">
                                     <NavLink exact={true} 
                                         activeStyle={{
                                             fontWeight: "bold",
                                         }} 
                                         className="d-block py-1"
                                         to={{
-                                            pathname: `/thread/${thread.type}/${thread.slug}`,
+                                            pathname: `/thread/${privateThreads[threadId].type}/${privateThreads[threadId].slug}`,
                                         }}>
                                         <p className="text-light mb-0 pl-3">
-                                            {thread.users.length == 1 && (
+                                            {privateThreads[threadId].users.length == 1 && (
                                                 <FontAwesomeIcon 
                                                     icon={faCircle} 
                                                     className="mr-1" 
                                                     style={{
-                                                        color:organizationUsersOnline.includes(thread.users[0].id) ? "#3ecf8e" : "#f9426c",
+                                                        color:organizationUsersOnline.includes(privateThreads[threadId].users[0].id) ? "#3ecf8e" : "#f9426c",
                                                         fontSize:".5rem",
                                                         verticalAlign:'middle'
                                                     }} 
                                                 /> 
                                             )}
-                                            {thread.name}
+                                            {privateThreads[threadId].name}
                                         </p>
                                     </NavLink>
                                 </li>
@@ -533,7 +532,11 @@ class Sidebar extends React.Component {
                 </div>
             )
         } catch(error) {
+            console.log(error);
 
+            Object.keys(privateThreads).map(thread => {
+                console.log("THREAD", thread);
+            })
         } 
                                         
         var firstRoom = {};

@@ -3,6 +3,10 @@ import { getThread } from './thread';
 export const CREATE_MESSAGE_STARTED = 'CREATE_MESSAGE_STARTED';
 export const CREATE_MESSAGE_SUCCESS = 'CREATE_MESSAGE_SUCCESS';
 export const CREATE_MESSAGE_FAILURE = 'CREATE_MESSAGE_FAILURE';
+export const GET_MESSAGES_BY_THREAD_ID_STARTED = 'GET_MESSAGES_BY_THREAD_ID_STARTED';
+export const GET_MESSAGES_BY_THREAD_ID_SUCCESS = 'GET_MESSAGES_BY_THREAD_ID_SUCCESS';
+export const GET_MESSAGES_BY_THREAD_ID_FAILURE = 'GET_MESSAGES_BY_THREAD_ID_FAILURE';
+export const ADD_NEW_MESSAGE_FROM_NOTIFICATION_SUCCESS = 'ADD_NEW_MESSAGE_FROM_NOTIFICATION_SUCCESS';
 
 export function createMessageStarted() {
     return {
@@ -24,6 +28,33 @@ export function createMessageFailure(payload) {
     }
 } 
 
+export function getMessagesByThreadIdStarted() {
+    return {
+        type: GET_MESSAGES_BY_THREAD_ID_STARTED
+    }
+} 
+
+export function getMessagesByThreadIdSuccess(payload) {
+    return {
+        type: GET_MESSAGES_BY_THREAD_ID_SUCCESS,
+        payload
+    }
+} 
+
+export function getMessagesByThreadIdFailure(payload) {
+    return {
+        type: GET_MESSAGES_BY_THREAD_ID_FAILURE,
+        payload
+    }
+} 
+
+export function addNewMessageFromNotificationSuccess(payload) {
+    return {
+        type: ADD_NEW_MESSAGE_FROM_NOTIFICATION_SUCCESS,
+        payload
+    }
+}
+
 
 export function createMessage(message) {
     return (dispatch, getState, axios) => {
@@ -41,26 +72,15 @@ export function createMessage(message) {
                 }
             })
             .then(response => {
-                dispatch(createMessageSuccess({ data: response.data}));
-
                 if (typeof response.data.thread_id != "undefined" && response.data.thread_id != null) {
-                    var threadFound = false;
-                    state.thread.privateThreads.forEach(thread => {
-                        threadFound = threadFound ? true : thread.id == response.data.thread_id;
-                    })
-
-                    state.thread.sharedThreads.forEach(thread => {
-                        threadFound = threadFound ? true : thread.id == response.data.thread_id;
-                    })
-
-                    state.thread.publicThreads.forEach(thread => {
-                        threadFound = threadFound ? true : thread.id == response.data.thread_id;
-                    })
-
-                    if (!threadFound) {
-                        dispatch(getThread(response.data.thread_id));
+        
+                    if (typeof state.thread.privateThreads[response.data.thread_id] == "undefined") {
+                        return dispatch(getThread(response.data.thread_id));
                     }
+                    
                 }
+
+                dispatch(createMessageSuccess({ data: response.data}));
             })
             .catch(error => {
                 dispatch(createMessageFailure({ error: error.message }));
@@ -68,5 +88,37 @@ export function createMessage(message) {
         } catch (error) {
             dispatch(createMessageFailure({ error: error }));
         }
+    }
+}
+
+export function getMessagesByThreadId(threadId) {
+    return (dispatch, getState, axios) => {
+        dispatch(getMessagesByThreadIdStarted());
+        const state = getState();
+
+        try {
+            axios({
+                method: 'get',
+                url: `https://blab.to/api/threads/${threadId}/messages`,
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': 'Bearer '+state.auth.authKey,
+                }
+            })
+            .then(response => {
+                dispatch(getMessagesByThreadIdSuccess({ data: response.data.messages }));
+            })
+            .catch(error => {
+                dispatch(getMessagesByThreadIdFailure({ error: error.message }));
+            })
+        } catch (error) {
+            dispatch(getMessagesByThreadIdFailure({ error: error }));
+        }
+    }
+}
+
+export function addNewMessageFromNotification(message) {
+    return (dispatch) => {
+        dispatch(addNewMessageFromNotificationSuccess({ data: message }));
     }
 }

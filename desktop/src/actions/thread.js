@@ -4,9 +4,6 @@ export const GET_THREAD_FAILURE = 'GET_THREAD_FAILURE';
 export const GET_USER_THREADS_STARTED = 'GET_USER_THREADS_STARTED';
 export const GET_USER_THREADS_SUCCESS = 'GET_USER_THREADS_SUCCESS';
 export const GET_USER_THREADS_FAILURE = 'GET_USER_THREADS_FAILURE';
-export const GET_THREAD_MESSAGES_STARTED = 'GET_THREAD_MESSAGES_STARTED';
-export const GET_THREAD_MESSAGES_SUCCESS = 'GET_THREAD_MESSAGES_SUCCESS';
-export const GET_THREAD_MESSAGES_FAILURE = 'GET_THREAD_MESSAGES_FAILURE';
 
 export function getThreadStarted() {
     return {
@@ -44,26 +41,6 @@ export function getUserThreadsSuccess(payload) {
 export function getUserThreadsFailure(payload) {
     return {
         type: GET_USER_THREADS_FAILURE,
-        payload
-    }
-} 
-
-export function getThreadMessagesStarted() {
-    return {
-        type: GET_THREAD_MESSAGES_STARTED
-    }
-} 
-
-export function getThreadMessagesSuccess(payload) {
-    return {
-        type: GET_THREAD_MESSAGES_SUCCESS,
-        payload
-    }
-} 
-
-export function getThreadMessagesFailure(payload) {
-    return {
-        type: GET_THREAD_MESSAGES_FAILURE,
         payload
     }
 } 
@@ -116,32 +93,6 @@ export function getUserThreads() {
             })
         } catch (error) {
             dispatch(getUserThreadsFailure({ error: error }));
-        }
-    }
-}
-
-export function getThreadMessages(threadId) {
-    return (dispatch, getState, axios) => {
-        dispatch(getThreadMessagesStarted());
-        const state = getState();
-
-        try {
-            axios({
-                method: 'get',
-                url: `https://blab.to/api/threads/${threadId}/messages`,
-                headers: {
-                    'Accept': 'application/json',
-                    'Authorization': 'Bearer '+state.auth.authKey,
-                }
-            })
-            .then(response => {
-                dispatch(getThreadMessagesSuccess({ data: response.data}));
-            })
-            .catch(error => {
-                dispatch(getThreadMessagesFailure({ error: error.message }));
-            })
-        } catch (error) {
-            dispatch(getThreadMessagesFailure({ error: error }));
         }
     }
 }
