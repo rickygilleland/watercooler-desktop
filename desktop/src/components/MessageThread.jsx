@@ -148,7 +148,7 @@ class MessageThread extends React.Component {
                                 renderDateHeading = prevDate.startOf('day') < curDate.startOf('day');
                             }
 
-                            const renderHeading = key == 0 || key > 0 && message.user_id == messages[messageKeys[key - 1]].user_id;
+                            const renderHeading = key == 0 || key > 0 && message.user_id != messages[messageKeys[key - 1]].user_id;
                             
                             return(
                                 <div key={key}>
