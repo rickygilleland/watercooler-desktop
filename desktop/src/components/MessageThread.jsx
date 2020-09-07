@@ -38,10 +38,7 @@ class MessageThread extends React.Component {
             this.scrollToBottom();
         }
 
-        console.log("RICKY EQUAL", isEqual(this.props.messages[thread.id], prevProps.messages[thread.id]));
-
         if (isEqual(this.props.messages[thread.id], prevProps.messages[thread.id]) == false) {
-            console.log("RICKY MESSAGES UPDAED");
             this.setState({ messages: this.props.messages[thread.id] });
         }        
 
@@ -107,7 +104,7 @@ class MessageThread extends React.Component {
     }
 
     render() {
-        const { threadLoading, settings, user, createMessage, organization, messageLoading, messageCreatedStateChange } = this.props;
+        const { threadLoading, settings, user, createMessage, organization, messageCreating, messageCreatedStateChange } = this.props;
         const { thread, messages, recipients, recipientName } = this.state;
         
         let messageKeys = Object.keys(messages);
@@ -180,7 +177,7 @@ class MessageThread extends React.Component {
                     recipientName={recipientName}
                     createMessage={createMessage} 
                     organization={organization} 
-                    messageLoading={messageLoading}
+                    messageCreating={messageCreating}
                     messageCreatedStateChange={() => this.setState({ messageCreated: true })}
                     messageOpened={() => this.scrollToBottom()}
                 />

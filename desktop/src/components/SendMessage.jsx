@@ -215,8 +215,21 @@ class SendMessage extends React.Component {
     }
 
     render() {
-        const { messageLoading, recipients, recipientName, expanded } = this.props;
+        const { messageCreating, recipients, recipientName, expanded } = this.props;
         const { isRecording, recordingBlob, recordingBlobUrl, duration, loadingRecording, showDeleteConfirm, overrideExpanded } = this.state;
+
+        if (messageCreating || loadingRecording) {
+            return(
+                <Card style={{height: 190,backgroundColor:"#1b1e2f",borderRadius:0}}>
+                    <Row className="mt-3 mb-4">
+                        <Col xs={{span:12}} className="text-center">
+                            <p className="text-light" style={{fontSize:"1.2rem",fontWeight:700}}>{loadingRecording ? 'Creating' : 'Uploading'} Blab...</p>
+                            <FontAwesomeIcon icon={faCircleNotch} className="mt-3 mx-auto" style={{fontSize:"2.4rem",color:"#6772ef"}} spin />
+                        </Col>
+                    </Row>
+                </Card>
+            )
+        }
 
         if (expanded == false && overrideExpanded == false) {
             return (
@@ -226,19 +239,6 @@ class SendMessage extends React.Component {
                             <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"1.5rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className="mx-auto" onClick={() => !isRecording ? this.startRecording() : this.stopRecording()}>
                                 <FontAwesomeIcon icon={isRecording ? faMicrophoneSlash : faMicrophone} />
                             </Button>
-                        </Col>
-                    </Row>
-                </Card>
-            )
-        }
-
-        if (messageLoading || loadingRecording) {
-            return(
-                <Card style={{height: 190,backgroundColor:"#1b1e2f",borderRadius:0}}>
-                    <Row className="mt-3 mb-4">
-                        <Col xs={{span:12}} className="text-center">
-                            <p className="text-light" style={{fontSize:"1.2rem",fontWeight:700}}>{loadingRecording ? 'Creating' : 'Uploading'} Blab...</p>
-                            <FontAwesomeIcon icon={faCircleNotch} className="mt-3 mx-auto" style={{fontSize:"2.4rem",color:"#6772ef"}} spin />
                         </Col>
                     </Row>
                 </Card>

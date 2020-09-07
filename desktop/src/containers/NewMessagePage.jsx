@@ -13,7 +13,7 @@ function mapStateToProps(state) {
         organization: state.organization.organization,
         organizationUsers: state.organization.users,
         settings: state.settings,
-        messageLoading: state.message.loading,
+        messageCreating: state.message.creating,
         lastCreatedMessage: state.message.lastCreatedMessage,
         messageError: state.message.error,
     }

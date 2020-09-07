@@ -18,6 +18,7 @@ function mapStateToProps(state) {
         messages: state.message.messages,
         threadLoading: state.thread.loading,
         messageLoading: state.message.loading,
+        messageCreating: state.message.creating,
         lastCreatedMessage: state.message.lastCreatedMessage,
         messageError: state.message.error,
         settings: state.settings,

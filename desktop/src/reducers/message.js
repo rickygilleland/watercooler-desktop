@@ -13,6 +13,7 @@ const initialState = {
     messages: {},
     lastCreatedMessage: null,
     loading: false,
+    creating: false,
     error: false
 }
 
@@ -21,7 +22,7 @@ export default function message(state = initialState, action = {}) {
     switch (action.type) {
         case CREATE_MESSAGE_STARTED:
             updatedState = {
-                loading: true,
+                creating: true,
                 error: false,
                 lastCreatedMessage: null,
             }
@@ -37,14 +38,14 @@ export default function message(state = initialState, action = {}) {
 
             updatedState = {
                 messages: updatedMessages,
-                loading: false,
+                creating: false,
                 error: false,
                 lastCreatedMessage: action.payload.data
             }
             break;
         case CREATE_MESSAGE_FAILURE:
             updatedState = {
-                loading: false,
+                creating: false,
                 error: true,
                 lastCreatedMessage: null,
             }

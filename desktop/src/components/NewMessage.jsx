@@ -88,7 +88,7 @@ class NewMessage extends React.Component {
     }
 
     render() {
-        const { settings, user, createMessage, organization, messageLoading } = this.props;
+        const { settings, user, createMessage, organization, messageCreating } = this.props;
         const { suggestions, suggestionValue, suggestionDisplayValue } = this.state;
 
         return (
@@ -130,7 +130,7 @@ class NewMessage extends React.Component {
                         recipientName={suggestionDisplayValue}
                         createMessage={createMessage} 
                         organization={organization} 
-                        messageLoading={messageLoading}
+                        messageCreating={messageCreating}
                         messageCreatedStateChange={() => this.setState({ messageCreated: true })}
                     />
                 </div>
