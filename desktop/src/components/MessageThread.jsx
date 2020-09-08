@@ -29,7 +29,7 @@ class MessageThread extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        const { match, push } = this.props;
+        const { match, push, messageCreating } = this.props;
         const { thread } = this.state;
 
         if (prevProps.match != match && match.params.threadSlug != thread.slug || Object.keys(thread).length === 0) {
@@ -39,7 +39,11 @@ class MessageThread extends React.Component {
 
         if (isEqual(this.props.messages[thread.id], prevProps.messages[thread.id]) == false) {
             this.scrollToBottom();
-        }        
+        }  
+        
+        if (prevProps.messageCreating != messageCreating) {
+            this.scrollToBottom();
+        }
     }
 
     initializeThread() {
@@ -159,6 +163,9 @@ class MessageThread extends React.Component {
                             )
                         })
                     )}
+                    {messageCreating && (
+                        <p className="mx-auto text-center" style={{fontWeight:700}}>Sending Blab... <FontAwesomeIcon icon={faCircleNotch} style={{color:"#6772ef"}} spin /></p>
+                    )}
                     {!threadLoading && messageKeys.length == 0 && (
                         <p className="text-center mx-auto" style={{fontSize:"1.5rem",fontWeight:700,marginTop:"4rem"}}>You don't have any message history with this person yet.</p>
                     )}
@@ -171,7 +178,7 @@ class MessageThread extends React.Component {
                     recipientName={recipientName}
                     createMessage={createMessage} 
                     organization={organization} 
-                    messageCreating={messageCreating}
+                    messageCreating={false}
                     messageCreatedStateChange={() => this.setState({ messageCreated: true })}
                     messageOpened={() => this.scrollToBottom()}
                 />
