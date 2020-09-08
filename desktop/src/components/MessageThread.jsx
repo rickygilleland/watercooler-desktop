@@ -16,7 +16,6 @@ class MessageThread extends React.Component {
         super(props);
         this.state = {
             thread: {},
-            messages: {},
             recipients: [],
             recipientName: null
         };
@@ -31,7 +30,7 @@ class MessageThread extends React.Component {
 
     componentDidUpdate(prevProps, prevState) {
         const { match, push } = this.props;
-        const { thread, messages } = this.state;
+        const { thread } = this.state;
 
         if (prevProps.match != match && match.params.threadSlug != thread.slug || Object.keys(thread).length === 0) {
             this.initializeThread();
@@ -39,12 +38,8 @@ class MessageThread extends React.Component {
         }
 
         if (isEqual(this.props.messages[thread.id], prevProps.messages[thread.id]) == false) {
-            this.setState({ messages: this.props.messages[thread.id] });
-        }        
-
-        if (Object.keys(messages).length != Object.keys(prevState.messages).length) {
             this.scrollToBottom();
-        }
+        }        
     }
 
     initializeThread() {
@@ -82,13 +77,7 @@ class MessageThread extends React.Component {
                 recipientName = recipientName == '' ? threadUser.first_name : recipientName + ', ' + threadUser.first_name;
             })
 
-            let messages = {};
-
-            if (typeof this.props.messages[curThread.id] != "undefined") {
-                messages = this.props.messages[curThread.id];
-            }
-
-            this.setState({ thread: curThread, messages, recipients, recipientName });
+            this.setState({ thread: curThread, recipients, recipientName });
         }
 
         this.scrollToBottom();
@@ -99,15 +88,20 @@ class MessageThread extends React.Component {
 
     scrollToBottom() {
         if (typeof this.messagesContainer != "undefined") {
-            this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+            setTimeout(() => {
+                this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+            }, 50);
         }
     }
 
     render() {
-        const { threadLoading, settings, user, createMessage, organization, messageCreating, messageCreatedStateChange } = this.props;
-        const { thread, messages, recipients, recipientName } = this.state;
-        
-        let messageKeys = Object.keys(messages);
+        const { threadLoading, settings, user, createMessage, messages, organization, messageCreating, messageCreatedStateChange } = this.props;
+        const { thread, recipients, recipientName } = this.state;
+
+        var messageKeys = [];
+        if (typeof messages[thread.id] != "undefined") {
+            messageKeys = Object.keys(messages[thread.id]);
+        }
 
         return (
             <div className="d-flex flex-column" style={{height: process.env.REACT_APP_PLATFORM === "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'}}>
@@ -136,7 +130,7 @@ class MessageThread extends React.Component {
                 <Container style={{overflowY:"scroll"}} className="mt-auto" ref={(el) => { this.messagesContainer = el; }} fluid>
                     {messageKeys.length > 0 && (
                         messageKeys.map((messageId, key)  => {
-                            let message = messages[messageId];
+                            let message = messages[thread.id][messageId];
                             const localDate = DateTime.local();
                             let curDate = DateTime.fromISO(message.created_at);
                             let renderDateHeading = true;
@@ -144,14 +138,14 @@ class MessageThread extends React.Component {
                             const renderYearWithDate = curDate.startOf('year') < localDate.startOf('year');
 
                             if (key > 0) {
-                                let prevDate = DateTime.fromISO(messages[messageKeys[key - 1]].created_at);
+                                let prevDate = DateTime.fromISO(messages[thread.id][messageKeys[key - 1]].created_at);
                                 renderDateHeading = prevDate.startOf('day') < curDate.startOf('day');
                             }
 
-                            const renderHeading = key == 0 || key > 0 && message.user_id != messages[messageKeys[key - 1]].user_id;
+                            const renderHeading = key == 0 || key > 0 && message.user_id != messages[thread.id][messageKeys[key - 1]].user_id;
                             
                             return(
-                                <div key={key}>
+                                <div key={messageId}>
                                     {renderDateHeading && (
                                         <p className="text-center mt-2" style={{fontWeight:700}}>
                                             {renderYearWithDate ? curDate.toLocaleString(DateTime.DATE_HUGE) : curDate.toFormat('EEEE, MMMM, d')}    

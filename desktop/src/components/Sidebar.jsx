@@ -93,7 +93,7 @@ class Sidebar extends React.Component {
 
     componentDidMount() {
         var { pusherInstance, organizationPresenceChannel, userPrivateNotificationChannel } = this.state;
-        const { push, auth, user, organization, getOrganizations, updateUserDetails, getUserThreads } = this.props;
+        const { push, auth, user, organization, getOrganizations, updateUserDetails, getUserThreads, addNewMessageFromNotification } = this.props;
 
         if (!auth.isLoggedIn) {
             return;
@@ -239,8 +239,18 @@ class Sidebar extends React.Component {
                             })
                         }
 
-                        if (activeThread !== false) {
+                        if (activeThread == false) {
                             that.props.getThread(data.thread.id);
+                        }
+
+                        addNewMessageFromNotification(data.message);
+
+                        const newMessageNotification = new Notification('New Blab', {
+                            body: `${data.message.user.first_name} sent you a voice message.`
+                        })
+
+                        newMessageNotification.onClick = () => {
+                            push(`/thread/${data.thread.type}/${data.thread.slug}`);
                         }
                     }
 

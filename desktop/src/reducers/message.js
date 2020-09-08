@@ -1,4 +1,5 @@
 import { Action } from 'redux';
+import { orderBy, cloneDeep } from 'lodash';
 import { 
     CREATE_MESSAGE_STARTED, 
     CREATE_MESSAGE_SUCCESS,
@@ -28,7 +29,7 @@ export default function message(state = initialState, action = {}) {
             }
             break;
         case CREATE_MESSAGE_SUCCESS:
-            var updatedMessages = {...state.messages};
+            var updatedMessages = cloneDeep(state.messages);
 
             if (typeof updatedMessages[action.payload.data.thread_id] == "undefined") {
                 updatedMessages[action.payload.data.thread_id] = {};
@@ -58,7 +59,7 @@ export default function message(state = initialState, action = {}) {
             }
             break;
         case GET_MESSAGES_BY_THREAD_ID_SUCCESS:
-            var updatedMessages = {...state.messages};
+            var updatedMessages = cloneDeep(state.messages);
 
             action.payload.data.forEach(message => {
                 if (typeof updatedMessages[message.thread_id] == "undefined") {
@@ -81,7 +82,7 @@ export default function message(state = initialState, action = {}) {
             }
             break;
         case ADD_NEW_MESSAGE_FROM_NOTIFICATION_SUCCESS:
-            var updatedMessages = {...state.messages};
+            var updatedMessages = cloneDeep(state.messages);
 
             updatedMessages[action.payload.data.thread_id][action.payload.data.id] = action.payload.data;
 

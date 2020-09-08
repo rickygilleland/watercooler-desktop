@@ -1,5 +1,4 @@
 import { Action } from 'redux';
-import { orderBy } from 'lodash';
 import { 
     GET_THREAD_STARTED, 
     GET_THREAD_SUCCESS,
