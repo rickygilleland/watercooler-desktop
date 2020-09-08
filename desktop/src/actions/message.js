@@ -75,7 +75,7 @@ export function createMessage(message) {
                 if (typeof response.data.thread_id != "undefined" && response.data.thread_id != null) {
         
                     if (typeof state.thread.privateThreads[response.data.thread_id] == "undefined") {
-                        return dispatch(getThread(response.data.thread_id));
+                        dispatch(getThread(response.data.thread_id));
                     }
                     
                 }

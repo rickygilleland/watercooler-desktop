@@ -71,8 +71,8 @@ class Team extends React.Component {
                         {organizationUsers.map((organizationUser) =>
                             <Col xs={12} md={6} lg={4} xl={3} key={organizationUser.id} className="mb-5">
                                 <div className="d-flex">
-                                    <div>
-                                        <Image src={organizationUser.avatar_url} fluid style={{height:125,borderRadius:15}} className="shadow" />
+                                    <div style={{width:125}}>
+                                        <Image src={organizationUser.avatar_url} fluid style={{maxHeight:125,borderRadius:15}} className="shadow" />
                                     </div>
                                     <div className="ml-3 align-self-center">
                                         <p className="font-weight-bold mb-0" style={{fontSize:".95rem"}}>
