@@ -11,6 +11,7 @@
     "MESSAGE": {
       "NEW": "/messages/new",
       "ALL": "/messages",
+      "PUBLIC_THREAD": "/thread/public",
       "THREAD": "/thread/:type/:threadSlug"
     }
   }

@@ -71,13 +71,19 @@ export default function thread(state = initialState, action = {}) {
             break;
         case GET_USER_THREADS_SUCCESS:
             var updatedPrivateThreads = {...state.privateThreads};
+            var updatedPublicThreads = {...state.publicThreads};
 
             action.payload.data.private_threads.forEach(thread => {
                 updatedPrivateThreads[thread.id] = thread;
             })
 
+            action.payload.data.public_threads.forEach(thread => {
+                updatedPublicThreads[thread.id] = thread;
+            })
+
             updatedState = {
                 privateThreads: updatedPrivateThreads,
+                publicThreads: updatedPublicThreads,
                 loading: false,
                 error: false,
             }

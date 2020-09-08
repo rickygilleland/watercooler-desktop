@@ -1,6 +1,6 @@
 import React from 'react';
 import SendMessage from './SendMessage';
-import { Image } from 'react-bootstrap';
+import { Image, Row } from 'react-bootstrap';
 import Autosuggest from 'react-autosuggest';
 import posthog, { push } from 'posthog-js';
 
@@ -51,6 +51,9 @@ class NewMessage extends React.Component {
         const { messageCreated } = this.state;
 
         if (messageCreated && !messageLoading && prevProps.message == null && messageError === false && lastCreatedMessage != null) {
+            if (lastCreatedMessage.thread.type == "public") {
+                return push("/thread/public");
+            }
             return push(`/thread/${lastCreatedMessage.thread.type}/${lastCreatedMessage.thread.slug}`);
         }
     }
@@ -111,12 +114,12 @@ class NewMessage extends React.Component {
                     onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
                     onSuggestionsClearRequested={this.onSuggestionsClearRequested}
                     inputProps={{
-                        placeholder: "Type the name of a teammate",
+                        placeholder: "Type the name of a teammate, or start recording to send a public Blab",
                         value: suggestionDisplayValue,
                         onChange: this.handleSuggestionChange
                     }}
                     theme={{
-                        input: 'form-control form-control-lg',
+                        input: 'form-control',
                         suggestionsList: 'list-group',
                         suggestion: 'list-group-item',
                     }}
@@ -126,6 +129,7 @@ class NewMessage extends React.Component {
                         settings={settings} 
                         user={user} 
                         expanded={true}
+                        isPublic={false}
                         recipients={suggestionValue} 
                         recipientName={suggestionDisplayValue}
                         createMessage={createMessage} 

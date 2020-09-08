@@ -705,7 +705,7 @@ class Sidebar extends React.Component {
                                                         }} 
                                                         className="d-block py-1"
                                                         to={{
-                                                            pathname: `/call/`,
+                                                            pathname: `/thread/public`,
                                                         }}>
                                                         <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faGlobe} style={{fontSize:".7rem",marginRight:".2rem"}} /> Public Blabs</p>
                                                     </NavLink>
@@ -801,6 +801,21 @@ class Sidebar extends React.Component {
                                     />
                                     <Route 
                                         path={routes.MESSAGE.THREAD} 
+                                        render={(routeProps) => (
+                                            <ErrorBoundary showError={true}>
+                                                <MessageThreadPage 
+                                                    {...routeProps} 
+                                                    onClick={() => {
+                                                        if (window.innerWidth < 768) {
+                                                            this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
+                                                        }
+                                                    }}
+                                                />
+                                            </ErrorBoundary>
+                                        )}
+                                    />
+                                    <Route 
+                                        path={routes.MESSAGE.PUBLIC_THREAD} 
                                         render={(routeProps) => (
                                             <ErrorBoundary showError={true}>
                                                 <MessageThreadPage 

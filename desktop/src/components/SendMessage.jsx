@@ -215,7 +215,7 @@ class SendMessage extends React.Component {
     }
 
     render() {
-        const { messageCreating, recipients, recipientName, expanded } = this.props;
+        const { messageCreating, recipients, recipientName, expanded, isPublic } = this.props;
         const { isRecording, recordingBlob, recordingBlobUrl, duration, loadingRecording, showDeleteConfirm, overrideExpanded } = this.state;
 
         if (messageCreating || loadingRecording) {
@@ -268,20 +268,22 @@ class SendMessage extends React.Component {
                                         <FontAwesomeIcon icon={faTimesCircle} style={{fontSize:"1.5rem"}} /><br />
                                     </Button>
                                 </OverlayTrigger>
-                                <OverlayTrigger
-                                    placement="top"
-                                    overlay={
-                                        <Tooltip id="tooltip-send-button">
-                                            {recipients.length == 0 
-                                                ? 'Select a recipient to send this Blab, or use the globe button to get a shareable link.' 
-                                                : `Send this Blab to ${recipientName}`}
-                                        </Tooltip>
-                                    }
-                                    >
-                                    <Button variant="success" style={{color:"#fff",fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} disabled={recipients.length == 0} className="mx-2 mt-3" onClick={() => this.sendRecording()}>
-                                        <FontAwesomeIcon icon={faPaperPlane} />
-                                    </Button>
-                                </OverlayTrigger>
+                                {isPublic == false && (
+                                    <OverlayTrigger
+                                        placement="top"
+                                        overlay={
+                                            <Tooltip id="tooltip-send-button">
+                                                {recipients.length == 0 
+                                                    ? 'Select a recipient to send this Blab, or use the globe button to get a shareable link.' 
+                                                    : `Send this Blab to ${recipientName}`}
+                                            </Tooltip>
+                                        }
+                                        >
+                                        <Button variant="success" style={{color:"#fff",fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} disabled={recipients.length == 0} className="mx-2 mt-3" onClick={() => this.sendRecording()}>
+                                            <FontAwesomeIcon icon={faPaperPlane} />
+                                        </Button>
+                                    </OverlayTrigger>
+                                )}
                                 <OverlayTrigger
                                     placement="top"
                                     overlay={
@@ -317,7 +319,7 @@ class SendMessage extends React.Component {
                                         <p style={{fontWeight:700,fontSize:"1.2em"}}><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#f9426c",fontSize:".5rem",verticalAlign:'middle'}} /> Recording Blab<br/> {duration} / 5:00</p>  
                                     )}
                                     {recordingBlobUrl && (
-                                        <audio controls ref={this.renderStream(recordingBlobUrl)} />
+                                        <audio controls controlsList="nodownload" ref={this.renderStream(recordingBlobUrl)} />
                                     )}
                                 </Col>
                             </Row>

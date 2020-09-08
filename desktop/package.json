@@ -76,6 +76,7 @@
     "react": "^16.13.1",
     "react-autosuggest": "^10.0.2",
     "react-bootstrap": "^1.0.0",
+    "react-copy-to-clipboard": "^5.0.2",
     "react-device-detect": "^1.13.1",
     "react-dom": "^16.13.1",
     "react-hot-loader": "^4.12.20",

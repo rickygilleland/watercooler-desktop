@@ -3,31 +3,14 @@ import routes from '../constants/routes.json';
 import { Link } from 'react-router-dom';
 import { DateTime } from 'luxon';
 import { 
-    Container, 
     Image, 
     Button, 
-    Card, 
-    CardColumns, 
-    Navbar, 
     Row, 
     Col, 
-    OverlayTrigger, 
-    Overlay, 
-    Popover, 
-    Tooltip 
 } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-    faMicrophone, 
-    faMicrophoneSlash, 
-    faCircle, 
-    faCircleNotch, 
-    faTimesCircle, 
-    faPaperPlane, 
-    faTrashAlt, 
-    faSave, 
-    faGlobe 
-} from '@fortawesome/free-solid-svg-icons';
+import { faClipboard, faClipboardCheck } from '@fortawesome/free-solid-svg-icons';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 import MessageMediaPlayer from './MessageMediaPlayer';
 
 class Message extends React.Component {
@@ -39,7 +22,8 @@ class Message extends React.Component {
 
         this.state = {
             waveSurfer: null,
-            formattedDate: date.toLocaleString(DateTime.TIME_SIMPLE)
+            formattedDate: date.toLocaleString(DateTime.TIME_SIMPLE),
+            copied: false
         };
     }
 
@@ -55,7 +39,7 @@ class Message extends React.Component {
 
     render() {
         const { message, renderHeading } = this.props;
-        const { formattedDate } = this.state;
+        const { formattedDate, copied } = this.state;
 
         return (
             <>
@@ -74,7 +58,7 @@ class Message extends React.Component {
                         </p>
                     </Row>
                 )}
-                <Row style={{marginLeft: renderHeading ? 55 : 0}} className="mb-4">
+                <Row style={{marginLeft: renderHeading ? 55 : 0}} className="mb-1">
                     {!renderHeading && (
                         <p className="align-self-center mb-0 mr-2" style={{fontSize:".7rem",width:50}}>{formattedDate}</p>
                     )}
@@ -85,6 +69,18 @@ class Message extends React.Component {
                         mediaType="audio/wav"
                         id={`video_player_${message.id}`}
                     />
+                </Row>
+                <Row className="mb-4">
+                    {message.is_public == true && typeof message.public_url != "undefined" && (
+                        <CopyToClipboard 
+                            text={message.public_url}
+                            onCopy={() => this.setState({copied: true})}
+                        >
+                            <Button variant="link" style={{marginLeft:60,fontSize:".8rem",color:copied ? "rgb(62, 207, 142)" : "#6772ef"}}>
+                                <FontAwesomeIcon icon={copied ? faClipboardCheck : faClipboard} /> {copied ? 'Link Copied to Clipboard' : 'Copy Shareable Link to Clipboard'}
+                            </Button>
+                        </CopyToClipboard>
+                    )}
                 </Row>
             </>
         )

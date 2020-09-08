@@ -52,23 +52,29 @@ class MessageThread extends React.Component {
         var curThread = null;
         var threadsToCheck;
 
-        if (match.params.type == "private") {
-            threadsToCheck = privateThreads;
+        if (match.path == "/thread/public") {
+            curThread = publicThreads[Object.keys(publicThreads)[0]];
         }
 
-        if (match.params.type == "public") {
-            threadsToCheck = publicThreads;
-        }
-
-        if (match.params.type == "shared") {
-            threadsToCheck = sharedThreads;
-        }
-
-        Object.keys(threadsToCheck).forEach(threadId => {
-            if (threadsToCheck[threadId].slug == match.params.threadSlug) {
-                curThread = threadsToCheck[threadId];
+        if (curThread == null) {
+            if (match.params.type == "private") {
+                threadsToCheck = privateThreads;
             }
-        })
+    
+            if (match.params.type == "public") {
+                threadsToCheck = publicThreads;
+            }
+    
+            if (match.params.type == "shared") {
+                threadsToCheck = sharedThreads;
+            }
+    
+            Object.keys(threadsToCheck).forEach(threadId => {
+                if (threadsToCheck[threadId].slug == match.params.threadSlug) {
+                    curThread = threadsToCheck[threadId];
+                }
+            })
+        }
 
         if (curThread != null) {
             getMessagesByThreadId(curThread.id);
@@ -174,6 +180,7 @@ class MessageThread extends React.Component {
                     settings={settings} 
                     user={user} 
                     expanded={false}
+                    isPublic={thread.type == "public"}
                     recipients={recipients} 
                     recipientName={recipientName}
                     createMessage={createMessage} 
