@@ -20,7 +20,10 @@ export default class MessageMediaPlayer extends React.Component {
             config={{
                 file: {
                     forceVideo: mediaType == "video",
-                    forceAudio: mediaType == "audio/wav"
+                    forceAudio: mediaType == "audio/wav",
+                    attributes: {
+                        controlsList: 'nodownload'
+                    }
                 }
             }}
             height="45px"
