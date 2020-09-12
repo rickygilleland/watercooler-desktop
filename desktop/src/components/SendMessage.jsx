@@ -3,10 +3,29 @@ import routes from '../constants/routes.json';
 import { Link } from 'react-router-dom';
 import { Container, Image, Button, Card, CardColumns, Navbar, Row, Col, OverlayTrigger, Overlay, Popover, Tooltip } from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faMicrophone, faMicrophoneSlash, faCircle, faCircleNotch, faTimesCircle, faPaperPlane, faTrashAlt, faSave, faGlobe } from '@fortawesome/free-solid-svg-icons';
+import { 
+    faMicrophone, 
+    faMicrophoneSlash, 
+    faCircle, 
+    faCircleNotch, 
+    faTimesCircle, 
+    faPaperPlane, 
+    faTrashAlt, 
+    faSave, 
+    faGlobe, 
+    faVideo, 
+    faVideoSlash,
+    faDesktop 
+} from '@fortawesome/free-solid-svg-icons';
+import ScreenSharingModal from './ScreenSharingModal';
 import RecordRTC from 'recordrtc';
 import { StereoAudioRecorder } from 'recordrtc';
 import posthog from 'posthog-js';
+if (process.env.REACT_APP_PLATFORM != "web") {
+    var { desktopCapturer } = require('electron');
+} else {
+    var desktopCapturer = null;
+}
 
 class SendMessage extends React.Component {
 
@@ -15,6 +34,7 @@ class SendMessage extends React.Component {
         this.state = {
             recorder: null,
             isRecording: false,
+            recordingType: null,
             raw_local_stream: null,
             duration: "00:00",
             timeInterval: null,
@@ -22,7 +42,9 @@ class SendMessage extends React.Component {
             recordingBlobUrl: null,
             loadingRecording: false,
             showDeleteConfirm: false,
-            overrideExpanded: false,
+            showScreenSharingModal: false,
+            screenSources: [],
+            screenSourcesLoading: false,
         };
 
         this.startRecording = this.startRecording.bind(this);
@@ -35,12 +57,6 @@ class SendMessage extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        const { messageOpened } = this.props;
-        const { overrideExpanded } = this.state;
-
-        if (typeof messageOpened != "undefined" && overrideExpanded != prevState.overrideExpanded) {
-            messageOpened();
-        }
     }
 
     componentWillUnmount() {
@@ -51,7 +67,7 @@ class SendMessage extends React.Component {
         this.stopRecording();
     }
 
-    async startRecording() {
+    async startRecording(recordingType) {
         const { settings, user } = this.props;
 
         let streamOptions;
@@ -63,18 +79,31 @@ class SendMessage extends React.Component {
                     deviceId: settings.defaultDevices.audioInput
                 }
             }
+
+            if (recordingType == "video") {
+                streamOptions.video = {
+                    aspectRatio: 1.3333333333,
+                    deviceId: settings.defaultDevices.videoInput
+                }
+            }
         } else {
             streamOptions = {
                 video: false,
                 audio: true
+            }
+
+            if (recordingType == "video") {
+                streamOptions.video = {
+                    aspectRatio: 1.3333333333
+                }
             }
         }
 
         const raw_local_stream = await navigator.mediaDevices.getUserMedia(streamOptions); 
        
         let recorder = RecordRTC(raw_local_stream, {
-            type: 'audio',
-            mimeType: 'audio/wav',
+            type: recordingType == "video" ? 'video' : 'audio',
+            mimeType: recordingType == "video" ? 'video/webm' : 'audio/wav',
             recorderType: StereoAudioRecorder,
             desiredSampRate: 16000,
             numberOfAudioChannels: 1,
@@ -98,7 +127,7 @@ class SendMessage extends React.Component {
 
         }.bind(this), 1000);
 
-        this.setState({ recorder, isRecording: true, raw_local_stream, timeInterval, recordingBlob: null, recordingBlobUrl: null, overrideExpanded: true });
+        this.setState({ recorder, isRecording: true, raw_local_stream, timeInterval, recordingBlob: null, recordingBlobUrl: null, overrideExpanded: true, recordingType });
         
     }
 
@@ -134,7 +163,7 @@ class SendMessage extends React.Component {
                     duration: "00:00", 
                     recordingBlob, 
                     recordingBlobUrl ,
-                    loadingRecording: false
+                    loadingRecording: false,
                 })
 
             })
@@ -142,8 +171,7 @@ class SendMessage extends React.Component {
     }
 
     clearRecording() {
-        const { expanded } = this.props;
-        this.setState({ recordingBlob: null, recordingBlobUrl: null, showDeleteConfirm: false, overrideExpanded: expanded })
+        this.setState({ recordingBlob: null, recordingBlobUrl: null, showDeleteConfirm: false, recordingType: null })
     }
 
     sendRecording(isPublic = false) {
@@ -176,10 +204,6 @@ class SendMessage extends React.Component {
 
         messageCreatedStateChange();
 
-        if (this.props.expanded == false) {
-            this.setState({ overrideExpanded: false });
-        }
-
         return createMessage(formData);
     }
 
@@ -205,8 +229,55 @@ class SendMessage extends React.Component {
         this.setState({ duration });
     
     }
+
+    async getAvailableScreensToShare() {
+
+        var screenSources = [];
+
+        const sources = await desktopCapturer.getSources({
+            types: ['window', 'screen'],
+            thumbnailSize: { width: 1000, height: 1000 },
+            fetchWindowIcons: true
+        });
+
+        sources.forEach(source => {
+            if (!source.name.includes("Blab")) {
+                var icon = null;
+                if (source.appIcon != null) {
+                    icon = source.appIcon.toDataURL();
+                }
+
+                if (source.name != null && source.name.length > 50) {
+                    source.name = source.name.slice(0, 49);
+                    source.name = source.name.trim() + "...";
+                }
+
+                var newSource = {
+                    icon,
+                    display_id: source.display_id,
+                    id: source.id,
+                    name: source.name,
+                    thumbnail: source.thumbnail.toDataURL()
+                }
+                screenSources.push(newSource);
+            }
+        })
+
+        this.setState({ screenSources, screenSourcesLoading: false })
+    }
+
     
     renderStream(source) {
+        const { recordingType } = this.state;
+
+        if (recordingType == "video") {
+            return (
+                video => {
+                    if (video != null) { video.src = source }
+                }
+            )
+        }
+
         return(
             audio => {
                 if (audio != null) { audio.src = source }
@@ -215,8 +286,18 @@ class SendMessage extends React.Component {
     }
 
     render() {
-        const { messageCreating, recipients, recipientName, expanded, isPublic } = this.props;
-        const { isRecording, recordingBlob, recordingBlobUrl, duration, loadingRecording, showDeleteConfirm, overrideExpanded } = this.state;
+        const { messageCreating, recipients, recipientName, isPublic } = this.props;
+        const { 
+            isRecording, 
+            recordingBlob, 
+            recordingBlobUrl, 
+            duration, 
+            loadingRecording, 
+            showDeleteConfirm, 
+            overrideExpanded, 
+            recordingType,
+            showScreenSharingModal 
+        } = this.state;
 
         if (messageCreating || loadingRecording) {
             return(
@@ -231,28 +312,22 @@ class SendMessage extends React.Component {
             )
         }
 
-        if (expanded == false && overrideExpanded == false) {
-            return (
-                <Card style={{height: 85,backgroundColor:"#1b1e2f",borderRadius:0}}>
-                    <Row className="mt-3 mb-4">
-                        <Col xs={{span:12}} className="text-center">
-                            <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"1.5rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className="mx-auto" onClick={() => !isRecording ? this.startRecording() : this.stopRecording()}>
-                                <FontAwesomeIcon icon={isRecording ? faMicrophoneSlash : faMicrophone} />
-                            </Button>
-                        </Col>
-                    </Row>
-                </Card>
-            )
-        }
-
         return (
-            <Card style={{height: 190,backgroundColor:"#1b1e2f",borderRadius:0}}>
-                <Row className="mt-3 mb-4">
+            <Card style={{height: isRecording ? 190 : 85,backgroundColor:"#1b1e2f",borderRadius:0}}>
+                <Row className="mb-4">
                     <Col xs={{span:12}} className="text-center">
                         {recordingBlobUrl == null && (
-                            <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"1.5rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className="mx-auto mt-3" onClick={() => !isRecording ? this.startRecording() : this.stopRecording()}>
-                                <FontAwesomeIcon icon={isRecording ? faMicrophoneSlash : faMicrophone} />
-                            </Button>
+                            <div className="mx-auto">
+                                <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"1.5rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className="mx-2 mt-3" onClick={() => !isRecording ? this.startRecording("video") : this.stopRecording()}>
+                                    <FontAwesomeIcon icon={isRecording ? faVideoSlash : faVideo} />
+                                </Button>
+                                <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"1.5rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className="mx-2 mt-3" onClick={() => !isRecording ? this.startRecording("screen") : this.stopRecording()}>
+                                    <FontAwesomeIcon icon={faDesktop} />
+                                </Button>
+                                <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"1.5rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className="mx-2 mt-3" onClick={() => !isRecording ? this.startRecording("audio") : this.stopRecording()}>
+                                    <FontAwesomeIcon icon={isRecording ? faMicrophoneSlash : faMicrophone} />
+                                </Button>
+                            </div>
                         )}
                         {recordingBlobUrl != null && !showDeleteConfirm && (
                             <div className="mx-auto">
@@ -312,14 +387,14 @@ class SendMessage extends React.Component {
                         {!showDeleteConfirm && (
                             <Row className="mt-3 text-light">
                                 <Col xs={{span:12}}>
-                                    {!isRecording && !recordingBlobUrl && (
-                                        <p className="text-light mb-0" style={{fontWeight:700,fontSize:"1.2rem"}}>Click the microphone to start recording your Blab.</p>
-                                    )}
                                     {isRecording && (
                                         <p style={{fontWeight:700,fontSize:"1.2em"}}><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#f9426c",fontSize:".5rem",verticalAlign:'middle'}} /> Recording Blab<br/> {duration} / 5:00</p>  
                                     )}
-                                    {recordingBlobUrl && (
+                                    {recordingBlobUrl && recordingType == "audio" && (
                                         <audio controls controlsList="nodownload" ref={this.renderStream(recordingBlobUrl)} />
+                                    )}
+                                    {recordingBlobUrl && recordingType == "video" && (
+                                        <video controls controlsList="nodownload" ref={this.renderStream(recordingBlobUrl)} />
                                     )}
                                 </Col>
                             </Row>

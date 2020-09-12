@@ -30,15 +30,20 @@ class Message extends React.Component {
     componentDidMount() {
     }
 
-    componentDidUpdate() {
-        const { message } = this.props;
+    componentDidUpdate(prevProps) {
+        const { message, lastCopiedMessageId } = this.props;
+        const { copied } = this.state;
+
+        if (prevProps.lastCopiedMessageId != lastCopiedMessageId && lastCopiedMessageId != message.id && copied) {
+            this.setState({ copied: false });
+        }
     }
 
     componentWillUnmount() {
     }
 
     render() {
-        const { message, renderHeading } = this.props;
+        const { message, renderHeading, handleCopyToClipbard } = this.props;
         const { formattedDate, copied } = this.state;
 
         return (
@@ -74,7 +79,10 @@ class Message extends React.Component {
                     {message.is_public == true && typeof message.public_url != "undefined" && (
                         <CopyToClipboard 
                             text={message.public_url}
-                            onCopy={() => this.setState({copied: true})}
+                            onCopy={() => { 
+                                this.setState({copied: true}); 
+                                handleCopyToClipbard(message.id) 
+                            }}
                         >
                             <Button variant="link" style={{marginLeft:60,fontSize:".8rem",color:copied ? "rgb(62, 207, 142)" : "#6772ef"}}>
                                 <FontAwesomeIcon icon={copied ? faClipboardCheck : faClipboard} /> {copied ? 'Link Copied to Clipboard' : 'Copy Shareable Link to Clipboard'}

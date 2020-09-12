@@ -128,7 +128,6 @@ class NewMessage extends React.Component {
                     <SendMessage 
                         settings={settings} 
                         user={user} 
-                        expanded={true}
                         isPublic={false}
                         recipients={suggestionValue} 
                         recipientName={suggestionDisplayValue}

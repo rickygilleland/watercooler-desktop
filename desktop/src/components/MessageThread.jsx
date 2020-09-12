@@ -17,7 +17,8 @@ class MessageThread extends React.Component {
         this.state = {
             thread: {},
             recipients: [],
-            recipientName: null
+            recipientName: null,
+            lastCopiedMessageId: null
         };
 
         this.initializeThread = this.initializeThread.bind(this);
@@ -105,8 +106,8 @@ class MessageThread extends React.Component {
     }
 
     render() {
-        const { threadLoading, settings, user, createMessage, messages, organization, messageCreating, messageCreatedStateChange } = this.props;
-        const { thread, recipients, recipientName } = this.state;
+        const { threadLoading, settings, user, createMessage, messages, organization, messageCreating, messageLoading, messageCreatedStateChange } = this.props;
+        const { thread, recipients, recipientName, lastCopiedMessageId } = this.state;
 
         var messageKeys = [];
         if (typeof messages[thread.id] != "undefined") {
@@ -119,7 +120,17 @@ class MessageThread extends React.Component {
                     <Col xs={{span:4}}>
                         <div className="d-flex flex-row justify-content-start">
                             <div className="align-self-center">
-                                <p style={{fontWeight:"bolder",fontSize:"1.65rem"}} className="pb-0 mb-0">{thread.name}</p>
+                                <p style={{fontWeight:"bolder",fontSize:"1.65rem"}} className="pb-0 mb-0">
+                                    {thread.name == null && thread.type == "public" && (
+                                        "Public Blabs"
+                                    )}
+                                    {thread.name != null && (
+                                        thread.name
+                                    )}
+                                    {messageLoading && (
+                                        <FontAwesomeIcon icon={faCircleNotch} style={{color:"#6772ef",marginLeft:10,marginTop:-2,verticalAlign:'middle',fontSize:".8rem"}} spin />
+                                    )}
+                                </p>
                             </div>
                             <div style={{height:80}}></div>
                         </div>
@@ -127,7 +138,7 @@ class MessageThread extends React.Component {
                     <Col xs={{span:4,offset:4}}>
                     </Col>
                 </Row>
-                {threadLoading && messageKeys.length == 0 && (
+                {(threadLoading || messageLoading) && messageKeys.length == 0 && (
                     <div style={{marginTop: "4rem"}}>
                         <Row className="mt-3 mb-4">
                             <Col xs={{span:12}} className="text-center">
@@ -164,6 +175,8 @@ class MessageThread extends React.Component {
                                     <Message
                                         message={message}
                                         renderHeading={renderHeading ? true : renderDateHeading}
+                                        handleCopyToClipbard={(id) => this.setState({ lastCopiedMessageId: id })}
+                                        lastCopiedMessageId={lastCopiedMessageId}
                                     />
                                 </div>
                             )
@@ -172,14 +185,13 @@ class MessageThread extends React.Component {
                     {messageCreating && (
                         <p className="mx-auto text-center" style={{fontWeight:700}}>Sending Blab... <FontAwesomeIcon icon={faCircleNotch} style={{color:"#6772ef"}} spin /></p>
                     )}
-                    {!threadLoading && messageKeys.length == 0 && (
+                    {!threadLoading && !messageLoading && messageKeys.length == 0 && (
                         <p className="text-center mx-auto" style={{fontSize:"1.5rem",fontWeight:700,marginTop:"4rem"}}>You don't have any message history with this person yet.</p>
                     )}
                 </Container>
                 <SendMessage 
                     settings={settings} 
                     user={user} 
-                    expanded={false}
                     isPublic={thread.type == "public"}
                     recipients={recipients} 
                     recipientName={recipientName}
@@ -187,7 +199,6 @@ class MessageThread extends React.Component {
                     organization={organization} 
                     messageCreating={false}
                     messageCreatedStateChange={() => this.setState({ messageCreated: true })}
-                    messageOpened={() => this.scrollToBottom()}
                 />
             </div>
         )
