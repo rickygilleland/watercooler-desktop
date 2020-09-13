@@ -71,7 +71,7 @@ class Message extends React.Component {
                         autoplay={false}
                         controls={true}
                         source={message.attachment_url}
-                        mediaType="audio/wav"
+                        mediaType={message.attachment_mime_type}
                         id={`video_player_${message.id}`}
                     />
                 </Row>
