@@ -452,6 +452,15 @@ class Sidebar extends React.Component {
             }
         })
 
+        Object.keys(privateThreads).forEach(threadId => {
+            if (privateThreads[threadId].name.length > 25) {
+                privateThreads[threadId].display_name = privateThreads[threadId].name.slice(0, 21);
+                privateThreads[threadId].display_name = privateThreads[threadId].display_name.trim() + "...";
+            } else {
+                privateThreads[threadId].display_name = privateThreads[threadId].name;
+            }
+        })
+
         let curTeam = teams[0];
         let rooms;
         let sidebarPrivateThreads;
@@ -552,7 +561,7 @@ class Sidebar extends React.Component {
                                                     }} 
                                                 /> 
                                             )}
-                                            {privateThreads[threadId].name}
+                                            {privateThreads[threadId].display_name}
                                         </p>
                                     </NavLink>
                                 </li>

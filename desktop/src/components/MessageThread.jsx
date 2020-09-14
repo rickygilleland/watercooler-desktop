@@ -148,7 +148,7 @@ class MessageThread extends React.Component {
             <div className="d-flex flex-column" style={{height: thread.type === "room" ? "100%" : process.env.REACT_APP_PLATFORM === "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'}}>
                 {thread.type != "room" && (
                     <Row className="pl-0 ml-0 border-bottom" style={{height:80}}>
-                        <Col xs={{span:4}}>
+                        <Col xs={{span:8}}>
                             <div className="d-flex flex-row justify-content-start">
                                 <div className="align-self-center">
                                     <p style={{fontWeight:"bolder",fontSize:"1.65rem"}} className="pb-0 mb-0">
@@ -166,7 +166,7 @@ class MessageThread extends React.Component {
                                 <div style={{height:80}}></div>
                             </div>
                         </Col>
-                        <Col xs={{span:4,offset:4}}>
+                        <Col xs={{span:4}}>
                         </Col>
                     </Row>
                 )}
