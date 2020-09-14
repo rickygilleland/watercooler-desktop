@@ -275,7 +275,9 @@ class Sidebar extends React.Component {
             this.setState({ organizationPresenceChannel: false, userPrivateNotificationChannel: false, pusherInstance: null });
         }
 
+        /*
         if (process.env.REACT_APP_PLATFORM != "web") {
+
             let backgroundBlurWindow = new BrowserWindow({ 
                 show: false,
                 webPreferences: {
@@ -301,7 +303,7 @@ class Sidebar extends React.Component {
             faceTrackingNetWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/face_tracking_net_background");
 
             this.setState({ backgroundBlurWindow, faceTrackingNetWindow });
-        }
+        }*/
 
         getUserThreads();
     }
