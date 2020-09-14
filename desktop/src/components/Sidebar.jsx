@@ -148,8 +148,6 @@ class Sidebar extends React.Component {
 
         }.bind(this), 300000);
 
-        //300000
-
         this.setState({ timeInterval, updateInterval });
 
         if (auth.isLoggedIn && organization != null && !organizationPresenceChannel) {

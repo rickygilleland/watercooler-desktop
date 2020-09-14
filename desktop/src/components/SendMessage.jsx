@@ -159,13 +159,6 @@ class SendMessage extends React.Component {
                     deviceId: settings.defaultDevices.audioInput
                 }
             }
-
-            if (recordingType == "video") {
-                streamOptions.video = {
-                    aspectRatio: 1.3333333333,
-                    deviceId: settings.defaultDevices.videoInput
-                }
-            }
         } else {
             streamOptions = {
                 video: {
