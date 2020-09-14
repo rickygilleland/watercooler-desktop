@@ -1,0 +1,15 @@
+<plist>
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>Wattercooler</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>blab</string>
+            </array>
+	    <key>NSUserNotificationAlertStyle</key>
+	    <string>alert</string>
+        </dict>
+    </array>
+</plist>
