@@ -3,7 +3,16 @@ import { Switch, Route, NavLink, Redirect } from 'react-router-dom';
 import routes from '../constants/routes.json';
 import { each, debounce } from 'lodash';
 import { DateTime } from 'luxon';
-import { Row, Col, Button, Navbar, Dropdown, Modal } from 'react-bootstrap';
+import { 
+    Row, 
+    Col, 
+    Button, 
+    Navbar, 
+    Dropdown, 
+    Modal, 
+    OverlayTrigger, 
+    Tooltip 
+} from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { 
     faCircleNotch, 
@@ -453,7 +462,14 @@ class Sidebar extends React.Component {
                             <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:800}}>Rooms</p>
                         </Col>
                         <Col xs={3}>
-                            <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} onClick={() => this.setState({ showRoomsModal: true })}><FontAwesomeIcon icon={faPlusSquare} /></Button>
+                            {billing.plan == "Free" && (
+                                <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Upgrade to create more rooms.</Tooltip>}>
+                                    <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} disable={true}><FontAwesomeIcon icon={faPlusSquare} /></Button>
+                                </OverlayTrigger> 
+                            )}
+                            {billing.plan != "Free" && (
+                                <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} onClick={() => this.setState({ showRoomsModal: true })}><FontAwesomeIcon icon={faPlusSquare} /></Button>
+                            )}
                         </Col>
                     </Row>
                     <div>
