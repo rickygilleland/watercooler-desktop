@@ -2333,11 +2333,11 @@ class Room extends React.Component {
                                                         </span>
                                                     </OverlayTrigger> 
                                                 :
-                                                    <Button variant={backgroundBlurEnabled ? "danger" : "success"} className="mx-1 ph-no-capture" disabled={videoStatus ? false : true} onClick={() => backgroundBlurEnabled ? this.stopBackgroundBlur() : this.startBackgroundBlur() } block><FontAwesomeIcon icon={backgroundBlurEnabled ? faTint : faTintSlash} /> {backgroundBlurEnabled ? 'Disable' : 'Enable' } Background Blur</Button>
+                                                    <Button variant={backgroundBlurEnabled ? "danger" : "success"} className="mx-1 ph-no-capture" disabled={true} onClick={() => backgroundBlurEnabled ? this.stopBackgroundBlur() : this.startBackgroundBlur() } block><FontAwesomeIcon icon={backgroundBlurEnabled ? faTint : faTintSlash} /> {backgroundBlurEnabled ? 'Disable' : 'Enable' } Background Blur</Button>
                                             }
                                             </Dropdown.Item>
                                             <Dropdown.Item className="no-hover-bg">
-                                                {settings.experimentalSettings.faceTracking ? <Button variant={videoIsFaceOnly ? "danger" : "success"} className="mx-1" disabled={videoStatus ? false : true} onClick={() => this.setState({ videoIsFaceOnly: videoIsFaceOnly ? false : true }) } block><FontAwesomeIcon icon={faSmile} /> {videoIsFaceOnly ? 'Disable' : 'Enable' } Face Tracking</Button> : ''}
+                                                {settings.experimentalSettings.faceTracking ? <Button variant={videoIsFaceOnly ? "danger" : "success"} className="mx-1" disabled={true} onClick={() => this.setState({ videoIsFaceOnly: videoIsFaceOnly ? false : true }) } block><FontAwesomeIcon icon={faSmile} /> {videoIsFaceOnly ? 'Disable' : 'Enable' } Face Tracking</Button> : ''}
                                             </Dropdown.Item>
                                         </Dropdown.Menu>
                                     </Dropdown>
