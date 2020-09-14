@@ -237,6 +237,7 @@ class SendMessage extends React.Component {
             recorderType: recordingType == "video" ? MediaStreamRecorder : StereoAudioRecorder,
             desiredSampRate: 16000,
             numberOfAudioChannels: 1,
+            disableLogs: true
         });
 
         recorder.startRecording();
@@ -332,7 +333,7 @@ class SendMessage extends React.Component {
     }
 
     sendRecording(isPublic = false) {
-        const { messageCreatedStateChange, createMessage, organization, recipients } = this.props;
+        const { messageCreatedStateChange, createMessage, organization, recipients, threadId } = this.props;
         const { recordingBlob, recordingType } = this.state;
 
         if (recordingType == "audio") {
@@ -348,11 +349,22 @@ class SendMessage extends React.Component {
         var formData = new FormData();
         formData.append('attachment', attachment);
 
-        let message = {
-            organization_id: organization.id,
-            is_public: isPublic,
-            recipient_ids: recipients,
-            attachment
+        var message;
+
+        if (typeof threadId != "undefined") {
+            message = {
+                organization_id: organization.id,
+                is_public: isPublic,
+                thread_id: threadId,
+                attachment
+            }
+        } else {
+            message = {
+                organization_id: organization.id,
+                is_public: isPublic,
+                recipient_ids: recipients,
+                attachment
+            }
         }
 
         for ( var key in message ) {
@@ -457,7 +469,7 @@ class SendMessage extends React.Component {
     }
 
     render() {
-        const { messageCreating, recipients, isPublic } = this.props;
+        const { messageCreating, recipients, isPublic, threadId } = this.props;
         const { 
             isRecording, 
             recordingBlob, 
@@ -575,29 +587,31 @@ class SendMessage extends React.Component {
                                         placement="top"
                                         overlay={
                                             <Tooltip id="tooltip-send-button">
-                                                {recipients.length == 0 
+                                                {recipients.length == 0 && typeof threadId == "undefined"
                                                     ? 'Select a recipient to send this Blab, or use the globe button to get a shareable link.' 
                                                     : `Send this Blab`}
                                             </Tooltip>
                                         }
                                         >
-                                        <Button variant="success" style={{color:"#fff",fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} disabled={recipients.length == 0} className="mx-2 mt-3" onClick={() => this.sendRecording()}>
+                                        <Button variant="success" style={{color:"#fff",fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} disabled={recipients.length == 0 && typeof threadId == "undefined"} className="mx-2 mt-3" onClick={() => this.sendRecording()}>
                                             <FontAwesomeIcon icon={faPaperPlane} />
                                         </Button>
                                     </OverlayTrigger>
                                 )}
-                                <OverlayTrigger
-                                    placement="top"
-                                    overlay={
-                                        <Tooltip id="tooltip-make-public-button">
-                                            Get a shareable public link for this Blab for sharing outside of the Blab app.
-                                        </Tooltip>
-                                    }
-                                    >
-                                    <Button variant="success" style={{color:"#fff",fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} className="mx-2 mt-3" onClick={() => this.sendRecording(true)}>
-                                        <FontAwesomeIcon icon={faGlobe} />
-                                    </Button>
-                                </OverlayTrigger>
+                                {typeof threadId == "undefined" && (
+                                    <OverlayTrigger
+                                        placement="top"
+                                        overlay={
+                                            <Tooltip id="tooltip-make-public-button">
+                                                Get a shareable public link for this Blab for sharing outside of the Blab app.
+                                            </Tooltip>
+                                        }
+                                        >
+                                            <Button variant="success" style={{color:"#fff",fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} className="mx-2 mt-3" onClick={() => this.sendRecording(true)}>
+                                                <FontAwesomeIcon icon={faGlobe} />
+                                            </Button>
+                                    </OverlayTrigger>
+                                )}
                             </div>
                         )}
                         {showDeleteConfirm && (

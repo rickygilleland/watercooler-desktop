@@ -5,7 +5,7 @@ import { isEqual } from 'lodash';
 import { DateTime } from 'luxon';
 import { Container, Image, Button, Card, CardColumns, Navbar, Row, Col, OverlayTrigger, Overlay, Popover, Tooltip } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleNotch } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faChevronCircleUp, faChevronCircleDown } from '@fortawesome/free-solid-svg-icons';
 import SendMessage from './SendMessage';
 import Message from './Message';
 import posthog from 'posthog-js';
@@ -30,7 +30,7 @@ class MessageThread extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        const { match, push, messageCreating } = this.props;
+        const { match, push, messageCreating, collapsed } = this.props;
         const { thread } = this.state;
 
         if (prevProps.match != match && match.params.threadSlug != thread.slug || Object.keys(thread).length === 0) {
@@ -42,11 +42,12 @@ class MessageThread extends React.Component {
             this.scrollToBottom();
         }*/
 
-        if (this.props.messages[thread.id].length != prevProps.messages[thread.id].length) {
+        if (typeof this.props.messages[thread.id] != "undefined" && typeof prevProps.messages[thread.id] != "undefined" 
+            && this.props.messages[thread.id].length != prevProps.messages[thread.id].length) {
             this.scrollToBottom();
         }
         
-        if (prevProps.messageCreating != messageCreating) {
+        if (prevProps.messageCreating != messageCreating || prevProps.collapsed != collapsed) {
             this.scrollToBottom();
         }
     }
@@ -117,7 +118,7 @@ class MessageThread extends React.Component {
     }
 
     scrollToBottom() {
-        if (typeof this.messagesContainer != "undefined") {
+        if (typeof this.messagesContainer != "undefined" && this.messagesContainer != null) {
             setTimeout(() => {
                 this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
             }, 50);
@@ -125,7 +126,7 @@ class MessageThread extends React.Component {
     }
 
     render() {
-        const { threadLoading, settings, user, createMessage, messages, organization, messageCreating, messageLoading, messageCreatedStateChange } = this.props;
+        const { threadLoading, settings, user, createMessage, messages, organization, messageCreating, messageLoading, messageCreatedStateChange, collapsed, toggleThreadCollapsed } = this.props;
         const { thread, recipients, recipientName, lastCopiedMessageId } = this.state;
 
         var messageKeys = [];
@@ -133,30 +134,49 @@ class MessageThread extends React.Component {
             messageKeys = Object.keys(messages[thread.id]);
         }
 
+        if (thread.type == "room" && !collapsed) {
+            return(
+                <center ref={(el) => { this.messagesContainer = el; }}>
+                    <Button variant="dark" className="mx-auto text-center" style={{marginTop:6}} onClick={toggleThreadCollapsed}>
+                        Show Chat <FontAwesomeIcon icon={collapsed ? faChevronCircleDown : faChevronCircleUp} className="ml-1" />
+                    </Button>
+                </center>
+            )
+        }
+
         return (
-            <div className="d-flex flex-column" style={{height: process.env.REACT_APP_PLATFORM === "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'}}>
-                <Row className="pl-0 ml-0 border-bottom" style={{height:80}}>
-                    <Col xs={{span:4}}>
-                        <div className="d-flex flex-row justify-content-start">
-                            <div className="align-self-center">
-                                <p style={{fontWeight:"bolder",fontSize:"1.65rem"}} className="pb-0 mb-0">
-                                    {thread.name == null && thread.type == "public" && (
-                                        "Public Blabs"
-                                    )}
-                                    {thread.name != null && (
-                                        thread.name
-                                    )}
-                                    {messageLoading && (
-                                        <FontAwesomeIcon icon={faCircleNotch} style={{color:"#6772ef",marginLeft:10,marginTop:-2,verticalAlign:'middle',fontSize:".8rem"}} spin />
-                                    )}
-                                </p>
+            <div className="d-flex flex-column" style={{height: thread.type === "room" ? "100%" : process.env.REACT_APP_PLATFORM === "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'}}>
+                {thread.type != "room" && (
+                    <Row className="pl-0 ml-0 border-bottom" style={{height:80}}>
+                        <Col xs={{span:4}}>
+                            <div className="d-flex flex-row justify-content-start">
+                                <div className="align-self-center">
+                                    <p style={{fontWeight:"bolder",fontSize:"1.65rem"}} className="pb-0 mb-0">
+                                        {thread.name == null && thread.type == "public" && (
+                                            "Public Blabs"
+                                        )}
+                                        {thread.name != null && (
+                                            thread.name
+                                        )}
+                                        {messageLoading && (
+                                            <FontAwesomeIcon icon={faCircleNotch} style={{color:"#6772ef",marginLeft:10,marginTop:-2,verticalAlign:'middle',fontSize:".8rem"}} spin />
+                                        )}
+                                    </p>
+                                </div>
+                                <div style={{height:80}}></div>
                             </div>
-                            <div style={{height:80}}></div>
-                        </div>
-                    </Col>
-                    <Col xs={{span:4,offset:4}}>
-                    </Col>
-                </Row>
+                        </Col>
+                        <Col xs={{span:4,offset:4}}>
+                        </Col>
+                    </Row>
+                )}
+                {thread.type == "room" && (
+                    <center>
+                        <Button variant="dark" className="mx-auto text-center" style={{marginTop:6}} onClick={toggleThreadCollapsed}>
+                            Hide Chat <FontAwesomeIcon icon={collapsed ? faChevronCircleDown : faChevronCircleUp} className="ml-1" />
+                        </Button>
+                    </center>
+                )}
                 {(threadLoading || messageLoading) && messageKeys.length == 0 && (
                     <div style={{marginTop: "4rem"}}>
                         <Row className="mt-3 mb-4">
@@ -206,7 +226,18 @@ class MessageThread extends React.Component {
                         <p className="mx-auto text-center" style={{fontWeight:700}}>Sending Blab... <FontAwesomeIcon icon={faCircleNotch} style={{color:"#6772ef"}} spin /></p>
                     )}
                     {!threadLoading && !messageLoading && messageKeys.length == 0 && (
-                        <p className="text-center mx-auto" style={{fontSize:"1.5rem",fontWeight:700,marginTop:"4rem"}}>You don't have any message history with this person yet.</p>
+                        <>
+                            {thread.type == "room" && (
+                                <p className="text-center mx-auto" style={{fontSize:"1.5rem",fontWeight:700,marginTop:"4rem"}}>
+                                    You don't have any message history in this room yet.
+                                </p>
+                            )}
+                            {thread.type != "room" && (
+                                <p className="text-center mx-auto" style={{fontSize:"1.5rem",fontWeight:700,marginTop:"4rem"}}>
+                                    You don't have any message history with this person yet.
+                                </p>
+                            )}
+                        </>
                     )}
                 </Container>
                 <SendMessage 
@@ -214,6 +245,7 @@ class MessageThread extends React.Component {
                     user={user} 
                     isPublic={thread.type == "public"}
                     recipients={recipients} 
+                    threadId={thread.id}
                     recipientName={recipientName}
                     createMessage={createMessage} 
                     organization={organization} 

@@ -33,6 +33,7 @@ import Pusher from 'pusher-js';
 import VideoList from './VideoList';
 import AddUserToRoomModal from './AddUserToRoomModal';
 import ScreenSharingModal from './ScreenSharingModal';
+import MessageThreadPage from '../containers/MessageThreadPage';
 import posthog from 'posthog-js';
 import hark from 'hark';
 import { setTensorTracker } from '@tensorflow/tfjs-core/dist/tensor';
@@ -90,11 +91,12 @@ class Room extends React.Component {
                 width: 0,
                 height: 0,
                 display: "row align-items-center justify-content-center h-100",
-                containerHeight: window.innerHeight - 114
+                containerHeight: (window.innerHeight - 114) / 2,
+                threadContainerHeight: (window.innerHeight - 114) / 2
             },
             dimensions: {
                 width: window.innerWidth,
-                height: window.innerHeight,
+                height: window.innerHeight / 2,
                 sidebarWidth: 280
             },
             pinned: false,
@@ -124,6 +126,7 @@ class Room extends React.Component {
                 "#00DBD7"
             ],
             showAddUserToRoomModal: false,
+            showChatThread: false
         }
 
         this.initializeRoom = this.initializeRoom.bind(this);
@@ -253,7 +256,8 @@ class Room extends React.Component {
             rootStreamerHandle, 
             videoIsFaceOnly, 
             videoStatus, 
-            backgroundBlurEnabled 
+            backgroundBlurEnabled,
+            showChatThread
         } = this.state;
 
         if (pusherInstance != null && initialized == false) {
@@ -296,6 +300,10 @@ class Room extends React.Component {
 
         if (prevState.dimensions != dimensions || prevState.publishers.length != publishers.length || prevProps.sidebarIsVisible != sidebarIsVisible) {
             this.updateDisplayedVideosSizes(null, true);
+        }
+
+        if (prevState.showChatThread != showChatThread) {
+            this.handleResize();
         }
 
         if ((prevState.publishers != publishers && publishers.length > 0) && publishing) {
@@ -1784,17 +1792,23 @@ class Room extends React.Component {
     }
 
     handleResize() {
-        const { dimensions, publishers } = this.state;
+        const { dimensions, publishers, showChatThread } = this.state;
 
         var newWidth = window.innerWidth;
         var newHeight = window.innerHeight;
+
+        if (showChatThread) {
+            newHeight = newHeight / 2;
+        } else {
+            newHeight = newHeight - 50;
+        }
 
         this.setState({ dimensions: { width: newWidth, height: newHeight, sidebarWidth: dimensions.sidebarWidth } });
 
     }
 
     updateDisplayedVideosSizes() {
-        var { dimensions, videoSizes, publishers} = this.state;
+        var { dimensions, videoSizes, publishers, showChatThread } = this.state;
         const { sidebarIsVisible } = this.props;
 
         if (remote_streams == null) {
@@ -1907,6 +1921,7 @@ class Room extends React.Component {
                 width: width,
                 display: display,
                 containerHeight: dimensions.height - 60,
+                threadContainerHeight: showChatThread ? dimensions.height : 50,
                 pinnedHeight,
                 pinnedWidth,
                 rows,
@@ -1922,7 +1937,8 @@ class Room extends React.Component {
                 width: 0,
                 height: 0,
                 display: "row align-items-center justify-content-center h-100",
-                containerHeight: window.innerHeight - 114
+                containerHeight: dimensions.height - 60,
+                threadContainerHeight: showChatThread ? dimensions.height : 50
             }
         });
         
@@ -2182,6 +2198,7 @@ class Room extends React.Component {
             showAddUserToRoomModal,
             backgroundBlurEnabled,
             showMoreSettingsDropdown,
+            showChatThread
         } = this.state;
 
         return (
@@ -2332,7 +2349,6 @@ class Room extends React.Component {
                     </Col>
                 </Row>
                 <Container className="ml-0 stage-container" fluid style={{height:videoSizes.containerHeight - 20}}>
-
                     {loading ? 
                         <div style={{overflowY:"scroll"}}>
                             <h1 className="text-center mt-5">Loading Room...</h1>
@@ -2365,6 +2381,16 @@ class Room extends React.Component {
                             <p className="text-center h3" style={{fontWeight:500}}>Free plans have a limit of 5 people in a room at a time.</p>
                         </React.Fragment>
                     }
+                </Container>
+                <Container className="px-0 border-top" style={{height:videoSizes.threadContainerHeight,backgroundColor: "rgb(27, 30, 47, .015)"}} fluid>
+                    {typeof room.thread != "undefined" && typeof room.thread.id != "undefined"  && (
+                        <MessageThreadPage 
+                            threadType="room"
+                            threadId={room.thread.id}
+                            toggleThreadCollapsed={() => this.setState({ showChatThread: this.state.showChatThread ? false : true })}
+                            collapsed={showChatThread}
+                        />
+                    )}
                 </Container>
             </React.Fragment>
         );
