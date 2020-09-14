@@ -457,7 +457,7 @@ class SendMessage extends React.Component {
     }
 
     render() {
-        const { messageCreating, recipients, recipientName, isPublic } = this.props;
+        const { messageCreating, recipients, isPublic } = this.props;
         const { 
             isRecording, 
             recordingBlob, 
@@ -577,7 +577,7 @@ class SendMessage extends React.Component {
                                             <Tooltip id="tooltip-send-button">
                                                 {recipients.length == 0 
                                                     ? 'Select a recipient to send this Blab, or use the globe button to get a shareable link.' 
-                                                    : `Send this Blab to ${recipientName}`}
+                                                    : `Send this Blab`}
                                             </Tooltip>
                                         }
                                         >

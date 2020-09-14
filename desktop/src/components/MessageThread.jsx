@@ -38,9 +38,13 @@ class MessageThread extends React.Component {
             this.scrollToBottom();
         }
 
-        if (isEqual(this.props.messages[thread.id], prevProps.messages[thread.id]) == false) {
+        /*if (isEqual(this.props.messages[thread.id], prevProps.messages[thread.id]) == false) {
             this.scrollToBottom();
-        }  
+        }*/
+
+        if (this.props.messages[thread.id].length != prevProps.messages[thread.id].length) {
+            this.scrollToBottom();
+        }
         
         if (prevProps.messageCreating != messageCreating) {
             this.scrollToBottom();

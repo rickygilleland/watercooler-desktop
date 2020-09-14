@@ -1,6 +1,10 @@
 import React from 'react';
 import SendMessage from './SendMessage';
-import { Image, Row } from 'react-bootstrap';
+import { Image, Row, Col, Button } from 'react-bootstrap';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import { 
+    faWindowClose
+} from '@fortawesome/free-solid-svg-icons';
 import Autosuggest from 'react-autosuggest';
 import posthog, { push } from 'posthog-js';
 
@@ -29,11 +33,11 @@ class NewMessage extends React.Component {
         let users = [];
 
         organizationUsers.forEach(user => {
-            users.push({
+            users[user.id] = {
                 id: user.id,
                 name: user.first_name + ' ' + user.last_name,
                 avatar_url: user.avatar_url,
-            });
+            }
         })
 
         this.setState({ users });
@@ -74,10 +78,15 @@ class NewMessage extends React.Component {
 
     handleSuggestionChange(event, { newValue }) {
         if (typeof newValue.id !== "undefined") {
-            return this.setState({ suggestionValue: [newValue.id], suggestionDisplayValue: newValue.name });
+            let updatedSuggestions =  [...this.state.suggestionValue];
+            updatedSuggestions.push(newValue.id);
+
+            console.log(updatedSuggestions);
+
+            return this.setState({ suggestionValue: updatedSuggestions, suggestionDisplayValue: '' });
         }
 
-        this.setState({ suggestionDisplayValue: newValue, suggestionValue: [] });
+        this.setState({ suggestionDisplayValue: newValue });
     }
 
     onSuggestionsFetchRequested({ value }) {
@@ -92,7 +101,7 @@ class NewMessage extends React.Component {
 
     render() {
         const { settings, user, createMessage, organization, messageCreating } = this.props;
-        const { suggestions, suggestionValue, suggestionDisplayValue } = this.state;
+        const { suggestions, suggestionValue, suggestionDisplayValue, users } = this.state;
 
         return (
             <div className="d-flex flex-column" style={{height: process.env.REACT_APP_PLATFORM === "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'}}>
@@ -124,13 +133,47 @@ class NewMessage extends React.Component {
                         suggestion: 'list-group-item',
                     }}
                 />
+                <div className="mt-4">
+                    {suggestionValue.length == 0 && (
+                        <p style={{fontWeight:700,fontSize:"1rem"}} className="pl-3">
+                            No teammates selected yet.<br />
+                            <small>Start recording if you want this to be a public Blab.</small>
+                        </p>
+                    )}
+                    {suggestionValue.map(selectedUser => {
+                        return(
+                            <Row className="border-bottom pb-3 pt-3 ml-2" key={selectedUser}>
+                                <div style={{width:75}}>
+                                    <Image src={users[selectedUser].avatar_url} fluid style={{height:50,borderRadius:15}} className="shadow" />
+                                </div>
+                                <div className="align-self-center">
+                                    <p style={{fontWeight:700,fontSize:"1.2rem"}}>{users[selectedUser].name}</p>
+                                </div>
+                                <div className="ml-auto mr-5">
+                                    <Button
+                                        variant="danger"
+                                        style={{color:"#fff",fontSize:"1rem",minWidth:"2.5rem",minHeight:"2.5rem"}} 
+                                        onClick={() => {
+                                            let updatedSuggestions = suggestionValue.filter(filtered => {
+                                                return filtered != selectedUser;
+                                            })
+
+                                            this.setState({ suggestionValue: updatedSuggestions })
+                                        }}
+                                    >
+                                        <FontAwesomeIcon icon={faWindowClose} />
+                                    </Button>
+                                </div>
+                            </Row>
+                        )
+                    })}
+                </div>
                 <div className="mt-auto">
                     <SendMessage 
                         settings={settings} 
                         user={user} 
                         isPublic={false}
                         recipients={suggestionValue} 
-                        recipientName={suggestionDisplayValue}
                         createMessage={createMessage} 
                         organization={organization} 
                         messageCreating={messageCreating}
