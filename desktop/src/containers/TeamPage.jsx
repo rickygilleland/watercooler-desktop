@@ -12,6 +12,7 @@ function mapStateToProps(state) {
         user: state.user,
         organization: state.organization.organization,
         organizationUsers: state.organization.users,
+        billing: state.organization.billing,
         organizationLoading: state.organization.loading,
         inviteUsersSuccess: state.organization.inviteUsersSuccess,
         teams: state.organization.teams,

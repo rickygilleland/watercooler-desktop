@@ -33,9 +33,6 @@ function SettingsModal(props) {
         </Modal.Header>
         <Modal.Body>
 
-            <Button variant="primary" className="mb-3" size="md" block onClick={() => handleShowModal("inviteUsers")}>
-                <FontAwesomeIcon icon={faUserPlus} /> Invite People {typeof organization.name != "undefined" ? `to ${organization.name}` : '' }
-            </Button>
             <Button variant="primary" className="my-3" size="md" block onClick={() => handleShowModal("cameraSettings")}>
                 <FontAwesomeIcon icon={faCamera} /> Camera Settings
             </Button>

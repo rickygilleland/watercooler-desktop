@@ -300,6 +300,11 @@ const createWindow = () => {
     }
   })
 
+  mainWindow.webContents.on('new-window', function(e, url) {
+    e.preventDefault();
+    require('electron').shell.openExternal(url);
+  });
+
   mainWindow.on('closed', () => {
     let allWindows = BrowserWindow.getAllWindows();
 

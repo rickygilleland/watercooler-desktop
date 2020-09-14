@@ -2277,9 +2277,9 @@ class Room extends React.Component {
                         {local_stream ?
                             <div className="d-flex flex-row flex-nowrap justify-content-end">
                                 <div className="align-self-center pr-4">
-                                    {billing.plan == "Free" || process.env.REACT_APP_PLATFORM == "web"
+                                    {billing.plan != "Plus" || process.env.REACT_APP_PLATFORM == "web"
                                         ?
-                                            <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">{process.env.REACT_APP_PLATFORM == "web" ? 'Screen sharing is only available in the Blab desktop app' : 'Screen sharing is unavailable on the free plan.' }</Tooltip>}>
+                                            <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">{process.env.REACT_APP_PLATFORM == "web" ? 'Screen sharing is only available in the Blab desktop app' : 'The Plus Plan is required for screen sharing.' }</Tooltip>}>
                                                 <span className="d-inline-block">
                                                     <Button variant="info" className="mx-1" style={{ pointerEvents: 'none' }} disabled><FontAwesomeIcon icon={faDesktop} /></Button>
                                                 </span>
@@ -2299,9 +2299,9 @@ class Room extends React.Component {
                                                 </Dropdown>
                                     }
                                     <Button variant={audioStatus ? "success" : "danger"} className="mx-1 ph-no-capture" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
-                                    {billing.plan == "Free"
+                                    {billing.plan != "Plus"
                                         ?
-                                            <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Video is unavailable on the free plan.</Tooltip>}>
+                                            <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">The Plus Plan is required for video.</Tooltip>}>
                                                 <span className="d-inline-block">
                                             
                                                 <Button variant={videoStatus ? "success" : "danger"} className="mx-1 ph-no-capture" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>

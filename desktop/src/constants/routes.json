@@ -13,6 +13,7 @@
       "ALL": "/messages",
       "PUBLIC_THREAD": "/thread/public",
       "THREAD": "/thread/:type/:threadSlug"
-    }
+    },
+    "UPGRADE": "/upgrade"
   }
   

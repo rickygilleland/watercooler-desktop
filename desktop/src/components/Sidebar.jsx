@@ -30,7 +30,8 @@ import {
     faChevronCircleLeft,
     faChevronCircleRight,
     faDesktop,
-    faGlobe
+    faGlobe,
+    faArrowUp
 } from '@fortawesome/free-solid-svg-icons';
 import { getOrganizationUsers } from '../actions/organization';
 import EnsureLoggedInContainer from '../containers/EnsureLoggedInContainer';
@@ -210,6 +211,10 @@ class Sidebar extends React.Component {
                     that.setState({ organizationUsersOnline: updatedOnlineUsers });
                 }
 
+                if (event == "billing.updated") {
+                    return getOrganizations();
+                }
+
             });
 
             if (userPrivateNotificationChannel === false) {
@@ -219,10 +224,6 @@ class Sidebar extends React.Component {
                 this.setState({ userPrivateNotificationChannel: user_channel });
 
                 user_channel.bind_global(function(event, data) {
-
-                    console.log("NEW notification", data);
-                    console.log("NEW notification event", event);
-
 
                     if (event == "room.created") {
                         return getOrganizations();
@@ -473,7 +474,7 @@ class Sidebar extends React.Component {
                         <Col xs={3}>
                             {billing.plan == "Free" && (
                                 <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Upgrade to create more rooms.</Tooltip>}>
-                                    <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} disable={true}><FontAwesomeIcon icon={faPlusSquare} /></Button>
+                                    <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} disabled={true}><FontAwesomeIcon icon={faPlusSquare} /></Button>
                                 </OverlayTrigger> 
                             )}
                             {billing.plan != "Free" && (
@@ -624,6 +625,8 @@ class Sidebar extends React.Component {
                                 handleSubmit={inviteUsers}
                                 loading={organizationLoading.toString()}
                                 inviteuserssuccess={inviteUsersSuccess}
+                                organizationusers={organizationUsers}
+                                billing={billing}
                                 onHide={() => this.setState({ showInviteUsersModal: false })}
                             />
                             <ManageUsersModal 
@@ -725,6 +728,17 @@ class Sidebar extends React.Component {
                                     <div className="sidebar-scroll" style={{minWidth: 200}}>
                                         <div>
                                             <ul className="nav flex-column mt-1">
+                                                {billing.plan == "Free" && (
+                                                    <li key="upgrade-account-nav-button" className="nav-item">
+                                                        <a
+                                                            className="d-block py-1"
+                                                            href="https://blab.to/billing"
+                                                            target="_blank"
+                                                        >
+                                                            <p className="text-light mb-0 pl-3 text-red"><FontAwesomeIcon icon={faArrowUp} style={{fontSize:".7rem",marginRight:".2rem"}} /> Upgrade Account</p>
+                                                        </a>
+                                                    </li>
+                                                )}
                                                 <li key="public-blabs-nav-button" className="nav-item">
                                                     <NavLink exact={true} 
                                                         activeStyle={{

@@ -30,7 +30,7 @@ class Team extends React.Component {
     }
 
     render() {
-        const { currentTime, user, organizationLoading, inviteUsers, inviteUsersSuccess, organizationUsersOnline } = this.props;
+        const { currentTime, user, organizationLoading, inviteUsers, inviteUsersSuccess, organizationUsersOnline, billing } = this.props;
         var { organizationUsers } = this.props;
         const { showInviteUsersModal } = this.state;
 
@@ -41,6 +41,8 @@ class Team extends React.Component {
                     handleSubmit={inviteUsers}
                     loading={organizationLoading.toString()}
                     inviteuserssuccess={inviteUsersSuccess}
+                    organizationusers={organizationUsers}
+                    billing={billing}
                     onHide={() => this.setState({ showInviteUsersModal: false })}
                 />
                 <Row className="pl-0 ml-0" style={{height:80}}>
@@ -55,7 +57,14 @@ class Team extends React.Component {
                     <Col xs={{span:4,offset:4}}>
                         <div className="d-flex flex-row justify-content-end">
                             <div className="align-self-center pr-4">
-                                <Button variant="success" onClick={() => this.setState({ showInviteUsersModal: true })}><FontAwesomeIcon icon={faUserPlus} /> Invite</Button>
+                                {billing.plan == "Free" && organizationUsers.length > 4 && (
+                                    <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-team-disabled">Upgrade to invite more teammates.</Tooltip>}>
+                                        <Button style={{pointerEvents: 'none' }} variant="success" disabled={billing.plan == "Free" && organizationUsers.length > 4}><FontAwesomeIcon icon={faUserPlus} /> Invite</Button>
+                                    </OverlayTrigger> 
+                                )}
+                                {billing.plan != "Free" || organizationUsers.length < 5 && (
+                                    <Button variant="success" onClick={() => this.setState({ showInviteUsersModal: true })}><FontAwesomeIcon icon={faUserPlus} /> Invite</Button>
+                                )}
                             </div>
                             <div style={{height:80}}></div>
                         </div>
