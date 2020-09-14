@@ -15,6 +15,7 @@ function mapStateToProps(state) {
         publicThreads: state.thread.publicThreads,
         privateThreads: state.thread.privateThreads,
         sharedThreads: state.thread.sharedThreads,
+        roomThreads: state.thread.roomThreads,
         messages: state.message.messages,
         threadLoading: state.thread.loading,
         messageLoading: state.message.loading,

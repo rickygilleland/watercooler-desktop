@@ -146,7 +146,9 @@ class Sidebar extends React.Component {
 
             getOrganizations();
 
-        }.bind(this), 600000);
+        }.bind(this), 300000);
+
+        //300000
 
         this.setState({ timeInterval, updateInterval });
 

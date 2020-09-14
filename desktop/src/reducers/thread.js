@@ -12,6 +12,7 @@ const initialState = {
     privateThreads: {},
     publicThreads: {},
     sharedThreads: {},
+    roomThreads: {},
     loading: false,
     error: false
 }
@@ -44,6 +45,11 @@ export default function thread(state = initialState, action = {}) {
                 updatedThreads = {...state.sharedThreads};
             }
 
+            if (action.payload.data.type == "room") {
+                keyToUpdate = "roomThreads";
+                updatedThreads = {...state.roomThreads};
+            }
+
             if (keyToUpdate == null) {
                 return state;
             }
@@ -72,9 +78,14 @@ export default function thread(state = initialState, action = {}) {
         case GET_USER_THREADS_SUCCESS:
             var updatedPrivateThreads = {...state.privateThreads};
             var updatedPublicThreads = {...state.publicThreads};
+            var updatedRoomThreads = {...state.roomThreads};
 
             action.payload.data.private_threads.forEach(thread => {
                 updatedPrivateThreads[thread.id] = thread;
+            })
+
+            action.payload.data.room_threads.forEach(thread => {
+                updatedRoomThreads[thread.id] = thread;
             })
 
             action.payload.data.public_threads.forEach(thread => {
@@ -84,6 +95,7 @@ export default function thread(state = initialState, action = {}) {
             updatedState = {
                 privateThreads: updatedPrivateThreads,
                 publicThreads: updatedPublicThreads,
+                roomThreads: updatedRoomThreads,
                 loading: false,
                 error: false,
             }

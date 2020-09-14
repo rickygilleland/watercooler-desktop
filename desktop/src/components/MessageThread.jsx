@@ -52,33 +52,48 @@ class MessageThread extends React.Component {
     }
 
     initializeThread() {
-        const { match, push, publicThreads, privateThreads, sharedThreads, getMessagesByThreadId } = this.props;
+        const { 
+            match, 
+            push, 
+            publicThreads, 
+            privateThreads, 
+            sharedThreads, 
+            roomThreads, 
+            getMessagesByThreadId, 
+            threadType, 
+            threadId 
+        } = this.props;
 
         var curThread = null;
-        var threadsToCheck;
 
-        if (match.path == "/thread/public") {
-            curThread = publicThreads[Object.keys(publicThreads)[0]];
-        }
+        if (typeof threadType != "undefined" && threadType == "room") {
+            curThread = roomThreads[threadId];
+        } else {
+            var threadsToCheck;
 
-        if (curThread == null) {
-            if (match.params.type == "private") {
-                threadsToCheck = privateThreads;
+            if (match.path == "/thread/public") {
+                curThread = publicThreads[Object.keys(publicThreads)[0]];
             }
-    
-            if (match.params.type == "public") {
-                threadsToCheck = publicThreads;
-            }
-    
-            if (match.params.type == "shared") {
-                threadsToCheck = sharedThreads;
-            }
-    
-            Object.keys(threadsToCheck).forEach(threadId => {
-                if (threadsToCheck[threadId].slug == match.params.threadSlug) {
-                    curThread = threadsToCheck[threadId];
+
+            if (curThread == null) {
+                if (match.params.type == "private") {
+                    threadsToCheck = privateThreads;
                 }
-            })
+        
+                if (match.params.type == "public") {
+                    threadsToCheck = publicThreads;
+                }
+        
+                if (match.params.type == "shared") {
+                    threadsToCheck = sharedThreads;
+                }
+        
+                Object.keys(threadsToCheck).forEach(threadId => {
+                    if (threadsToCheck[threadId].slug == match.params.threadSlug) {
+                        curThread = threadsToCheck[threadId];
+                    }
+                })
+            }
         }
 
         if (curThread != null) {
