@@ -43,6 +43,7 @@ class MessageThread extends React.Component {
         }*/
 
         if (typeof this.props.messages[thread.id] != "undefined" && typeof prevProps.messages[thread.id] != "undefined" 
+            && this.props.messages[thread.id] != null && prevProps.messages[thread.id]
             && this.props.messages[thread.id].length != prevProps.messages[thread.id].length) {
             this.scrollToBottom();
         }
@@ -120,7 +121,9 @@ class MessageThread extends React.Component {
     scrollToBottom() {
         if (typeof this.messagesContainer != "undefined" && this.messagesContainer != null) {
             setTimeout(() => {
-                this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+                if (typeof this.messagesContainer != "undefined" && this.messagesContainer != null) {
+                    this.messagesContainer.scrollTop = this.messagesContainer.scrollHeight;
+                }
             }, 50);
         }
     }
@@ -130,7 +133,7 @@ class MessageThread extends React.Component {
         const { thread, recipients, recipientName, lastCopiedMessageId } = this.state;
 
         var messageKeys = [];
-        if (typeof messages[thread.id] != "undefined") {
+        if (typeof messages[thread.id] !== "undefined" && messages[thread.id] !== null) {
             messageKeys = Object.keys(messages[thread.id]);
         }
 
