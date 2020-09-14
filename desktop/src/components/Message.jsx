@@ -9,11 +9,11 @@ import {
     Col, 
 } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faClipboard, faClipboardCheck } from '@fortawesome/free-solid-svg-icons';
+import { faClipboard, faClipboardCheck, faCircleNotch } from '@fortawesome/free-solid-svg-icons';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import MessageMediaPlayer from './MessageMediaPlayer';
 
-class Message extends React.Component {
+class Message extends React.PureComponent {
 
     constructor(props) {
         super(props);
@@ -67,13 +67,21 @@ class Message extends React.Component {
                     {!renderHeading && (
                         <p className="align-self-center mb-0 mr-2" style={{fontSize:".7rem",width:50}}>{formattedDate}</p>
                     )}
-                    <MessageMediaPlayer
-                        autoplay={false}
-                        controls={true}
-                        source={message.attachment_url}
-                        mediaType={message.attachment_mime_type}
-                        id={`video_player_${message.id}`}
-                    />
+                    {message.attachment_processed == true && (
+                        <div style={{height:message.attachment_mime_type == "video/mp4" ? 350 : undefined,width:message.attachment_mime_type == "video/mp4" ? 466 : undefined}}>
+                            <MessageMediaPlayer
+                                autoplay={false}
+                                controls={true}
+                                source={message.attachment_temporary_url}
+                                mediaType={message.attachment_mime_type}
+                                thumbnail={message.attachment_thumbnail_url}
+                                id={`video_player_${message.id}`}
+                            />
+                        </div>
+                    )}
+                    {message.attachment_processed == false && (
+                        <p style={{paddingTop:15,fontWeight:700}}>Video Processing <FontAwesomeIcon icon={faCircleNotch} style={{color:"#6772ef"}} spin /><br /><small>The video will appear here automatically shortly...</small></p>
+                    )}
                 </Row>
                 <Row className="mb-4">
                     {message.is_public == true && typeof message.public_url != "undefined" && (
@@ -92,21 +100,6 @@ class Message extends React.Component {
                 </Row>
             </>
         )
-
-        /*
-        return (
-            <div className="d-flex flex-row justify-content-start"></div>
-            <Row key={key}>              
-                <Col xs={2} className="pr-0">
-                    <Image src={message.user.avatar_url} fluid style={{height:60}} />
-                    <p style={{fontSize:"1.2rem",fontWeight:600}}>{message.user.first_name} {message.user.last_name}</p>
-                </Col>
-                <Col xs={10} className="pl-0">
-                    <p style={{fontSize:"1.2rem",fontWeight:600}}>{message.user.first_name} {message.user.last_name}</p>
-                    <audio controls src={message.attachment_url} />
-                </Col>
-            </Row>
-        )*/
     }
 
 }

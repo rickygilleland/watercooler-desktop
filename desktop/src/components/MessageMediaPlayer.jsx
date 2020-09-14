@@ -12,9 +12,9 @@ export default class MessageMediaPlayer extends React.Component {
 
   componentWillUnmount() {
   }
-
+  
   render() {
-    const { autoplay, controls, source, mediaType, muted } = this.props;
+    const { autoplay, controls, source, mediaType, muted, thumbnail } = this.props;
 
     return (
       <div> 
@@ -25,15 +25,17 @@ export default class MessageMediaPlayer extends React.Component {
             muted={muted}
             config={{
                 file: {
-                    forceVideo: mediaType == "video/webm",
+                    forceVideo: mediaType == "video/mp4",
                     forceAudio: mediaType == "audio/wav",
                     attributes: {
                         controlsList: 'nodownload'
                     }
                 }
             }}
-            height={mediaType == "video/webm" ? "100%" : 45}
-            width={mediaType == "video/webm" ? "100%" : undefined}
+            height={mediaType == "video/mp4" ? "100%" : 45}
+            width={mediaType == "video/mp4" ? "100%" : 450}
+            poster={mediaType == "video/mp4" ? thumbnail : undefined}
+            className="mx-auto"
         />
       </div>
     )
@@ -41,9 +43,3 @@ export default class MessageMediaPlayer extends React.Component {
   }
 
 }
-/*
-autoplay={false}
-controls={true}
-source={message.attachment_url}
-mediaType="audio/wav"
-id={`video_player_${message.id}`}*/

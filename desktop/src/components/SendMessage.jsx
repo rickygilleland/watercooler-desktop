@@ -15,7 +15,8 @@ import {
     faGlobe, 
     faVideo, 
     faVideoSlash,
-    faDesktop 
+    faDesktop,
+    faWindowClose
 } from '@fortawesome/free-solid-svg-icons';
 import ScreenSharingModal from './ScreenSharingModal';
 import MessageMediaPlayer from './MessageMediaPlayer';
@@ -201,10 +202,10 @@ class SendMessage extends React.Component {
     }
 
     async startRecording(recordingType) {
-        const { raw_local_stream } = this.state;
         const { settings, user } = this.props;
 
-        let streamOptions;
+        var streamOptions;
+        var raw_local_stream = null;
 
         if (recordingType == "audio") {
             if (settings.defaultDevices != null && Object.keys(settings.defaultDevices).length !== 0) {
@@ -221,14 +222,18 @@ class SendMessage extends React.Component {
                 }
             }
     
-            const raw_local_stream = await navigator.mediaDevices.getUserMedia(streamOptions); 
+            raw_local_stream = await navigator.mediaDevices.getUserMedia(streamOptions); 
 
             this.setState({ raw_local_stream });
         }
+
+        if (raw_local_stream == null) {
+            raw_local_stream = this.state.raw_local_stream;
+        }
        
-        let recorder = RecordRTC(raw_local_stream, {
+        let recorder = RecordRTC(this.state.raw_local_stream, {
             type: recordingType == "video" ? 'video' : 'audio',
-            mimeType: recordingType == "video" ? 'video/webm' : 'audio/wav',
+            mimeType: recordingType == "video" ? 'video/webm;codecs=vp8' : 'audio/wav',
             recorderType: recordingType == "video" ? MediaStreamRecorder : StereoAudioRecorder,
             desiredSampRate: 16000,
             numberOfAudioChannels: 1,
@@ -488,28 +493,40 @@ class SendMessage extends React.Component {
                         <Col xs={{span:12}} className="text-center">
                             <div className="mx-auto" style={{height:350,width:466}}>
                                 {videoPreviewLoading && (
-                                    <FontAwesomeIcon icon={faCircleNotch} className="mt-5 mx-auto" style={{fontSize:"3rem",color:"#6772ef"}} spin />
+                                    <>
+                                        <p className="text-light text-center" style={{fontSize:"1.2rem",fontWeight:700}}>Loading camera preview...</p>
+                                        <FontAwesomeIcon icon={faCircleNotch} className="mx-auto" style={{fontSize:"3rem",color:"#6772ef"}} spin />
+                                    </>
                                 )}
                                 {videoPreviewLoading == false && (
                                     <MessageMediaPlayer
                                         autoplay={true}
                                         controls={false}
                                         source={raw_local_stream}
-                                        mediaType="video/webm"
+                                        mediaType="video/mp4"
                                         muted={true}
                                     />
                                 )}
                             </div>
                             <div className="mx-auto">
+                                {isRecording == false && (
+                                    <Button
+                                        variant="danger"
+                                        className="mx-2 mt-3"
+                                        style={{color:"#fff",fontSize:"1.3rem",minWidth:"3.2rem",minHeight:"3.2rem"}} 
+                                        onClick={() => this.setState({ showVideoPreview: false })}
+                                    >
+                                        <FontAwesomeIcon icon={faWindowClose} />
+                                    </Button>
+                                )}
                                 <Button 
                                     variant={isRecording ? "danger" : "success"} 
-                                    style={{color:"#fff",fontSize:"1rem",minWidth:"3.2rem",minHeight:"3.2rem"}} 
+                                    style={{color:"#fff",fontSize:"1.3rem",minWidth:"3.2rem",minHeight:"3.2rem"}} 
                                     className="mx-2 mt-3" 
                                     onClick={() => !isRecording ? this.startRecording("video") : this.stopRecording()}
                                     disabled={videoPreviewLoading}
                                 >
                                     <FontAwesomeIcon icon={isRecording ? faVideoSlash : faVideo} />
-                                    {isRecording ? ' Stop Recording' :  ' Start Recording'}
                                 </Button>
                             </div>
                         </Col>
@@ -526,15 +543,15 @@ class SendMessage extends React.Component {
                             <div className="mx-auto">
                                 {!isRecording && (
                                     <>
-                                        <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"1.5rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className="mx-2 mt-3" onClick={() => this.setState({ showVideoPreview: true })}>
+                                        <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"1.3rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className="mx-2 mt-3" onClick={() => this.setState({ showVideoPreview: true })}>
                                             <FontAwesomeIcon icon={isRecording ? faVideoSlash : faVideo} />
                                         </Button>
-                                        <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"1.5rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className="mx-2 mt-3" onClick={() => !isRecording ? this.startRecording("screen") : this.stopRecording()}>
+                                        <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"1.3rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className="mx-2 mt-3" onClick={() => !isRecording ? this.startRecording("screen") : this.stopRecording()}>
                                             <FontAwesomeIcon icon={faDesktop} />
                                         </Button>
                                     </>
                                 )}
-                                <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"1.5rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className="mx-2 mt-3" onClick={() => !isRecording ? this.startRecording("audio") : this.stopRecording()}>
+                                <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"1.3rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className="mx-2 mt-3" onClick={() => !isRecording ? this.startRecording("audio") : this.stopRecording()}>
                                     <FontAwesomeIcon icon={isRecording ? faMicrophoneSlash : faMicrophone} />
                                 </Button>
                             </div>
@@ -586,10 +603,10 @@ class SendMessage extends React.Component {
                         {showDeleteConfirm && (
                             <div className="mx-auto">
                                 <p className="text-light mb-0" style={{fontWeight:700,fontSize:"1.2rem"}}>Are you sure you want to delete this Blab?<br /><small>This cannot be undone.</small></p>
-                                <Button variant="danger" style={{color:"#fff",fontSize:"1.5rem",minWidth:"3rem",minHeight:"3rem"}} className="mx-2 mt-3" onClick={() => this.clearRecording()}>
+                                <Button variant="danger" style={{color:"#fff",fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} className="mx-2 mt-3" onClick={() => this.clearRecording()}>
                                     <FontAwesomeIcon icon={faTrashAlt} />
                                 </Button>
-                                <Button variant="success" style={{color:"#fff",fontSize:"1.5rem",minWidth:"3rem",minHeight:"3rem"}} className="mx-2 mt-3" onClick={() => this.setState({ showDeleteConfirm: false })}>
+                                <Button variant="success" style={{color:"#fff",fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} className="mx-2 mt-3" onClick={() => this.setState({ showDeleteConfirm: false })}>
                                     <FontAwesomeIcon icon={faSave} />
                                 </Button>
                             </div>
@@ -606,7 +623,7 @@ class SendMessage extends React.Component {
                                                 autoplay={false}
                                                 controls={true}
                                                 source={recordingBlobUrl}
-                                                mediaType={recordingType == "video" ? "video/webm" : "audio/wav"}
+                                                mediaType={recordingType == "video" ? "video/mp4" : "audio/wav"}
                                                 muted={false}
                                             />
                                         </div>

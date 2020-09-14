@@ -229,7 +229,7 @@ class Sidebar extends React.Component {
                         that.setState({ showIncomingCallModal: true, incomingCall: data.room })
                     }*/
 
-                    if (event == "user.messages.created") {
+                    if (event == "user.messages.created" || event == "user.messages.updated") {
                         var activeThread = false;
                         if (data.thread.type == "private") {
                             Object.keys(that.props.privateThreads).map(threadId => {
@@ -245,12 +245,14 @@ class Sidebar extends React.Component {
 
                         addNewMessageFromNotification(data.message);
 
-                        const newMessageNotification = new Notification('New Blab', {
-                            body: `${data.message.user.first_name} sent you a voice message.`
-                        })
-
-                        newMessageNotification.onClick = () => {
-                            push(`/thread/${data.thread.type}/${data.thread.slug}`);
+                        if (event == "user.messages.created") {
+                            const newMessageNotification = new Notification('New Blab', {
+                                body: `${data.message.user.first_name} sent you a voice message.`
+                            })
+    
+                            newMessageNotification.onClick = () => {
+                                push(`/thread/${data.thread.type}/${data.thread.slug}`);
+                            }
                         }
                     }
 

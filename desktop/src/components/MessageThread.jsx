@@ -177,6 +177,7 @@ class MessageThread extends React.Component {
                                         renderHeading={renderHeading ? true : renderDateHeading}
                                         handleCopyToClipbard={(id) => this.setState({ lastCopiedMessageId: id })}
                                         lastCopiedMessageId={lastCopiedMessageId}
+                                        key={message.id}
                                     />
                                 </div>
                             )
