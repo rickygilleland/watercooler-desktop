@@ -87,9 +87,9 @@ function RoomsModal(props) {
                   <p className="text-muted" style={{fontSize:".8rem"}}>We recommend setting the channel to audio only unless you'll be using it for face to face meetings.</p>
                 </Col>
                 <Col className="text-right">
-                  {props.billing.plan == "Free"
+                  {props.billing.plan == "Standard"
                     ?
-                      <OverlayTrigger overlay={<Tooltip id="tooltip-view-members">Video rooms are unavailable on the free plan.</Tooltip>}>
+                      <OverlayTrigger overlay={<Tooltip id="tooltip-view-members">Video rooms are unavailable on the Standard Plan.</Tooltip>}>
                           <span className="d-inline-block">
                             <Form.Check 
                               type="switch"

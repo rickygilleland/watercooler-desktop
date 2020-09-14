@@ -5,6 +5,8 @@ import { push } from 'connected-react-router';
 import auth from './auth';
 import user from './user';
 import room from './room';
+import message from './message';
+import thread from './thread';
 import organization from './organization';
 import settings from './settings';
 
@@ -14,6 +16,8 @@ export default (history) => {
         auth,
         user,
         room,
+        message,
+        thread,
         organization,
         settings
     });

@@ -7,6 +7,13 @@
     "CALLBACK": "/callback/:type/:code",
     "LOADING": "/loading",
     "REDIRECT": "/redirect",
-    "TEAM": "/team"
+    "TEAM": "/team",
+    "MESSAGE": {
+      "NEW": "/messages/new",
+      "ALL": "/messages",
+      "PUBLIC_THREAD": "/thread/public",
+      "THREAD": "/thread/:type/:threadSlug"
+    },
+    "UPGRADE": "/upgrade"
   }
   

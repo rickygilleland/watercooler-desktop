@@ -1,8 +1,7 @@
 {
-  "name": "watercooler",
-  "productName": "Water Cooler",
+  "name": "blab",
+  "productName": "Blab",
   "version": "1.6.0",
-  "description": "Bring natural conversation back to remote teams",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
@@ -11,7 +10,7 @@
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\""
   },
-  "author": "watercooler",
+  "author": "blab",
   "keywords": [],
   "config": {
     "forge": "./forge.config.js"
@@ -75,14 +74,18 @@
     "posthog-js": "^1.2.1",
     "pusher-js": "^5.1.1",
     "react": "^16.13.1",
+    "react-autosuggest": "^10.0.2",
     "react-bootstrap": "^1.0.0",
+    "react-copy-to-clipboard": "^5.0.2",
     "react-device-detect": "^1.13.1",
     "react-dom": "^16.13.1",
     "react-hot-loader": "^4.12.20",
+    "react-player": "^2.6.1",
     "react-redux": "^7.2.0",
     "react-router": "^5.1.2",
     "react-router-dom": "^5.1.2",
     "react-select": "^3.1.0",
+    "recordrtc": "^5.6.1",
     "redux": "^4.0.5",
     "redux-persist": "^6.0.0",
     "redux-persist-electron-storage": "^2.1.0",

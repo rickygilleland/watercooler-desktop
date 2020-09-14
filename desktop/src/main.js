@@ -14,10 +14,10 @@ if (!isDevMode) {
 
   init({
     dsn: 'https://20e5d4f5d6d94630a28e5684a3048940@o281199.ingest.sentry.io/5176374',
-    release: 'watercooler-desktop@' + app.getVersion()
+    release: 'blab@' + app.getVersion()
   });
 
-  const server = 'https://updater.watercooler.work'
+  const server = 'https://updater.blab.to'
   const feed = `${server}/update/${process.platform}/${app.getVersion()}`
 
   autoUpdater.setFeedURL(feed);
@@ -35,7 +35,7 @@ if (!isDevMode) {
     if (Notification.isSupported()) {
       const updateNotification = new Notification({
         title: 'An Update is Available',
-        body: 'Click on this notification to restart Water Cooler and update now.',
+        body: 'Click on this notification to restart Blab and update now.',
         closeButtonText: 'Later'
       });
 
@@ -48,7 +48,7 @@ if (!isDevMode) {
       const dialogOpts = {
         type: 'info',
         buttons: ['Restart', 'Later'],
-        title: 'Update available for Water Cooler',
+        title: 'Update available for Blab',
         message: process.platform === 'win32' ? releaseNotes : releaseName,
         detail: 'A new version has been downloaded. Click the Restart button to apply the updates.'
       }
@@ -165,7 +165,7 @@ const createWindow = () => {
   ipcMain.handle('update-tray-icon', async (event, args) => {
     if (typeof args.enable != "undefined" && tray == null) {
       tray = new Tray(iconPath);
-      tray.setToolTip('Water Cooler');
+      tray.setToolTip('Blab');
     }
 
     if (typeof args.disable != "undefined" && tray != null) {
@@ -174,9 +174,9 @@ const createWindow = () => {
     }
 
     if (typeof args.screenSharingActive != "undefined") {
-      tray.setToolTip('Water Cooler');
+      tray.setToolTip('Blab');
       if (args.screenSharingActive) {
-        tray.setToolTip('Water Cooler is Sharing Your Screen');
+        tray.setToolTip('Blab is Sharing Your Screen');
       }
       if (args.videoEnabled) {
         trayMenu = Menu.buildFromTemplate([
@@ -300,6 +300,11 @@ const createWindow = () => {
     }
   })
 
+  mainWindow.webContents.on('new-window', function(e, url) {
+    e.preventDefault();
+    require('electron').shell.openExternal(url);
+  });
+
   mainWindow.on('closed', () => {
     let allWindows = BrowserWindow.getAllWindows();
 
@@ -369,7 +374,7 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
-app.setAsDefaultProtocolClient("watercooler");
+app.setAsDefaultProtocolClient("blab");
 
 app.on('open-url', (ev, url) => {
   ev.preventDefault();

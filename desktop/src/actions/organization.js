@@ -113,7 +113,7 @@ export function getOrganizations() {
         //check if we need to do some state stuff
 
         try {
-            axios.get("https://watercooler.work/api/organization", {
+            axios.get("https://blab.to/api/organization", {
                 headers: {
                     'Accept': 'application/json',
                     'Authorization': 'Bearer '+state.auth.authKey,
@@ -138,7 +138,7 @@ export function getOrganizationUsers(organization_id) {
         //check if we need to do some state stuff
 
         try {
-            axios.get(`https://watercooler.work/api/organization/${organization_id}/users`, {
+            axios.get(`https://blab.to/api/organization/${organization_id}/users`, {
                 headers: {
                     'Accept': 'application/json',
                     'Authorization': 'Bearer '+state.auth.authKey,
@@ -166,7 +166,7 @@ export function inviteUsers(emails) {
         try {
             axios({
                 method: 'post',
-                url: `https://watercooler.work/api/organization/${organization_id}/users/invite`,
+                url: `https://blab.to/api/organization/${organization_id}/users/invite`,
                 data: { emails: emails },
                 headers: {
                     'Accept': 'application/json',
@@ -193,7 +193,7 @@ export function createRoom(name, videoEnabled, isPrivate) {
         try {
             axios({
                 method: 'post',
-                url: `https://watercooler.work/api/room`,
+                url: `https://blab.to/api/room`,
                 data: { 
                     name: name,
                     video_enabled: videoEnabled,
@@ -226,7 +226,7 @@ export function createCall(participants) {
         try {
             axios({
                 method: 'post',
-                url: `https://watercooler.work/api/call`,
+                url: `https://blab.to/api/call`,
                 data: { 
                     organization_id: state.organization.organization.id,
                     team_id: state.organization.teams[0].id,

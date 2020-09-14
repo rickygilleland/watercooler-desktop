@@ -3,8 +3,8 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 import { push } from 'connected-react-router';
 import { withRouter } from 'react-router-dom';
-import { getOrganizationUsers, inviteUsers } from '../actions/organization';
-import Team from '../components/Team';
+import NewMessage from '../components/NewMessage';
+import { createMessage } from '../actions/message';
 
 function mapStateToProps(state) {
     return {
@@ -12,22 +12,21 @@ function mapStateToProps(state) {
         user: state.user,
         organization: state.organization.organization,
         organizationUsers: state.organization.users,
-        billing: state.organization.billing,
-        organizationLoading: state.organization.loading,
-        inviteUsersSuccess: state.organization.inviteUsersSuccess,
-        teams: state.organization.teams,
+        settings: state.settings,
+        messageCreating: state.message.creating,
+        lastCreatedMessage: state.message.lastCreatedMessage,
+        messageError: state.message.error,
     }
 }
 
 function mapDispatchToProps(dispatch) {
     return bindActionCreators(
       {
-        getOrganizationUsers,
-        inviteUsers,
+        createMessage,
         push
       },
       dispatch
     );
   }
 
-  export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Team))
+  export default withRouter(connect(mapStateToProps, mapDispatchToProps)(NewMessage))

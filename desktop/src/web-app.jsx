@@ -12,7 +12,7 @@ import MagicLoginPage from './containers/MagicLoginPage';
 import LoadingPage from './containers/LoadingPage';
 import posthog from 'posthog-js';
 
-posthog.init('64tUVTgJhFVIV7BADDLYHN-zG2Ja1yqzOI_SE8Pytc4', {api_host: 'https://analytics.watercooler.work'});
+posthog.init('64tUVTgJhFVIV7BADDLYHN-zG2Ja1yqzOI_SE8Pytc4', {api_host: 'https://analytics.blab.to'});
 
 export default class App extends React.Component {
   render() {

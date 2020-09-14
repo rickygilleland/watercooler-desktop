@@ -3,8 +3,8 @@ import routes from '../constants/routes.json';
 import { Link } from 'react-router-dom';
 import { DateTime } from 'luxon';
 import { Container, Image, Button, Card, CardColumns, Navbar, Row, Col, OverlayTrigger, Overlay, Popover, Tooltip } from 'react-bootstrap';
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
-import { faCircleNotch, faUserPlus, faCircle } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircleNotch, faUserPlus, faCircle, faEnvelope } from '@fortawesome/free-solid-svg-icons';
 import InviteUsersModal from './InviteUsersModal';
 
 import posthog from 'posthog-js';
@@ -30,7 +30,7 @@ class Team extends React.Component {
     }
 
     render() {
-        const { currentTime, user, organizationLoading, inviteUsers, inviteUsersSuccess, organizationUsersOnline } = this.props;
+        const { currentTime, user, organizationLoading, inviteUsers, inviteUsersSuccess, organizationUsersOnline, billing } = this.props;
         var { organizationUsers } = this.props;
         const { showInviteUsersModal } = this.state;
 
@@ -41,6 +41,8 @@ class Team extends React.Component {
                     handleSubmit={inviteUsers}
                     loading={organizationLoading.toString()}
                     inviteuserssuccess={inviteUsersSuccess}
+                    organizationusers={organizationUsers}
+                    billing={billing}
                     onHide={() => this.setState({ showInviteUsersModal: false })}
                 />
                 <Row className="pl-0 ml-0" style={{height:80}}>
@@ -55,7 +57,14 @@ class Team extends React.Component {
                     <Col xs={{span:4,offset:4}}>
                         <div className="d-flex flex-row justify-content-end">
                             <div className="align-self-center pr-4">
-                                <Button variant="success" onClick={() => this.setState({ showInviteUsersModal: true })}><FontAwesomeIcon icon={faUserPlus} /> Invite</Button>
+                                {billing.plan == "Free" && organizationUsers.length > 4 && (
+                                    <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-team-disabled">Upgrade to invite more teammates.</Tooltip>}>
+                                        <Button style={{pointerEvents: 'none' }} variant="success" disabled={billing.plan == "Free" && organizationUsers.length > 4}><FontAwesomeIcon icon={faUserPlus} /> Invite</Button>
+                                    </OverlayTrigger> 
+                                )}
+                                {billing.plan != "Free" || organizationUsers.length < 5 && (
+                                    <Button variant="success" onClick={() => this.setState({ showInviteUsersModal: true })}><FontAwesomeIcon icon={faUserPlus} /> Invite</Button>
+                                )}
                             </div>
                             <div style={{height:80}}></div>
                         </div>
@@ -69,10 +78,10 @@ class Team extends React.Component {
                 :   
                     <Row className="pt-3 px-3 team-container" style={{overflowY:"scroll",paddingBottom:100}}>
                         {organizationUsers.map((organizationUser) =>
-                            <Col xs={6} md={4} lg={4} xl={3} key={organizationUser.id}>
+                            <Col xs={12} md={6} lg={4} xl={3} key={organizationUser.id} className="mb-5">
                                 <div className="d-flex">
-                                    <div>
-                                        <Image src={organizationUser.avatar_url} fluid style={{maxHeight:85,borderRadius:15}} />
+                                    <div style={{width:125}}>
+                                        <Image src={organizationUser.avatar_url} fluid style={{maxHeight:125,borderRadius:15}} className="shadow" />
                                     </div>
                                     <div className="ml-3 align-self-center">
                                         <p className="font-weight-bold mb-0" style={{fontSize:".95rem"}}>
@@ -81,6 +90,16 @@ class Team extends React.Component {
                                         {organizationUser.timezone != null ?
                                             <p style={{fontSize:".8rem"}}><strong>Local Time:</strong> {currentTime.setZone(organizationUser.timezone).toLocaleString(DateTime.TIME_SIMPLE)}</p>
                                         : '' }
+                                        <Link 
+                                            to={{
+                                                pathname: `/messages/new`,
+                                                state: {
+                                                    recipient: organizationUser,
+                                                }
+                                            }}
+                                        >
+                                            <Button variant="success"><FontAwesomeIcon icon={faEnvelope} /></Button>
+                                        </Link>
                                     </div>
                                 </div>
                             </Col>

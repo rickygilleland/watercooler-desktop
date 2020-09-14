@@ -29,12 +29,6 @@ class Loading extends React.Component {
 
         if (this.state.redirect === false) {
             this.setState({ redirect: true });
-
-            if (teams[0].rooms.length > 0 && typeof teams[0].rooms[0].slug != "undefined") {
-                var slug = teams[0].rooms[0].slug;
-                return push(`/room/${slug}`);
-            }
-
             return push(routes.TEAM);
         }
     
@@ -85,7 +79,7 @@ class Loading extends React.Component {
     render() {
         return(
             <Container data-tid="container" fluid>
-                <h1 className="text-center mt-5 text-light">Loading Water Cooler...</h1>
+                <h1 className="text-center mt-5 text-light">Loading Blab...</h1>
                 <center><FontAwesomeIcon icon={faCircleNotch} className="mt-3" style={{fontSize:"2.4rem",color:"#6772ef"}} spin /></center>
             </Container>
         )

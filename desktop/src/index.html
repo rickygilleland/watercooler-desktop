@@ -8,7 +8,8 @@
   integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
   crossorigin="anonymous"
 />
-<link href="https://watercooler.work/css/app.css" rel="stylesheet">
+<link href="https://vjs.zencdn.net/7.8.4/video-js.css" rel="stylesheet" />
+<link href="https://blab.to/css/app.css" rel="stylesheet">
 </head>
 <style>
   h1, .h1 {
@@ -22,6 +23,13 @@
   }
   ::-webkit-scrollbar {
       display: none;
+  }
+  video, audio {
+    outline: none;
+  }
+  video {
+    border-radius: 25px;
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
   }
   .video-flip {
     transform:rotateY(180deg);
@@ -71,8 +79,8 @@
   .active p {
     color: #5e94ff !important;
   }
-  .nav-item p:hover, .nav-item .btn:hover {
-    color: #5e94ff;
+  .nav-item p:hover, .nav-item .btn:hover, .list-group-item p:hover {
+    color: #5e94ff !important;
   }
   .nav-item a:hover, .nav-item .btn:hover {
     text-decoration: none;
@@ -153,6 +161,9 @@
   }
   .border-radius-round {
     border-radius: 200px !important;
+  }
+  .text-red {
+    color:rgb(249, 66, 108) !important;
   }
 </style>
 <body style="overflow: hidden; margin: 0; background-color: rgb(18, 20, 34, 1);">

@@ -7,8 +7,8 @@ const buildOutput = path.resolve(
     __dirname,
     '..',
     'out',
-    'Water Cooler-darwin-x64',
-    'Water Cooler.app'
+    'Blab-darwin-x64',
+    'Blab.app'
 );
 
 module.exports = function () {
@@ -20,7 +20,7 @@ module.exports = function () {
     console.log('Notarizing...');
 
     return notarize({
-        appBundleId: "com.watercooler.app",
+        appBundleId: "com.blab.app",
         appPath: buildOutput,
         appleId: process.env.APPLE_ID,
         appleIdPassword: process.env.APPLE_ID_PASSWORD,

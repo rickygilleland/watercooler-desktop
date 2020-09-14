@@ -3,7 +3,16 @@ import { Switch, Route, NavLink, Redirect } from 'react-router-dom';
 import routes from '../constants/routes.json';
 import { each, debounce } from 'lodash';
 import { DateTime } from 'luxon';
-import { Row, Col, Button, Navbar, Dropdown, Modal } from 'react-bootstrap';
+import { 
+    Row, 
+    Col, 
+    Button, 
+    Navbar, 
+    Dropdown, 
+    Modal, 
+    OverlayTrigger, 
+    Tooltip 
+} from 'react-bootstrap';
 import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
 import { 
     faCircleNotch, 
@@ -21,6 +30,8 @@ import {
     faChevronCircleLeft,
     faChevronCircleRight,
     faDesktop,
+    faGlobe,
+    faArrowUp
 } from '@fortawesome/free-solid-svg-icons';
 import { getOrganizationUsers } from '../actions/organization';
 import EnsureLoggedInContainer from '../containers/EnsureLoggedInContainer';
@@ -36,9 +47,12 @@ import ManageCameraModal from './ManageCameraModal';
 import RoomsModal from './RoomsModal';
 import NewCallModal from './NewCallModal';
 import IncomingCallModal from './IncomingCallModal';
+import NewMessagePage from '../containers/NewMessagePage';
+import MessageThreadPage from '../containers/MessageThreadPage';
 import { isMobile } from 'react-device-detect';
 import posthog from 'posthog-js';
 import Pusher from 'pusher-js';
+import { getUserThreads, getThread } from '../actions/thread';
 
 if (process.env.REACT_APP_PLATFORM != "web") {
     var { BrowserWindow } = require('electron').remote;
@@ -89,7 +103,7 @@ class Sidebar extends React.Component {
 
     componentDidMount() {
         var { pusherInstance, organizationPresenceChannel, userPrivateNotificationChannel } = this.state;
-        const { push, auth, user, organization, getOrganizations, updateUserDetails } = this.props;
+        const { push, auth, user, organization, getOrganizations, updateUserDetails, getUserThreads, addNewMessageFromNotification } = this.props;
 
         if (!auth.isLoggedIn) {
             return;
@@ -133,7 +147,7 @@ class Sidebar extends React.Component {
 
             getOrganizations();
 
-        }.bind(this), 600000);
+        }.bind(this), 300000);
 
         this.setState({ timeInterval, updateInterval });
 
@@ -143,7 +157,7 @@ class Sidebar extends React.Component {
                 pusherInstance = new Pusher('3eb4f9d419966b6e1e0b', {
                     forceTLS: true,
                     cluster: 'mt1',
-                    authEndpoint: 'https://watercooler.work/broadcasting/auth',
+                    authEndpoint: 'https://blab.to/broadcasting/auth',
                     authTransport: "ajax",
                     auth: {
                         headers: {
@@ -197,6 +211,10 @@ class Sidebar extends React.Component {
                     that.setState({ organizationUsersOnline: updatedOnlineUsers });
                 }
 
+                if (event == "billing.updated") {
+                    return getOrganizations();
+                }
+
             });
 
             if (userPrivateNotificationChannel === false) {
@@ -220,6 +238,33 @@ class Sidebar extends React.Component {
 
                         that.setState({ showIncomingCallModal: true, incomingCall: data.room })
                     }*/
+
+                    if (event == "user.messages.created" || event == "user.messages.updated") {
+                        var activeThread = false;
+                        if (data.thread.type == "private") {
+                            Object.keys(that.props.privateThreads).map(threadId => {
+                                if (threadId == data.thread.id) {
+                                    activeThread = that.props.privateThreads[threadId];
+                                }
+                            })
+                        }
+
+                        if (activeThread == false) {
+                            that.props.getThread(data.thread.id);
+                        }
+
+                        addNewMessageFromNotification(data.message);
+
+                        if (event == "user.messages.created") {
+                            const newMessageNotification = new Notification('New Blab', {
+                                body: `${data.message.user.first_name} sent you a voice message.`
+                            })
+    
+                            newMessageNotification.onClick = () => {
+                                push(`/thread/${data.thread.type}/${data.thread.slug}`);
+                            }
+                        }
+                    }
 
                 });
             }
@@ -257,6 +302,8 @@ class Sidebar extends React.Component {
 
             this.setState({ backgroundBlurWindow, faceTrackingNetWindow });
         }
+
+        getUserThreads();
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -355,6 +402,8 @@ class Sidebar extends React.Component {
             organization, 
             billing,
             teams, 
+            privateThreads,
+            publicThreads,
             user, 
             auth, 
             push,
@@ -402,9 +451,18 @@ class Sidebar extends React.Component {
             }
         })
 
+        Object.keys(privateThreads).forEach(threadId => {
+            if (privateThreads[threadId].name.length > 25) {
+                privateThreads[threadId].display_name = privateThreads[threadId].name.slice(0, 21);
+                privateThreads[threadId].display_name = privateThreads[threadId].display_name.trim() + "...";
+            } else {
+                privateThreads[threadId].display_name = privateThreads[threadId].name;
+            }
+        })
+
         let curTeam = teams[0];
         let rooms;
-        let calls;
+        let sidebarPrivateThreads;
 
         try {
             rooms = (
@@ -414,7 +472,14 @@ class Sidebar extends React.Component {
                             <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:800}}>Rooms</p>
                         </Col>
                         <Col xs={3}>
-                            <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} onClick={() => this.setState({ showRoomsModal: true })}><FontAwesomeIcon icon={faPlusSquare} /></Button>
+                            {billing.plan == "Free" && (
+                                <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Upgrade to create more rooms.</Tooltip>}>
+                                    <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} disabled={true}><FontAwesomeIcon icon={faPlusSquare} /></Button>
+                                </OverlayTrigger> 
+                            )}
+                            {billing.plan != "Free" && (
+                                <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} onClick={() => this.setState({ showRoomsModal: true })}><FontAwesomeIcon icon={faPlusSquare} /></Button>
+                            )}
                         </Col>
                     </Row>
                     <div>
@@ -452,46 +517,64 @@ class Sidebar extends React.Component {
                 </div>
             );
 
-            calls = (
-                <div key={"calls_" + curTeam.id} className="mt-2">
+            sidebarPrivateThreads = (
+                <div key={"threads_" + curTeam.id} className="mt-2">
                     <Row>
                         <Col xs={9}>
-                            <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:800}}>Calls</p>
+                            <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:800}}>Direct Messages</p>
                         </Col>
                         <Col xs={3}>
-                            <Button variant="link" style={{color:"#fff",fontSize:".9rem"}} onClick={() => this.setState({ showCallsModal: true })}><FontAwesomeIcon icon={faPlusSquare} /></Button>
+                            <NavLink exact={true} 
+                                activeStyle={{
+                                    fontWeight: "bold"
+                                }} 
+                                className="d-block btn text-light"
+                                to={{
+                                    pathname: `/messages/new`
+                                }}>
+                                    <FontAwesomeIcon icon={faPlusSquare} />
+                            </NavLink>
                         </Col>
                     </Row>
                     <div>
-                        {typeof curTeam.calls != "undefined" && curTeam.calls.length > 0 ?
-                            <ul className="nav flex-column mt-1">
-                                {curTeam.calls.map((room, roomKey) => 
-                                    <li key={roomKey} className="nav-item">
-                                        <NavLink exact={true} 
-                                                activeStyle={{
-                                                    fontWeight: "bold",
-                                                    backgroundColor:"#4381ff"
-                                                }} 
-                                                className="d-block py-1"
-                                                to={{
-                                                    pathname: `/call/${room.slug}`,
-                                                    state: {
-                                                        team: curTeam,
-                                                        room: room,
-                                                        isCall: true
-                                                    }
-                                                }}>
-                                            <p className="text-light mb-0 pl-3">Direct Call Name</p>
-                                        </NavLink>
-                                    </li>
-                                )}
-                            </ul>
-                        : '' }
+                        <ul className="nav flex-column mt-1">
+                            {Object.keys(privateThreads).map(threadId => 
+                                <li key={threadId} className="nav-item">
+                                    <NavLink exact={true} 
+                                        activeStyle={{
+                                            fontWeight: "bold",
+                                        }} 
+                                        className="d-block py-1"
+                                        to={{
+                                            pathname: `/thread/${privateThreads[threadId].type}/${privateThreads[threadId].slug}`,
+                                        }}>
+                                        <p className="text-light mb-0 pl-3">
+                                            {privateThreads[threadId].users.length == 1 && (
+                                                <FontAwesomeIcon 
+                                                    icon={faCircle} 
+                                                    className="mr-1" 
+                                                    style={{
+                                                        color:organizationUsersOnline.includes(privateThreads[threadId].users[0].id) ? "#3ecf8e" : "#f9426c",
+                                                        fontSize:".5rem",
+                                                        verticalAlign:'middle'
+                                                    }} 
+                                                /> 
+                                            )}
+                                            {privateThreads[threadId].display_name}
+                                        </p>
+                                    </NavLink>
+                                </li>
+                            )}
+                        </ul>
                     </div>
                 </div>
             )
         } catch(error) {
+            console.log(error);
 
+            Object.keys(privateThreads).map(thread => {
+                console.log("THREAD", thread);
+            })
         } 
                                         
         var firstRoom = {};
@@ -525,7 +608,7 @@ class Sidebar extends React.Component {
                 <Row>
                      <Col xs={12}>
                         <h1 className="text-center px-5 pt-5" style={{color: '#fff'}}>Oops!</h1>
-                        <p className="lead text-center px-5" style={{color: '#fff'}}>Water Cooler is not optimized for mobile yet. Please try again from a desktop browser.</p>
+                        <p className="lead text-center px-5" style={{color: '#fff'}}>Blab is not optimized for mobile yet. Please try again from a desktop browser.</p>
                         <center><FontAwesomeIcon icon={faDesktop} className="pt-4" style={{color:"#3ecf8e",fontSize:"8rem"}} /></center>
                      </Col>
                 </Row>
@@ -542,6 +625,8 @@ class Sidebar extends React.Component {
                                 handleSubmit={inviteUsers}
                                 loading={organizationLoading.toString()}
                                 inviteuserssuccess={inviteUsersSuccess}
+                                organizationusers={organizationUsers}
+                                billing={billing}
                                 onHide={() => this.setState({ showInviteUsersModal: false })}
                             />
                             <ManageUsersModal 
@@ -613,7 +698,7 @@ class Sidebar extends React.Component {
                                 height: 30,
                                 color: '#fff'
                             }}>
-                                <p className="font-weight-bold mx-auto text-center">For the best experience, <a href="https://updater.watercooler.work" target="_blank" className="font-weight-bold">download the Water Cooler desktop app.</a></p>
+                                <p className="font-weight-bold mx-auto text-center">For the best experience, <a href="https://updater.blab.to" target="_blank" className="font-weight-bold">download the Blab desktop app.</a></p>
                             </Row>
                         )}
                         <Row>
@@ -643,6 +728,29 @@ class Sidebar extends React.Component {
                                     <div className="sidebar-scroll" style={{minWidth: 200}}>
                                         <div>
                                             <ul className="nav flex-column mt-1">
+                                                {billing.plan == "Free" && (
+                                                    <li key="upgrade-account-nav-button" className="nav-item">
+                                                        <a
+                                                            className="d-block py-1"
+                                                            href="https://blab.to/billing"
+                                                            target="_blank"
+                                                        >
+                                                            <p className="text-light mb-0 pl-3 text-red"><FontAwesomeIcon icon={faArrowUp} style={{fontSize:".7rem",marginRight:".2rem"}} /> Upgrade Account</p>
+                                                        </a>
+                                                    </li>
+                                                )}
+                                                <li key="public-blabs-nav-button" className="nav-item">
+                                                    <NavLink exact={true} 
+                                                        activeStyle={{
+                                                            fontWeight: "bold",
+                                                        }} 
+                                                        className="d-block py-1"
+                                                        to={{
+                                                            pathname: `/thread/public`,
+                                                        }}>
+                                                        <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faGlobe} style={{fontSize:".7rem",marginRight:".2rem"}} /> Public Blabs</p>
+                                                    </NavLink>
+                                                </li>
                                                 <li key="people-nav-button" className="nav-item">
                                                     <NavLink exact={true} 
                                                         activeStyle={{
@@ -661,8 +769,8 @@ class Sidebar extends React.Component {
                                             </ul>
                                         </div>
                                         <div>
+                                            {sidebarPrivateThreads}
                                             {rooms}
-                                            {/*calls*/}
                                         </div>
                                     </div>
                                 </Navbar.Collapse>
@@ -708,6 +816,51 @@ class Sidebar extends React.Component {
                                                     {...routeProps} 
                                                     organizationUsersOnline={organizationUsersOnline} 
                                                     currentTime={currentTime} 
+                                                    onClick={() => {
+                                                        if (window.innerWidth < 768) {
+                                                            this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
+                                                        }
+                                                    }}
+                                                />
+                                            </ErrorBoundary>
+                                        )}
+                                    />
+                                    <Route 
+                                        path={routes.MESSAGE.NEW} 
+                                        render={(routeProps) => (
+                                            <ErrorBoundary showError={true}>
+                                                <NewMessagePage 
+                                                    {...routeProps} 
+                                                    onClick={() => {
+                                                        if (window.innerWidth < 768) {
+                                                            this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
+                                                        }
+                                                    }}
+                                                />
+                                            </ErrorBoundary>
+                                        )}
+                                    />
+                                    <Route 
+                                        path={routes.MESSAGE.THREAD} 
+                                        render={(routeProps) => (
+                                            <ErrorBoundary showError={true}>
+                                                <MessageThreadPage 
+                                                    {...routeProps} 
+                                                    onClick={() => {
+                                                        if (window.innerWidth < 768) {
+                                                            this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
+                                                        }
+                                                    }}
+                                                />
+                                            </ErrorBoundary>
+                                        )}
+                                    />
+                                    <Route 
+                                        path={routes.MESSAGE.PUBLIC_THREAD} 
+                                        render={(routeProps) => (
+                                            <ErrorBoundary showError={true}>
+                                                <MessageThreadPage 
+                                                    {...routeProps} 
                                                     onClick={() => {
                                                         if (window.innerWidth < 768) {
                                                             this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
