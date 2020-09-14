@@ -126,7 +126,7 @@ class MessageThread extends React.Component {
     }
 
     render() {
-        const { threadLoading, settings, user, createMessage, messages, organization, messageCreating, messageLoading, messageCreatedStateChange, collapsed, toggleThreadCollapsed } = this.props;
+        const { threadLoading, settings, user, createMessage, messages, organization, messageCreating, messageLoading, collapsed, toggleThreadCollapsed } = this.props;
         const { thread, recipients, recipientName, lastCopiedMessageId } = this.state;
 
         var messageKeys = [];
@@ -249,7 +249,7 @@ class MessageThread extends React.Component {
                     recipientName={recipientName}
                     createMessage={createMessage} 
                     organization={organization} 
-                    messageCreating={false}
+                    messageCreating={messageCreating}
                     messageCreatedStateChange={() => this.setState({ messageCreated: true })}
                 />
             </div>

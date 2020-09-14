@@ -57,6 +57,7 @@ class SendMessage extends React.Component {
         this.clearRecording = this.clearRecording.bind(this);
         this.sendRecording = this.sendRecording.bind(this);
         this.loadVideoPreview = this.loadVideoPreview.bind(this);
+        this.cleanUpStreams = this.cleanUpStreams.bind(this);
 
         this._mounted = false;
     }
@@ -66,14 +67,28 @@ class SendMessage extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
+        const { messageCreating, threadId } = this.props;
         const { showVideoPreview } = this.state;
+
         if (showVideoPreview && prevState.showVideoPreview == false) {
             this.loadVideoPreview();
         }
+
+        if (!showVideoPreview && prevState.showVideoPreview) {
+            this.cleanUpStreams();
+        }  
+
+        if (prevProps.messageCreating && !messageCreating) {
+            this.clearRecording();
+        }
+
+        if (!prevProps.messageCreating && messageCreating && typeof threadId != "undefined") {
+            this.clearRecording();
+        }
+
     }
 
     componentWillUnmount() {
-        const { raw_local_stream, local_stream, raw_video_stream } = this.state;
 
         if (this.player) {
           this.player.dispose()
@@ -82,6 +97,11 @@ class SendMessage extends React.Component {
         this._mounted = false;
 
         this.stopRecording();
+        this.cleanUpStreams();
+    }
+
+    cleanUpStreams() {
+        const { raw_local_stream, local_stream, raw_video_stream, localVideoCanvas, timeInterval, localVideoContainer } = this.state;
 
         if (raw_local_stream != null) {
             const tracks = raw_local_stream.getTracks();
@@ -107,17 +127,19 @@ class SendMessage extends React.Component {
             })
         }
 
-        if (this.state.timeInterval != null) {
-            clearInterval(this.state.timeInterval);
+        if (timeInterval != null) {
+            clearInterval(timeInterval);
         }
 
-        if (this.state.localVideoCanvas != null) {
+        if (localVideoCanvas != null) {
             localVideoCanvas.remove();
         }
 
-        if (this.state.localVideoContainer != null) {
+        if (localVideoContainer != null) {
             localVideoContainer.remove();
         }
+
+        this.setState({ raw_local_stream: null, local_stream: null, raw_video_stream: null, timeInterval: null, localVideoCanvas: null, localVideoContainer: null })
     }
 
     async loadVideoPreview() {
@@ -202,7 +224,7 @@ class SendMessage extends React.Component {
     }
 
     async startRecording(recordingType) {
-        const { settings, user } = this.props;
+        const { settings, user, messageCreatedStateChange, threadId } = this.props;
 
         var streamOptions;
         var raw_local_stream = null;
@@ -274,54 +296,16 @@ class SendMessage extends React.Component {
 
                 recorder.destroy();
 
-                if (raw_local_stream != null) {
-                    const tracks = raw_local_stream.getTracks();
-        
-                    tracks.forEach(function(track) {
-                        track.stop();
-                    })
-                }    
-
-                if (local_stream != null) {
-                    const localTracks = local_stream.getTracks();
-
-                    localTracks.forEach(track => {
-                        track.stop();
-                    })
-                }
-
-                if (raw_video_stream != null) {
-                    const videoStreamTracks = raw_video_stream.getTracks();
-
-                    videoStreamTracks.forEach(track => {
-                        track.stop();
-                    })
-                }
-    
-                if (this.state.timeInterval != null) {
-                    clearInterval(this.state.timeInterval);
-                }
-
-                if (this.state.localVideoCanvas != null) {
-                    this.state.localVideoCanvas.remove();
-                }
-
-                if (this.state.localVideoContainer != null) {
-                    this.state.localVideoContainer.remove();
-                }
+                this.cleanUpStreams();
     
                 this.setState({ 
                     recorder: null, 
                     isRecording: false, 
-                    raw_local_stream: null, 
-                    timeInterval: null, 
                     duration: "00:00", 
                     recordingBlob, 
                     recordingBlobUrl ,
                     loadingRecording: false,
                     showVideoPreview: false,
-                    localVideoCanvas: null,
-                    localVideoContainer: null,
                 })
 
             })
@@ -485,7 +469,7 @@ class SendMessage extends React.Component {
             raw_local_stream
         } = this.state;
 
-        if (messageCreating || loadingRecording) {
+        if ((messageCreating && typeof threadId == "undefined") || loadingRecording) {
             return(
                 <Card style={{height: recordingType == "video" ? 475 : 190,backgroundColor:"#1b1e2f",borderRadius:0}}>
                     <Row className="mt-3 mb-4">
@@ -558,9 +542,6 @@ class SendMessage extends React.Component {
                                         <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"1.3rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className="mx-2 mt-3" onClick={() => this.setState({ showVideoPreview: true })}>
                                             <FontAwesomeIcon icon={isRecording ? faVideoSlash : faVideo} />
                                         </Button>
-                                        <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"1.3rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className="mx-2 mt-3" onClick={() => !isRecording ? this.startRecording("screen") : this.stopRecording()}>
-                                            <FontAwesomeIcon icon={faDesktop} />
-                                        </Button>
                                     </>
                                 )}
                                 <Button variant={isRecording ? "danger" : "success"} style={{color:"#fff",fontSize:"1.3rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className="mx-2 mt-3" onClick={() => !isRecording ? this.startRecording("audio") : this.stopRecording()}>
@@ -582,22 +563,20 @@ class SendMessage extends React.Component {
                                         <FontAwesomeIcon icon={faTimesCircle} style={{fontSize:"1.5rem"}} /><br />
                                     </Button>
                                 </OverlayTrigger>
-                                {isPublic == false && (
-                                    <OverlayTrigger
-                                        placement="top"
-                                        overlay={
-                                            <Tooltip id="tooltip-send-button">
-                                                {recipients.length == 0 && typeof threadId == "undefined"
-                                                    ? 'Select a recipient to send this Blab, or use the globe button to get a shareable link.' 
-                                                    : `Send this Blab`}
-                                            </Tooltip>
-                                        }
-                                        >
-                                        <Button variant="success" style={{color:"#fff",fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} disabled={recipients.length == 0 && typeof threadId == "undefined"} className="mx-2 mt-3" onClick={() => this.sendRecording()}>
-                                            <FontAwesomeIcon icon={faPaperPlane} />
-                                        </Button>
-                                    </OverlayTrigger>
-                                )}
+                                <OverlayTrigger
+                                    placement="top"
+                                    overlay={
+                                        <Tooltip id="tooltip-send-button">
+                                            {recipients.length == 0 && typeof threadId == "undefined"
+                                                ? 'Select a recipient to send this Blab, or use the globe button to get a shareable link.' 
+                                                : `Send this Blab`}
+                                        </Tooltip>
+                                    }
+                                    >
+                                    <Button variant="success" style={{color:"#fff",fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} disabled={recipients.length == 0 && typeof threadId == "undefined"} className="mx-2 mt-3" onClick={() => this.sendRecording()}>
+                                        <FontAwesomeIcon icon={faPaperPlane} />
+                                    </Button>
+                                </OverlayTrigger>
                                 {typeof threadId == "undefined" && (
                                     <OverlayTrigger
                                         placement="top"
