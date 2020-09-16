@@ -108,7 +108,8 @@ const createWindow = () => {
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
         preload: path.join(__dirname, 'sentry.js'),
         devTools: false,
-        backgroundThrottling: false
+        backgroundThrottling: false,
+        enableRemoteModule: true
       }
     });
 
@@ -128,7 +129,7 @@ const createWindow = () => {
         nodeIntegration: true,
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
         backgroundThrottling: false,
-        experimentalFeatures: true
+        enableRemoteModule: true
       }
     });
 
