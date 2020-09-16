@@ -331,14 +331,14 @@ class SendMessage extends React.Component {
         if (typeof threadId != "undefined") {
             message = {
                 organization_id: organization.id,
-                is_public: isPublic,
+                is_public: isPublic == true || this.props.isPublic,
                 thread_id: threadId,
                 attachment
             }
         } else {
             message = {
                 organization_id: organization.id,
-                is_public: isPublic,
+                is_public: isPublic == true || this.props.isPublic,
                 recipient_ids: recipients,
                 attachment
             }

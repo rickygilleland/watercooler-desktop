@@ -51,13 +51,13 @@ class Message extends React.PureComponent {
                 {renderHeading && (
                     <Row style={{marginLeft: 0}}>
                         <div style={{width:50}}>
-                            <Image src={message.user.avatar_url} fluid style={{height:40}} />
+                            <Image src={message.user.avatar_url} fluid style={{height:50,borderRadius:5}} />
                         </div>  
                         <p style={{paddingLeft:5,marginTop:5}}>
                             <span style={{fontSize:"1.0rem",fontWeight:700}}>
                                 {message.user.first_name} {message.user.last_name}
                             </span> 
-                            <span style={{fontSize:".7rem"}}>
+                            <span style={{fontSize:".7rem",paddingLeft:5}}>
                                 {formattedDate}
                             </span>
                         </p>

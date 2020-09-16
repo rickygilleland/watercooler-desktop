@@ -103,6 +103,7 @@ class MessageThread extends React.Component {
             
             var recipients = [];
             var recipientName = '';
+            
             curThread.users.forEach(threadUser => {
                 recipients.push(threadUser.id);
 
@@ -235,9 +236,14 @@ class MessageThread extends React.Component {
                                     You don't have any message history in this room yet.
                                 </p>
                             )}
-                            {thread.type != "room" && (
+                            {thread.type == "private" && (
                                 <p className="text-center mx-auto" style={{fontSize:"1.5rem",fontWeight:700,marginTop:"4rem"}}>
                                     You don't have any message history with this person yet.
+                                </p>
+                            )}
+                            {thread.type == "public" && (
+                                <p className="text-center mx-auto" style={{fontSize:"1.5rem",fontWeight:700,marginTop:"4rem"}}>
+                                    You don't have any public blabs yet.
                                 </p>
                             )}
                         </>
