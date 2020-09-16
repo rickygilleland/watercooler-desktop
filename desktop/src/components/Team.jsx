@@ -49,7 +49,12 @@ class Team extends React.Component {
                     <Col xs={{span:4}}>
                         <div className="d-flex flex-row justify-content-start">
                             <div className="align-self-center">
-                                <p style={{fontWeight:"bolder",fontSize:"1.65rem"}} className="pb-0 mb-0">Team</p>
+                                <p style={{fontWeight:"bolder",fontSize:"1.65rem"}} className="pb-0 mb-0">
+                                    Team
+                                    {organizationLoading && (
+                                        <FontAwesomeIcon icon={faCircleNotch} style={{color:"#6772ef",marginLeft:10,marginTop:-2,verticalAlign:'middle',fontSize:".8rem"}} spin />
+                                    )}
+                                </p>
                             </div>
                             <div style={{height:80}}></div>
                         </div>
@@ -70,7 +75,7 @@ class Team extends React.Component {
                         </div>
                     </Col>
                 </Row>
-                {organizationLoading ?
+                {organizationLoading && organizationUsers.length == 0 ?
                      <>
                         <h1 className="text-center mt-5">Loading Team...</h1>
                         <center><FontAwesomeIcon icon={faCircleNotch} className="mt-3" style={{fontSize:"2.4rem",color:"#6772ef"}} spin /></center> 
