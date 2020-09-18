@@ -29,6 +29,18 @@ if (process.env.REACT_APP_PLATFORM != "web") {
   }
 }
 
+var isDevMode = process.execPath.match(/[\\/]electron/)
+
+if (isDevMode == false) {
+  const { init } = require('@sentry/electron/dist/renderer');
+
+  init({
+      dsn: 'https://20e5d4f5d6d94630a28e5684a3048940@o281199.ingest.sentry.io/5176374',
+      environment: process.env.NODE_ENV
+  })
+
+}
+
 posthog.init('64tUVTgJhFVIV7BADDLYHN-zG2Ja1yqzOI_SE8Pytc4', {api_host: 'https://analytics.blab.to'});
 
 export default class App extends React.Component {

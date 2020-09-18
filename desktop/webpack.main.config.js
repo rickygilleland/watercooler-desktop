@@ -13,7 +13,6 @@ module.exports = {
   },
   plugins: [
     new CopyPlugin([
-      { from: "src/sentry.js", to: "sentry.js" },
       { from: "../icons", to: "icons"}
     ]),
   ]
