@@ -30,10 +30,15 @@ class MessageThread extends React.Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        const { match, push, messageCreating, collapsed } = this.props;
+        const { match, push, messageCreating, collapsed, threadLoading } = this.props;
         const { thread } = this.state;
 
-        if (prevProps.match != match && match.params.threadSlug != thread.slug || Object.keys(thread).length === 0) {
+        if (prevProps.match.path != match.path || (typeof match.params.threadSlug != "undefined" && prevProps.match.params.threadSlug != match.params.threadSlug)) {
+            this.initializeThread();
+            this.scrollToBottom();
+        }
+
+        if (Object.keys(thread).length == 0 && threadLoading === false && prevProps.threadLoading === true) {
             this.initializeThread();
             this.scrollToBottom();
         }
@@ -89,12 +94,15 @@ class MessageThread extends React.Component {
                 if (match.params.type == "shared") {
                     threadsToCheck = sharedThreads;
                 }
-        
-                Object.keys(threadsToCheck).forEach(threadId => {
-                    if (threadsToCheck[threadId].slug == match.params.threadSlug) {
-                        curThread = threadsToCheck[threadId];
-                    }
-                })
+
+                if (threadsToCheck != null) {
+                    Object.keys(threadsToCheck).forEach(threadId => {
+                        if (threadsToCheck[threadId].slug == match.params.threadSlug) {
+                            curThread = threadsToCheck[threadId];
+                        }
+                    })
+                }
+    
             }
         }
 

@@ -1,11 +1,12 @@
 {
   "name": "blab",
-  "version": "1.6.3",
+  "version": "1.6.4",
   "private": true,
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.30",
     "@fortawesome/free-solid-svg-icons": "^5.14.0",
     "@fortawesome/react-fontawesome": "^0.1.11",
+    "@sentry/react": "^5.23.0",
     "@svgr/webpack": "4.3.3",
     "@tensorflow-models/blazeface": "^0.0.5",
     "@tensorflow-models/body-pix": "^2.0.5",
