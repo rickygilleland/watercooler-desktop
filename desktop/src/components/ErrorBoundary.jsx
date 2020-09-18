@@ -1,4 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { Card } from 'react-bootstrap';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import { 
+    faMicrophone, 
+} from '@fortawesome/free-solid-svg-icons';
 
 class ErrorBoundary extends React.Component {
     constructor(props) {
@@ -13,8 +18,14 @@ class ErrorBoundary extends React.Component {
   
     render() {
       if (this.state.hasError && this.props.showError) {
-        // You can render any custom fallback UI
-        return <h1 className="text-center">Oops! Something went wrong. Try restarting Blab</h1>;
+        return (
+          <Card className="m-3 shadow-sm">
+            <Card.Body>
+              <h1 className="text-center">Oh no, something went wrong!</h1>
+              <p className="text-center" style={{fontSize:"1rem"}}><span style={{fontWeight:600}}>Sorry about that. Try going to another page or restarting Blab.</span><br />The error has been logged and we're already working to make sure it doesn't happen again.</p>
+            </Card.Body>
+          </Card>
+        );
       }
       return this.props.children;
     }

@@ -89,12 +89,15 @@ class MessageThread extends React.Component {
                 if (match.params.type == "shared") {
                     threadsToCheck = sharedThreads;
                 }
-        
-                Object.keys(threadsToCheck).forEach(threadId => {
-                    if (threadsToCheck[threadId].slug == match.params.threadSlug) {
-                        curThread = threadsToCheck[threadId];
-                    }
-                })
+
+                if (threadsToCheck != null) {
+                    Object.keys(threadsToCheck).forEach(threadId => {
+                        if (threadsToCheck[threadId].slug == match.params.threadSlug) {
+                            curThread = threadsToCheck[threadId];
+                        }
+                    })
+                }
+    
             }
         }
 

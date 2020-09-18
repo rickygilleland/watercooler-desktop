@@ -540,6 +540,22 @@ class Sidebar extends React.Component {
                     </Row>
                     <div>
                         <ul className="nav flex-column mt-1">
+                            {Object.keys(privateThreads).length == 0 && (
+                                <li key="new_dm_link" className="nav-item">
+                                    <NavLink exact={true} 
+                                        activeStyle={{
+                                            fontWeight: "bold",
+                                        }} 
+                                        className="d-block py-1"
+                                        to={{
+                                            pathname: `/messages/new`,
+                                        }}>
+                                        <p className="text-light mb-0 pl-3">
+                                            Start Your First DM
+                                        </p>
+                                    </NavLink>
+                                </li>
+                            )}
                             {Object.keys(privateThreads).map(threadId => 
                                 <li key={threadId} className="nav-item">
                                     <NavLink exact={true} 
