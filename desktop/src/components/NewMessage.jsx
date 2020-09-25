@@ -136,8 +136,7 @@ class NewMessage extends React.Component {
                 <div className="mt-4">
                     {suggestionValue.length == 0 && (
                         <p style={{fontWeight:700,fontSize:"1rem"}} className="pl-3">
-                            No teammates selected yet.<br />
-                            <small>Start recording if you want this to be a public Blab.</small>
+                            No teammates selected yet.
                         </p>
                     )}
                     {suggestionValue.map(selectedUser => {

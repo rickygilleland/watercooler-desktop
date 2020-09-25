@@ -165,7 +165,7 @@ class MessageThread extends React.Component {
                                 <div className="align-self-center">
                                     <p style={{fontWeight:"bolder",fontSize:"1.65rem"}} className="pb-0 mb-0">
                                         {thread.name == null && thread.type == "public" && (
-                                            "Public Blabs"
+                                            "Library"
                                         )}
                                         {thread.name != null && (
                                             thread.name
@@ -262,7 +262,9 @@ class MessageThread extends React.Component {
                     user={user} 
                     isPublic={thread.type == "public"}
                     recipients={recipients} 
+                    threadName={thread.name}
                     threadId={thread.id}
+                    showRichText={false}
                     recipientName={recipientName}
                     createMessage={createMessage} 
                     organization={organization} 

@@ -30,7 +30,7 @@ import {
     faChevronCircleLeft,
     faChevronCircleRight,
     faDesktop,
-    faGlobe,
+    faBookOpen,
     faArrowUp
 } from '@fortawesome/free-solid-svg-icons';
 import { getOrganizationUsers } from '../actions/organization';
@@ -766,7 +766,7 @@ class Sidebar extends React.Component {
                                                         to={{
                                                             pathname: `/thread/public`,
                                                         }}>
-                                                        <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faGlobe} style={{fontSize:".7rem",marginRight:".2rem"}} /> Public Blabs</p>
+                                                        <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faBookOpen} style={{fontSize:".7rem",marginRight:".2rem"}} /> Library</p>
                                                     </NavLink>
                                                 </li>
                                                 <li key="people-nav-button" className="nav-item">
