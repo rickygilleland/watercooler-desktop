@@ -81,8 +81,6 @@ class NewMessage extends React.Component {
             let updatedSuggestions =  [...this.state.suggestionValue];
             updatedSuggestions.push(newValue.id);
 
-            console.log(updatedSuggestions);
-
             return this.setState({ suggestionValue: updatedSuggestions, suggestionDisplayValue: '' });
         }
 

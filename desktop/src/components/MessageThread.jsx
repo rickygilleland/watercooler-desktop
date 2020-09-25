@@ -33,8 +33,6 @@ class MessageThread extends React.Component {
         const { match, push, messageCreating, collapsed, threadLoading } = this.props;
         const { thread } = this.state;
 
-        console.log("RICKY", this.props);
-
         if (prevProps.match.path != match.path || (typeof match.params.threadSlug != "undefined" && prevProps.match.params.threadSlug != match.params.threadSlug)) {
             this.initializeThread();
             this.scrollToBottom();

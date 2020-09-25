@@ -39,9 +39,6 @@ const MessageEditor = (props) => {
   const renderLeaf = useCallback(props => <Leaf {...props} />, [])
   const editor = useMemo(() => withHistory(withReact(createEditor())), [])
 
-
-  console.log("THREAD NAME", props.threadName);
-
   return (
       <Card className="mb-2 mx-2" style={{border:"1px solid rgba(0,0,0,.35)"}}>
           <Card.Body className="pb-0">
