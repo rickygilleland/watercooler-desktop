@@ -123,7 +123,7 @@ class NewMessage extends React.Component {
                     onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
                     onSuggestionsClearRequested={this.onSuggestionsClearRequested}
                     inputProps={{
-                        placeholder: "Type the name of a teammate, or start recording to send a public Blab",
+                        placeholder: "Type the name of a teammate",
                         value: suggestionDisplayValue,
                         onChange: this.handleSuggestionChange
                     }}

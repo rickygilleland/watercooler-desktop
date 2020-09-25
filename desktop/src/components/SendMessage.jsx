@@ -51,7 +51,7 @@ class SendMessage extends React.Component {
             videoPreviewLoading: false,
             localVideoCanvas: null,
             localVideoContainer: null,
-            showMessageEditor: true,
+            showMessageEditor: false,
         };
 
         this.startRecording = this.startRecording.bind(this);
@@ -488,6 +488,7 @@ class SendMessage extends React.Component {
             showMessageEditor
         } = this.state;
 
+        /*
         if (showMessageEditor && (typeof threadId != "undefined" || isNewThread)) {
             return (
                 <MessageEditor 
@@ -503,7 +504,7 @@ class SendMessage extends React.Component {
                     }}
                 />
             )
-        }
+        }*/
 
         if ((messageCreating && typeof threadId == "undefined") || loadingRecording) {
             return(
