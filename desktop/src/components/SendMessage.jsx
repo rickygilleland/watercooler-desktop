@@ -471,7 +471,7 @@ class SendMessage extends React.Component {
     }
 
     render() {
-        const { messageCreating, recipients, isPublic, threadId, threadName } = this.props;
+        const { messageCreating, recipients, isPublic, threadId, threadName, isNewThread } = this.props;
         const { 
             isRecording, 
             recordingBlob, 
@@ -488,7 +488,7 @@ class SendMessage extends React.Component {
             showMessageEditor
         } = this.state;
 
-        if (showMessageEditor) {
+        if (showMessageEditor && (typeof threadId != "undefined" || isNewThread)) {
             return (
                 <MessageEditor 
                     threadName={threadName} 
