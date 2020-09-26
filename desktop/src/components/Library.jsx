@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import { DateTime } from 'luxon';
 import { Container, Image, Button, Card, CardColumns, Navbar, Row, Col, OverlayTrigger, Overlay, Popover, Tooltip } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleNotch, faUserPlus, faCircle, faEnvelope } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faUserPlus, faCircle, faEnvelope, faShare } from '@fortawesome/free-solid-svg-icons';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 import SendMessage from './SendMessage';
 import MessageMediaPlayer from './MessageMediaPlayer';
 
@@ -14,7 +15,9 @@ class Library extends React.Component {
 
     constructor(props) {
         super(props);
-        this.state = {}
+        this.state = {
+            copiedId: null
+        }
 
         this.scrollToTop = this.scrollToTop.bind(this);
     }
@@ -46,6 +49,7 @@ class Library extends React.Component {
 
     render() {
         const { libraryLoading, libraryItemCreating, createItem, settings, user, libraryItems, libraryItemsOrder } = this.props;
+        const { copiedId } = this.state;
 
         return(
             <div className="d-flex flex-column" style={{height: process.env.REACT_APP_PLATFORM === "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'}}>
@@ -131,6 +135,24 @@ class Library extends React.Component {
                                                             {formattedDate}
                                                         </span>
                                                     </p>
+                                                    {typeof item.public_url != "undefined" && (
+                                                        <CopyToClipboard 
+                                                            text={item.public_url}
+                                                            onCopy={() => { 
+                                                                this.setState({copiedId: item.id}); 
+                                                            }}
+                                                        >
+                                                            <Button variant="link" style={{marginLeft:60,fontSize:".8rem",color:copiedId == item.id ? "rgb(62, 207, 142)" : "#6772ef"}}>
+                                                                <FontAwesomeIcon icon={faShare} />
+                                                                {copiedId == item.id && (
+                                                                    <span>
+                                                                        <br />
+                                                                        Link Copied to Clipboard
+                                                                    </span>
+                                                                )}
+                                                            </Button>
+                                                        </CopyToClipboard>
+                                                    )}
                                                 </Row>
                                             </Card.Body>
                                         </Card>
