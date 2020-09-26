@@ -79,15 +79,11 @@ class SendMessage extends React.Component {
             this.cleanUpStreams();
         }  
 
-        if (prevProps.messageCreating && !messageCreating) {
-            this.clearRecording();
-        }
-
         if (!prevProps.messageCreating && messageCreating && typeof threadId != "undefined") {
             this.clearRecording();
         }
 
-        if (prevProps.libraryItemCreating && !libraryItemCreating) {
+        if (!prevProps.libraryItemCreating && libraryItemCreating) {
             this.clearRecording();
         }
 
@@ -511,7 +507,7 @@ class SendMessage extends React.Component {
             )
         }*/
 
-        if ((messageCreating && typeof threadId == "undefined") || loadingRecording || libraryItemCreating) {
+        if ((messageCreating && typeof threadId == "undefined") || loadingRecording) {
             return(
                 <Card style={{height: recordingType == "video" ? 475 : 190,backgroundColor:"#1b1e2f",borderRadius:0}}>
                     <Row className="mt-3 mb-4">

@@ -15,6 +15,8 @@ class Library extends React.Component {
     constructor(props) {
         super(props);
         this.state = {}
+
+        this.scrollToTop = this.scrollToTop.bind(this);
     }
 
     componentDidMount() {
@@ -23,8 +25,24 @@ class Library extends React.Component {
         getLibraryItems();
     }
 
-    componentDidUpdate() {
+    componentDidUpdate(prevProps) {
+        const { libraryItemCreating } = this.props;
+
+        if (!prevProps.libraryItemCreating && libraryItemCreating) {
+            this.scrollToTop();
+        }
     }
+
+    scrollToTop() {
+        if (typeof this.itemsContainer != "undefined" && this.itemsContainer != null) {
+            setTimeout(() => {
+                if (typeof this.itemsContainer != "undefined" && this.itemsContainer != null) {
+                    this.itemsContainer.scrollTop = 0;
+                }
+            }, 50);
+        }
+    }
+
 
     render() {
         const { libraryLoading, libraryItemCreating, createItem, settings, user, libraryItems } = this.props;
@@ -50,7 +68,7 @@ class Library extends React.Component {
                     <Col xs={{span:4,offset:4}}>
                     </Col>
                 </Row>
-                <Container style={{overflowY:"scroll"}} fluid>
+                <Container style={{overflowY:"scroll"}} ref={(el) => { this.itemsContainer = el; }} fluid>
                     {libraryLoading && libraryItemsKeys.length == 0 && (
                         <div style={{marginTop: "4rem"}}>
                             <Row className="mt-3 mb-4">
@@ -70,6 +88,9 @@ class Library extends React.Component {
                                 </Col>
                             </Row>
                         </div>
+                    )}
+                    {libraryItemCreating && (
+                        <p className="text-center" style={{fontWeight:700,fontSize:".9rem"}}>Uploading The Blab to Your Library... <FontAwesomeIcon icon={faCircleNotch} style={{color:"#6772ef"}} spin /></p>
                     )}
                     {libraryItemsKeys.length > 0 && (
                         <Row>
