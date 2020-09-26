@@ -88,7 +88,7 @@ class Library extends React.Component {
                                 }
 
                                 return (
-                                    <Col xs={{span:12}} md={{span:6}} className="d-flex align-items-stretch" key={item.id}>
+                                    <Col xs={{span:12}} md={{span:6}} xl={{span:4}} className="d-flex align-items-stretch" key={item.id}>
                                         <Card className="w-100 m-2 shadow-sm">
                                             <Card.Body>
                                                 {item.attachments.length > 0 && item.attachments[0].processed == true && (
