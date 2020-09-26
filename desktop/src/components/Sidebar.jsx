@@ -279,7 +279,7 @@ class Sidebar extends React.Component {
                     }
 
                     if (event == "library.items.updated") {
-                        addNewItemFromNotification(data.message);
+                        addNewItemFromNotification(data.item);
                     }
 
                 });

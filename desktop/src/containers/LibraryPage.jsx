@@ -13,6 +13,7 @@ function mapStateToProps(state) {
         organization: state.organization.organization,
         organizationUsers: state.organization.users,
         libraryItems: state.library.items,
+        libraryItemsOrder: state.library.itemsOrder,
         libraryLoading: state.library.loading,
         libraryItemCreating: state.library.creating,
         settings: state.settings,

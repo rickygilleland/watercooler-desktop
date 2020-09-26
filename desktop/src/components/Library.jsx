@@ -45,9 +45,7 @@ class Library extends React.Component {
 
 
     render() {
-        const { libraryLoading, libraryItemCreating, createItem, settings, user, libraryItems } = this.props;
-
-        var libraryItemsKeys = Object.keys(libraryItems);
+        const { libraryLoading, libraryItemCreating, createItem, settings, user, libraryItems, libraryItemsOrder } = this.props;
 
         return(
             <div className="d-flex flex-column" style={{height: process.env.REACT_APP_PLATFORM === "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'}}>
@@ -69,7 +67,7 @@ class Library extends React.Component {
                     </Col>
                 </Row>
                 <Container style={{overflowY:"scroll"}} ref={(el) => { this.itemsContainer = el; }} fluid>
-                    {libraryLoading && libraryItemsKeys.length == 0 && (
+                    {libraryLoading && libraryItemsOrder.length == 0 && (
                         <div style={{marginTop: "4rem"}}>
                             <Row className="mt-3 mb-4">
                                 <Col xs={{span:12}} className="text-center">
@@ -79,7 +77,7 @@ class Library extends React.Component {
                             </Row>
                         </div>
                     )}
-                    {!libraryLoading && libraryItemsKeys.length == 0 && (
+                    {!libraryLoading && libraryItemsOrder.length == 0 && (
                         <div style={{marginTop: "4rem"}}>
                             <Row className="mt-3 mb-4">
                                 <Col xs={{span:12}} className="text-center">
@@ -92,9 +90,9 @@ class Library extends React.Component {
                     {libraryItemCreating && (
                         <p className="text-center" style={{fontWeight:700,fontSize:".9rem"}}>Uploading The Blab to Your Library... <FontAwesomeIcon icon={faCircleNotch} style={{color:"#6772ef"}} spin /></p>
                     )}
-                    {libraryItemsKeys.length > 0 && (
+                    {libraryItemsOrder.length > 0 && (
                         <Row>
-                            {libraryItemsKeys.map((itemId, key) => {
+                            {libraryItemsOrder.map((itemId, key) => {
                                 let item = libraryItems[itemId];
 
                                 if (item == null || typeof item == "undefined") {

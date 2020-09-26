@@ -1,5 +1,5 @@
 import { Action } from 'redux';
-import { orderBy, cloneDeep } from 'lodash';
+import { orderBy, cloneDeep, sortBy } from 'lodash';
 import { 
     GET_ITEMS_STARTED, 
     GET_ITEMS_SUCCESS,
@@ -12,6 +12,7 @@ import {
 
 const initialState = {
     items: {},
+    itemsOrder: [],
     loading: false,
     creating: false,
     error: false
@@ -34,10 +35,11 @@ export default function library(state = initialState, action = {}) {
                 updatedItems[item.id] = item;
             })
 
-            updatedItems = orderBy(updatedItems, ['created_at'], ['desc']);
+            var itemsOrder = sortBy(Object.keys(updatedItems)).reverse();
 
             updatedState = {
                 items: updatedItems,
+                itemsOrder: itemsOrder,
                 loading: false,
                 creating: false,
                 error: false,
@@ -62,10 +64,11 @@ export default function library(state = initialState, action = {}) {
 
             updatedItems[action.payload.data.id] = action.payload.data;
 
-            updatedItems = orderBy(updatedItems, 'created_at', 'desc');
+            var itemsOrder = sortBy(Object.keys(updatedItems)).reverse();
 
             updatedState = {
                 items: updatedItems,
+                itemsOrder: itemsOrder,
                 creating: false,
                 error: false,
             }
