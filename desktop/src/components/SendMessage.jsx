@@ -216,7 +216,7 @@ class SendMessage extends React.Component {
     
             drawVideo();
     
-            let local_stream = localVideoCanvas.captureStream(60);
+            let local_stream = localVideoCanvas.captureStream();
             let raw_tracks = raw_video_stream.getAudioTracks();
             raw_tracks.forEach(track => {
                 local_stream.addTrack(track);
@@ -260,10 +260,8 @@ class SendMessage extends React.Component {
        
         let recorder = RecordRTC(this.state.raw_local_stream, {
             type: recordingType == "video" ? 'video' : 'audio',
-            mimeType: recordingType == "video" ? 'video/webm;codecs=vp8' : 'audio/wav',
+            mimeType: recordingType == "video" ? process.env.REACT_APP_PLATFORM == "web" ? 'video/webm;codecs=vp8' : 'video/webm;codecs=vp9' : 'audio/wav',
             recorderType: recordingType == "video" ? MediaStreamRecorder : StereoAudioRecorder,
-            desiredSampRate: 16000,
-            numberOfAudioChannels: 1,
             disableLogs: true
         });
 

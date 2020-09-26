@@ -107,7 +107,7 @@ class Library extends React.Component {
                                                     <p style={{paddingTop:15,fontWeight:700,marginBottom:0}}>Video Processing <FontAwesomeIcon icon={faCircleNotch} style={{color:"#6772ef"}} spin /><br /><small>The video will appear here automatically shortly...</small></p>
                                                 )}
                                                 <Row style={{marginLeft: 0}}> 
-                                                    <p style={{paddingLeft:5,marginTop:5}}>
+                                                    <p style={{paddingLeft: item.attachments[0].processed == true ? 5 : 0,marginTop:5}}>
                                                         <span className="text-muted" style={{fontSize:".75rem",textTransform:"capitalize"}}>
                                                             {formattedDate}
                                                         </span>
