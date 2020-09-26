@@ -4,6 +4,7 @@ import { push } from 'connected-react-router';
 
 import auth from './auth';
 import user from './user';
+import library from './library';
 import room from './room';
 import message from './message';
 import thread from './thread';
@@ -15,6 +16,7 @@ export default (history) => {
         router: connectRouter(history),
         auth,
         user,
+        library,
         room,
         message,
         thread,

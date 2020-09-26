@@ -169,7 +169,7 @@ class NewMessage extends React.Component {
                     <SendMessage 
                         settings={settings} 
                         user={user} 
-                        isPublic={false}
+                        isLibrary={false}
                         isNewThread={true}
                         recipients={suggestionValue} 
                         createMessage={createMessage} 

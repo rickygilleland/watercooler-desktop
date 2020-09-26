@@ -165,6 +165,23 @@
   .text-red {
     color:rgb(249, 66, 108) !important;
   }
+  .fa-video, .fa-video-slash, .fa-microphone, .fa-microphone-slash, .fa-save, .fa-times-circle, .fa-trash-alt, .fa-window-close {
+    filter:drop-shadow(0 .125rem .2rem rgb(0, 0, 0, .7));
+  }
+  .react-video-player-wrapper, .react-audio-player-wrapper {
+    position: relative;
+  }
+  .react-video-player-wrapper { 
+    padding-top: 75% /* Player ratio: 100 / (1280 / 960) */
+  }
+  .react-audio-player-wrapper {
+    padding-top: 10%;
+  }
+  .react-player {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
 </style>
 <body style="overflow: hidden; margin: 0; background-color: rgb(18, 20, 34, 1);">
   <div id="App">

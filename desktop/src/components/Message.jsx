@@ -68,7 +68,7 @@ class Message extends React.PureComponent {
                         <p className="align-self-center mb-0 mr-2" style={{fontSize:".7rem",width:50}}>{formattedDate}</p>
                     )}
                     {message.attachments.length > 0 && message.attachments[0].processed == true && (
-                        <div style={{height:message.attachments[0].mime_type == "video/mp4" ? 350 : undefined,width:message.attachments[0].mime_type == "video/mp4" ? 466 : undefined}}>
+                        <div style={{height:message.attachments[0].mime_type == "video/mp4" ? 350 : 50,width:message.attachments[0].mime_type == "video/mp4" ? 466 : 466}}>
                             <MessageMediaPlayer
                                 autoplay={false}
                                 controls={true}

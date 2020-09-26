@@ -35,6 +35,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { getOrganizationUsers } from '../actions/organization';
 import EnsureLoggedInContainer from '../containers/EnsureLoggedInContainer';
+import LibraryPage from '../containers/LibraryPage';
 import RoomPage from '../containers/RoomPage';
 import TeamPage from '../containers/TeamPage';
 import ErrorBoundary from './ErrorBoundary';
@@ -103,7 +104,18 @@ class Sidebar extends React.Component {
 
     componentDidMount() {
         var { pusherInstance, organizationPresenceChannel, userPrivateNotificationChannel } = this.state;
-        const { push, auth, user, organization, getOrganizations, updateUserDetails, getUserThreads, addNewMessageFromNotification } = this.props;
+        const { 
+            push, 
+            auth, 
+            user, 
+            organization, 
+            getOrganizations, 
+            updateUserDetails, 
+            getUserThreads, 
+            addNewMessageFromNotification, 
+            addNewItemFromNotification ,
+            getLibraryItems
+        } = this.props;
 
         if (!auth.isLoggedIn) {
             return;
@@ -266,6 +278,10 @@ class Sidebar extends React.Component {
                         }
                     }
 
+                    if (event == "library.items.updated") {
+                        addNewItemFromNotification(data.message);
+                    }
+
                 });
             }
         }
@@ -306,6 +322,7 @@ class Sidebar extends React.Component {
         }*/
 
         getUserThreads();
+        getLibraryItems();
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -764,7 +781,7 @@ class Sidebar extends React.Component {
                                                         }} 
                                                         className="d-block py-1"
                                                         to={{
-                                                            pathname: `/thread/public`,
+                                                            pathname: `/library`,
                                                         }}>
                                                         <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faBookOpen} style={{fontSize:".7rem",marginRight:".2rem"}} /> Library</p>
                                                     </NavLink>
@@ -834,6 +851,21 @@ class Sidebar extends React.Component {
                                                     {...routeProps} 
                                                     organizationUsersOnline={organizationUsersOnline} 
                                                     currentTime={currentTime} 
+                                                    onClick={() => {
+                                                        if (window.innerWidth < 768) {
+                                                            this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
+                                                        }
+                                                    }}
+                                                />
+                                            </ErrorBoundary>
+                                        )}
+                                    />
+                                    <Route 
+                                        path={routes.LIBRARY} 
+                                        render={(routeProps) => (
+                                            <ErrorBoundary showError={true}>
+                                                <LibraryPage 
+                                                    {...routeProps} 
                                                     onClick={() => {
                                                         if (window.innerWidth < 768) {
                                                             this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })

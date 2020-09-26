@@ -10,6 +10,7 @@ import {
 } from '../actions/organization';
 import { getUserThreads, getThread } from '../actions/thread';
 import { addNewMessageFromNotification } from '../actions/message';
+import { addNewItemFromNotification, getLibraryItems } from '../actions/library';
 import { 
   getAvailableDevices, 
   updateDefaultDevices,
@@ -54,7 +55,9 @@ function mapDispatchToProps(dispatch) {
         createCall,
         getUserThreads,
         getThread,
+        getLibraryItems,
         addNewMessageFromNotification,
+        addNewItemFromNotification,
         getAvailableDevices,
         updateDefaultDevices,
         updateExperimentalSettings,

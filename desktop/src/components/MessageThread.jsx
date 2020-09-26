@@ -260,7 +260,7 @@ class MessageThread extends React.Component {
                 <SendMessage 
                     settings={settings} 
                     user={user} 
-                    isPublic={thread.type == "public"}
+                    isLibrary={false}
                     recipients={recipients} 
                     threadName={thread.name}
                     threadId={thread.id}
