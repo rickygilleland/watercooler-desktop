@@ -71,7 +71,7 @@ function RoomSettingsModal(props) {
                     style={{marginTop:"1.9rem"}}
                 />
 
-                {process.env.REACT_APP_PLATFORM != "web" && (
+                {/*process.env.REACT_APP_PLATFORM != "web" && (
                   <>
                     <Form.Check 
                         type="switch"
@@ -86,7 +86,7 @@ function RoomSettingsModal(props) {
                     <p className="text-muted pt-1">Background blur uses an on-device neural network to blur your background and surroundings.</p>
                     <p className="text-muted small">Enabling this feature may cause performance issues on lower-end computers and is not guaranteed to hide private information.</p>
                   </>
-                )}
+                )*/}
 
             </Form>
 

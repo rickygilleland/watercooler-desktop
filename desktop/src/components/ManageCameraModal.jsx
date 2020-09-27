@@ -75,12 +75,12 @@ function ManageCameraModal(props) {
 
                     <p className="mt-3 mb-0 pb-0 text-muted" style={{fontSize:".8rem"}}><i>Note:</i> If you're already connected to a room, you will need to re-join for your new video input or audio input settings to take effect.</p>
 
-                    {process.env.REACT_APP_PLATFORM != "web" && (
+                    {/*process.env.REACT_APP_PLATFORM != "web" && (
                         <>
                             <Form.Label className="pt-3">Background Blur Amount</Form.Label>
                             <Form.Control type="range" className="mb-3" name="backgroundBlurAmount" value={backgroundBlurAmount} onChange={handleBackgroundBlurAmountChange} />
                         </>
-                    )}
+                    )*/}
 
                     <Button className="mt-3" variant="primary" type="submit">Update Camera Settings</Button>
                 </Form>

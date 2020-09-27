@@ -60,7 +60,7 @@ class Room extends React.Component {
     
         super(props);
 
-        const { settings } = this.props;
+        const { settings, billing } = this.props;
 
         this.state = {
             room: {},
@@ -100,7 +100,7 @@ class Room extends React.Component {
                 sidebarWidth: 280
             },
             pinned: false,
-            videoStatus: settings.roomSettings.videoEnabled,
+            videoStatus: settings.roomSettings.videoEnabled && billing.plan == "Plus",
             audioStatus: settings.roomSettings.audioEnabled,
             videoIsFaceOnly: false,
             faceTrackingNetWindow: null,
@@ -2259,16 +2259,16 @@ class Room extends React.Component {
                                         :
                                             local_stream === null ?
                                                 !room_at_capacity ?
-                                                    <Button variant="success" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                                    <Button variant="link" style={{whiteSpace:'nowrap'}} className="mx-3 icon-button btn-lg" size="lg" onClick={() => this.startPublishingStream() }><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
                                                 :
-                                                    <Button variant="success" style={{whiteSpace:'nowrap'}} className="mx-1" disabled><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
+                                                    <Button variant="link" style={{whiteSpace:'nowrap'}} className="mx-3 icon-button btn-lg" size="lg" disabled><FontAwesomeIcon icon={faDoorOpen} /> Join</Button>
                                             :   
-                                                <Button variant="danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
+                                                <Button variant="link" style={{whiteSpace:'nowrap'}} className="mx-3 icon-button btn-lg text-red" size="lg" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
                                     :
                                         loading || local_stream === null ?
                                             ''
                                         :
-                                            <Button variant="danger" style={{whiteSpace:'nowrap'}} className="mx-1" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
+                                            <Button variant="link" style={{whiteSpace:'nowrap'}} size="lg" className="mx-3 icon-button btn-lg text-red" onClick={() => this.stopPublishingStream() }><FontAwesomeIcon icon={faDoorClosed} /> Leave</Button>
                                 }
                             </div>
                             <div style={{height:60}}></div>
@@ -2282,12 +2282,12 @@ class Room extends React.Component {
                                         ?
                                             <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">{process.env.REACT_APP_PLATFORM == "web" ? 'Screen sharing is only available in the Blab desktop app' : 'The Plus Plan is required for screen sharing.' }</Tooltip>}>
                                                 <span className="d-inline-block">
-                                                    <Button variant="info" className="mx-1" style={{ pointerEvents: 'none' }} disabled><FontAwesomeIcon icon={faDesktop} /></Button>
+                                                    <Button variant="link" className="mx-3 icon-button btn-lg" style={{ pointerEvents: 'none' }} disabled><FontAwesomeIcon icon={faDesktop} /></Button>
                                                 </span>
                                             </OverlayTrigger> 
                                         :
                                             screenSharingActive ? 
-                                                <Button variant="danger" className="mx-1" onClick={() => this.toggleScreenSharing()}><FontAwesomeIcon icon={faDesktop} /></Button>
+                                                <Button variant="link" className="mx-3 icon-button btn-lg text-red" onClick={() => this.toggleScreenSharing()}><FontAwesomeIcon icon={faDesktop} /></Button>
                                             :
                                                 <Dropdown className="p-0 m-0" as="span">
                                                     <Dropdown.Toggle variant="info" id="screensharing-dropdown" className="mx-1 no-carat">
@@ -2299,27 +2299,28 @@ class Room extends React.Component {
                                                     </Dropdown.Menu>
                                                 </Dropdown>
                                     }
-                                    <Button variant={audioStatus ? "success" : "danger"} className="mx-1 ph-no-capture" onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
+                                    <Button variant="link" className={"mx-3 icon-button btn-lg ph-no-capture" + (audioStatus ? " text-green" : " text-red")} onClick={() => this.toggleVideoOrAudio("audio") }><FontAwesomeIcon icon={audioStatus ? faMicrophone : faMicrophoneSlash} /></Button>
                                     {billing.plan != "Plus"
                                         ?
                                             <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">The Plus Plan is required for video.</Tooltip>}>
                                                 <span className="d-inline-block">
                                             
-                                                <Button variant={videoStatus ? "success" : "danger"} className="mx-1 ph-no-capture" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                                <Button variant="link" className="mx-3 icon-button btn-lg ph-no-capture text-red" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                                 </span>
                                             </OverlayTrigger> 
                                         :
                                             room.video_enabled ?
                                                 <React.Fragment>
-                                                    <Button variant={videoStatus ? "success" : "danger"} className="mx-1 ph-no-capture" onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                                    <Button variant="link" className={"mx-3 icon-button btn-lg ph-no-capture" + (videoStatus ? " text-green" : " text-red")} onClick={() => this.toggleVideoOrAudio("video") }><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                                 </React.Fragment>
                                             :
                                             <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-disabled">Video is disabled in this room.</Tooltip>}>
                                                 <span className="d-inline-block">
-                                                <Button variant={videoStatus ? "success" : "danger"} className="mx-1 ph-no-capture" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
+                                                    <Button variant="link" className="mx-3 icon-button btn-lg ph-no-capture text-red" disabled style={{ pointerEvents: 'none' }}><FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} /></Button>
                                                 </span>
                                             </OverlayTrigger> 
                                     }
+                                    {/*
                                     <Dropdown className="p-0 m-0" as="span">
                                         <Dropdown.Toggle variant="info" id="more-settings-dropdown" className="mx-1 no-carat">
                                             <FontAwesomeIcon icon={faEllipsisV} />
@@ -2342,6 +2343,7 @@ class Room extends React.Component {
                                             </Dropdown.Item>
                                         </Dropdown.Menu>
                                     </Dropdown>
+                                    */}
                                 </div>
                                 <div style={{height:60}}></div>
                                 {/*<Button variant="light" className="mx-1" onClick={() => this.createDetachedWindow() }><FontAwesomeIcon icon={faLayerGroup}></FontAwesomeIcon></Button>*/}
