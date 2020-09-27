@@ -81,8 +81,6 @@ class NewMessage extends React.Component {
             let updatedSuggestions =  [...this.state.suggestionValue];
             updatedSuggestions.push(newValue.id);
 
-            console.log(updatedSuggestions);
-
             return this.setState({ suggestionValue: updatedSuggestions, suggestionDisplayValue: '' });
         }
 
@@ -104,7 +102,7 @@ class NewMessage extends React.Component {
         const { suggestions, suggestionValue, suggestionDisplayValue, users } = this.state;
 
         return (
-            <div className="d-flex flex-column" style={{height: process.env.REACT_APP_PLATFORM === "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'}}>
+            <div className="d-flex flex-column" style={{height: process.env.REACT_APP_PLATFORM == "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'}}>
                 <Autosuggest
                     suggestions={suggestions}
                     getSuggestionValue={(suggestion) => {
@@ -123,7 +121,7 @@ class NewMessage extends React.Component {
                     onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
                     onSuggestionsClearRequested={this.onSuggestionsClearRequested}
                     inputProps={{
-                        placeholder: "Type the name of a teammate, or start recording to send a public Blab",
+                        placeholder: "Type the name of a teammate",
                         value: suggestionDisplayValue,
                         onChange: this.handleSuggestionChange
                     }}
@@ -136,8 +134,7 @@ class NewMessage extends React.Component {
                 <div className="mt-4">
                     {suggestionValue.length == 0 && (
                         <p style={{fontWeight:700,fontSize:"1rem"}} className="pl-3">
-                            No teammates selected yet.<br />
-                            <small>Start recording if you want this to be a public Blab.</small>
+                            No teammates selected yet.
                         </p>
                     )}
                     {suggestionValue.map(selectedUser => {
@@ -172,7 +169,8 @@ class NewMessage extends React.Component {
                     <SendMessage 
                         settings={settings} 
                         user={user} 
-                        isPublic={false}
+                        isLibrary={false}
+                        isNewThread={true}
                         recipients={suggestionValue} 
                         createMessage={createMessage} 
                         organization={organization} 

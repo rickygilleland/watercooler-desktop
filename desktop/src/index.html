@@ -12,6 +12,20 @@
 <link href="https://blab.to/css/app.css" rel="stylesheet">
 </head>
 <style>
+  body {
+    background-color: transparent !important;
+  }
+  .dark-mode, .dark-mode > .btn > .svg-inline--fa, .dark-mode > .error-message {
+    color: #fff;
+  }
+  .dark-mode > .error-message {
+    background-color: transparent !important;
+    border: 1px solid rgba(1, 1, 1, 0.35);
+  }
+  .draggable-header {
+    height: 30px;
+    -webkit-app-region: drag;
+  }
   h1, .h1 {
     font-weight:900
   }
@@ -35,7 +49,13 @@
     transform:rotateY(180deg);
   }
   .titlebar {
+    height: 30px !important;
+  }
+  .cet-windows, .cet-linux {
     border-bottom: 1px solid #1c2046 !important;
+  }
+  .cet-mac {
+    background: transparent !important;
   }
   .btn-link:hover {
     text-decoration:none;
@@ -165,10 +185,27 @@
   .text-red {
     color:rgb(249, 66, 108) !important;
   }
+  .fa-video, .fa-video-slash, .btn > .fa-microphone, .fa-microphone-slash, .fa-save, .fa-times-circle, .fa-trash-alt, .fa-window-close {
+    filter:drop-shadow(0 .125rem .2rem rgb(0, 0, 0, .7));
+  }
+  .react-video-player-wrapper, .react-audio-player-wrapper {
+    position: relative;
+  }
+  .react-video-player-wrapper { 
+    padding-top: 75% /* Player ratio: 100 / (1280 / 960) */
+  }
+  .react-audio-player-wrapper {
+    padding-top: 10%;
+  }
+  .react-player {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
 </style>
-<body style="overflow: hidden; margin: 0; background-color: rgb(18, 20, 34, 1);">
+<body style="overflow: hidden; margin: 0;">
   <div id="App">
-    <div class="vh-100" style="background-color: #121422;"></div>
+    <div class="vh-100"></div>
   </div>
 </body>
 </html>

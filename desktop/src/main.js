@@ -97,7 +97,9 @@ const createWindow = () => {
 
     mainWindow = new BrowserWindow({
       titleBarStyle: 'hidden',
-      transparent: true,
+      vibrancy: 'sidebar',
+      transparent: true, //necessary for vibrancy fix on macos
+      backgroundColor: "#80FFFFFF", //necessary for vibrancy fix on macos
       width: 1000,
       height: 600,
       minWidth: 700,
@@ -118,7 +120,9 @@ const createWindow = () => {
     // Create the browser window.
     mainWindow = new BrowserWindow({
       titleBarStyle: 'hidden',
-      transparent:true,
+      vibrancy: 'sidebar',
+      transparent: true, //necessary for vibrancy fix on macos
+      backgroundColor: "#80FFFFFF", //necessary for vibrancy fix on macos
       width: 1100,
       height: 600,
       minWidth: 700,

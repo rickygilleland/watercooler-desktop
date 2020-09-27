@@ -67,19 +67,19 @@ class Message extends React.PureComponent {
                     {!renderHeading && (
                         <p className="align-self-center mb-0 mr-2" style={{fontSize:".7rem",width:50}}>{formattedDate}</p>
                     )}
-                    {message.attachment_processed == true && (
-                        <div style={{height:message.attachment_mime_type == "video/mp4" ? 350 : undefined,width:message.attachment_mime_type == "video/mp4" ? 466 : undefined}}>
+                    {message.attachments.length > 0 && message.attachments[0].processed == true && (
+                        <div style={{height:message.attachments[0].mime_type == "video/mp4" ? 350 : 50,width:message.attachments[0].mime_type == "video/mp4" ? 466 : 466}}>
                             <MessageMediaPlayer
                                 autoplay={false}
                                 controls={true}
-                                source={message.attachment_temporary_url}
-                                mediaType={message.attachment_mime_type}
-                                thumbnail={message.attachment_thumbnail_url}
+                                source={message.attachments[0].temporary_url}
+                                mediaType={message.attachments[0].mime_type}
+                                thumbnail={message.attachments[0].thumbnail_url}
                                 id={`video_player_${message.id}`}
                             />
                         </div>
                     )}
-                    {message.attachment_processed == false && (
+                    {message.attachments.length > 0 && message.attachments[0].processed == false && (
                         <p style={{paddingTop:15,fontWeight:700}}>Video Processing <FontAwesomeIcon icon={faCircleNotch} style={{color:"#6772ef"}} spin /><br /><small>The video will appear here automatically shortly...</small></p>
                     )}
                 </Row>

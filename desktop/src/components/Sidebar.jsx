@@ -30,11 +30,12 @@ import {
     faChevronCircleLeft,
     faChevronCircleRight,
     faDesktop,
-    faGlobe,
+    faBookOpen,
     faArrowUp
 } from '@fortawesome/free-solid-svg-icons';
 import { getOrganizationUsers } from '../actions/organization';
 import EnsureLoggedInContainer from '../containers/EnsureLoggedInContainer';
+import LibraryPage from '../containers/LibraryPage';
 import RoomPage from '../containers/RoomPage';
 import TeamPage from '../containers/TeamPage';
 import ErrorBoundary from './ErrorBoundary';
@@ -55,9 +56,10 @@ import Pusher from 'pusher-js';
 import { getUserThreads, getThread } from '../actions/thread';
 
 if (process.env.REACT_APP_PLATFORM != "web") {
-    var { BrowserWindow } = require('electron').remote;
+    var { BrowserWindow, nativeTheme } = require('electron').remote;
 } else {
     var BrowserWindow = null;
+    var nativeTheme = null;
     var MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY = null;
     var MAIN_WINDOW_WEBPACK_ENTRY = null;
 }
@@ -93,6 +95,7 @@ class Sidebar extends React.Component {
             backgroundBlurWindow: null,
             faceTrackingNetWindow: null,
             sidebarIsVisible: true,
+            isLightMode: nativeTheme == null || !nativeTheme.shouldUseDarkColors
         }
         
         this.userLogout = this.userLogout.bind(this);
@@ -103,10 +106,27 @@ class Sidebar extends React.Component {
 
     componentDidMount() {
         var { pusherInstance, organizationPresenceChannel, userPrivateNotificationChannel } = this.state;
-        const { push, auth, user, organization, getOrganizations, updateUserDetails, getUserThreads, addNewMessageFromNotification } = this.props;
+        const { 
+            push, 
+            auth, 
+            user, 
+            organization, 
+            getOrganizations, 
+            updateUserDetails, 
+            getUserThreads, 
+            addNewMessageFromNotification, 
+            addNewItemFromNotification ,
+            getLibraryItems
+        } = this.props;
 
         if (!auth.isLoggedIn) {
             return;
+        }
+
+        if (process.env.REACT_APP_PLATFORM != "web") {
+            nativeTheme.on('updated', () => {
+                this.setState({ isLightMode: nativeTheme.shouldUseDarkColors ? false : true });
+            })
         }
 
         posthog.identify(user.id);
@@ -266,6 +286,10 @@ class Sidebar extends React.Component {
                         }
                     }
 
+                    if (event == "library.items.updated") {
+                        addNewItemFromNotification(data.item);
+                    }
+
                 });
             }
         }
@@ -306,6 +330,7 @@ class Sidebar extends React.Component {
         }*/
 
         getUserThreads();
+        getLibraryItems();
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -444,6 +469,7 @@ class Sidebar extends React.Component {
             backgroundBlurWindow,
             faceTrackingNetWindow,
             sidebarIsVisible,
+            isLightMode
         } = this.state;
 
         teams.forEach(team => {
@@ -471,7 +497,7 @@ class Sidebar extends React.Component {
                 <div key={"rooms_" + curTeam.id} className="mt-2">
                     <Row>
                         <Col xs={9}>
-                            <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:800}}>Rooms</p>
+                            <p className={"pt-1 mb-0 pl-3" + (!isLightMode || process.env.REACT_APP_PLATFORM == "web" || process.platform != "darwin" ? ' text-light' : ' text-dark')} style={{fontSize:"1rem",fontWeight:800}}>Rooms</p>
                         </Col>
                         <Col xs={3}>
                             {billing.plan == "Free" && (
@@ -493,7 +519,7 @@ class Sidebar extends React.Component {
                                                 activeStyle={{
                                                     fontWeight: "bold"
                                                 }} 
-                                                className="d-block py-1 ph-no-capture"
+                                                className={"d-block py-1 ph-no-capture"}
                                                 to={{
                                                     pathname: `/room/${room.slug}`,
                                                     state: {
@@ -501,7 +527,7 @@ class Sidebar extends React.Component {
                                                         room: room
                                                     }
                                                 }}>
-                                            <p className="mb-0 pl-3 ph-no-capture">
+                                            <p className={"mb-0 pl-3 ph-no-capture" + (!isLightMode || process.env.REACT_APP_PLATFORM == "web" || process.platform != "darwin" ? ' text-light' : ' text-dark')}>
                                                 {room.is_private ? 
                                                     <FontAwesomeIcon icon={faLock} style={{fontSize:".7rem",marginRight:".2rem"}} /> 
                                                     : 
@@ -523,14 +549,14 @@ class Sidebar extends React.Component {
                 <div key={"threads_" + curTeam.id} className="mt-2">
                     <Row>
                         <Col xs={9}>
-                            <p className="text-light pt-1 mb-0 pl-3" style={{fontSize:"1rem",fontWeight:800}}>Direct Messages</p>
+                            <p className={"pt-1 mb-0 pl-3" + (!isLightMode || process.env.REACT_APP_PLATFORM == "web" || process.platform != "darwin" ? ' text-light' : ' text-dark')} style={{fontSize:"1rem",fontWeight:800}}>Direct Messages</p>
                         </Col>
                         <Col xs={3}>
                             <NavLink exact={true} 
                                 activeStyle={{
                                     fontWeight: "bold"
                                 }} 
-                                className="d-block btn text-light"
+                                className={"d-block btn" + (!isLightMode || process.env.REACT_APP_PLATFORM == "web" || process.platform != "darwin" ? ' text-light' : ' text-dark')}
                                 to={{
                                     pathname: `/messages/new`
                                 }}>
@@ -550,7 +576,7 @@ class Sidebar extends React.Component {
                                         to={{
                                             pathname: `/messages/new`,
                                         }}>
-                                        <p className="text-light mb-0 pl-3">
+                                        <p className={"mb-0 pl-3" + (!isLightMode || process.env.REACT_APP_PLATFORM == "web" || process.platform != "darwin" ? ' text-light' : ' text-dark')}>
                                             Start Your First DM
                                         </p>
                                     </NavLink>
@@ -566,7 +592,7 @@ class Sidebar extends React.Component {
                                         to={{
                                             pathname: `/thread/${privateThreads[threadId].type}/${privateThreads[threadId].slug}`,
                                         }}>
-                                        <p className="text-light mb-0 pl-3">
+                                        <p className={"mb-0 pl-3" + (!isLightMode || process.env.REACT_APP_PLATFORM == "web" || process.platform != "darwin" ? ' text-light' : ' text-dark')}>
                                             {privateThreads[threadId].users.length == 1 && (
                                                 <FontAwesomeIcon 
                                                     icon={faCircle} 
@@ -634,7 +660,7 @@ class Sidebar extends React.Component {
         }
 
         return (
-            <>
+            <div style={{backgroundColor: process.env.REACT_APP_PLATFORM == "web" || process.platform != "darwin" ? "#121422" : "transparent"}}>
                 <Switch>
                     <EnsureLoggedInContainer>
                         <ErrorBoundary showError={false}>
@@ -726,19 +752,22 @@ class Sidebar extends React.Component {
                                 expanded={sidebarIsVisible} 
                                 onToggle={() => this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })}
                                 style={{
-                                    height: process.env.REACT_APP_PLATFORM === "web" ? 'calc(100vh - 30px)' : '100vh'
+                                    height: process.env.REACT_APP_PLATFORM == "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)',
                                 }}
                             >
                                 <Navbar.Collapse id="responsive-navbar-nav">
-                                
-                                    <Navbar className="text-light" style={{height:70,backgroundColor:"#121422",borderBottom:"1px solid #1c2046",paddingTop: process.env.REACT_APP_PLATFORM == "electron" ? '1.5rem!important' : 0}}>
+                                    <Navbar className={(!isLightMode && 'text-light')} style={{
+                                        height:70,
+                                        backgroundColor: process.env.REACT_APP_PLATFORM == "web" || process.platform != "darwin" ? "#121422" : "transparent",
+                                        borderBottom: process.env.REACT_APP_PLATFORM == "web" || process.platform != "darwin" ? "1px solid #1c2046" : 0,
+                                    }}>
                                         <ErrorBoundary showError={false}>
                                             <Navbar.Brand>
                                                 {organization != null ? 
-                                                    <p className="text-light p-0 m-0" style={{fontSize:".9rem",fontWeight:800}}>{organization.name}</p>
+                                                    <p className={"p-0 m-0" + (!isLightMode || process.env.REACT_APP_PLATFORM == "web" || process.platform != "darwin" ? ' text-light' : ' text-dark')} style={{fontSize:".9rem",fontWeight:800}}>{organization.name}</p>
                                                 : '' }
                                                 {user != null ? 
-                                                    <p className="text-light pt-0 pb-1" style={{fontSize:".8rem"}}><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#3ecf8e",fontSize:".4rem",verticalAlign:'middle'}} /> {user.first_name}</p>
+                                                    <p className={"pt-0 pb-1" + (!isLightMode || process.env.REACT_APP_PLATFORM == "web" || process.platform != "darwin" ? ' text-light' : ' text-dark')} style={{fontSize:".8rem"}}><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#3ecf8e",fontSize:".4rem",verticalAlign:'middle'}} /> {user.first_name}</p>
                                                 : '' }
                                             </Navbar.Brand>
                                         </ErrorBoundary>
@@ -753,7 +782,7 @@ class Sidebar extends React.Component {
                                                             href="https://blab.to/billing"
                                                             target="_blank"
                                                         >
-                                                            <p className="text-light mb-0 pl-3 text-red"><FontAwesomeIcon icon={faArrowUp} style={{fontSize:".7rem",marginRight:".2rem"}} /> Upgrade Account</p>
+                                                            <p className="mb-0 pl-3 text-red"><FontAwesomeIcon icon={faArrowUp} style={{fontSize:".7rem",marginRight:".2rem"}} /> Upgrade Account</p>
                                                         </a>
                                                     </li>
                                                 )}
@@ -764,9 +793,9 @@ class Sidebar extends React.Component {
                                                         }} 
                                                         className="d-block py-1"
                                                         to={{
-                                                            pathname: `/thread/public`,
+                                                            pathname: `/library`,
                                                         }}>
-                                                        <p className="text-light mb-0 pl-3"><FontAwesomeIcon icon={faGlobe} style={{fontSize:".7rem",marginRight:".2rem"}} /> Public Blabs</p>
+                                                        <p className={"mb-0 pl-3" + (!isLightMode || process.env.REACT_APP_PLATFORM == "web" || process.platform != "darwin" ? ' text-light' : ' text-dark')}><FontAwesomeIcon icon={faBookOpen} style={{fontSize:".7rem",marginRight:".2rem"}} /> Library</p>
                                                     </NavLink>
                                                 </li>
                                                 <li key="people-nav-button" className="nav-item">
@@ -778,11 +807,11 @@ class Sidebar extends React.Component {
                                                         to={{
                                                             pathname: `/team`
                                                         }}>
-                                                            <p className="mb-0 pl-3"><FontAwesomeIcon icon={faUsers} style={{fontSize:".65rem"}} />  Team</p>
+                                                            <p className={"mb-0 pl-3" + (!isLightMode || process.env.REACT_APP_PLATFORM == "web" || process.platform != "darwin" ? ' text-light' : ' text-dark')}><FontAwesomeIcon icon={faUsers} style={{fontSize:".65rem"}} />  Team</p>
                                                     </NavLink>
                                                 </li>
                                                 <li key="settings-nav-button" className="nav-item">
-                                                    <Button variant="link" className="mb-0 pl-3 d-block py-1" onClick={() => this.setState({ showSettingsModal: true })}><FontAwesomeIcon icon={faCog} style={{fontSize:".65rem"}} />  Settings</Button>
+                                                    <Button variant="link" className={"mb-0 pl-3 d-block py-1" + (!isLightMode || process.env.REACT_APP_PLATFORM == "web" || process.platform != "darwin" ? ' text-light' : ' text-dark')} onClick={() => this.setState({ showSettingsModal: true })}><FontAwesomeIcon icon={faCog} style={{fontSize:".65rem"}} />  Settings</Button>
                                                 </li>
                                             </ul>
                                         </div>
@@ -794,7 +823,17 @@ class Sidebar extends React.Component {
                                 </Navbar.Collapse>
                                 <Navbar.Toggle aria-controls="responsive-navbar-nav" className="border-0" style={{outline: 'none'}}><FontAwesomeIcon icon={sidebarIsVisible ? faChevronCircleLeft : faChevronCircleRight} className="mr-1" style={{color:"#3ecf8e"}} /></Navbar.Toggle>
                             </Navbar>
-                            <Col className="pl-0" style={{borderLeft:"1px solid #1c2046",width:"100%",borderRadius:15,marginLeft:0,marginRight:0,marginTop:0,marginBottom:20,backgroundColor:"#fff"}}>
+                            <Col className={"pl-0 shadow-sm" + (isLightMode ? '' : ' dark-mode')} style={{
+                                border: isLightMode ? "1px solid rgb(28, 32, 70, .2)" : "1px solid rgb(1, 1, 1, .35)",
+                                width:"100%",
+                                borderRadius:15,
+                                marginLeft:0,
+                                marginRight:0,
+                                marginTop:0,
+                                marginBottom:20,
+                                backgroundColor:isLightMode ? "#fff" : "#212529",
+                                height: process.env.REACT_APP_PLATFORM == "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'
+                            }}>
                                 <>
                                     <Route 
                                         path={routes.ROOM} 
@@ -811,6 +850,7 @@ class Sidebar extends React.Component {
                                                     backgroundBlurWindow={backgroundBlurWindow}
                                                     faceTrackingNetWindow={faceTrackingNetWindow}
                                                     sidebarIsVisible={sidebarIsVisible}
+                                                    isLightMode={isLightMode}
                                                     onClick={() => {
                                                         if (window.innerWidth < 768) {
                                                             this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
@@ -834,6 +874,23 @@ class Sidebar extends React.Component {
                                                     {...routeProps} 
                                                     organizationUsersOnline={organizationUsersOnline} 
                                                     currentTime={currentTime} 
+                                                    isLightMode={isLightMode}
+                                                    onClick={() => {
+                                                        if (window.innerWidth < 768) {
+                                                            this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
+                                                        }
+                                                    }}
+                                                />
+                                            </ErrorBoundary>
+                                        )}
+                                    />
+                                    <Route 
+                                        path={routes.LIBRARY} 
+                                        render={(routeProps) => (
+                                            <ErrorBoundary showError={true}>
+                                                <LibraryPage 
+                                                    {...routeProps} 
+                                                    isLightMode={isLightMode}
                                                     onClick={() => {
                                                         if (window.innerWidth < 768) {
                                                             this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
@@ -849,6 +906,7 @@ class Sidebar extends React.Component {
                                             <ErrorBoundary showError={true}>
                                                 <NewMessagePage 
                                                     {...routeProps} 
+                                                    isLightMode={isLightMode}
                                                     onClick={() => {
                                                         if (window.innerWidth < 768) {
                                                             this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
@@ -863,21 +921,7 @@ class Sidebar extends React.Component {
                                         render={(routeProps) => (
                                             <ErrorBoundary showError={true}>
                                                 <MessageThreadPage 
-                                                    {...routeProps} 
-                                                    onClick={() => {
-                                                        if (window.innerWidth < 768) {
-                                                            this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
-                                                        }
-                                                    }}
-                                                />
-                                            </ErrorBoundary>
-                                        )}
-                                    />
-                                    <Route 
-                                        path={routes.MESSAGE.PUBLIC_THREAD} 
-                                        render={(routeProps) => (
-                                            <ErrorBoundary showError={true}>
-                                                <MessageThreadPage 
+                                                    isLightMode={isLightMode}
                                                     {...routeProps} 
                                                     onClick={() => {
                                                         if (window.innerWidth < 768) {
@@ -893,7 +937,7 @@ class Sidebar extends React.Component {
                         </Row>
                     </EnsureLoggedInContainer>
                 </Switch>
-            </>
+            </div>
         );
     }
 

@@ -50,7 +50,8 @@ module.exports = {
                   "name": "main_window"
                 }
               ],
-            }
+            },
+            "loggerPort": "9001"
           }
         ],
         [

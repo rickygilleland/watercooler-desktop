@@ -2174,6 +2174,7 @@ class Room extends React.Component {
             addUserLoading,
             currentTime,
             settings,
+            isLightMode,
         } = this.props;
 
         const { 
@@ -2382,13 +2383,14 @@ class Room extends React.Component {
                         </React.Fragment>
                     }
                 </Container>
-                <Container className="px-0 border-top" style={{height:videoSizes.threadContainerHeight,backgroundColor: "rgb(27, 30, 47, .015)"}} fluid>
+                <Container className="px-0" style={{height:videoSizes.threadContainerHeight,backgroundColor: "rgb(27, 30, 47, .015)"}} fluid>
                     {typeof room.thread != "undefined" && typeof room.thread.id != "undefined"  && (
                         <MessageThreadPage 
                             threadType="room"
                             threadId={room.thread.id}
                             toggleThreadCollapsed={() => this.setState({ showChatThread: this.state.showChatThread ? false : true })}
                             collapsed={showChatThread}
+                            isLightMode={isLightMode}
                         />
                     )}
                 </Container>

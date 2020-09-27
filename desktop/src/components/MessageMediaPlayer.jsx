@@ -17,7 +17,7 @@ export default class MessageMediaPlayer extends React.Component {
     const { autoplay, controls, source, mediaType, muted, thumbnail } = this.props;
 
     return (
-      <div> 
+      <div className={(mediaType == "video/mp4" ? 'react-video-player-wrapper' : 'react-audio-player-wrapper')}> 
         <ReactPlayer 
             url={source} 
             controls={controls}
@@ -32,10 +32,10 @@ export default class MessageMediaPlayer extends React.Component {
                     }
                 }
             }}
-            height={mediaType == "video/mp4" ? "100%" : 45}
-            width={mediaType == "video/mp4" ? "100%" : 450}
+            height="100%"
+            width="100%"
             poster={mediaType == "video/mp4" ? thumbnail : undefined}
-            className="mx-auto"
+            className="mx-auto react-player"
         />
       </div>
     )
