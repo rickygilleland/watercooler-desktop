@@ -3,6 +3,7 @@
   "productName": "Blab",
   "version": "1.7.0",
   "main": ".webpack/main",
+  "description": "Voice-First Communication for Teams",
   "scripts": {
     "start": "electron-forge start",
     "package": "electron-forge package",
