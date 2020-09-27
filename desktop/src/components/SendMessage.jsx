@@ -641,7 +641,7 @@ class SendMessage extends React.Component {
                                         <p style={{fontWeight:700,fontSize:"1.2em"}}><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#f9426c",fontSize:".5rem",verticalAlign:'middle'}} /> Recording Blab<br/> {duration} / 5:00</p>  
                                     )}
                                     {recordingBlobUrl && (
-                                        <div className="mx-auto" style={{height: recordingType == "video" ? 350 : undefined, width: recordingType == "video" ? 466 : undefined}}>
+                                        <div className="mx-auto" style={{height: recordingType == "video" ? 350 : 50, width: recordingType == "video" ? 466 : 466}}>
                                             <MessageMediaPlayer
                                                 autoplay={false}
                                                 controls={true}
