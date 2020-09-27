@@ -91,9 +91,6 @@
     "redux-persist": "^6.0.0",
     "redux-persist-electron-storage": "^2.1.0",
     "redux-thunk": "^2.3.0",
-    "slate": "^0.58.4",
-    "slate-history": "^0.58.4",
-    "slate-react": "^0.58.4",
     "stats.js": "^0.17.0"
   }
 }

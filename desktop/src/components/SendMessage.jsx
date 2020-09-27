@@ -19,7 +19,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import ScreenSharingModal from './ScreenSharingModal';
 import MessageMediaPlayer from './MessageMediaPlayer';
-import MessageEditor from './MessageEditor';
 import RecordRTC, { MediaStreamRecorder, StereoAudioRecorder } from 'recordrtc';
 import posthog from 'posthog-js';
 if (process.env.REACT_APP_PLATFORM != "web") {
