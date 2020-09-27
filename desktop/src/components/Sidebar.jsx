@@ -57,7 +57,6 @@ import { getUserThreads, getThread } from '../actions/thread';
 
 if (process.env.REACT_APP_PLATFORM != "web") {
     var { BrowserWindow, nativeTheme } = require('electron').remote;
-    //var { nativeTheme } = require('electron');
 } else {
     var BrowserWindow = null;
     var nativeTheme = null;
