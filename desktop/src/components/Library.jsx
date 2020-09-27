@@ -48,7 +48,7 @@ class Library extends React.Component {
 
 
     render() {
-        const { libraryLoading, libraryItemCreating, createItem, settings, user, libraryItems, libraryItemsOrder } = this.props;
+        const { libraryLoading, libraryItemCreating, createItem, settings, user, libraryItems, libraryItemsOrder, isLightMode } = this.props;
         const { copiedId } = this.state;
 
         return(
@@ -112,7 +112,10 @@ class Library extends React.Component {
 
                                 return (
                                     <Col xs={{span:12}} md={{span:6}} xl={{span:4}} className="d-flex align-items-stretch" key={item.id}>
-                                        <Card className="w-100 m-2 shadow-sm">
+                                        <Card className="w-100 m-2 shadow-sm" style={{
+                                            backgroundColor: !isLightMode ? "rgba(27, 30, 47, 0.5)" : undefined,
+                                            border: !isLightMode ? "1px solid rgba(1, 1, 1, 0.35)" : undefined
+                                        }}>
                                             <Card.Body>
                                                 {item.attachments.length > 0 && item.attachments[0].processed == true && (
                                                     <div className="mt-3">
@@ -131,7 +134,7 @@ class Library extends React.Component {
                                                 )}
                                                 <Row style={{marginLeft: 0}}> 
                                                     <p style={{paddingLeft: item.attachments[0].processed == true ? 5 : 0,marginTop:5}}>
-                                                        <span className="text-muted" style={{fontSize:".75rem",textTransform:"capitalize"}}>
+                                                        <span className={"" + (isLightMode ? " text-muted" : "")} style={{fontSize:".75rem",textTransform:"capitalize",fontWeight:600}}>
                                                             {formattedDate}
                                                         </span>
                                                     </p>
