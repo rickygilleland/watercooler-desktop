@@ -161,7 +161,7 @@ class MessageThread extends React.Component {
         if (thread.type == "room" && !collapsed) {
             return(
                 <center ref={(el) => { this.messagesContainer = el; }}>
-                    <Button variant="link" className="mx-auto text-center icon-button" size="lg" style={{marginTop:6}} onClick={toggleThreadCollapsed}>
+                    <Button variant="primary" className="mx-auto text-center icon-button rounded-circle" size="lg" style={{fontSize:"1.3rem",minWidth:"3.2rem",minHeight:"3.2rem"}} onClick={toggleThreadCollapsed}>
                         <FontAwesomeIcon icon={faComments} />
                     </Button>
                 </center>
@@ -196,7 +196,7 @@ class MessageThread extends React.Component {
                 )}
                 {thread.type == "room" && (
                     <center>
-                        <Button variant="link" className="mx-auto text-center icon-button" size="lg" style={{marginTop:6}} onClick={toggleThreadCollapsed}>
+                        <Button variant="link" className="mx-auto text-center icon-button" size="lg" style={{fontSize:"1.3rem",marginBottom:10}}onClick={toggleThreadCollapsed}>
                             <FontAwesomeIcon icon={collapsed ? faChevronCircleDown : faChevronCircleUp} />
                         </Button>
                     </center>

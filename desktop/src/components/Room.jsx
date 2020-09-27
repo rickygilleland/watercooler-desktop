@@ -1920,8 +1920,8 @@ class Room extends React.Component {
                 height: height,
                 width: width,
                 display: display,
-                containerHeight: dimensions.height - 60,
-                threadContainerHeight: showChatThread ? dimensions.height : 50,
+                containerHeight: dimensions.height - 75,
+                threadContainerHeight: showChatThread ? dimensions.height : 65,
                 pinnedHeight,
                 pinnedWidth,
                 rows,
@@ -1937,8 +1937,8 @@ class Room extends React.Component {
                 width: 0,
                 height: 0,
                 display: "row align-items-center justify-content-center h-100",
-                containerHeight: dimensions.height - 60,
-                threadContainerHeight: showChatThread ? dimensions.height : 50
+                containerHeight: dimensions.height - 75,
+                threadContainerHeight: showChatThread ? dimensions.height : 65
             }
         });
         
