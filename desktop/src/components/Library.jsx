@@ -142,12 +142,12 @@ class Library extends React.Component {
                                                                 this.setState({copiedId: item.id}); 
                                                             }}
                                                         >
-                                                            <Button variant="link" style={{marginLeft:60,fontSize:".8rem",color:copiedId == item.id ? "rgb(62, 207, 142)" : "#6772ef"}}>
+                                                            <Button variant="link" className="ml-auto" style={{fontSize:".8rem",color:copiedId == item.id ? "rgb(62, 207, 142)" : "#6772ef"}}>
                                                                 <FontAwesomeIcon icon={faShare} />
                                                                 {copiedId == item.id && (
                                                                     <span>
                                                                         <br />
-                                                                        Link Copied to Clipboard
+                                                                        Copied to Clipboarrd
                                                                     </span>
                                                                 )}
                                                             </Button>
