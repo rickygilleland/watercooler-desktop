@@ -551,18 +551,18 @@ class SendMessage extends React.Component {
                             <div className="mx-auto">
                                 {isRecording == false && (
                                     <Button
-                                        variant="link"
-                                        className={"mx-2 mt-3 icon-button text-red"}
-                                        style={{fontSize:"1.3rem",minWidth:"3.2rem",minHeight:"3.2rem"}} 
+                                        variant="danger"
+                                        className={"mx-2 mt-3 icon-button rounded-circle"}
+                                        style={{fontSize:"1.5rem",minWidth:"3.2rem",minHeight:"3.2rem"}} 
                                         onClick={() => this.setState({ showVideoPreview: false })}
                                     >
                                         <FontAwesomeIcon icon={faTimesCircle} />
                                     </Button>
                                 )}
                                 <Button 
-                                    variant="link" 
+                                    variant={isRecording ? "danger" : "success"}
                                     style={{fontSize:"1.3rem",minWidth:"3.2rem",minHeight:"3.2rem"}} 
-                                    className={"mx-2 mt-3 icon-button" + (isRecording ? ' text-red' : '')}
+                                    className={"mx-2 mt-3 icon-button rounded-circle"}
                                     onClick={() => !isRecording ? this.startRecording("video") : this.stopRecording()}
                                     disabled={videoPreviewLoading}
                                 >
@@ -583,12 +583,12 @@ class SendMessage extends React.Component {
                             <div className="mx-auto">
                                 {!isRecording && (
                                     <>
-                                        <Button variant="link" style={{fontSize:"1.3rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className={"mx-2 mt-3 icon-button" + (isRecording ? ' text-red' : '')} onClick={() => this.setState({ showVideoPreview: true })}>
+                                        <Button variant={isRecording ? "danger" : "primary"} style={{fontSize:"1.3rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className={"mx-2 mt-3 icon-button rounded-circle"} onClick={() => this.setState({ showVideoPreview: true })}>
                                             <FontAwesomeIcon icon={isRecording ? faVideoSlash : faVideo} />
                                         </Button>
                                     </>
                                 )}
-                                <Button variant="link" style={{fontSize:"1.3rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className={"mx-2 mt-3 icon-button" + (isRecording ? ' text-red' : '')} onClick={() => !isRecording ? this.startRecording("audio") : this.stopRecording()}>
+                                <Button variant={isRecording ? "danger" : "primary"} style={{fontSize:"1.3rem",minWidth:"3.2rem",minHeight:"3.2rem"}} className={"mx-2 mt-3 icon-button rounded-circle"} onClick={() => !isRecording ? this.startRecording("audio") : this.stopRecording()}>
                                     <FontAwesomeIcon icon={isRecording ? faMicrophoneSlash : faMicrophone} />
                                 </Button>
                             </div>
@@ -603,7 +603,7 @@ class SendMessage extends React.Component {
                                         </Tooltip>
                                     }
                                     >
-                                    <Button variant="link" style={{fontSize:"1rem",minWidth:"3rem",minHeight:"3rem"}} className={"mx-2 mt-3 icon-button text-red"} onClick={() => this.setState({ showDeleteConfirm: true })}>
+                                    <Button variant="danger" style={{fontSize:"1.5rem",minWidth:"3rem",minHeight:"3rem"}} className={"mx-2 mt-3 icon-button rounded-circle"} onClick={() => this.setState({ showDeleteConfirm: true })}>
                                         <FontAwesomeIcon icon={faTimesCircle} style={{fontSize:"1.5rem"}} /><br />
                                     </Button>
                                 </OverlayTrigger>
@@ -618,13 +618,13 @@ class SendMessage extends React.Component {
                                             </Tooltip>
                                         }
                                         >
-                                        <Button variant="link" style={{fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} disabled={recipients.length == 0 && typeof threadId == "undefined"} className={"mx-2 mt-3 icon-button text-green"} onClick={() => this.sendRecording()}>
+                                        <Button variant="success" style={{fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} disabled={recipients.length == 0 && typeof threadId == "undefined"} className={"mx-2 mt-3 icon-button rounded-circle"} onClick={() => this.sendRecording()}>
                                             <FontAwesomeIcon icon={faPaperPlane} />
                                         </Button>
                                     </OverlayTrigger>
                                 )}
                                 {isLibrary && (
-                                    <Button variant="link" style={{fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} className={"mx-2 mt-3 icon-button text-green"} onClick={() => this.sendRecording()}>
+                                    <Button variant="success" style={{fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} className={"mx-2 mt-3 icon-button rounded-circle"} onClick={() => this.sendRecording()}>
                                         <FontAwesomeIcon icon={faSave} />
                                     </Button>
                                 )}
@@ -633,10 +633,10 @@ class SendMessage extends React.Component {
                         {showDeleteConfirm && (
                             <div className="mx-auto">
                                 <p className="mb-0" style={{fontWeight:700,fontSize:"1.2rem"}}>Are you sure you want to delete this Blab?<br /><small>This cannot be undone.</small></p>
-                                <Button variant="link" style={{fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} className={"mx-2 mt-3 icon-button text-red"} onClick={() => this.clearRecording()}>
+                                <Button variant="danger" style={{fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} className={"mx-2 mt-3 icon-button rounded-circle"} onClick={() => this.clearRecording()}>
                                     <FontAwesomeIcon icon={faTrashAlt} />
                                 </Button>
-                                <Button variant="link" style={{fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} className={"mx-2 mt-3 icon-button text-green"} onClick={() => this.setState({ showDeleteConfirm: false })}>
+                                <Button variant="success" style={{fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} className={"mx-2 mt-3 icon-button rounded-circle"} onClick={() => this.setState({ showDeleteConfirm: false })}>
                                     <FontAwesomeIcon icon={faSave} />
                                 </Button>
                             </div>

@@ -2290,7 +2290,7 @@ class Room extends React.Component {
                                                 <Button variant="link" className="mx-3 icon-button btn-lg text-red" onClick={() => this.toggleScreenSharing()}><FontAwesomeIcon icon={faDesktop} /></Button>
                                             :
                                                 <Dropdown className="p-0 m-0" as="span">
-                                                    <Dropdown.Toggle variant="info" id="screensharing-dropdown" className="mx-1 no-carat">
+                                                    <Dropdown.Toggle variant="link" id="screensharing-dropdown" className="mx-3 no-carat icon-button btn-lg">
                                                         <FontAwesomeIcon icon={faDesktop} />
                                                     </Dropdown.Toggle>
                                                     <Dropdown.Menu show={showScreenSharingDropdown}>
