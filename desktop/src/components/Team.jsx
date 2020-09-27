@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { DateTime } from 'luxon';
 import { Container, Image, Button, Card, CardColumns, Navbar, Row, Col, OverlayTrigger, Overlay, Popover, Tooltip } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleNotch, faUserPlus, faCircle, faEnvelope } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faUserPlus, faCircle, faComment } from '@fortawesome/free-solid-svg-icons';
 import InviteUsersModal from './InviteUsersModal';
 
 import posthog from 'posthog-js';
@@ -64,11 +64,11 @@ class Team extends React.Component {
                             <div className="align-self-center pr-4">
                                 {billing.plan == "Free" && organizationUsers.length > 4 && (
                                     <OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-team-disabled">Upgrade to invite more teammates.</Tooltip>}>
-                                        <Button style={{pointerEvents: 'none' }} variant="success" disabled={billing.plan == "Free" && organizationUsers.length > 4}><FontAwesomeIcon icon={faUserPlus} /> Invite</Button>
+                                        <Button style={{pointerEvents: 'none' }} variant="link" className="icon-button" disabled={billing.plan == "Free" && organizationUsers.length > 4}><FontAwesomeIcon icon={faUserPlus} /> Invite</Button>
                                     </OverlayTrigger> 
                                 )}
                                 {billing.plan != "Free" || organizationUsers.length < 5 && (
-                                    <Button variant="success" onClick={() => this.setState({ showInviteUsersModal: true })}><FontAwesomeIcon icon={faUserPlus} /> Invite</Button>
+                                    <Button variant="link" className="icon-button" onClick={() => this.setState({ showInviteUsersModal: true })}><FontAwesomeIcon icon={faUserPlus} /> Invite</Button>
                                 )}
                             </div>
                             <div style={{height:80}}></div>
@@ -83,7 +83,7 @@ class Team extends React.Component {
                 :   
                     <Row className="pt-3 px-3 team-container" style={{overflowY:"scroll",paddingBottom:100}}>
                         {organizationUsers.map((organizationUser) =>
-                            <Col xs={12} md={6} lg={4} xl={3} key={organizationUser.id} className="mb-5">
+                            <Col xs={12} md={6} xl={4} key={organizationUser.id} className="mb-5">
                                 <div className="d-flex">
                                     <div style={{width:125}}>
                                         <Image src={organizationUser.avatar_url} fluid style={{maxHeight:125,borderRadius:15}} className="shadow" />
@@ -103,7 +103,7 @@ class Team extends React.Component {
                                                 }
                                             }}
                                         >
-                                            <Button variant="success"><FontAwesomeIcon icon={faEnvelope} /></Button>
+                                            <Button variant="link" className="icon-button" size="lg"><FontAwesomeIcon icon={faComment} /></Button>
                                         </Link>
                                     </div>
                                 </div>
