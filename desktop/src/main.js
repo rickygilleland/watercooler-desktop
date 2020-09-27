@@ -103,7 +103,7 @@ const createWindow = () => {
       width: 1000,
       height: 600,
       minWidth: 700,
-      minHeight: 500,
+      minHeight: 600,
       frame: false,
       webPreferences: {
         nodeIntegration: true,
@@ -126,7 +126,7 @@ const createWindow = () => {
       width: 1100,
       height: 600,
       minWidth: 700,
-      minHeight: 500,
+      minHeight: 600,
       frame: false,
       webPreferences: {
         nodeIntegration: true,
