@@ -36,7 +36,7 @@ class SendMessage extends React.Component {
             isRecording: false,
             recordingType: null,
             raw_local_stream: null,
-            duration: "00:00",
+            duration: null,
             timeInterval: null,
             recordingBlob: null,
             recordingBlobUrl: null,
@@ -226,6 +226,13 @@ class SendMessage extends React.Component {
     async startRecording(recordingType) {
         const { settings, user, messageCreatedStateChange, threadId } = this.props;
 
+        this.setState({ 
+            isRecording: true, 
+            overrideExpanded: true, 
+            recordingType,
+            showMessageEditor: false
+        });
+
         var streamOptions;
         var raw_local_stream = null;
 
@@ -308,9 +315,9 @@ class SendMessage extends React.Component {
                 this.setState({ 
                     recorder: null, 
                     isRecording: false, 
-                    duration: "00:00", 
+                    duration: null, 
                     recordingBlob, 
-                    recordingBlobUrl ,
+                    recordingBlobUrl,
                     loadingRecording: false,
                     showVideoPreview: false,
                 })
@@ -638,7 +645,18 @@ class SendMessage extends React.Component {
                             <Row className="mt-3">
                                 <Col xs={{span:12}}>
                                     {isRecording && (
-                                        <p style={{fontWeight:700,fontSize:"1.2em"}}><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#f9426c",fontSize:".5rem",verticalAlign:'middle'}} /> Recording Blab<br/> {duration} / 5:00</p>  
+                                        <p style={{fontWeight:700,fontSize:"1.2em"}}>
+                                            <FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#f9426c",fontSize:".5rem",verticalAlign:'middle'}} /> 
+                                            {duration == null && (
+                                                "Starting Recording..."
+                                            )}
+                                            {duration != null && (
+                                                <>
+                                                    Recording Blab
+                                                    <br/> {duration} / 5:00
+                                                </>
+                                            )}
+                                        </p>  
                                     )}
                                     {recordingBlobUrl && (
                                         <div className="mx-auto" style={{height: recordingType == "video" ? 350 : 50, width: recordingType == "video" ? 466 : 466}}>
