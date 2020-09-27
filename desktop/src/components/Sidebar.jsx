@@ -824,8 +824,8 @@ class Sidebar extends React.Component {
                                 </Navbar.Collapse>
                                 <Navbar.Toggle aria-controls="responsive-navbar-nav" className="border-0" style={{outline: 'none'}}><FontAwesomeIcon icon={sidebarIsVisible ? faChevronCircleLeft : faChevronCircleRight} className="mr-1" style={{color:"#3ecf8e"}} /></Navbar.Toggle>
                             </Navbar>
-                            <Col className="pl-0" style={{
-                                borderLeft:"1px solid #1c2046",
+                            <Col className="pl-0 shadow-sm" style={{
+                                border:"1px solid rgb(28, 32, 70, .2)",
                                 width:"100%",
                                 borderRadius:15,
                                 marginLeft:0,
