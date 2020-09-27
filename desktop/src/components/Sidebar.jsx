@@ -651,7 +651,7 @@ class Sidebar extends React.Component {
         }
 
         return (
-            <>
+            <div style={{backgroundColor: process.env.REACT_APP_PLATFORM == "web" || process.platform != "darwin" ? "#121422" : "transparent"}}>
                 <Switch>
                     <EnsureLoggedInContainer>
                         <ErrorBoundary showError={false}>
@@ -743,12 +743,16 @@ class Sidebar extends React.Component {
                                 expanded={sidebarIsVisible} 
                                 onToggle={() => this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })}
                                 style={{
-                                    height: process.env.REACT_APP_PLATFORM === "web" ? 'calc(100vh - 30px)' : '100vh'
+                                    height: process.env.REACT_APP_PLATFORM == "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'
                                 }}
                             >
                                 <Navbar.Collapse id="responsive-navbar-nav">
                                 
-                                    <Navbar className="text-light" style={{height:70,backgroundColor:"#121422",borderBottom:"1px solid #1c2046",paddingTop: process.env.REACT_APP_PLATFORM == "electron" ? '1.5rem!important' : 0}}>
+                                    <Navbar className="text-light" style={{
+                                        height:70,
+                                        backgroundColor: process.env.REACT_APP_PLATFORM == "web" || process.platform != "darwin" ? "#121422" : "transparent",
+                                        borderBottom: process.env.REACT_APP_PLATFORM == "web" || process.platform != "darwin" ? "1px solid #1c2046" : 0,
+                                    }}>
                                         <ErrorBoundary showError={false}>
                                             <Navbar.Brand>
                                                 {organization != null ? 
@@ -811,7 +815,17 @@ class Sidebar extends React.Component {
                                 </Navbar.Collapse>
                                 <Navbar.Toggle aria-controls="responsive-navbar-nav" className="border-0" style={{outline: 'none'}}><FontAwesomeIcon icon={sidebarIsVisible ? faChevronCircleLeft : faChevronCircleRight} className="mr-1" style={{color:"#3ecf8e"}} /></Navbar.Toggle>
                             </Navbar>
-                            <Col className="pl-0" style={{borderLeft:"1px solid #1c2046",width:"100%",borderRadius:15,marginLeft:0,marginRight:0,marginTop:0,marginBottom:20,backgroundColor:"#fff"}}>
+                            <Col className="pl-0" style={{
+                                borderLeft:"1px solid #1c2046",
+                                width:"100%",
+                                borderRadius:15,
+                                marginLeft:0,
+                                marginRight:0,
+                                marginTop:0,
+                                marginBottom:20,
+                                backgroundColor:"#fff",
+                                height: process.env.REACT_APP_PLATFORM == "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'
+                            }}>
                                 <>
                                     <Route 
                                         path={routes.ROOM} 
@@ -925,7 +939,7 @@ class Sidebar extends React.Component {
                         </Row>
                     </EnsureLoggedInContainer>
                 </Switch>
-            </>
+            </div>
         );
     }
 

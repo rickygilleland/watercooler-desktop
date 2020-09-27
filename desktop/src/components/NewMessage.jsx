@@ -102,7 +102,7 @@ class NewMessage extends React.Component {
         const { suggestions, suggestionValue, suggestionDisplayValue, users } = this.state;
 
         return (
-            <div className="d-flex flex-column" style={{height: process.env.REACT_APP_PLATFORM === "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'}}>
+            <div className="d-flex flex-column" style={{height: process.env.REACT_APP_PLATFORM == "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'}}>
                 <Autosuggest
                     suggestions={suggestions}
                     getSuggestionValue={(suggestion) => {

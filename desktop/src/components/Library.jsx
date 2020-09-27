@@ -52,7 +52,7 @@ class Library extends React.Component {
         const { copiedId } = this.state;
 
         return(
-            <div className="d-flex flex-column" style={{height: process.env.REACT_APP_PLATFORM === "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'}}>
+            <div className="d-flex flex-column" style={{height:process.env.REACT_APP_PLATFORM == "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'}}>
                 <Row className="pl-0 ml-0" style={{height:80}}>
                     <Col xs={{span:4}}>
                         <div className="d-flex flex-row justify-content-start">
@@ -162,7 +162,7 @@ class Library extends React.Component {
                         </Row>
                     )}
                 </Container>
-                <div className="mt-auto">
+                <div className="mt-auto" style={{borderBottomLeftRadius: 15}}>
                     <SendMessage 
                         settings={settings} 
                         user={user} 

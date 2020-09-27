@@ -15,19 +15,19 @@ import BlurNetBackground from './containers/BlurNetBackground';
 import LoadingPage from './containers/LoadingPage';
 import posthog from 'posthog-js';
 
-if (process.env.REACT_APP_PLATFORM != "web") {
-  const customTitlebar = require('custom-electron-titlebar');
 
-  var path = window.location.href;
-  path = path.substring(path.lastIndexOf("#") + 1);
+const customTitlebar = require('custom-electron-titlebar');
 
-  if (path != "/screensharing_controls") {
-    new customTitlebar.Titlebar({
-      backgroundColor: customTitlebar.Color.fromHex('#121422'),
-      overflow: "hidden",
-    });
-  }
+var path = window.location.href;
+path = path.substring(path.lastIndexOf("#") + 1);
+
+if (path != "/screensharing_controls") {
+  new customTitlebar.Titlebar({
+    backgroundColor: customTitlebar.Color.fromHex('#121422'),
+    overflow: "hidden",
+  });
 }
+
 
 var isDevMode = process.execPath.match(/[\\/]electron/)
 
