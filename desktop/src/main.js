@@ -118,7 +118,7 @@ const createWindow = () => {
     // Create the browser window.
     mainWindow = new BrowserWindow({
       titleBarStyle: 'hidden',
-      vibrancy: 'dark', //sidebar looks good -- window doesn't -- dark might be good for nowuntil we can track light/dark mode changes via ipc
+      vibrancy: 'sidebar', //sidebar looks good -- window doesn't -- dark might be good for nowuntil we can track light/dark mode changes via ipc
       transparent: true, //necessary for vibrancy fix on macos
       backgroundColor: "#80FFFFFF", //necessary for vibrancy fix on macos
       width: 1100,
