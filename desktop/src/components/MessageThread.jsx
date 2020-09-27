@@ -138,7 +138,19 @@ class MessageThread extends React.Component {
     }
 
     render() {
-        const { threadLoading, settings, user, createMessage, messages, organization, messageCreating, messageLoading, collapsed, toggleThreadCollapsed } = this.props;
+        const { 
+            threadLoading, 
+            settings, 
+            user, 
+            createMessage, 
+            messages, 
+            organization, 
+            messageCreating, 
+            messageLoading, 
+            collapsed, 
+            toggleThreadCollapsed,
+            isLightMode
+        } = this.props;
         const { thread, recipients, recipientName, lastCopiedMessageId } = this.state;
 
         var messageKeys = [];
@@ -149,7 +161,7 @@ class MessageThread extends React.Component {
         if (thread.type == "room" && !collapsed) {
             return(
                 <center ref={(el) => { this.messagesContainer = el; }}>
-                    <Button variant="dark" className="mx-auto text-center" style={{marginTop:6}} onClick={toggleThreadCollapsed}>
+                    <Button variant={isLightMode ? "dark" : "light"} className="mx-auto text-center" style={{marginTop:6}} onClick={toggleThreadCollapsed}>
                         Show Chat <FontAwesomeIcon icon={collapsed ? faChevronCircleDown : faChevronCircleUp} className="ml-1" />
                     </Button>
                 </center>
@@ -159,7 +171,7 @@ class MessageThread extends React.Component {
         return (
             <div className="d-flex flex-column" style={{height: thread.type === "room" ? "100%" : process.env.REACT_APP_PLATFORM == "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'}}>
                 {thread.type != "room" && (
-                    <Row className="pl-0 ml-0 border-bottom" style={{height:80}}>
+                    <Row className="pl-0 ml-0" style={{height:80}}>
                         <Col xs={{span:8}}>
                             <div className="d-flex flex-row justify-content-start">
                                 <div className="align-self-center">
@@ -184,7 +196,7 @@ class MessageThread extends React.Component {
                 )}
                 {thread.type == "room" && (
                     <center>
-                        <Button variant="dark" className="mx-auto text-center" style={{marginTop:6}} onClick={toggleThreadCollapsed}>
+                        <Button variant={isLightMode ? "dark" : "light"} className="mx-auto text-center" style={{marginTop:6}} onClick={toggleThreadCollapsed}>
                             Hide Chat <FontAwesomeIcon icon={collapsed ? faChevronCircleDown : faChevronCircleUp} className="ml-1" />
                         </Button>
                     </center>

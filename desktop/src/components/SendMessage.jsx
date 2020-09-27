@@ -509,7 +509,7 @@ class SendMessage extends React.Component {
 
         if ((messageCreating && typeof threadId == "undefined") || loadingRecording) {
             return(
-                <Card style={{height: recordingType == "video" ? 475 : 190,backgroundColor:"#1b1e2f",borderRadius:0}}>
+                <Card className="border-0" style={{height: recordingType == "video" ? 475 : 190,backgroundColor:"transparent",borderRadius:0}}>
                     <Row className="mt-3 mb-4">
                         <Col xs={{span:12}} className="text-center">
                             <p className="text-light" style={{fontSize:"1.2rem",fontWeight:700}}>{loadingRecording ? 'Creating' : 'Uploading'} Blab...</p>
@@ -522,7 +522,7 @@ class SendMessage extends React.Component {
 
         if (showVideoPreview) {
             return(
-                <Card style={{height: 475,backgroundColor:"#1b1e2f",borderRadius:0}}>
+                <Card className="border-0" style={{height: 475,backgroundColor:"transparent",borderRadius:0}}>
                     <Row className="mt-3 mb-4">
                         <Col xs={{span:12}} className="text-center">
                             <div className="mx-auto" style={{height:350,width:466}}>
@@ -570,7 +570,7 @@ class SendMessage extends React.Component {
         }
 
         return (
-            <Card style={{height: recordingType == "video" && recordingBlob != null ? 475 : isRecording || recordingBlob != null ? 190 : 85,backgroundColor:"#1b1e2f",borderRadius:0}}>
+            <Card className="border-0" style={{height: recordingType == "video" && recordingBlob != null ? 475 : isRecording || recordingBlob != null ? 190 : 85,backgroundColor:"transparent",borderRadius:0}}>
                 <Row className="mb-4">
                     <Col xs={{span:12}} className="text-center">
                         {recordingBlobUrl == null && (

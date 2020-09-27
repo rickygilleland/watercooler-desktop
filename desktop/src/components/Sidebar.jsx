@@ -824,15 +824,15 @@ class Sidebar extends React.Component {
                                 </Navbar.Collapse>
                                 <Navbar.Toggle aria-controls="responsive-navbar-nav" className="border-0" style={{outline: 'none'}}><FontAwesomeIcon icon={sidebarIsVisible ? faChevronCircleLeft : faChevronCircleRight} className="mr-1" style={{color:"#3ecf8e"}} /></Navbar.Toggle>
                             </Navbar>
-                            <Col className="pl-0 shadow-sm" style={{
-                                border:"1px solid rgb(28, 32, 70, .2)",
+                            <Col className={"pl-0 shadow-sm" + (isLightMode ? '' : ' dark-mode')} style={{
+                                border: isLightMode ? "1px solid rgb(28, 32, 70, .2)" : "1px solid rgb(1, 1, 1, .35)",
                                 width:"100%",
                                 borderRadius:15,
                                 marginLeft:0,
                                 marginRight:0,
                                 marginTop:0,
                                 marginBottom:20,
-                                backgroundColor:"#fff",
+                                backgroundColor:isLightMode ? "#fff" : "#212529",
                                 height: process.env.REACT_APP_PLATFORM == "web" ? 'calc(100vh - 30px)' : 'calc(100vh - 22px)'
                             }}>
                                 <>
@@ -851,6 +851,7 @@ class Sidebar extends React.Component {
                                                     backgroundBlurWindow={backgroundBlurWindow}
                                                     faceTrackingNetWindow={faceTrackingNetWindow}
                                                     sidebarIsVisible={sidebarIsVisible}
+                                                    isLightMode={isLightMode}
                                                     onClick={() => {
                                                         if (window.innerWidth < 768) {
                                                             this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
@@ -874,6 +875,7 @@ class Sidebar extends React.Component {
                                                     {...routeProps} 
                                                     organizationUsersOnline={organizationUsersOnline} 
                                                     currentTime={currentTime} 
+                                                    isLightMode={isLightMode}
                                                     onClick={() => {
                                                         if (window.innerWidth < 768) {
                                                             this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
@@ -889,6 +891,7 @@ class Sidebar extends React.Component {
                                             <ErrorBoundary showError={true}>
                                                 <LibraryPage 
                                                     {...routeProps} 
+                                                    isLightMode={isLightMode}
                                                     onClick={() => {
                                                         if (window.innerWidth < 768) {
                                                             this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
@@ -904,6 +907,7 @@ class Sidebar extends React.Component {
                                             <ErrorBoundary showError={true}>
                                                 <NewMessagePage 
                                                     {...routeProps} 
+                                                    isLightMode={isLightMode}
                                                     onClick={() => {
                                                         if (window.innerWidth < 768) {
                                                             this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
@@ -918,21 +922,7 @@ class Sidebar extends React.Component {
                                         render={(routeProps) => (
                                             <ErrorBoundary showError={true}>
                                                 <MessageThreadPage 
-                                                    {...routeProps} 
-                                                    onClick={() => {
-                                                        if (window.innerWidth < 768) {
-                                                            this.setState({ sidebarIsVisible: sidebarIsVisible ? false : true })
-                                                        }
-                                                    }}
-                                                />
-                                            </ErrorBoundary>
-                                        )}
-                                    />
-                                    <Route 
-                                        path={routes.MESSAGE.PUBLIC_THREAD} 
-                                        render={(routeProps) => (
-                                            <ErrorBoundary showError={true}>
-                                                <MessageThreadPage 
+                                                    isLightMode={isLightMode}
                                                     {...routeProps} 
                                                     onClick={() => {
                                                         if (window.innerWidth < 768) {
