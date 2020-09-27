@@ -511,7 +511,7 @@ class SendMessage extends React.Component {
                 <Card className="border-0" style={{height: recordingType == "video" ? 475 : 190,backgroundColor:"transparent",borderRadius:0}}>
                     <Row className="mt-3 mb-4">
                         <Col xs={{span:12}} className="text-center">
-                            <p className="text-light" style={{fontSize:"1.2rem",fontWeight:700}}>{loadingRecording ? 'Creating' : 'Uploading'} Blab...</p>
+                            <p style={{fontSize:"1.2rem",fontWeight:700}}>{loadingRecording ? 'Creating' : 'Uploading'} Blab...</p>
                             <FontAwesomeIcon icon={faCircleNotch} className="mt-3 mx-auto" style={{fontSize:"2.4rem",color:"#6772ef"}} spin />
                         </Col>
                     </Row>
@@ -527,7 +527,7 @@ class SendMessage extends React.Component {
                             <div className="mx-auto" style={{height:350,width:466}}>
                                 {videoPreviewLoading && (
                                     <>
-                                        <p className="text-light text-center" style={{fontSize:"1.2rem",fontWeight:700}}>Loading camera preview...</p>
+                                        <p className="text-center" style={{fontSize:"1.2rem",fontWeight:700}}>Loading camera preview...</p>
                                         <FontAwesomeIcon icon={faCircleNotch} className="mx-auto" style={{fontSize:"3rem",color:"#6772ef"}} spin />
                                     </>
                                 )}
@@ -625,7 +625,7 @@ class SendMessage extends React.Component {
                         )}
                         {showDeleteConfirm && (
                             <div className="mx-auto">
-                                <p className="text-light mb-0" style={{fontWeight:700,fontSize:"1.2rem"}}>Are you sure you want to delete this Blab?<br /><small>This cannot be undone.</small></p>
+                                <p className="mb-0" style={{fontWeight:700,fontSize:"1.2rem"}}>Are you sure you want to delete this Blab?<br /><small>This cannot be undone.</small></p>
                                 <Button variant="danger" style={{color:"#fff",fontSize:"1.3rem",minWidth:"3rem",minHeight:"3rem"}} className="mx-2 mt-3" onClick={() => this.clearRecording()}>
                                     <FontAwesomeIcon icon={faTrashAlt} />
                                 </Button>
@@ -635,7 +635,7 @@ class SendMessage extends React.Component {
                             </div>
                         )}
                         {!showDeleteConfirm && (
-                            <Row className="mt-3 text-light">
+                            <Row className="mt-3">
                                 <Col xs={{span:12}}>
                                     {isRecording && (
                                         <p style={{fontWeight:700,fontSize:"1.2em"}}><FontAwesomeIcon icon={faCircle} className="mr-1" style={{color:"#f9426c",fontSize:".5rem",verticalAlign:'middle'}} /> Recording Blab<br/> {duration} / 5:00</p>  
