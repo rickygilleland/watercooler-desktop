@@ -211,7 +211,7 @@ class SendMessage extends React.Component {
     
             drawVideo();
     
-            let local_stream = localVideoCanvas.captureStream();
+            let local_stream = localVideoCanvas.captureStream(60);
             let raw_tracks = raw_video_stream.getAudioTracks();
             raw_tracks.forEach(track => {
                 local_stream.addTrack(track);
