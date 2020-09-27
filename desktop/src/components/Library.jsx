@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { DateTime } from 'luxon';
 import { Container, Image, Button, Card, CardColumns, Navbar, Row, Col, OverlayTrigger, Overlay, Popover, Tooltip } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleNotch, faUserPlus, faCircle, faEnvelope, faShare } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faUserPlus, faCircle, faEnvelope, faShare, faClipboard, faClipboardCheck } from '@fortawesome/free-solid-svg-icons';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import SendMessage from './SendMessage';
 import MessageMediaPlayer from './MessageMediaPlayer';
@@ -132,8 +132,8 @@ class Library extends React.Component {
                                                 {item.attachments[0].processed == false && (
                                                     <p style={{paddingTop:15,fontWeight:700,marginBottom:0}}>Video Processing <FontAwesomeIcon icon={faCircleNotch} style={{color:"#6772ef"}} spin /><br /><small>The video will appear here automatically shortly...</small></p>
                                                 )}
-                                                <Row style={{marginLeft: 0}}> 
-                                                    <p style={{paddingLeft: item.attachments[0].processed == true ? 5 : 0,marginTop:5}}>
+                                                <Row style={{marginLeft: 0,marginTop:5}}> 
+                                                    <p style={{paddingLeft: item.attachments[0].processed == true ? 5 : 0,marginTop:10}}>
                                                         <span className={"" + (isLightMode ? " text-muted" : "")} style={{fontSize:".75rem",textTransform:"capitalize",fontWeight:600}}>
                                                             {formattedDate}
                                                         </span>
@@ -145,14 +145,8 @@ class Library extends React.Component {
                                                                 this.setState({copiedId: item.id}); 
                                                             }}
                                                         >
-                                                            <Button variant="link" className="ml-auto" style={{fontSize:".8rem",color:copiedId == item.id ? "rgb(62, 207, 142)" : "#6772ef"}}>
-                                                                <FontAwesomeIcon icon={faShare} />
-                                                                {copiedId == item.id && (
-                                                                    <span>
-                                                                        <br />
-                                                                        Copied to Clipboarrd
-                                                                    </span>
-                                                                )}
+                                                            <Button variant="link" className="ml-auto text-right" style={{fontSize:"1.05rem",color:copiedId == item.id ? "rgb(62, 207, 142)" : isLightMode ? "#6772ef" : undefined}}>
+                                                                <FontAwesomeIcon icon={copiedId == item.id ? faClipboardCheck : faClipboard} />
                                                             </Button>
                                                         </CopyToClipboard>
                                                     )}
