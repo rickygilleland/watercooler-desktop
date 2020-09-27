@@ -148,8 +148,9 @@ class NewMessage extends React.Component {
                                 </div>
                                 <div className="ml-auto mr-5">
                                     <Button
-                                        variant="danger"
-                                        style={{color:"#fff",fontSize:"1rem",minWidth:"2.5rem",minHeight:"2.5rem"}} 
+                                        variant="link"
+                                        className="text-red"
+                                        style={{color:"#fff",fontSize:"1.3rem"}} 
                                         onClick={() => {
                                             let updatedSuggestions = suggestionValue.filter(filtered => {
                                                 return filtered != selectedUser;
