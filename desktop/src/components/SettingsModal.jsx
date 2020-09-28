@@ -39,13 +39,13 @@ function SettingsModal(props) {
             <Button variant="primary" className="my-3" size="md" block onClick={() => handleShowModal("roomSettings")}>
                 <FontAwesomeIcon icon={faDoorOpen} /> Room Settings
             </Button>
-            {process.env.REACT_APP_PLATFORM != "web" && (
+            {/*process.env.REACT_APP_PLATFORM != "web" && (
               <center>
                 <Button variant="danger" className="my-3" size="md" onClick={() => handleShowModal("experimentalSettings")}>
                     <FontAwesomeIcon icon={faFlask} /> Experimental Features
                 </Button>
               </center>
-            )}
+            )*/}
             <center>
                 <Button variant="danger" className="mt-3" onClick={() => handleLogOut()}>
                     <FontAwesomeIcon icon={faSignOutAlt}/> Sign Out

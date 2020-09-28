@@ -5,7 +5,7 @@ import { isEqual } from 'lodash';
 import { DateTime } from 'luxon';
 import { Container, Image, Button, Card, CardColumns, Navbar, Row, Col, OverlayTrigger, Overlay, Popover, Tooltip } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleNotch, faChevronCircleUp, faChevronCircleDown } from '@fortawesome/free-solid-svg-icons';
+import { faCircleNotch, faChevronCircleUp, faChevronCircleDown, faComments } from '@fortawesome/free-solid-svg-icons';
 import SendMessage from './SendMessage';
 import Message from './Message';
 import posthog from 'posthog-js';
@@ -161,8 +161,8 @@ class MessageThread extends React.Component {
         if (thread.type == "room" && !collapsed) {
             return(
                 <center ref={(el) => { this.messagesContainer = el; }}>
-                    <Button variant={isLightMode ? "dark" : "light"} className="mx-auto text-center" style={{marginTop:6}} onClick={toggleThreadCollapsed}>
-                        Show Chat <FontAwesomeIcon icon={collapsed ? faChevronCircleDown : faChevronCircleUp} className="ml-1" />
+                    <Button variant="primary" className="mx-auto text-center icon-button rounded-circle" size="lg" style={{fontSize:"1.3rem",minWidth:"3.2rem",minHeight:"3.2rem"}} onClick={toggleThreadCollapsed}>
+                        <FontAwesomeIcon icon={faComments} />
                     </Button>
                 </center>
             )
@@ -196,8 +196,8 @@ class MessageThread extends React.Component {
                 )}
                 {thread.type == "room" && (
                     <center>
-                        <Button variant={isLightMode ? "dark" : "light"} className="mx-auto text-center" style={{marginTop:6}} onClick={toggleThreadCollapsed}>
-                            Hide Chat <FontAwesomeIcon icon={collapsed ? faChevronCircleDown : faChevronCircleUp} className="ml-1" />
+                        <Button variant="link" className="mx-auto text-center icon-button" size="lg" style={{fontSize:"1.3rem",marginBottom:10}}onClick={toggleThreadCollapsed}>
+                            <FontAwesomeIcon icon={collapsed ? faChevronCircleDown : faChevronCircleUp} />
                         </Button>
                     </center>
                 )}

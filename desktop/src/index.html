@@ -19,7 +19,7 @@
     color: #fff;
   }
   .dark-mode > .error-message {
-    background-color: transparent !important;
+    background-color: rgba(27, 30, 47, 0.5) !important;
     border: 1px solid rgba(1, 1, 1, 0.35);
   }
   .draggable-header {
@@ -34,6 +34,9 @@
   }
   .btn {
     font-weight: 600;
+  }
+  .icon-button {
+    padding: 0 !important;
   }
   ::-webkit-scrollbar {
       display: none;
@@ -154,7 +157,7 @@
   }
   .hover-focus:hover, .nav-item a:hover {
     transform: translateY(-1px);
-    box-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
+    text-shadow: 0 7px 14px rgba(50, 50, 93, 0.1), 0 3px 6px rgba(0, 0, 0, 0.08);
   }
   .toggle-pinned-btn {
     background-color: rgb(18, 20, 34, .5) !important;
@@ -185,8 +188,8 @@
   .text-red {
     color:rgb(249, 66, 108) !important;
   }
-  .fa-video, .fa-video-slash, .btn > .fa-microphone, .fa-microphone-slash, .fa-save, .fa-times-circle, .fa-trash-alt, .fa-window-close {
-    filter:drop-shadow(0 .125rem .2rem rgb(0, 0, 0, .7));
+  .text-green {
+    color: rgb(62, 207, 142) !important;
   }
   .react-video-player-wrapper, .react-audio-player-wrapper {
     position: relative;
