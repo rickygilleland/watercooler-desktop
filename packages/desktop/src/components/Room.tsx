@@ -284,7 +284,7 @@ class Room extends React.Component {
       });
     }
 
-    var that = this;
+    const that = this;
 
     //check if our room changed
     if (prevProps.match.params.roomSlug != match.params.roomSlug) {
@@ -340,7 +340,7 @@ class Room extends React.Component {
     }
 
     if (prevState.videoIsFaceOnly != videoIsFaceOnly) {
-      let updatedPublishers = [...publishers];
+      const updatedPublishers = [...publishers];
 
       updatedPublishers.forEach((publisher) => {
         if (publisher.member.id == user.id) {
@@ -467,8 +467,8 @@ class Room extends React.Component {
       userPrivateNotificationChannel,
     } = this.props;
 
-    var curTeam = {};
-    var curRoom = {};
+    let curTeam = {};
+    let curRoom = {};
 
     if (
       typeof location.state != "undefined" &&
@@ -501,15 +501,15 @@ class Room extends React.Component {
     //refresh the count of users in this room
     getRoomUsers(curRoom.id);
 
-    var timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     this.setState({ room: curRoom, team: curTeam });
 
     if (pusherInstance != null) {
-      var presence_channel = pusherInstance.subscribe(
+      const presence_channel = pusherInstance.subscribe(
         `presence-room.${curRoom.channel_id}`
       );
-      var that = this;
+      const that = this;
 
       presence_channel.bind_global(function (event, data) {
         if (event == "pusher:subscription_succeeded") {
@@ -561,10 +561,10 @@ class Room extends React.Component {
       callback: function () {},
     });
 
-    var presence_channel = pusherInstance.subscribe(
+    const presence_channel = pusherInstance.subscribe(
       `presence-room.${room.channel_id}`
     );
-    var that = this;
+    const that = this;
 
     presence_channel.bind_global(function (event, data) {
       if (event == "pusher:subscription_succeeded") {
@@ -603,7 +603,7 @@ class Room extends React.Component {
       this.stopPublishingStream();
     }
 
-    var that = this;
+    const that = this;
 
     try {
       rootStreamerHandle.destroy({
@@ -618,8 +618,8 @@ class Room extends React.Component {
 
   openMediaHandle() {
     const { user } = this.props;
-    var { me, room, team, local_stream, server } = this.state;
-    var that = this;
+    const { me, room, team, local_stream, server } = this.state;
+    const that = this;
 
     if (server == null) {
       return false;
@@ -637,7 +637,7 @@ class Room extends React.Component {
             that.setState({ videoRoomStreamerHandle });
 
             //register a publisher
-            var request = {
+            const request = {
               request: "join",
               room: room.channel_id,
               ptype: "publisher",
@@ -655,7 +655,7 @@ class Room extends React.Component {
             }
           },
           onmessage: function (msg, jsep) {
-            var {
+            let {
               videoRoomStreamerHandle,
               currentLoadingMessage,
               containerBackgroundColors,
@@ -668,14 +668,14 @@ class Room extends React.Component {
             }
 
             if (msg.videoroom == "joined") {
-              var updatedMe = that.state.me;
+              const updatedMe = that.state.me;
               updatedMe.info.private_id = msg.private_id;
 
               if (msg.publishers.length > 0) {
-                let updatedPublishers = [];
+                const updatedPublishers = [];
 
                 msg.publishers.forEach((publisher) => {
-                  var rand = Math.floor(
+                  const rand = Math.floor(
                     Math.random() * containerBackgroundColors.length
                   );
                   each(members, function (member) {
@@ -693,7 +693,7 @@ class Room extends React.Component {
                   updatedPublishers.push(publisher);
                 });
 
-                var test = [...that.state.publishers, updatedPublishers];
+                const test = [...that.state.publishers, updatedPublishers];
 
                 that.setState({
                   connected: true,
@@ -737,12 +737,12 @@ class Room extends React.Component {
             if (msg.videoroom == "event") {
               //check if we have new publishers to subscribe to
               if (typeof msg.publishers != "undefined") {
-                var newPublishers = msg.publishers;
+                const newPublishers = msg.publishers;
 
-                let rand = Math.floor(
+                const rand = Math.floor(
                   Math.random() * containerBackgroundColors.length
                 );
-                var currentPublishers = [...that.state.publishers];
+                let currentPublishers = [...that.state.publishers];
 
                 newPublishers.forEach((publisher) => {
                   each(members, function (member) {
@@ -759,7 +759,7 @@ class Room extends React.Component {
                 });
 
                 currentPublishers = currentPublishers.filter((publisher) => {
-                  var keep = true;
+                  let keep = true;
                   newPublishers.forEach((newPublisher) => {
                     if (
                       newPublisher.member.id == publisher.member.id &&
@@ -834,7 +834,7 @@ class Room extends React.Component {
 
   async startPublishingStream() {
     const { settings, user } = this.props;
-    var {
+    const {
       videoRoomStreamerHandle,
       audioStatus,
       videoStatus,
@@ -882,15 +882,15 @@ class Room extends React.Component {
     let localVideoCanvas;
     let backgroundBlurVideoCanvasCopy;
 
-    var that = this;
+    const that = this;
 
     const publishStream = async () => {
-      var local_stream;
+      let local_stream;
 
       if (process.env.REACT_APP_PLATFORM != "web") {
         local_stream = localVideoCanvas.captureStream(60);
 
-        let raw_tracks = raw_local_stream.getTracks();
+        const raw_tracks = raw_local_stream.getTracks();
         raw_tracks.forEach((track) => {
           if (track.kind == "audio") {
             local_stream.addTrack(track);
@@ -900,11 +900,11 @@ class Room extends React.Component {
         local_stream = raw_local_stream;
       }
 
-      var speechEvents = hark(local_stream);
+      const speechEvents = hark(local_stream);
 
       speechEvents.on("speaking", function () {
         const { publishers } = that.state;
-        let dataMsg = {
+        const dataMsg = {
           type: "started_speaking",
           publisher_id: user.id,
         };
@@ -913,7 +913,7 @@ class Room extends React.Component {
           text: JSON.stringify(dataMsg),
         });
 
-        let updatedPublishers = [...publishers];
+        const updatedPublishers = [...publishers];
 
         updatedPublishers.forEach((publisher) => {
           if (publisher.member.id == user.id) {
@@ -926,7 +926,7 @@ class Room extends React.Component {
 
       speechEvents.on("stopped_speaking", function () {
         const { publishers } = that.state;
-        let dataMsg = {
+        const dataMsg = {
           type: "stopped_speaking",
           publisher_id: user.id,
         };
@@ -935,7 +935,7 @@ class Room extends React.Component {
           text: JSON.stringify(dataMsg),
         });
 
-        let updatedPublishers = [...publishers];
+        const updatedPublishers = [...publishers];
 
         updatedPublishers.forEach((publisher) => {
           if (publisher.member.id == user.id) {
@@ -973,7 +973,7 @@ class Room extends React.Component {
           data: true,
         },
         success: function (jsep) {
-          var request = {
+          const request = {
             request: "publish",
             audio: true,
             video: true,
@@ -991,11 +991,11 @@ class Room extends React.Component {
 
           const { containerBackgroundColors, me } = that.state;
 
-          var rand = Math.floor(
+          const rand = Math.floor(
             Math.random() * containerBackgroundColors.length
           );
 
-          let newPublisher = {
+          const newPublisher = {
             containerBackgroundColor: containerBackgroundColors[rand],
             loading: false,
             member: me.info,
@@ -1005,7 +1005,7 @@ class Room extends React.Component {
             stream: local_stream,
           };
 
-          var updatedPublishers = [...that.state.publishers];
+          let updatedPublishers = [...that.state.publishers];
 
           updatedPublishers = updatedPublishers.filter((publisher) => {
             return publisher.id != me.id;
@@ -1013,8 +1013,8 @@ class Room extends React.Component {
 
           updatedPublishers.push(newPublisher);
 
-          let heartbeatInterval = setInterval(() => {
-            let dataMsg = {
+          const heartbeatInterval = setInterval(() => {
+            const dataMsg = {
               type: "participant_status_update",
               publisher_id: user.id,
               video_status: that.state.videoStatus,
@@ -1068,9 +1068,9 @@ class Room extends React.Component {
         localVideo.height = localVideo.videoHeight;
       };
 
-      var facePrediction = null;
+      let facePrediction = null;
 
-      var drawParams = {
+      let drawParams = {
         sourceX: 0,
         sourceY: 0,
         sourceWidth: 0,
@@ -1082,8 +1082,8 @@ class Room extends React.Component {
         sourceNoseScore: 0,
       };
 
-      var avatarImage = new Image();
-      var avatarImageLoaded = false;
+      const avatarImage = new Image();
+      let avatarImageLoaded = false;
       avatarImage.onload = () => {
         avatarImageLoaded = true;
       };
@@ -1100,7 +1100,7 @@ class Room extends React.Component {
         });
       }
 
-      var personSegmentation = null;
+      let personSegmentation = null;
 
       if (process.env.REACT_APP_PLATFORM != "web") {
         ipcRenderer.removeAllListeners("background-blur-update");
@@ -1213,7 +1213,7 @@ class Room extends React.Component {
               drawParams.sourceY - (facePrediction.prediction.topLeft[1] - 125)
             ) > 20
           ) {
-            let drawParamsCopy = { ...drawParams };
+            const drawParamsCopy = { ...drawParams };
 
             return requestAnimationFrame(() => {
               gradualFrameMove(
@@ -1305,7 +1305,7 @@ class Room extends React.Component {
                   targetY - (facePrediction.prediction.topLeft[1] - 125)
                 ) > 20
               ) {
-                let drawParamsCopy = { ...drawParams };
+                const drawParamsCopy = { ...drawParams };
 
                 return requestAnimationFrame(() => {
                   gradualFrameMove(
@@ -1443,7 +1443,7 @@ class Room extends React.Component {
       return;
     }
 
-    var request = {
+    const request = {
       request: "unpublish",
     };
 
@@ -1489,7 +1489,7 @@ class Room extends React.Component {
       this.stopFaceTracking();
     }
 
-    var updatedPublishers = [...publishers];
+    let updatedPublishers = [...publishers];
 
     updatedPublishers = updatedPublishers.filter((publisher) => {
       if (typeof publisher.handle != "undefined" && publisher.handle != null) {
@@ -1534,7 +1534,7 @@ class Room extends React.Component {
     });
 
     if (videoRoomStreamerHandle != null) {
-      let dataMsg = {
+      const dataMsg = {
         type: "face_only_status_toggled",
         publisher_id: user.id,
         face_only_status: true,
@@ -1553,7 +1553,7 @@ class Room extends React.Component {
     const { videoRoomStreamerHandle, videoIsFaceOnly, room } = this.state;
 
     if (videoRoomStreamerHandle != null) {
-      let dataMsg = {
+      const dataMsg = {
         type: "face_only_status_toggled",
         publisher_id: user.id,
         face_only_status: false,
@@ -1608,9 +1608,9 @@ class Room extends React.Component {
   }
 
   openScreenSharingHandle() {
-    var { rootStreamerHandle, me, room } = this.state;
+    const { rootStreamerHandle, me, room } = this.state;
 
-    var that = this;
+    const that = this;
 
     rootStreamerHandle.attach({
       plugin: "janus.plugin.videoroom",
@@ -1619,7 +1619,7 @@ class Room extends React.Component {
         that.setState({ screenSharingHandle });
 
         //register a publisher
-        var request = {
+        const request = {
           request: "join",
           id: me.info.id.toString() + "_screensharing",
           room: room.channel_id,
@@ -1647,19 +1647,19 @@ class Room extends React.Component {
   }
 
   async startPublishingScreenSharingStream() {
-    var { screenSharingHandle, screenSharingStream, me, room } = this.state;
+    const { screenSharingHandle, screenSharingStream, me, room } = this.state;
 
     if (screenSharingHandle == null) {
       return this.openScreenSharingHandle();
     }
 
-    var that = this;
+    const that = this;
 
     screenSharingHandle.createOffer({
       stream: screenSharingStream,
       media: { screenshareFrameRate: 30 },
       success: function (jsep) {
-        var request = {
+        const request = {
           request: "publish",
           audio: false,
           video: true,
@@ -1668,10 +1668,10 @@ class Room extends React.Component {
         screenSharingHandle.send({ message: request, jsep: jsep });
 
         ipcRenderer.invoke("get-current-window-dimensions").then((result) => {
-          var x = 0;
-          var y = Math.round(result.height - result.height / 2 - 150);
+          const x = 0;
+          const y = Math.round(result.height - result.height / 2 - 150);
 
-          let screenSharingWindow = new BrowserWindow({
+          const screenSharingWindow = new BrowserWindow({
             width: 45,
             height: 185,
             x,
@@ -1735,8 +1735,8 @@ class Room extends React.Component {
   togglePinned(publisherToPin) {
     const { publishers } = this.state;
 
-    var unpin = false;
-    var pinned = false;
+    const unpin = false;
+    let pinned = false;
 
     publishers.forEach((publisher, key) => {
       if (publisher.id != publisherToPin.id) {
@@ -1764,8 +1764,8 @@ class Room extends React.Component {
       videoRoomStreamerHandle,
     } = this.state;
 
-    var handle;
-    var that = this;
+    let handle;
+    const that = this;
 
     rootStreamerHandle.attach({
       plugin: "janus.plugin.videoroom",
@@ -1774,7 +1774,7 @@ class Room extends React.Component {
         handle = remoteHandle;
 
         //subscribe to the feed
-        var request = {
+        const request = {
           request: "join",
           room: room.channel_id,
           ptype: "subscriber",
@@ -1799,7 +1799,7 @@ class Room extends React.Component {
               jsep: jsep,
               media: { audioSend: false, videoSend: false, data: true },
               success: function (jsep) {
-                var request = {
+                const request = {
                   request: "start",
                   room: msg.room,
                 };
@@ -1811,8 +1811,8 @@ class Room extends React.Component {
         }
       },
       onremotestream: function (remote_stream) {
-        var tracks = remote_stream.getTracks();
-        let updatedPublishers = [...publishers];
+        const tracks = remote_stream.getTracks();
+        const updatedPublishers = [...publishers];
 
         if (typeof updatedPublishers[key] != "undefined") {
           updatedPublishers[key].stream = remote_stream;
@@ -1833,7 +1833,7 @@ class Room extends React.Component {
           audioStatus,
           videoIsFaceOnly,
         } = that.state;
-        let dataMsg = {
+        const dataMsg = {
           type: "initial_video_audio_status",
           publisher_id: user.id,
           video_status: that.state.videoStatus,
@@ -1849,7 +1849,7 @@ class Room extends React.Component {
       },
       ondata: function (data) {
         const { publishers } = that.state;
-        let dataMsg = JSON.parse(data);
+        const dataMsg = JSON.parse(data);
 
         if (
           dataMsg.type == "initial_video_audio_status_response" &&
@@ -1858,7 +1858,7 @@ class Room extends React.Component {
           return;
         }
 
-        let updatedPublishers = [...publishers];
+        const updatedPublishers = [...publishers];
 
         updatedPublishers.forEach((publisher) => {
           if (publisher.member.id == dataMsg.publisher_id) {
@@ -1897,7 +1897,7 @@ class Room extends React.Component {
         });
 
         if (dataMsg.type == "initial_video_audio_status") {
-          let dataMsgResponse = {
+          const dataMsgResponse = {
             type: "initial_video_audio_status_response",
             publisher_id: user.id,
             requesting_publisher_id: dataMsg.publisher_id,
@@ -1923,8 +1923,8 @@ class Room extends React.Component {
   handleResize() {
     const { dimensions, publishers, showChatThread } = this.state;
 
-    var newWidth = window.innerWidth;
-    var newHeight = window.innerHeight;
+    const newWidth = window.innerWidth;
+    let newHeight = window.innerHeight;
 
     if (showChatThread) {
       newHeight = newHeight / 2;
@@ -1942,7 +1942,7 @@ class Room extends React.Component {
   }
 
   updateDisplayedVideosSizes() {
-    var { dimensions, videoSizes, publishers, showChatThread } = this.state;
+    let { dimensions, videoSizes, publishers, showChatThread } = this.state;
     const { sidebarIsVisible } = this.props;
 
     if (remote_streams == null) {
@@ -1958,10 +1958,10 @@ class Room extends React.Component {
       maxWidth -= 250;
     }
 
-    var remote_streams_count = publishers.length;
+    const remote_streams_count = publishers.length;
 
-    var rows = 1;
-    var columns = 1;
+    let rows = 1;
+    let columns = 1;
 
     if (remote_streams_count > 0) {
       if (remote_streams_count >= 2) {
@@ -2023,7 +2023,7 @@ class Room extends React.Component {
         }
       }
 
-      var aspectRatio = 4 / 3;
+      const aspectRatio = 4 / 3;
 
       height = Math.round(width / aspectRatio);
 
@@ -2035,15 +2035,15 @@ class Room extends React.Component {
         height = Math.round(width / aspectRatio);
       }
 
-      var pinnedWidth = dimensions.width - 25;
-      var pinnedHeight = Math.round(pinnedWidth / aspectRatio);
+      let pinnedWidth = dimensions.width - 25;
+      let pinnedHeight = Math.round(pinnedWidth / aspectRatio);
 
       while (pinnedHeight > dimensions.height - 120) {
         pinnedWidth -= 5;
         pinnedHeight = Math.round(pinnedWidth / aspectRatio);
       }
 
-      var display = "row align-items-center justify-content-center h-100";
+      let display = "row align-items-center justify-content-center h-100";
 
       if (dimensions.width < 1080) {
         display = "row align-items-center justify-content-center h-100";
@@ -2101,7 +2101,7 @@ class Room extends React.Component {
     let updatedAudioStatus = clone(audioStatus);
 
     if (typeof local_stream !== "undefined") {
-      var tracks = local_stream.getTracks();
+      const tracks = local_stream.getTracks();
 
       tracks.forEach(function (track) {
         if (track.kind == type) {
@@ -2157,7 +2157,7 @@ class Room extends React.Component {
         });
       }
 
-      let updatedPublishers = [...publishers];
+      const updatedPublishers = [...publishers];
 
       updatedPublishers.forEach((publisher) => {
         if (publisher.member.id == user.id) {
@@ -2193,7 +2193,7 @@ class Room extends React.Component {
   }
 
   async getAvailableScreensToShare() {
-    var screenSources = [];
+    const screenSources = [];
 
     const sources = await desktopCapturer.getSources({
       types: ["window", "screen"],
@@ -2203,7 +2203,7 @@ class Room extends React.Component {
 
     sources.forEach((source) => {
       if (!source.name.includes("Blab")) {
-        var icon = null;
+        let icon = null;
         if (source.appIcon != null) {
           icon = source.appIcon.toDataURL();
         }
@@ -2213,7 +2213,7 @@ class Room extends React.Component {
           source.name = source.name.trim() + "...";
         }
 
-        var newSource = {
+        const newSource = {
           icon,
           display_id: source.display_id,
           id: source.id,
@@ -2238,7 +2238,7 @@ class Room extends React.Component {
     } = this.state;
 
     if (screenSharingActive && streamId == null) {
-      var request = {
+      const request = {
         request: "unpublish",
       };
 

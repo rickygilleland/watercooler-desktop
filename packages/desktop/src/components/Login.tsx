@@ -47,7 +47,7 @@ class Login extends React.Component {
 
     if (process.env.REACT_APP_PLATFORM != "web") {
       ipcRenderer.on("url_update", (event, arg) => {
-        let pushUrl = arg.slice(13);
+        const pushUrl = arg.slice(13);
 
         if (pushUrl.includes("magic")) {
           push(arg.slice(13));

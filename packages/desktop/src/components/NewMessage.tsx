@@ -30,7 +30,7 @@ class NewMessage extends React.Component {
   componentDidMount() {
     const { organizationUsers, location } = this.props;
 
-    let users = [];
+    const users = [];
 
     organizationUsers.forEach((user) => {
       users[user.id] = {
@@ -98,7 +98,7 @@ class NewMessage extends React.Component {
 
   handleSuggestionChange(event, { newValue }) {
     if (typeof newValue.id !== "undefined") {
-      let updatedSuggestions = [...this.state.suggestionValue];
+      const updatedSuggestions = [...this.state.suggestionValue];
       updatedSuggestions.push(newValue.id);
 
       return this.setState({
@@ -218,7 +218,7 @@ class NewMessage extends React.Component {
                     className="text-red"
                     style={{ color: "#fff", fontSize: "1.3rem" }}
                     onClick={() => {
-                      let updatedSuggestions = suggestionValue.filter(
+                      const updatedSuggestions = suggestionValue.filter(
                         (filtered) => {
                           return filtered != selectedUser;
                         }

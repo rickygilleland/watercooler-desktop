@@ -60,8 +60,8 @@ if (process.env.REACT_APP_PLATFORM != "web") {
 } else {
   var BrowserWindow = null;
   var nativeTheme = null;
-  var MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY = null;
-  var MAIN_WINDOW_WEBPACK_ENTRY = null;
+  const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY = null;
+  const MAIN_WINDOW_WEBPACK_ENTRY = null;
 }
 
 class Sidebar extends React.Component {
@@ -103,7 +103,7 @@ class Sidebar extends React.Component {
   }
 
   componentDidMount() {
-    var {
+    let {
       pusherInstance,
       organizationPresenceChannel,
       userPrivateNotificationChannel,
@@ -152,15 +152,15 @@ class Sidebar extends React.Component {
       });
     }
 
-    var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     if (user.timezone != timezone) {
       updateUserDetails(timezone);
     }
 
-    let timeInterval = setInterval(
+    const timeInterval = setInterval(
       function () {
-        var currentTime = DateTime.local();
+        const currentTime = DateTime.local();
 
         if (
           currentTime
@@ -176,7 +176,7 @@ class Sidebar extends React.Component {
       1000
     );
 
-    let updateInterval = setInterval(
+    const updateInterval = setInterval(
       function () {
         getOrganizations();
       }.bind(this),
@@ -207,7 +207,7 @@ class Sidebar extends React.Component {
         this.setState({ pusherInstance });
       }
 
-      var presence_channel = pusherInstance.subscribe(
+      const presence_channel = pusherInstance.subscribe(
         `presence-organization.${organization.id}`
       );
       var that = this;
@@ -216,7 +216,7 @@ class Sidebar extends React.Component {
 
       presence_channel.bind_global(function (event, data) {
         if (event == "pusher:subscription_succeeded") {
-          var onlineUsers = [];
+          const onlineUsers = [];
 
           each(data.members, (member) => {
             onlineUsers.push(member.id);
@@ -255,7 +255,7 @@ class Sidebar extends React.Component {
       });
 
       if (userPrivateNotificationChannel === false) {
-        var user_channel = pusherInstance.subscribe(`private-user.${user.id}`);
+        const user_channel = pusherInstance.subscribe(`private-user.${user.id}`);
         var that = this;
 
         this.setState({ userPrivateNotificationChannel: user_channel });
@@ -279,7 +279,7 @@ class Sidebar extends React.Component {
             event == "user.messages.created" ||
             event == "user.messages.updated"
           ) {
-            var activeThread = false;
+            let activeThread = false;
             if (data.thread.type == "private") {
               Object.keys(that.props.privateThreads).map((threadId) => {
                 if (threadId == data.thread.id) {
@@ -543,7 +543,7 @@ class Sidebar extends React.Component {
       }
     });
 
-    let curTeam = teams[0];
+    const curTeam = teams[0];
     let rooms;
     let sidebarPrivateThreads;
 
@@ -777,7 +777,7 @@ class Sidebar extends React.Component {
       });
     }
 
-    var firstRoom = {};
+    let firstRoom = {};
     try {
       teams.forEach((team) => {
         if (team.rooms.length > 0) {

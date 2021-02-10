@@ -43,7 +43,7 @@ function VideoList(props) {
     let audioLoading = false;
 
     if (typeof publisher.stream != "undefined" && publisher.stream != null) {
-      let tracks = publisher.stream.getTracks();
+      const tracks = publisher.stream.getTracks();
 
       tracks.forEach(function (track) {
         if (track.kind == "video") {
@@ -56,7 +56,7 @@ function VideoList(props) {
       });
     }
 
-    let updatedPublishers = [...processedPublishers];
+    const updatedPublishers = [...processedPublishers];
 
     updatedPublishers.forEach((updatedPublisher) => {
       if (updatedPublisher.id == publisher.id) {
@@ -72,13 +72,13 @@ function VideoList(props) {
     }
   }
 
-  var showPinToggle = false;
+  let showPinToggle = false;
   if (processedPublishers.length > 1) {
     showPinToggle = true;
   }
 
   if (pinned !== false || !showPinToggle) {
-    var publisher = processedPublishers[0];
+    let publisher = processedPublishers[0];
     if (pinned !== false) {
       publisher = processedPublishers[pinned];
     }

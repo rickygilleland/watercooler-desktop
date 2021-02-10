@@ -34,7 +34,7 @@ function Video(props) {
     isLocal,
   } = props;
 
-  var classAppend = "";
+  let classAppend = "";
 
   if (speaking) {
     classAppend = "speaking-border";
@@ -45,7 +45,7 @@ function Video(props) {
   }
 
   if (typeof publisher.stream != "undefined" && publisher.stream != null) {
-    var height = videoSizes.height;
+    const height = videoSizes.height;
 
     if (hasVideo === true && !videoLoading) {
       return (

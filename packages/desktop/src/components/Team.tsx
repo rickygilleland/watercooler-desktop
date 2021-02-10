@@ -55,7 +55,7 @@ class Team extends React.Component {
       organizationUsersOnline,
       billing,
     } = this.props;
-    var { organizationUsers } = this.props;
+    const { organizationUsers } = this.props;
     const { showInviteUsersModal } = this.state;
 
     return (

@@ -35,7 +35,7 @@ function AddUserToRoomModal(props) {
   function addUser(userId) {
     setLoadingUser(userId);
 
-    var updatedUsersAdded = [];
+    const updatedUsersAdded = [];
 
     usersAdded.forEach((user) => {
       updatedUsersAdded.push(user);
@@ -57,10 +57,10 @@ function AddUserToRoomModal(props) {
   }
 
   function filterCurrentUsers() {
-    var usersToInvite = [];
+    const usersToInvite = [];
 
     organizationUsers.forEach((filterUser) => {
-      var found = false;
+      let found = false;
       users.forEach((roomUser) => {
         if (roomUser.id == filterUser.id) {
           return (found = true);

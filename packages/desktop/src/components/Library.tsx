@@ -175,14 +175,14 @@ class Library extends React.Component {
           {libraryItemsOrder.length > 0 && (
             <Row>
               {libraryItemsOrder.map((itemId, key) => {
-                let item = libraryItems[itemId];
+                const item = libraryItems[itemId];
 
                 if (item == null || typeof item == "undefined") {
                   return null;
                 }
 
-                let date = DateTime.fromISO(item.created_at);
-                var formattedDate = date.toRelativeCalendar();
+                const date = DateTime.fromISO(item.created_at);
+                let formattedDate = date.toRelativeCalendar();
 
                 if (DateTime.local().minus({ days: 7 }) > date) {
                   formattedDate = date.toLocaleString(DateTime.DATE_FULL);

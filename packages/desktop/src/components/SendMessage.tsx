@@ -203,15 +203,15 @@ class SendMessage extends React.Component {
       streamOptions
     );
 
-    var localVideoContainer = document.createElement("video");
+    const localVideoContainer = document.createElement("video");
     localVideoContainer.srcObject = raw_video_stream;
     localVideoContainer.muted = true;
     localVideoContainer.autoplay = true;
     localVideoContainer.setAttribute("playsinline", "");
     localVideoContainer.play();
 
-    var localVideoCanvas = document.createElement("canvas");
-    var ctx = localVideoCanvas.getContext("2d");
+    const localVideoCanvas = document.createElement("canvas");
+    const ctx = localVideoCanvas.getContext("2d");
 
     localVideoContainer.onloadedmetadata = () => {
       localVideoContainer.width = localVideoContainer.videoWidth;
@@ -235,8 +235,8 @@ class SendMessage extends React.Component {
 
       drawVideo();
 
-      let local_stream = localVideoCanvas.captureStream(60);
-      let raw_tracks = raw_video_stream.getAudioTracks();
+      const local_stream = localVideoCanvas.captureStream(60);
+      const raw_tracks = raw_video_stream.getAudioTracks();
       raw_tracks.forEach((track) => {
         local_stream.addTrack(track);
       });
@@ -261,8 +261,8 @@ class SendMessage extends React.Component {
       showMessageEditor: false,
     });
 
-    var streamOptions;
-    var raw_local_stream = null;
+    let streamOptions;
+    let raw_local_stream = null;
 
     if (recordingType == "audio") {
       if (
@@ -293,7 +293,7 @@ class SendMessage extends React.Component {
       raw_local_stream = this.state.raw_local_stream;
     }
 
-    let recorder = RecordRTC(this.state.raw_local_stream, {
+    const recorder = RecordRTC(this.state.raw_local_stream, {
       type: recordingType == "video" ? "video" : "audio",
       mimeType:
         recordingType == "video"
@@ -307,18 +307,18 @@ class SendMessage extends React.Component {
     });
 
     recorder.startRecording();
-    let startTime = Date.now();
+    const startTime = Date.now();
 
     this.setState({ startTime });
 
-    let timeInterval = setInterval(
+    const timeInterval = setInterval(
       function () {
         if (this.state.startTime == null) {
           return true;
         }
 
-        let currentTime = Date.now();
-        let diff = currentTime - this.state.startTime;
+        const currentTime = Date.now();
+        const diff = currentTime - this.state.startTime;
 
         this.calculateTimeDuration(diff / 1000);
       }.bind(this),
@@ -351,8 +351,8 @@ class SendMessage extends React.Component {
 
     if (recorder !== null && isRecording) {
       recorder.stopRecording(() => {
-        let recordingBlob = recorder.getBlob();
-        let recordingBlobUrl = recorder.toURL();
+        const recordingBlob = recorder.getBlob();
+        const recordingBlobUrl = recorder.toURL();
 
         recorder.destroy();
 
@@ -404,14 +404,14 @@ class SendMessage extends React.Component {
       });
     }
 
-    var formData = new FormData();
+    const formData = new FormData();
     formData.append("attachment", attachment);
 
     if (isLibrary) {
       return createItem(formData);
     }
 
-    var message;
+    let message;
 
     if (typeof threadId != "undefined") {
       message = {
@@ -429,7 +429,7 @@ class SendMessage extends React.Component {
       };
     }
 
-    for (var key in message) {
+    for (const key in message) {
       if (key == "recipient_ids") {
         message[key].forEach((recipient, index) => {
           formData.append(`recipient_ids[${index}]`, recipient);
@@ -449,8 +449,8 @@ class SendMessage extends React.Component {
       this.stopRecording();
     }
 
-    var min = Math.floor(secs / 60);
-    var sec = Math.floor(secs - min * 60);
+    let min = Math.floor(secs / 60);
+    let sec = Math.floor(secs - min * 60);
 
     if (min < 10) {
       min = "0" + min;
@@ -460,13 +460,13 @@ class SendMessage extends React.Component {
       sec = "0" + sec;
     }
 
-    let duration = min + ":" + sec;
+    const duration = min + ":" + sec;
 
     this.setState({ duration });
   }
 
   async getAvailableScreensToShare() {
-    var screenSources = [];
+    const screenSources = [];
 
     const sources = await desktopCapturer.getSources({
       types: ["window", "screen"],
@@ -476,7 +476,7 @@ class SendMessage extends React.Component {
 
     sources.forEach((source) => {
       if (!source.name.includes("Blab")) {
-        var icon = null;
+        let icon = null;
         if (source.appIcon != null) {
           icon = source.appIcon.toDataURL();
         }
@@ -486,7 +486,7 @@ class SendMessage extends React.Component {
           source.name = source.name.trim() + "...";
         }
 
-        var newSource = {
+        const newSource = {
           icon,
           display_id: source.display_id,
           id: source.id,

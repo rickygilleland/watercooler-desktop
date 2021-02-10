@@ -1,6 +1,6 @@
 import { combineReducers } from "redux";
-import { connectRouter } from "connected-react-router";
-import { push } from "connected-react-router";
+import { connectRouter , push } from "connected-react-router";
+
 
 import auth from "./auth";
 import user from "./user";

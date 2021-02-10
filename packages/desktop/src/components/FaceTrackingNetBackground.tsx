@@ -74,7 +74,7 @@ class FaceTrackingNetBackground extends React.Component {
 
     this.setState({ raw_local_stream });
 
-    let localVideo = document.createElement("video");
+    const localVideo = document.createElement("video");
     localVideo.srcObject = raw_local_stream;
     localVideo.autoplay = true;
     localVideo.muted = true;
@@ -84,8 +84,8 @@ class FaceTrackingNetBackground extends React.Component {
       localVideo.height = localVideo.videoHeight;
     };
 
-    var facePrediction = null;
-    var newPrediction = {};
+    let facePrediction = null;
+    let newPrediction = {};
 
     const that = this;
 

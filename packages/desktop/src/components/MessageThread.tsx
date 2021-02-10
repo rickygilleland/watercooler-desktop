@@ -110,12 +110,12 @@ class MessageThread extends React.Component {
       threadId,
     } = this.props;
 
-    var curThread = null;
+    let curThread = null;
 
     if (typeof threadType != "undefined" && threadType == "room") {
       curThread = roomThreads[threadId];
     } else {
-      var threadsToCheck;
+      let threadsToCheck;
 
       if (match.path == "/thread/public") {
         curThread = publicThreads[Object.keys(publicThreads)[0]];
@@ -147,8 +147,8 @@ class MessageThread extends React.Component {
     if (curThread != null) {
       getMessagesByThreadId(curThread.id);
 
-      var recipients = [];
-      var recipientName = "";
+      const recipients = [];
+      let recipientName = "";
 
       curThread.users.forEach((threadUser) => {
         recipients.push(threadUser.id);
@@ -204,7 +204,7 @@ class MessageThread extends React.Component {
       lastCopiedMessageId,
     } = this.state;
 
-    var messageKeys = [];
+    let messageKeys = [];
     if (
       typeof messages[thread.id] !== "undefined" &&
       messages[thread.id] !== null
@@ -322,16 +322,16 @@ class MessageThread extends React.Component {
         >
           {messageKeys.length > 0 &&
             messageKeys.map((messageId, key) => {
-              let message = messages[thread.id][messageId];
+              const message = messages[thread.id][messageId];
               const localDate = DateTime.local();
-              let curDate = DateTime.fromISO(message.created_at);
+              const curDate = DateTime.fromISO(message.created_at);
               let renderDateHeading = true;
 
               const renderYearWithDate =
                 curDate.startOf("year") < localDate.startOf("year");
 
               if (key > 0) {
-                let prevDate = DateTime.fromISO(
+                const prevDate = DateTime.fromISO(
                   messages[thread.id][messageKeys[key - 1]].created_at
                 );
                 renderDateHeading =

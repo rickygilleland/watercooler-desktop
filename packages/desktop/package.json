@@ -9,7 +9,8 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "lint": "eslint --ext .ts .",
+    "lint": "eslint --ext .ts ./src/**/*",
+    "lint:fix": "eslint --ext .ts ./src/**/* --fix",
     "format": "prettier --write '{src,typings}/**'",
     "format:check": "prettier --check '{src,typings}/**'",
     "type-check": "tsc --noEmit"

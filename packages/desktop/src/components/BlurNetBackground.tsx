@@ -80,7 +80,7 @@ class BlurNetBackground extends React.Component {
 
     this.setState({ raw_local_stream });
 
-    let localVideo = document.createElement("video");
+    const localVideo = document.createElement("video");
     localVideo.srcObject = raw_local_stream;
     localVideo.autoplay = true;
     localVideo.muted = true;
@@ -90,7 +90,7 @@ class BlurNetBackground extends React.Component {
       localVideo.height = localVideo.videoHeight;
     };
 
-    var personSegmentation = null;
+    let personSegmentation = null;
 
     const that = this;
 

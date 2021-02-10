@@ -16,7 +16,7 @@ class Message extends React.PureComponent {
   constructor(props) {
     super(props);
 
-    let date = DateTime.fromISO(this.props.message.created_at);
+    const date = DateTime.fromISO(this.props.message.created_at);
 
     this.state = {
       waveSurfer: null,
