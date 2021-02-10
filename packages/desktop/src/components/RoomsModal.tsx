@@ -65,7 +65,7 @@ function RoomsModal(props) {
     <Modal
       show={props.show}
       onHide={handleHide}
-      size="md"
+      size="lg"
       aria-labelledby="contained-modal-title-vcenter"
       centered
       scrollable={true}

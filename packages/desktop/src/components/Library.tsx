@@ -1,36 +1,15 @@
 import React from "react";
-import routes from "../constants/routes.json";
-import { Link } from "react-router-dom";
 import { DateTime } from "luxon";
-import {
-  Container,
-  Image,
-  Button,
-  Card,
-  CardColumns,
-  Navbar,
-  Row,
-  Col,
-  OverlayTrigger,
-  Overlay,
-  Popover,
-  Tooltip,
-} from "react-bootstrap";
+import { Container, Button, Card, Row, Col } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleNotch,
-  faUserPlus,
-  faCircle,
-  faEnvelope,
-  faShare,
   faClipboard,
   faClipboardCheck,
 } from "@fortawesome/free-solid-svg-icons";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import SendMessage from "./SendMessage";
 import MessageMediaPlayer from "./MessageMediaPlayer";
-
-import posthog from "posthog-js";
 
 class Library extends React.Component {
   constructor(props) {
@@ -174,7 +153,7 @@ class Library extends React.Component {
           )}
           {libraryItemsOrder.length > 0 && (
             <Row>
-              {libraryItemsOrder.map((itemId, key) => {
+              {libraryItemsOrder.map((itemId) => {
                 const item = libraryItems[itemId];
 
                 if (item == null || typeof item == "undefined") {

@@ -1,16 +1,5 @@
 import React, { useState } from "react";
-import {
-  Row,
-  Col,
-  Button,
-  Navbar,
-  Dropdown,
-  Modal,
-  Card,
-  Image,
-  Form,
-  Alert,
-} from "react-bootstrap";
+import { Button, Modal, Form, Alert } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleNotch,
@@ -18,15 +7,27 @@ import {
   faUserPlus,
 } from "@fortawesome/free-solid-svg-icons";
 
-function InviteUsersModal(props) {
+interface InviteUsersModalProps {
+  handleSubmit: (emails: string) => void;
+  onHide: () => void;
+  show: boolean;
+  inviteuserssuccess: boolean;
+  loading: boolean;
+}
+
+export default function InviteUsersModal(
+  props: InviteUsersModalProps,
+): JSX.Element {
   const [emails, setEmails] = useState("");
   const [formSubmitted, setFormSubmitted] = useState(false);
 
-  function handleEmailChange(event) {
+  function handleEmailChange(event: {
+    target: { value: React.SetStateAction<string> };
+  }) {
     setEmails(event.target.value);
   }
 
-  function handleSubmit(event) {
+  function handleSubmit(event: { preventDefault: () => void }) {
     event.preventDefault();
 
     setFormSubmitted(true);
@@ -44,7 +45,7 @@ function InviteUsersModal(props) {
     <Modal
       show={props.show}
       onHide={handleHide}
-      size="md"
+      size="lg"
       aria-labelledby="contained-modal-title-vcenter"
       centered
       scrollable={true}
@@ -88,19 +89,17 @@ function InviteUsersModal(props) {
             value={emails}
             onChange={handleEmailChange}
           />
-          {props.loading == "true" ? (
-            <Button className="mt-3" variant="primary" type="submit" disabled>
-              <FontAwesomeIcon icon={faCircleNotch} spin /> Sending Invites
-            </Button>
-          ) : (
-            <Button className="mt-3" variant="primary" type="submit">
-              Send Invite
-            </Button>
-          )}
+          <Button
+            className="mt-3"
+            variant="primary"
+            type="submit"
+            disabled={props.loading}
+          >
+            <FontAwesomeIcon icon={faCircleNotch} spin />{" "}
+            {props.loading ? "Sending Invites" : "Send Invites"}
+          </Button>
         </Form>
       </Modal.Body>
     </Modal>
   );
 }
-
-export default InviteUsersModal;

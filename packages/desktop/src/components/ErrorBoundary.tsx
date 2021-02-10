@@ -1,19 +1,31 @@
 import React from "react";
 import { Card } from "react-bootstrap";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faMicrophone } from "@fortawesome/free-solid-svg-icons";
 
-class ErrorBoundary extends React.Component {
-  constructor(props) {
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  showError: boolean;
+}
+
+interface State {
+  hasError: boolean;
+}
+
+export default class ErrorBoundary extends React.Component<
+  ErrorBoundaryProps,
+  State
+> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false };
   }
 
-  componentDidCatch(error, info) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     // Display fallback UI
     this.setState({ hasError: true });
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   render() {
     if (this.state.hasError && this.props.showError) {
       return (
@@ -35,5 +47,3 @@ class ErrorBoundary extends React.Component {
     return this.props.children;
   }
 }
-
-export default ErrorBoundary;

@@ -3,6 +3,7 @@ import { ipcRenderer } from "electron";
 import * as tf from "@tensorflow/tfjs-core";
 import "@tensorflow/tfjs-backend-webgl";
 import "@tensorflow/tfjs-backend-cpu";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const bodyPix = require("@tensorflow-models/body-pix");
 
 class BlurNetBackground extends React.Component {
@@ -75,7 +76,7 @@ class BlurNetBackground extends React.Component {
     }
 
     const raw_local_stream = await navigator.mediaDevices.getUserMedia(
-      streamOptions
+      streamOptions,
     );
 
     this.setState({ raw_local_stream });

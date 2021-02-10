@@ -173,14 +173,14 @@ class Sidebar extends React.Component {
           this.setState({ currentTime });
         }
       }.bind(this),
-      1000
+      1000,
     );
 
     const updateInterval = setInterval(
       function () {
         getOrganizations();
       }.bind(this),
-      300000
+      300000,
     );
 
     this.setState({ timeInterval, updateInterval });
@@ -208,7 +208,7 @@ class Sidebar extends React.Component {
       }
 
       const presence_channel = pusherInstance.subscribe(
-        `presence-organization.${organization.id}`
+        `presence-organization.${organization.id}`,
       );
       var that = this;
 
@@ -255,7 +255,9 @@ class Sidebar extends React.Component {
       });
 
       if (userPrivateNotificationChannel === false) {
-        const user_channel = pusherInstance.subscribe(`private-user.${user.id}`);
+        const user_channel = pusherInstance.subscribe(
+          `private-user.${user.id}`,
+        );
         var that = this;
 
         this.setState({ userPrivateNotificationChannel: user_channel });
@@ -268,12 +270,6 @@ class Sidebar extends React.Component {
           if (event == "room.user.invited") {
             return getOrganizations();
           }
-
-          /*if (event == "call.created") {
-                        getOrganizations();
-
-                        that.setState({ showIncomingCallModal: true, incomingCall: data.room })
-                    }*/
 
           if (
             event == "user.messages.created" ||
@@ -324,7 +320,7 @@ class Sidebar extends React.Component {
     /*
         if (process.env.REACT_APP_PLATFORM != "web") {
 
-            let backgroundBlurWindow = new BrowserWindow({ 
+            let backgroundBlurWindow = new BrowserWindow({
                 show: false,
                 webPreferences: {
                     nodeIntegration: true,
@@ -336,7 +332,7 @@ class Sidebar extends React.Component {
 
             backgroundBlurWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/blur_net_background");
 
-            let faceTrackingNetWindow = new BrowserWindow({ 
+            let faceTrackingNetWindow = new BrowserWindow({
                 show: false,
                 webPreferences: {
                     nodeIntegration: true,
@@ -751,7 +747,7 @@ class Sidebar extends React.Component {
                           className="mr-1"
                           style={{
                             color: organizationUsersOnline.includes(
-                              privateThreads[threadId].users[0].id
+                              privateThreads[threadId].users[0].id,
                             )
                               ? "#3ecf8e"
                               : "#f9426c",
@@ -842,7 +838,7 @@ class Sidebar extends React.Component {
               <InviteUsersModal
                 show={showInviteUsersModal}
                 handleSubmit={inviteUsers}
-                loading={organizationLoading.toString()}
+                loading={organizationLoading.toString() ?? false}
                 inviteuserssuccess={inviteUsersSuccess}
                 organizationusers={organizationUsers}
                 billing={billing}
@@ -879,12 +875,6 @@ class Sidebar extends React.Component {
                 onShow={() => getOrganizationUsers(organization.id)}
                 onHide={() => this.setState({ showCallsModal: false })}
               />
-              <IncomingCallModal
-                call={incomingCall}
-                show={showIncomingCallModal}
-                handleIncomingCall={this.handleIncomingCall}
-                onHide={() => this.setState({ showIncomingCallModal: false })}
-              />
               <ManageCameraModal
                 show={showManageCameraModal}
                 settings={settings}
@@ -904,14 +894,6 @@ class Sidebar extends React.Component {
                 handleLogOut={() => this.userLogout()}
                 organization={organization}
                 onHide={() => this.setState({ showSettingsModal: false })}
-              />
-              <ExperimentalSettingsModal
-                show={showExperimentalSettingsModal}
-                settings={settings}
-                updateExperimentalSettings={updateExperimentalSettings}
-                onHide={() =>
-                  this.setState({ showExperimentalSettingsModal: false })
-                }
               />
             </ErrorBoundary>
             {process.env.REACT_APP_PLATFORM == "web" && (

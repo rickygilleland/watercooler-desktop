@@ -1,14 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState } from "react";
-import {
-  Row,
-  Col,
-  Button,
-  Navbar,
-  Dropdown,
-  Modal,
-  Card,
-  Image,
-} from "react-bootstrap";
+import { Button, Modal, Image } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleNotch,
@@ -16,7 +8,22 @@ import {
   faCheck,
 } from "@fortawesome/free-solid-svg-icons";
 
-function AddUserToRoomModal(props) {
+interface AddUserToRoomModalProps {
+  handleSubmit: any;
+  onHide: any;
+  show: any;
+  loading: boolean;
+  addUserLoading: any;
+  users: any;
+  room: any;
+  me: any;
+  organizationUsers: any;
+  getRoomUsers: any;
+}
+
+export default function AddUserToRoomModal(
+  props: AddUserToRoomModalProps,
+): JSX.Element {
   const {
     loading,
     addUserLoading,
@@ -32,7 +39,7 @@ function AddUserToRoomModal(props) {
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [usersAdded, setUsersAdded] = useState([]);
 
-  function addUser(userId) {
+  function addUser(userId: any) {
     setLoadingUser(userId);
 
     const updatedUsersAdded = [];
@@ -57,11 +64,11 @@ function AddUserToRoomModal(props) {
   }
 
   function filterCurrentUsers() {
-    const usersToInvite = [];
+    const usersToInvite: React.SetStateAction<any[]> = [];
 
-    organizationUsers.forEach((filterUser) => {
+    organizationUsers.forEach((filterUser: { id: any; in_room: boolean }) => {
       let found = false;
-      users.forEach((roomUser) => {
+      users.forEach((roomUser: { id: any }) => {
         if (roomUser.id == filterUser.id) {
           return (found = true);
         }
@@ -80,7 +87,7 @@ function AddUserToRoomModal(props) {
     <Modal
       show={props.show}
       onHide={handleHide}
-      size="md"
+      size="lg"
       aria-labelledby="contained-modal-title-vcenter"
       centered
       scrollable={true}
@@ -96,46 +103,55 @@ function AddUserToRoomModal(props) {
         </Button>
       </Modal.Header>
       <Modal.Body>
-        {loading == "true" ? (
+        {loading && (
           <>
             <h1 className="text-center h5">Loading...</h1>
-            <center>
-              <FontAwesomeIcon
-                icon={faCircleNotch}
-                className="mt-3"
-                style={{ fontSize: "2.4rem", color: "#6772ef" }}
-                spin
-              />
-            </center>
+
+            <FontAwesomeIcon
+              icon={faCircleNotch}
+              className="mt-3"
+              style={{ fontSize: "2.4rem", color: "#6772ef" }}
+              spin
+            />
           </>
-        ) : !showAddUserForm ? (
+        )}
+        {!loading && !showAddUserForm && (
           <>
-            {users.map((user) => (
-              <div key={user.id}>
-                <div className="align-items-center d-flex">
-                  <Image
-                    src={user.avatar_url}
-                    fluid
-                    roundedCircle
-                    style={{ maxHeight: 30 }}
-                    className="pr-2"
-                  />
-                  <p
-                    className="text-left align-self-center"
-                    style={{
-                      fontWeight: 600,
-                      paddingTop: 14,
-                      fontSize: "1rem",
-                    }}
-                  >
-                    {user.first_name} {user.last_name}{" "}
-                    {user.id == me.id ? "(you)" : ""}
-                  </p>
+            {users.map(
+              (user: {
+                id: React.Key;
+                avatar_url: string;
+                first_name: React.ReactNode;
+                last_name: React.ReactNode;
+              }) => (
+                <div key={user.id}>
+                  <div className="align-items-center d-flex">
+                    <Image
+                      src={user.avatar_url}
+                      fluid
+                      roundedCircle
+                      style={{ maxHeight: 30 }}
+                      className="pr-2"
+                    />
+                    <p
+                      className="text-left align-self-center"
+                      style={{
+                        fontWeight: 600,
+                        paddingTop: 14,
+                        fontSize: "1rem",
+                      }}
+                    >
+                      {user.first_name} {user.last_name}{" "}
+                      {user.id === me.id && "(you)"}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ),
+            )}
           </>
-        ) : (
+        )}
+        {!loading &&
+          showAddUserForm &&
           filteredUsers.map((user) => (
             <div key={user.id}>
               <div className="align-items-center d-flex">
@@ -148,18 +164,23 @@ function AddUserToRoomModal(props) {
                 />
                 <p
                   className="text-left align-self-center"
-                  style={{ fontWeight: 600, paddingTop: 14, fontSize: "1rem" }}
+                  style={{
+                    fontWeight: 600,
+                    paddingTop: 14,
+                    fontSize: "1rem",
+                  }}
                 >
                   {user.first_name} {user.last_name}{" "}
-                  {user.id == me.id ? "(you)" : ""}
+                  {user.id === me.id && "(you)"}
                 </p>
-                {addUserLoading ? (
-                  loadingUser == user.id ? (
-                    <Button size="sm" className="ml-auto" disabled>
-                      <FontAwesomeIcon icon={faCircleNotch} spin /> Adding to
-                      Room
-                    </Button>
-                  ) : user.in_room || usersAdded.includes(user.id) ? (
+                {addUserLoading && loadingUser === user.id && (
+                  <Button size="sm" className="ml-auto" disabled>
+                    <FontAwesomeIcon icon={faCircleNotch} spin /> Adding to Room
+                  </Button>
+                )}
+                {addUserLoading &&
+                  loadingUser !== user.id &&
+                  (user.in_room || usersAdded.includes(user.id)) && (
                     <Button size="sm" className="ml-auto" disabled>
                       {usersAdded.includes(user.id) ? (
                         <>
@@ -173,60 +194,35 @@ function AddUserToRoomModal(props) {
                         "Already in this Room"
                       )}
                     </Button>
-                  ) : (
-                    <Button size="sm" className="ml-auto" disabled>
+                  )}
+
+                {addUserLoading &&
+                  loadingUser !== user.id &&
+                  !user.in_room &&
+                  !usersAdded.includes(user.id) && (
+                    <Button
+                      size="sm"
+                      className="ml-auto"
+                      onClick={() => addUser(user.id)}
+                    >
                       Add to Room
                     </Button>
-                  )
-                ) : user.in_room || usersAdded.includes(user.id) ? (
-                  <Button size="sm" disabled className="ml-auto">
-                    {usersAdded.includes(user.id) ? (
-                      <>
-                        <FontAwesomeIcon
-                          icon={faCheck}
-                          style={{ color: "#3ecf8e" }}
-                        />{" "}
-                        Added to the Room
-                      </>
-                    ) : (
-                      "Already in this Room"
-                    )}
-                  </Button>
-                ) : (
-                  <Button
-                    size="sm"
-                    className="ml-auto"
-                    onClick={() => addUser(user.id)}
-                  >
-                    Add to Room
-                  </Button>
-                )}
+                  )}
               </div>
             </div>
-          ))
-        )}
+          ))}
       </Modal.Body>
       <Modal.Footer style={{ justifyContent: "flex-start" }}>
-        {!showAddUserForm ? (
-          <Button
-            size="md"
-            variant="outline-light"
-            onClick={() => filterCurrentUsers()}
-          >
-            Add People
-          </Button>
-        ) : (
-          <Button
-            size="md"
-            variant="outline-light"
-            onClick={() => setShowAddUserForm(false)}
-          >
-            Show Current Members
-          </Button>
-        )}
+        <Button
+          size="lg"
+          variant="outline-light"
+          onClick={() =>
+            showAddUserForm ? setShowAddUserForm(false) : filterCurrentUsers()
+          }
+        >
+          Add People
+        </Button>
       </Modal.Footer>
     </Modal>
   );
 }
-
-export default AddUserToRoomModal;

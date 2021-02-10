@@ -29,7 +29,7 @@ function SettingsModal(props) {
       show={props.show}
       onShow={props.onShow}
       onHide={props.onHide}
-      size="md"
+      size="lg"
       aria-labelledby="contained-modal-title-vcenter"
       centered
       scrollable={true}
@@ -50,7 +50,7 @@ function SettingsModal(props) {
         <Button
           variant="primary"
           className="my-3"
-          size="md"
+          size="lg"
           block
           onClick={() => handleShowModal("cameraSettings")}
         >
@@ -59,7 +59,7 @@ function SettingsModal(props) {
         <Button
           variant="primary"
           className="my-3"
-          size="md"
+          size="lg"
           block
           onClick={() => handleShowModal("roomSettings")}
         >
@@ -67,7 +67,7 @@ function SettingsModal(props) {
         </Button>
         {/*process.env.REACT_APP_PLATFORM != "web" && (
               <center>
-                <Button variant="danger" className="my-3" size="md" onClick={() => handleShowModal("experimentalSettings")}>
+                <Button variant="danger" className="my-3" size="lg" onClick={() => handleShowModal("experimentalSettings")}>
                     <FontAwesomeIcon icon={faFlask} /> Experimental Features
                 </Button>
               </center>

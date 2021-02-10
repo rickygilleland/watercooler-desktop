@@ -51,7 +51,7 @@ function RoomSettingsModal(props) {
       show={props.show}
       onShow={props.onShow}
       onHide={props.onHide}
-      size="md"
+      size="lg"
       aria-labelledby="contained-modal-title-vcenter"
       centered
       scrollable={true}
