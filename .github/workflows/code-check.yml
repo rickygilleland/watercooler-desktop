@@ -1,0 +1,38 @@
+name: Code Check
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+jobs:
+  electron-desktop-app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: "14.15"
+      - uses: actions/cache@v1
+        with:
+          path: "~/.npm"
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+      - name: Install
+        run: yarn install
+        
+      - name: Typecheck
+        run: yarn workspace @blab/desktop type-check
+
+      - name: Lint
+        run: yarn workspace @blab/desktop lint
+
+      - name: Format
+        run: yarn workspace @blab/desktop format:check
+
+      - name: Make
+        run: yarn workspace @blab/desktop make
+
+  

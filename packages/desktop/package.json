@@ -12,7 +12,7 @@
     "lint": "eslint --ext .ts .",
     "format": "prettier --write '{src,typings}/**'",
     "format:check": "prettier --check '{src,typings}/**'",
-    "typecheck": "tsc --noEmit"
+    "type-check": "tsc --noEmit"
   },
   "keywords": [],
   "author": "Blab",
