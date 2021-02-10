@@ -1,4 +1,4 @@
-import React from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { userLogout } from "../actions/auth";
 import { updateUserDetails } from "../actions/user";
 import {
@@ -21,12 +21,30 @@ import {
   updateRoomSettings,
 } from "../actions/settings";
 import { connect } from "react-redux";
-import { bindActionCreators } from "redux";
+import { AnyAction, bindActionCreators, Dispatch } from "redux";
 import { push } from "connected-react-router";
 import { withRouter } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 
-function mapStateToProps(state, ownProps) {
+function mapStateToProps(
+  state: {
+    user: any;
+    organization: {
+      organization: any;
+      billing: any;
+      users: any;
+      loading: any;
+      inviteUsersSuccess: any;
+      createRoomSuccess: any;
+      lastCreatedRoomSlug: any;
+      teams: any;
+    };
+    thread: { publicThreads: any; privateThreads: any; sharedThreads: any };
+    auth: any;
+    settings: any;
+  },
+  ownProps: { location: { pathname: any } },
+) {
   return {
     user: state.user,
     organization: state.organization.organization,
@@ -46,7 +64,7 @@ function mapStateToProps(state, ownProps) {
   };
 }
 
-function mapDispatchToProps(dispatch) {
+function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
   return bindActionCreators(
     {
       userLogout,
@@ -67,10 +85,10 @@ function mapDispatchToProps(dispatch) {
       updateRoomSettings,
       push,
     },
-    dispatch
+    dispatch,
   );
 }
 
 export default withRouter(
-  connect(mapStateToProps, mapDispatchToProps)(Sidebar)
+  connect(mapStateToProps, mapDispatchToProps)(Sidebar),
 );

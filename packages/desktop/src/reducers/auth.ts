@@ -1,5 +1,6 @@
-import { Action } from "redux";
 import {
+  AuthState,
+  AuthActionTypes,
   REQUEST_LOGIN_CODE_STARTED,
   REQUEST_LOGIN_CODE_SUCCESS,
   REQUEST_LOGIN_CODE_FAILURE,
@@ -7,9 +8,9 @@ import {
   AUTHENTICATE_USER_SUCCESS,
   AUTHENTICATE_USER_FAILURE,
   SET_REDIRECT_URL,
-} from "../actions/auth";
+} from "../store/types/auth";
 
-const initialState = {
+const authState: AuthState = {
   isLoggedIn: false,
   authKey: null,
   loginError: false,
@@ -18,8 +19,11 @@ const initialState = {
   loading: false,
 };
 
-export default function auth(state = initialState, action = {}) {
-  var updatedState = {};
+export default function auth(
+  state = authState,
+  action: AuthActionTypes,
+): AuthState {
+  let updatedState = {};
   switch (action.type) {
     case REQUEST_LOGIN_CODE_STARTED:
       updatedState = {

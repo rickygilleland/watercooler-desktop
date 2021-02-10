@@ -1,12 +1,18 @@
-import React from "react";
-import { connect } from "react-redux";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { connect, ConnectedProps } from "react-redux";
 import { getRoomUsers, addUserToRoom } from "../actions/room";
-import { bindActionCreators } from "redux";
+import { AnyAction, bindActionCreators, Dispatch } from "redux";
 import { push } from "connected-react-router";
 import { withRouter } from "react-router-dom";
 import Room from "../components/Room";
 
-function mapStateToProps(state) {
+function mapStateToProps(state: {
+  auth: any;
+  user: any;
+  organization: { organization: any; billing: any; users: any; teams: any };
+  room: { loading: any; addUserLoading: any; users: any };
+  settings: any;
+}) {
   return {
     auth: state.auth,
     user: state.user,
@@ -21,15 +27,18 @@ function mapStateToProps(state) {
   };
 }
 
-function mapDispatchToProps(dispatch) {
+function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
   return bindActionCreators(
     {
       getRoomUsers,
       addUserToRoom,
       push,
     },
-    dispatch
+    dispatch,
   );
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(Room));
+const connector = connect(mapStateToProps, mapDispatchToProps);
+export type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default withRouter(connector(Room));

@@ -1180,23 +1180,6 @@ class Sidebar extends React.Component {
                     )}
                   />
                   <Route
-                    path={routes.CALL}
-                    render={(routeProps) => (
-                      <ErrorBoundary showError={true}>
-                        <RoomPage
-                          {...routeProps}
-                          sidebarIsVisible={sidebarIsVisible}
-                          pusherInstance={pusherInstance}
-                          userPrivateNotificationChannel={
-                            userPrivateNotificationChannel
-                          }
-                          key={routeProps.match.params.roomSlug}
-                          currentTime={currentTime}
-                        />
-                      </ErrorBoundary>
-                    )}
-                  />
-                  <Route
                     path={routes.TEAM}
                     render={(routeProps) => (
                       <ErrorBoundary showError={true}>

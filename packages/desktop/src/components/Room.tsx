@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-var-requires */
 import React from "react";
 import { each, clone } from "lodash";
 import {
@@ -32,21 +34,85 @@ import posthog from "posthog-js";
 import hark from "hark";
 import "@tensorflow/tfjs-backend-webgl";
 import "@tensorflow/tfjs-backend-cpu";
+import { RouteComponentProps } from "react-router";
+import { PropsFromRedux } from "../containers/RoomPage";
 const bodyPix = require("@tensorflow-models/body-pix");
-if (process.env.REACT_APP_PLATFORM != "web") {
-  var { BrowserWindow } = require("electron").remote;
-  var { ipcRenderer } = require("electron");
-  var { desktopCapturer } = require("electron");
-} else {
-  var BrowserWindow = null;
-  var MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: any = null;
-  var MAIN_WINDOW_WEBPACK_ENTRY: string = null;
-  var ipcRenderer = null;
-  var desktopCapturer = null;
+const { BrowserWindow } = require("electron").remote;
+const { ipcRenderer } = require("electron");
+const { desktopCapturer } = require("electron");
+
+interface RoomProps extends PropsFromRedux, RouteComponentProps {
+  pusherInstance: any;
+  userPrivateNotificationChannel: any;
+  currentTime: any;
+  backgroundBlurWindow: any;
+  faceTrackingNetWindow: any;
+  sidebarIsVisible: boolean;
+  isLightMode: boolean;
+  onClick(): void;
 }
 
-class Room extends React.Component {
-  constructor(props: {} | Readonly<{}>) {
+interface State {
+  room: any;
+  team: any;
+  isCall: boolean;
+  loading: boolean;
+  members: any[];
+  server: string | null;
+  local_stream: any;
+  publishers: any[];
+  initialized: boolean;
+  room_at_capacity: boolean;
+  me: any;
+  connected: boolean;
+  publishing: boolean;
+  heartbeatInterval?: NodeJS.Timeout;
+  screenSharingActive: boolean;
+  showScreenSharingModal: boolean;
+  showScreenSharingDropdown: boolean;
+  screenSharingHandle: any;
+  screenSharingStream: any;
+  screenSharingWindow: any;
+  screenSharingError: boolean;
+  screenSources: any[];
+  screenSourcesLoading: boolean;
+  leaving: boolean;
+  videoSizes: {
+    width: number;
+    height: number;
+    display: string;
+    containerHeight: number;
+    threadContainerHeight: number;
+  };
+  dimensions: {
+    width: number;
+    height: number;
+    sidebarWidth: number;
+  };
+  pinned: boolean;
+  videoStatus: boolean;
+  audioStatus: boolean;
+  videoIsFaceOnly: boolean;
+  faceTrackingNetWindow: any;
+  backgroundBlurWindow: any;
+  backgroundBlurEnabled: boolean;
+  backgroundBlurAmount: number;
+  showMoreSettingsDropdown: boolean;
+  streamer_server_connected: boolean;
+  videoRoomStreamerHandle: any;
+  rootStreamerHandle: any;
+  loadingMessages: string[];
+  currentLoadingMessage: string[];
+  containerBackgroundColors: string[];
+  showAddUserToRoomModal: boolean;
+  showChatThread: boolean;
+  localVideoContainer?: HTMLCanvasElement;
+  localVideoCanvasContainer?: HTMLCanvasElement;
+}
+
+export default class Room extends React.Component<RoomProps, State> {
+  private _mounted: boolean;
+  constructor(props: RoomProps) {
     super(props);
 
     const { settings, billing } = this.props;
@@ -65,7 +131,6 @@ class Room extends React.Component {
       me: {},
       connected: false,
       publishing: false,
-      heartbeatInterval: null,
       screenSharingActive: false,
       showScreenSharingModal: false,
       showScreenSharingDropdown: false,
@@ -119,8 +184,6 @@ class Room extends React.Component {
     };
 
     this.initializeRoom = this.initializeRoom.bind(this);
-
-    this.createDetachedWindowBound = this.createDetachedWindow.bind(this);
 
     this.getAvailableScreensToShare = this.getAvailableScreensToShare.bind(
       this,
@@ -247,23 +310,7 @@ class Room extends React.Component {
     }
   }
 
-  componentDidUpdate(
-    prevProps: {
-      match: { params: { roomSlug: any } };
-      sidebarIsVisible: any;
-      settings: {
-        experimentalSettings: { faceTracking: any };
-        roomSettings: { backgroundBlurAmount: any };
-      };
-    },
-    prevState: {
-      dimensions: any;
-      publishers: string | any[];
-      showChatThread: any;
-      videoIsFaceOnly: any;
-      videoStatus: any;
-    },
-  ) {
+  componentDidUpdate(prevProps: RoomProps, prevState: State): void {
     const {
       match,
       pusherInstance,
@@ -401,7 +448,7 @@ class Room extends React.Component {
     }
   }
 
-  componentWillUnmount() {
+  componentWillUnmount(): void {
     const { pusherInstance, userPrivateNotificationChannel } = this.props;
     const {
       room,
@@ -413,7 +460,7 @@ class Room extends React.Component {
 
     this._mounted = false;
 
-    if (typeof localVideoContainer != "undefined") {
+    if (localVideoContainer) {
       localVideoContainer.remove();
     }
 
@@ -908,9 +955,9 @@ class Room extends React.Component {
       localVideoCanvasContainer.remove();
     }
 
-    let localVideo: CanvasImageSource;
+    let localVideo: HTMLCanvasElement;
     let localVideoCanvas: HTMLCanvasElement;
-    let backgroundBlurVideoCanvasCopy: CanvasImageSource;
+    let backgroundBlurVideoCanvasCopy: HTMLCanvasElement;
 
     const that = this;
 
@@ -1009,13 +1056,6 @@ class Room extends React.Component {
             video: true,
             data: true,
           };
-          /*var request = {
-                        "request": "publish",
-                        "captureDesktopAudio": false,
-                        "video": "screen",
-                        "data": true,
-                        "videocodec": "vp9"
-                    }*/
 
           videoRoomStreamerHandle.send({ message: request, jsep: jsep });
 
@@ -1216,22 +1256,6 @@ class Room extends React.Component {
               destinationHeight: 400,
               sourceNoseScore: facePrediction.prediction.probability[0],
             };
-
-            /*
-
-                        drawParams = {
-                            sourceX: facePrediction.prediction.topLeft[0],
-                            sourceY: facePrediction.prediction.topLeft[1],
-                            sourceWidth: facePrediction.prediction.bottomRight[0] - facePrediction.prediction.topLeft[0],
-                            sourceHeight: facePrediction.prediction.bottomRight[1] - facePrediction.prediction.topLeft[1],
-                            destinationX: 0,
-                            destinationY: 0,
-                            destinationWidth: facePrediction.prediction.bottomRight[0] - facePrediction.prediction.topLeft[0],
-                            destinationHeight: facePrediction.prediction.bottomRight[1] - facePrediction.prediction.topLeft[1],
-                            sourceNoseScore: facePrediction.prediction.probability[0],
-                        }
-
-                        */
           }
 
           if (
@@ -1357,13 +1381,13 @@ class Room extends React.Component {
             //going to the right
 
             if (drawParams.sourceX > targetX) {
-              var newX = drawParams.sourceX - 2;
+              const newX = drawParams.sourceX - 2;
             }
           } else {
             //going to the left
 
             if (drawParams.sourceX < targetX) {
-              var newX = drawParams.sourceX + 2;
+              const newX = drawParams.sourceX + 2;
             }
           }
 
@@ -1371,13 +1395,13 @@ class Room extends React.Component {
             //going down
 
             if (drawParams.sourceY > targetY) {
-              var newY = drawParams.sourceY - 2;
+              const newY = drawParams.sourceY - 2;
             }
           } else {
             //going up
 
             if (drawParams.sourceY < targetY) {
-              var newY = drawParams.sourceY + 2;
+              const newY = drawParams.sourceY + 2;
             }
           }
 
@@ -2825,5 +2849,3 @@ class Room extends React.Component {
     );
   }
 }
-
-export default Room;

@@ -1,12 +1,18 @@
-import React from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { connect } from "react-redux";
-import { bindActionCreators } from "redux";
+import { AnyAction, bindActionCreators, Dispatch } from "redux";
 import { push } from "connected-react-router";
 import { withRouter } from "react-router-dom";
 import Library from "../components/Library";
 import { getLibraryItems, createItem } from "../actions/library";
 
-function mapStateToProps(state) {
+function mapStateToProps(state: {
+  auth: any;
+  user: any;
+  organization: { organization: any; users: any };
+  library: { items: any; itemsOrder: any; loading: any; creating: any };
+  settings: any;
+}) {
   return {
     auth: state.auth,
     user: state.user,
@@ -20,17 +26,17 @@ function mapStateToProps(state) {
   };
 }
 
-function mapDispatchToProps(dispatch) {
+function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
   return bindActionCreators(
     {
       getLibraryItems,
       createItem,
       push,
     },
-    dispatch
+    dispatch,
   );
 }
 
 export default withRouter(
-  connect(mapStateToProps, mapDispatchToProps)(Library)
+  connect(mapStateToProps, mapDispatchToProps)(Library),
 );

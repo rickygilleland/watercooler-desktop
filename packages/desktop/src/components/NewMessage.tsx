@@ -1,13 +1,31 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import SendMessage from "./SendMessage";
-import { Image, Row, Col, Button } from "react-bootstrap";
+import { Image, Row, Button } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faWindowClose } from "@fortawesome/free-solid-svg-icons";
 import Autosuggest from "react-autosuggest";
-import posthog, { push } from "posthog-js";
+import { PropsFromRedux } from "../containers/NewMessagePage";
+import { RouteComponentProps } from "react-router";
 
-class NewMessage extends React.Component {
-  constructor(props) {
+interface NewMessageProps extends PropsFromRedux, RouteComponentProps {
+  isLightMode: boolean;
+  onClick(): void;
+}
+
+interface State {
+  users: any[];
+  suggestions: any[];
+  suggestionValue: string[];
+  suggestionDisplayValue: string;
+  messageCreated: boolean;
+}
+
+export default class NewMessage extends React.Component<
+  NewMessageProps,
+  State
+> {
+  constructor(props: NewMessageProps) {
     super(props);
     this.state = {
       users: [],
@@ -20,14 +38,14 @@ class NewMessage extends React.Component {
     this.getSuggestions = this.getSuggestions.bind(this);
     this.handleSuggestionChange = this.handleSuggestionChange.bind(this);
     this.onSuggestionsFetchRequested = this.onSuggestionsFetchRequested.bind(
-      this
+      this,
     );
     this.onSuggestionsClearRequested = this.onSuggestionsClearRequested.bind(
-      this
+      this,
     );
   }
 
-  componentDidMount() {
+  componentDidMount(): void {
     const { organizationUsers, location } = this.props;
 
     const users = [];
@@ -56,7 +74,7 @@ class NewMessage extends React.Component {
     }
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: NewMessageProps): void {
     const {
       push,
       messageLoading,
@@ -73,17 +91,16 @@ class NewMessage extends React.Component {
       lastCreatedMessage != null
     ) {
       if (lastCreatedMessage.thread.type == "public") {
-        return push("/thread/public");
+        push("/thread/public");
+        return;
       }
-      return push(
-        `/thread/${lastCreatedMessage.thread.type}/${lastCreatedMessage.thread.slug}`
+      push(
+        `/thread/${lastCreatedMessage.thread.type}/${lastCreatedMessage.thread.slug}`,
       );
     }
   }
 
-  componentWillUnmount() {}
-
-  getSuggestions(value) {
+  getSuggestions(value: string): any[] {
     const { users } = this.state;
 
     const inputValue = value.trim().toLowerCase();
@@ -92,11 +109,15 @@ class NewMessage extends React.Component {
     return inputLength === 0
       ? []
       : users.filter(
-          (user) => user.name.toLowerCase().slice(0, inputLength) === inputValue
+          (user) =>
+            user.name.toLowerCase().slice(0, inputLength) === inputValue,
         );
   }
 
-  handleSuggestionChange(event, { newValue }) {
+  handleSuggestionChange(
+    event: React.ChangeEvent,
+    { newValue }: { newValue: any },
+  ): void {
     if (typeof newValue.id !== "undefined") {
       const updatedSuggestions = [...this.state.suggestionValue];
       updatedSuggestions.push(newValue.id);
@@ -110,17 +131,17 @@ class NewMessage extends React.Component {
     this.setState({ suggestionDisplayValue: newValue });
   }
 
-  onSuggestionsFetchRequested({ value }) {
+  onSuggestionsFetchRequested({ value }: { value: any }): void {
     this.setState({
       suggestions: this.getSuggestions(value),
     });
   }
 
-  onSuggestionsClearRequested() {
+  onSuggestionsClearRequested(): void {
     this.setState({ suggestions: [] });
   }
 
-  render() {
+  render(): JSX.Element {
     const {
       settings,
       user,
@@ -221,7 +242,7 @@ class NewMessage extends React.Component {
                       const updatedSuggestions = suggestionValue.filter(
                         (filtered) => {
                           return filtered != selectedUser;
-                        }
+                        },
                       );
 
                       this.setState({ suggestionValue: updatedSuggestions });
@@ -253,5 +274,3 @@ class NewMessage extends React.Component {
     );
   }
 }
-
-export default NewMessage;

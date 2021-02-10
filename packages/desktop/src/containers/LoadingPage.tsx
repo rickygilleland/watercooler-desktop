@@ -1,16 +1,20 @@
-import React from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   getOrganizations,
   getOrganizationUsers,
 } from "../actions/organization";
 import { getUserDetails } from "../actions/user";
 import { connect } from "react-redux";
-import { bindActionCreators } from "redux";
+import { AnyAction, bindActionCreators, Dispatch } from "redux";
 import { push } from "connected-react-router";
 import { withRouter } from "react-router-dom";
 import Loading from "../components/Loading";
 
-function mapStateToProps(state) {
+function mapStateToProps(state: {
+  user: any;
+  organization: { organization: any; users: any; loading: any; teams: any };
+  auth: any;
+}) {
   return {
     user: state.user,
     organization: state.organization.organization,
@@ -21,7 +25,7 @@ function mapStateToProps(state) {
   };
 }
 
-function mapDispatchToProps(dispatch) {
+function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
   return bindActionCreators(
     {
       getOrganizations,
@@ -29,10 +33,10 @@ function mapDispatchToProps(dispatch) {
       getUserDetails,
       push,
     },
-    dispatch
+    dispatch,
   );
 }
 
 export default withRouter(
-  connect(mapStateToProps, mapDispatchToProps)(Loading)
+  connect(mapStateToProps, mapDispatchToProps)(Loading),
 );

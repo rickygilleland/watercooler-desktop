@@ -6,7 +6,7 @@
       "packages/*"
     ],
     "nohoist": [
-      "@blab/desktop/**"
+      "**/@blab/desktop/**"
     ]
   }
 }

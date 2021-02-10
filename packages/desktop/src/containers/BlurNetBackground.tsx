@@ -1,9 +1,8 @@
-import React from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { connect } from "react-redux";
-import { bindActionCreators, Dispatch } from "redux";
 import BlurNetBackground from "../components/BlurNetBackground";
 
-function mapStateToProps(state) {
+function mapStateToProps(state: { settings: any }) {
   return {
     settings: state.settings,
   };

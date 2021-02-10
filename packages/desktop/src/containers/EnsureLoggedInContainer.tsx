@@ -1,55 +1,64 @@
-import React, { ReactNode } from "react";
-import { bindActionCreators, dispatch } from "redux";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect, useState } from "react";
 import { push } from "connected-react-router";
-import { getOrganizations } from "../actions/organization";
 import { connect } from "react-redux";
 import { setRedirectUrl } from "../actions/auth";
+import { AuthState } from "../store/types/auth";
 
-class EnsureLoggedInContainer extends React.Component {
-  componentDidMount() {
-    const { dispatch, currentURL, auth, organization } = this.props;
-
-    if (
-      (!auth.isLoggedIn || auth.loginError) &&
-      currentURL != "/login" &&
-      !currentURL.includes("/magic/login")
-    ) {
-      if (auth.redirectUrl == currentURL) {
-        return dispatch(push("/login"));
-      }
-
-      dispatch(setRedirectUrl({ redirectUrl: currentURL }));
-      dispatch(push("/login"));
-    }
-  }
-
-  componentDidUpdate() {
-    const { dispatch, currentURL, auth, organization } = this.props;
-
-    if (
-      (!auth.isLoggedIn || auth.loginError) &&
-      currentURL != "/login" &&
-      !currentURL.includes("/magic/login")
-    ) {
-      if (auth.redirectUrl == currentURL) {
-        return dispatch(push("/login"));
-      }
-      dispatch(setRedirectUrl({ redirectUrl: currentURL }));
-      dispatch(push("/login"));
-    }
-  }
-
-  render() {
-    const { auth, currentURL } = this.props;
-    if (auth.isLoggedIn && currentURL != "/" && currentURL != "/loading") {
-      return this.props.children;
-    } else {
-      return null;
-    }
-  }
+interface EnsureLoggedInContainerProps {
+  children: any;
+  dispatch: any;
+  currentURL: string;
+  auth: AuthState;
+  organization: any;
 }
 
-function mapStateToProps(state, ownProps) {
+function EnsureLoggedInContainer(
+  props: EnsureLoggedInContainerProps,
+): JSX.Element {
+  const [showChildren, setShowChildren] = useState(false);
+
+  useEffect(() => {
+    if (
+      (!props.auth.isLoggedIn || props.auth.loginError) &&
+      props.currentURL != "/login" &&
+      !props.currentURL.includes("/magic/login")
+    ) {
+      if (props.auth.redirectUrl === props.currentURL) {
+        return props.dispatch(push("/login"));
+      }
+
+      props.dispatch(setRedirectUrl({ redirectUrl: props.currentURL }));
+      props.dispatch(push("/login"));
+    }
+
+    if (
+      props.auth.isLoggedIn &&
+      props.currentURL != "/" &&
+      props.currentURL != "/loading"
+    ) {
+      setShowChildren(true);
+    } else {
+      setShowChildren(false);
+    }
+  }, [
+    props.auth.isLoggedIn,
+    props.auth.loginError,
+    props.auth.redirectUrl,
+    props.currentURL,
+  ]);
+
+  if (!showChildren) {
+    null;
+  }
+
+  return props.children;
+}
+
+function mapStateToProps(
+  state: { auth: any; organization: { organization: any } },
+  ownProps: { location: { pathname: any } },
+) {
   return {
     auth: state.auth,
     organization: state.organization.organization,
