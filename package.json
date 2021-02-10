@@ -1,0 +1,12 @@
+{
+  "name": "blab",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "packages/*"
+    ],
+    "nohoist": [
+      "@blab/desktop/**"
+    ]
+  }
+}
