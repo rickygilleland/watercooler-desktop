@@ -9,7 +9,10 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "lint": "eslint --ext .ts ."
+    "lint": "eslint --ext .ts .",
+    "format": "prettier --write '{src,typings}/**'",
+    "format:check": "prettier --check '{src,typings}/**'",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "Blab",
@@ -47,6 +50,7 @@
     "file-loader": "^6.2.0",
     "fork-ts-checker-webpack-plugin": "^5.0.14",
     "node-loader": "^1.0.1",
+    "prettier": "2.2.1",
     "react-dom": "^17.0.1",
     "react-hot-loader": "^4.13.0",
     "redux-devtools": "^3.7.0",

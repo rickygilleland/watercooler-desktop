@@ -1,152 +1,158 @@
-import React from 'react';
-import { ipcRenderer } from 'electron';
-import * as tf from '@tensorflow/tfjs-core';
-import '@tensorflow/tfjs-backend-webgl';
-import '@tensorflow/tfjs-backend-cpu';
-const bodyPix = require('@tensorflow-models/body-pix');
+import React from "react";
+import { ipcRenderer } from "electron";
+import * as tf from "@tensorflow/tfjs-core";
+import "@tensorflow/tfjs-backend-webgl";
+import "@tensorflow/tfjs-backend-cpu";
+const bodyPix = require("@tensorflow-models/body-pix");
 
 class BlurNetBackground extends React.Component {
+  constructor(props) {
+    super(props);
 
-    constructor(props) {
-        super(props);
+    this.state = {
+      raw_local_stream: null,
+      active: false,
+    };
 
-        this.state = {
-            raw_local_stream: null,
-            active: false,
-        }
+    this.startNet = this.startNet.bind(this);
+    this.startBackgroundBlur = this.startBackgroundBlur.bind(this);
+    this.stopBackgroundBlur = this.stopBackgroundBlur.bind(this);
 
-        this.startNet = this.startNet.bind(this);
-        this.startBackgroundBlur = this.startBackgroundBlur.bind(this);
-        this.stopBackgroundBlur = this.stopBackgroundBlur.bind(this);
+    this.net = null;
+  }
 
-        this.net = null;
-    }
+  componentDidMount() {
+    this.startNet();
+  }
 
-    componentDidMount() {
-       this.startNet();
-    }
+  async startNet() {
+    this.net = await bodyPix.load({
+      architecture: "MobileNetV1",
+      outputStride: 16,
+      multiplier: 0.75,
+      quantBytes: 2,
+    });
 
-    async startNet() {
-        this.net = await bodyPix.load({
-            architecture: 'MobileNetV1',
-            outputStride: 16,
-            multiplier: 0.75,
-            quantBytes: 2
-        });
-
-        ipcRenderer.on('net-status-update', (event, args) => {
-            if (args.net == "backgroundBlur") {
-                if (args.status) {
-                    if (this.state.raw_local_stream == null) {
-
-                        this.setState({ active: true });
-                        return this.startBackgroundBlur();
-                    }
-                } else {
-
-                    this.setState({ active: false });
-                    this.stopBackgroundBlur();
-                }
-            }
-        })
-    }
-
-    async startBackgroundBlur() {
-        const { settings } = this.props;
-
-        console.log("STARTED");
-
-        let streamOptions;
-        if (settings.defaultDevices != null && Object.keys(settings.defaultDevices).length !== 0) {
-            streamOptions = {
-                video: {
-                    aspectRatio: 1.3333333333,
-                    deviceId: settings.defaultDevices.videoInput
-                },
-                audio: false
-            }
+    ipcRenderer.on("net-status-update", (event, args) => {
+      if (args.net == "backgroundBlur") {
+        if (args.status) {
+          if (this.state.raw_local_stream == null) {
+            this.setState({ active: true });
+            return this.startBackgroundBlur();
+          }
         } else {
-            streamOptions = {
-                video: {
-                    aspectRatio: 1.3333333333,
-                },
-                audio: false
-            }
+          this.setState({ active: false });
+          this.stopBackgroundBlur();
         }
+      }
+    });
+  }
 
-        const raw_local_stream = await navigator.mediaDevices.getUserMedia(streamOptions);
+  async startBackgroundBlur() {
+    const { settings } = this.props;
 
-        this.setState({ raw_local_stream })
+    console.log("STARTED");
 
-        let localVideo = document.createElement("video")
-        localVideo.srcObject = raw_local_stream;
-        localVideo.autoplay = true;
-        localVideo.muted = true;
-
-        localVideo.onloadedmetadata = () => {
-            localVideo.width = localVideo.videoWidth;
-            localVideo.height = localVideo.videoHeight;
-        }
-
-        var personSegmentation = null;
-
-        const that = this;
-
-        localVideo.onplaying = async () => {
-
-            console.log("PLAYING");
-
-            async function getUpdatedCoords() {
-                const curDate = new Date();
-
-                if (that.state.active == false) {
-                    return;
-                }
-
-                if (that.net != null && personSegmentation == null || (curDate.getTime() - personSegmentation.generated) > 50) {
-    
-                    personSegmentation = await that.net.segmentPerson(localVideo, {
-                        internalResolution: 'full',
-                        segmentationThreshold: .8,
-                        scoreThreshold: 0.2,
-                        maxDetections: 3,
-                    });  
-
-                    personSegmentation.generated = curDate.getTime();
-    
-                    ipcRenderer.invoke('background-blur-update', { type: 'updated_coordinates', personSegmentation });
-                }
-    
-                requestAnimationFrame(getUpdatedCoords);
-            }
-    
-            getUpdatedCoords();
-        }
+    let streamOptions;
+    if (
+      settings.defaultDevices != null &&
+      Object.keys(settings.defaultDevices).length !== 0
+    ) {
+      streamOptions = {
+        video: {
+          aspectRatio: 1.3333333333,
+          deviceId: settings.defaultDevices.videoInput,
+        },
+        audio: false,
+      };
+    } else {
+      streamOptions = {
+        video: {
+          aspectRatio: 1.3333333333,
+        },
+        audio: false,
+      };
     }
 
-    stopBackgroundBlur() {
-        const { raw_local_stream } = this.state;
+    const raw_local_stream = await navigator.mediaDevices.getUserMedia(
+      streamOptions
+    );
 
-        console.log("STOPPED")
+    this.setState({ raw_local_stream });
 
-        if (raw_local_stream != null) {
-            const tracks = raw_local_stream.getTracks();
+    let localVideo = document.createElement("video");
+    localVideo.srcObject = raw_local_stream;
+    localVideo.autoplay = true;
+    localVideo.muted = true;
 
-            tracks.forEach(function(track) {
-                track.stop();
-            })
+    localVideo.onloadedmetadata = () => {
+      localVideo.width = localVideo.videoWidth;
+      localVideo.height = localVideo.videoHeight;
+    };
+
+    var personSegmentation = null;
+
+    const that = this;
+
+    localVideo.onplaying = async () => {
+      console.log("PLAYING");
+
+      async function getUpdatedCoords() {
+        const curDate = new Date();
+
+        if (that.state.active == false) {
+          return;
         }
 
-        this.setState({ raw_local_stream : null })
+        if (
+          (that.net != null && personSegmentation == null) ||
+          curDate.getTime() - personSegmentation.generated > 50
+        ) {
+          personSegmentation = await that.net.segmentPerson(localVideo, {
+            internalResolution: "full",
+            segmentationThreshold: 0.8,
+            scoreThreshold: 0.2,
+            maxDetections: 3,
+          });
+
+          personSegmentation.generated = curDate.getTime();
+
+          ipcRenderer.invoke("background-blur-update", {
+            type: "updated_coordinates",
+            personSegmentation,
+          });
+        }
+
+        requestAnimationFrame(getUpdatedCoords);
+      }
+
+      getUpdatedCoords();
+    };
+  }
+
+  stopBackgroundBlur() {
+    const { raw_local_stream } = this.state;
+
+    console.log("STOPPED");
+
+    if (raw_local_stream != null) {
+      const tracks = raw_local_stream.getTracks();
+
+      tracks.forEach(function (track) {
+        track.stop();
+      });
     }
 
-    componentWillUnmount() {
-        this.stopBackgroundBlur();
-    }
+    this.setState({ raw_local_stream: null });
+  }
 
-    render() {
-        return(null);
-    }
+  componentWillUnmount() {
+    this.stopBackgroundBlur();
+  }
+
+  render() {
+    return null;
+  }
 }
 
 export default BlurNetBackground;
