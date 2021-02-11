@@ -1,21 +1,10 @@
-import React, { useState } from "react";
-import {
-  Row,
-  Col,
-  Button,
-  Navbar,
-  Dropdown,
-  Modal,
-  Card,
-  CardDeck,
-  Image,
-  Form,
-} from "react-bootstrap";
+import { Button, Card, Col, Modal, Row } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleNotch,
   faWindowClose,
 } from "@fortawesome/free-solid-svg-icons";
+import React from "react";
 
 function ScreenSharingModal(props) {
   const { loading, sources } = props;

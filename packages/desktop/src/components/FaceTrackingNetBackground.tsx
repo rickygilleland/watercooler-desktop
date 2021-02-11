@@ -1,9 +1,7 @@
-import React from "react";
-import { ipcRenderer } from "electron";
-import * as tf from "@tensorflow/tfjs-core";
-import "@tensorflow/tfjs-backend-webgl";
 import "@tensorflow/tfjs-backend-cpu";
-const bodyPix = require("@tensorflow-models/body-pix");
+import "@tensorflow/tfjs-backend-webgl";
+import { ipcRenderer } from "electron";
+import React from "react";
 const blazeface = require("@tensorflow-models/blazeface");
 
 class FaceTrackingNetBackground extends React.Component {
@@ -69,7 +67,7 @@ class FaceTrackingNetBackground extends React.Component {
     }
 
     const raw_local_stream = await navigator.mediaDevices.getUserMedia(
-      streamOptions
+      streamOptions,
     );
 
     this.setState({ raw_local_stream });

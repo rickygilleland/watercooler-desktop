@@ -1,19 +1,8 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import {
-  Container,
-  Image,
-  Button,
-  Form,
-  Card,
-  Alert,
-  Navbar,
-} from "react-bootstrap";
-import routes from "../constants/routes.json";
+import { Alert, Button, Card, Form } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
-import { getOrganizations } from "../actions/organization";
-import posthog from "posthog-js";
+import React from "react";
+import routes from "../constants/routes.json";
 
 if (process.env.REACT_APP_PLATFORM != "web") {
   var { ipcRenderer } = require("electron");
@@ -38,8 +27,8 @@ class Login extends React.Component {
     this.requestNewCode = this.requestNewCode.bind(this);
   }
 
-  componentDidMount() {
-    const { auth, user, organization, push, getUserDetails } = this.props;
+  componentDidMount(): void {
+    const { auth, push } = this.props;
 
     if (auth.isLoggedIn === true) {
       push(routes.LOADING);
@@ -56,8 +45,8 @@ class Login extends React.Component {
     }
   }
 
-  componentDidUpdate(prevProps, prevState) {
-    const { auth, user, organization, push } = this.props;
+  componentDidUpdate(prevProps, prevState): void {
+    const { auth, push } = this.props;
 
     if (auth.isLoggedIn === true) {
       push(routes.LOADING);
@@ -84,23 +73,21 @@ class Login extends React.Component {
     }
   }
 
-  componentWillUnmount() {
-    if (process.env.REACT_APP_PLATFORM != "web") {
-      ipcRenderer.removeAllListeners("url_update");
-    }
+  componentWillUnmount(): void {
+    ipcRenderer.removeAllListeners("url_update");
   }
 
-  handleUsernameChange(event) {
+  handleUsernameChange(event): void {
     this.setState({ username: event.target.value });
   }
 
-  handlePasswordChange(event) {
+  handlePasswordChange(event): void {
     this.setState({ password: event.target.value });
   }
 
-  handleSubmit(event) {
+  handleSubmit(event): void {
     event.preventDefault();
-    const { requestLoginCode, authenticateUser, auth } = this.props;
+    const { requestLoginCode, authenticateUser } = this.props;
     const { loginCodeRequested, username, password } = this.state;
 
     if (username == "") {
@@ -120,7 +107,7 @@ class Login extends React.Component {
     requestLoginCode(username);
   }
 
-  requestNewCode() {
+  requestNewCode(): void {
     const { requestLoginCode } = this.props;
     const { username } = this.state;
 
@@ -131,7 +118,7 @@ class Login extends React.Component {
     requestLoginCode(username);
   }
 
-  render() {
+  render(): JSX.Element {
     const { auth } = this.props;
     const {
       loginCodeRequested,

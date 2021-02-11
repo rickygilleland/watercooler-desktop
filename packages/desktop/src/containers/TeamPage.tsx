@@ -1,13 +1,15 @@
-import { connect, ConnectedProps } from "react-redux";
-import { AnyAction, bindActionCreators, Dispatch } from "redux";
+import { AnyAction, Dispatch, bindActionCreators } from "redux";
+import { ConnectedProps, connect } from "react-redux";
+import { getOrganizationUsers, inviteUsers } from "../actions/organization";
 import { push } from "connected-react-router";
 import { withRouter } from "react-router-dom";
-import { getOrganizationUsers, inviteUsers } from "../actions/organization";
 import Team from "../components/Team";
+import { AuthState } from "../store/types/auth";
+import { User } from "../store/types/user";
 
 function mapStateToProps(state: {
-  auth: any;
-  user: any;
+  auth: AuthState;
+  user: User;
   organization: {
     organization: any;
     users: any;

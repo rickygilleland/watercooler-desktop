@@ -1,32 +1,32 @@
-import React from "react";
-import routes from "../constants/routes.json";
-import { Link } from "react-router-dom";
-import { isEqual } from "lodash";
-import { DateTime } from "luxon";
 import {
-  Container,
-  Image,
   Button,
   Card,
   CardColumns,
-  Navbar,
-  Row,
   Col,
-  OverlayTrigger,
+  Container,
+  Image,
+  Navbar,
   Overlay,
+  OverlayTrigger,
   Popover,
+  Row,
   Tooltip,
 } from "react-bootstrap";
+import { DateTime } from "luxon";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Link } from "react-router-dom";
 import {
-  faCircleNotch,
-  faChevronCircleUp,
   faChevronCircleDown,
+  faChevronCircleUp,
+  faCircleNotch,
   faComments,
 } from "@fortawesome/free-solid-svg-icons";
-import SendMessage from "./SendMessage";
+import { isEqual } from "lodash";
 import Message from "./Message";
+import React from "react";
+import SendMessage from "./SendMessage";
 import posthog from "posthog-js";
+import routes from "../constants/routes.json";
 
 class MessageThread extends React.Component {
   constructor(props) {
@@ -332,7 +332,7 @@ class MessageThread extends React.Component {
 
               if (key > 0) {
                 const prevDate = DateTime.fromISO(
-                  messages[thread.id][messageKeys[key - 1]].created_at
+                  messages[thread.id][messageKeys[key - 1]].created_at,
                 );
                 renderDateHeading =
                   prevDate.startOf("day") < curDate.startOf("day");

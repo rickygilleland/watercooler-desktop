@@ -1,44 +1,29 @@
-import React from "react";
-import routes from "../constants/routes.json";
-import { Link } from "react-router-dom";
 import {
-  Container,
-  Image,
   Button,
   Card,
-  CardColumns,
-  Navbar,
-  Row,
   Col,
   OverlayTrigger,
-  Overlay,
-  Popover,
+  Row,
   Tooltip,
 } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faMicrophone,
-  faMicrophoneSlash,
   faCircle,
   faCircleNotch,
-  faTimesCircle,
+  faMicrophone,
+  faMicrophoneSlash,
   faPaperPlane,
-  faTrashAlt,
   faSave,
-  faGlobe,
+  faTimesCircle,
+  faTrashAlt,
   faVideo,
   faVideoSlash,
-  faDesktop,
 } from "@fortawesome/free-solid-svg-icons";
-import ScreenSharingModal from "./ScreenSharingModal";
 import MessageMediaPlayer from "./MessageMediaPlayer";
+import React from "react";
 import RecordRTC, { MediaStreamRecorder, StereoAudioRecorder } from "recordrtc";
-import posthog from "posthog-js";
-if (process.env.REACT_APP_PLATFORM != "web") {
-  var { desktopCapturer } = require("electron");
-} else {
-  var desktopCapturer = null;
-}
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { desktopCapturer } = require("electron");
 
 class SendMessage extends React.Component {
   constructor(props) {
@@ -200,7 +185,7 @@ class SendMessage extends React.Component {
     }
 
     const raw_video_stream = await navigator.mediaDevices.getUserMedia(
-      streamOptions
+      streamOptions,
     );
 
     const localVideoContainer = document.createElement("video");
@@ -252,7 +237,7 @@ class SendMessage extends React.Component {
   }
 
   async startRecording(recordingType) {
-    const { settings, user, messageCreatedStateChange, threadId } = this.props;
+    const { settings } = this.props;
 
     this.setState({
       isRecording: true,
@@ -283,7 +268,7 @@ class SendMessage extends React.Component {
       }
 
       raw_local_stream = await navigator.mediaDevices.getUserMedia(
-        streamOptions
+        streamOptions,
       );
 
       this.setState({ raw_local_stream });
@@ -322,7 +307,7 @@ class SendMessage extends React.Component {
 
         this.calculateTimeDuration(diff / 1000);
       }.bind(this),
-      1000
+      1000,
     );
 
     this.setState({
@@ -338,14 +323,7 @@ class SendMessage extends React.Component {
   }
 
   async stopRecording() {
-    const {
-      recorder,
-      isRecording,
-      raw_local_stream,
-      local_stream,
-      raw_video_stream,
-      startTime,
-    } = this.state;
+    const { recorder, isRecording } = this.state;
 
     this.setState({ loadingRecording: true });
 
@@ -527,15 +505,7 @@ class SendMessage extends React.Component {
   }
 
   render() {
-    const {
-      messageCreating,
-      recipients,
-      isLibrary,
-      threadId,
-      threadName,
-      isNewThread,
-      libraryItemCreating,
-    } = this.props;
+    const { messageCreating, recipients, isLibrary, threadId } = this.props;
     const {
       isRecording,
       recordingBlob,
@@ -543,20 +513,17 @@ class SendMessage extends React.Component {
       duration,
       loadingRecording,
       showDeleteConfirm,
-      overrideExpanded,
       recordingType,
-      showScreenSharingModal,
       showVideoPreview,
       videoPreviewLoading,
       raw_local_stream,
-      showMessageEditor,
     } = this.state;
 
     /*
         if (showMessageEditor && (typeof threadId != "undefined" || isNewThread)) {
             return (
-                <MessageEditor 
-                    threadName={threadName} 
+                <MessageEditor
+                    threadName={threadName}
                     handleSendMessage={(message) => {
                         console.log("MESSAGE", message);
                     }}

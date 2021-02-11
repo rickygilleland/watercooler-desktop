@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
-import { push } from "connected-react-router";
-import { connect } from "react-redux";
-import { setRedirectUrl } from "../actions/auth";
 import { AuthState } from "../store/types/auth";
+import { connect } from "react-redux";
+import { push } from "connected-react-router";
+import { setRedirectUrl } from "../actions/auth";
+import { useEffect, useState } from "react";
 
 interface EnsureLoggedInContainerProps {
   children: any;
@@ -56,7 +56,7 @@ function EnsureLoggedInContainer(
 }
 
 function mapStateToProps(
-  state: { auth: any; organization: { organization: any } },
+  state: { auth: AuthState; organization: { organization: any } },
   ownProps: { location: { pathname: any } },
 ) {
   return {

@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React from "react";
-import SendMessage from "./SendMessage";
-import { Image, Row, Button } from "react-bootstrap";
+import { Button, Image, Row } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faWindowClose } from "@fortawesome/free-solid-svg-icons";
-import Autosuggest from "react-autosuggest";
 import { PropsFromRedux } from "../containers/NewMessagePage";
 import { RouteComponentProps } from "react-router";
+import { faWindowClose } from "@fortawesome/free-solid-svg-icons";
+import Autosuggest from "react-autosuggest";
+import React from "react";
+import SendMessage from "./SendMessage";
 
 interface NewMessageProps extends PropsFromRedux, RouteComponentProps {
   isLightMode: boolean;

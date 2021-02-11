@@ -1,20 +1,20 @@
-import React, { useState } from "react";
 import {
-  Row,
-  Col,
-  Button,
-  Modal,
-  Form,
   Alert,
+  Button,
+  Col,
+  Form,
+  Modal,
   OverlayTrigger,
+  Row,
   Tooltip,
 } from "react-bootstrap";
-import Select from "react-select";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleNotch,
   faWindowClose,
 } from "@fortawesome/free-solid-svg-icons";
+import React, { useState } from "react";
+import Select from "react-select";
 
 function NewCallModal(props) {
   const { userId, users } = props;

@@ -1,16 +1,16 @@
-import React from "react";
-import routes from "../constants/routes.json";
-import { Link } from "react-router-dom";
+import { Button, Col, Image, Row } from "react-bootstrap";
+import { CopyToClipboard } from "react-copy-to-clipboard";
 import { DateTime } from "luxon";
-import { Image, Button, Row, Col } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Link } from "react-router-dom";
 import {
+  faCircleNotch,
   faClipboard,
   faClipboardCheck,
-  faCircleNotch,
 } from "@fortawesome/free-solid-svg-icons";
-import { CopyToClipboard } from "react-copy-to-clipboard";
 import MessageMediaPlayer from "./MessageMediaPlayer";
+import React from "react";
+import routes from "../constants/routes.json";
 
 class Message extends React.PureComponent {
   constructor(props) {

@@ -1,14 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { connect, ConnectedProps } from "react-redux";
-import { getRoomUsers, addUserToRoom } from "../actions/room";
-import { AnyAction, bindActionCreators, Dispatch } from "redux";
+import { AnyAction, Dispatch, bindActionCreators } from "redux";
+import { ConnectedProps, connect } from "react-redux";
+import { addUserToRoom, getRoomUsers } from "../actions/room";
 import { push } from "connected-react-router";
 import { withRouter } from "react-router-dom";
 import Room from "../components/Room";
+import { AuthState } from "../store/types/auth";
+import { User } from "../store/types/user";
 
 function mapStateToProps(state: {
-  auth: any;
-  user: any;
+  auth: AuthState;
+  user: User;
   organization: { organization: any; billing: any; users: any; teams: any };
   room: { loading: any; addUserLoading: any; users: any };
   settings: any;

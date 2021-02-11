@@ -1,14 +1,14 @@
-import { Action } from "redux";
 import {
-  GET_ROOMS_SUCCESS,
-  GET_ROOMS_FAILURE,
-  GET_ROOM_USERS_STARTED,
-  GET_ROOM_USERS_SUCCESS,
-  GET_ROOM_USERS_FAILURE,
+  ADD_USER_TO_ROOM_FAILURE,
   ADD_USER_TO_ROOM_STARTED,
   ADD_USER_TO_ROOM_SUCCESS,
-  ADD_USER_TO_ROOM_FAILURE,
+  GET_ROOMS_FAILURE,
+  GET_ROOMS_SUCCESS,
+  GET_ROOM_USERS_FAILURE,
+  GET_ROOM_USERS_STARTED,
+  GET_ROOM_USERS_SUCCESS,
 } from "../actions/room";
+import { Action } from "redux";
 
 const initialState = {
   rooms: [],

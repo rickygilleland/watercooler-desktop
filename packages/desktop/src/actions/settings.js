@@ -64,7 +64,7 @@ export function updateDefaultDevices(
   defaultVideoInput,
   defaultAudioInput,
   defaultAudioOutput,
-  backgroundBlurAmount
+  backgroundBlurAmount,
 ) {
   return (dispatch, getState) => {
     const state = getState();

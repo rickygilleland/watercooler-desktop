@@ -1,8 +1,7 @@
-import React from "react";
-import { ipcRenderer } from "electron";
-import * as tf from "@tensorflow/tfjs-core";
-import "@tensorflow/tfjs-backend-webgl";
 import "@tensorflow/tfjs-backend-cpu";
+import "@tensorflow/tfjs-backend-webgl";
+import { ipcRenderer } from "electron";
+import React from "react";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const bodyPix = require("@tensorflow-models/body-pix");
 

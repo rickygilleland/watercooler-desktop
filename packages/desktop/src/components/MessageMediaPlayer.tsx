@@ -1,7 +1,7 @@
-import React from "react";
-import ReactPlayer from "react-player";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
+import React from "react";
+import ReactPlayer from "react-player";
 
 export default class MessageMediaPlayer extends React.Component {
   componentDidMount() {}

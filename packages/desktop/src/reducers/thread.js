@@ -1,11 +1,11 @@
 import { Action } from "redux";
 import {
+  GET_THREAD_FAILURE,
   GET_THREAD_STARTED,
   GET_THREAD_SUCCESS,
-  GET_THREAD_FAILURE,
+  GET_USER_THREADS_FAILURE,
   GET_USER_THREADS_STARTED,
   GET_USER_THREADS_SUCCESS,
-  GET_USER_THREADS_FAILURE,
 } from "../actions/thread";
 
 const initialState = {

@@ -231,7 +231,7 @@ const createWindow = () => {
 
               if (process.platform == "darwin") {
                 var screenAccessGranted = systemPreferences.getMediaAccessStatus(
-                  "screen"
+                  "screen",
                 );
 
                 if (screenAccessGranted != "granted") {
@@ -288,7 +288,7 @@ const createWindow = () => {
 
               if (process.platform == "darwin") {
                 var screenAccessGranted = systemPreferences.getMediaAccessStatus(
-                  "screen"
+                  "screen",
                 );
 
                 if (screenAccessGranted != "granted") {
@@ -341,7 +341,7 @@ const createWindow = () => {
     if (typeof args.screenSharingWindow != "undefined") {
       BrowserWindow.fromId(args.screenSharingWindow).webContents.send(
         "update-screen-sharing-controls",
-        args
+        args,
       );
     } else {
       mainWindow.webContents.send("update-screen-sharing-controls", args);
@@ -361,7 +361,7 @@ const createWindow = () => {
     if (typeof args.net != "undefined" && args.window != "undefined") {
       BrowserWindow.fromId(args.window).webContents.send(
         "net-status-update",
-        args
+        args,
       );
     }
   });
@@ -405,7 +405,7 @@ const createWindow = () => {
 
 app.commandLine.appendSwitch(
   "force-fieldtrials",
-  "WebRTC-SupportVP9SVC/EnabledByFlag_2SL3TL/"
+  "WebRTC-SupportVP9SVC/EnabledByFlag_2SL3TL/",
 );
 app.commandLine.appendSwitch("webrtc-max-cpu-consumption-percentage", 100);
 app.commandLine.appendSwitch("enable-precise-memory-info");

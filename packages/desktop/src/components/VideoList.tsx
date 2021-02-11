@@ -1,7 +1,20 @@
-import React, { useState, useEffect } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { User } from "../store/types/user";
+import React, { useEffect, useState } from "react";
 import Video from "./Video";
 
-function VideoList(props) {
+interface VideoListProps {
+  publishing: boolean;
+  user: User;
+  publishers: any;
+  videoSizes: any;
+  renderVideo: any;
+  togglePinned: any;
+  pinned: any;
+  currentTime: any;
+}
+
+export default function VideoList(props: VideoListProps): JSX.Element {
   const {
     publishing,
     user,
@@ -25,7 +38,7 @@ function VideoList(props) {
     let shouldUpdate = false;
 
     processedPublishers.forEach((processedPublisher) => {
-      publishers.forEach((publisher) => {
+      publishers.forEach((publisher: any) => {
         if (publisher.id == processedPublisher.id) {
           shouldUpdate = processedPublisher.hasVideo != publisher.hasVideo;
           shouldUpdate = processedPublisher.hasAudio != publisher.hasAudio;
@@ -38,7 +51,7 @@ function VideoList(props) {
     }
   });
 
-  function checkVideoAudioStatus(publisher) {
+  function checkVideoAudioStatus(publisher: any): any {
     let videoLoading = false;
     let audioLoading = false;
 
@@ -67,7 +80,7 @@ function VideoList(props) {
 
     setProcessedPublishers(updatedPublishers);
 
-    if (publisher.hasVideo && videoLoading == true) {
+    if (publisher.hasVideo && videoLoading) {
       return requestAnimationFrame(checkVideoAudioStatus(publisher));
     }
   }
@@ -83,10 +96,7 @@ function VideoList(props) {
       publisher = processedPublishers[pinned];
     }
 
-    if (
-      typeof publisher.videoLoading == "undefined" ||
-      typeof publisher.audioLoading == "undefined"
-    ) {
+    if (publisher.videoLoading || publisher.audioLoading) {
       checkVideoAudioStatus(publisher);
     }
 
@@ -188,5 +198,3 @@ function VideoList(props) {
     );
   });
 }
-
-export default VideoList;

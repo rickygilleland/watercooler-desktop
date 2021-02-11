@@ -1,11 +1,11 @@
-import React, { useState } from "react";
-import { Button, Modal, Form, Alert } from "react-bootstrap";
+import { Alert, Button, Form, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleNotch,
-  faWindowClose,
   faUserPlus,
+  faWindowClose,
 } from "@fortawesome/free-solid-svg-icons";
+import React, { useState } from "react";
 
 interface InviteUsersModalProps {
   handleSubmit: (emails: string) => void;

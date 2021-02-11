@@ -1,41 +1,41 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-var-requires */
-import React from "react";
-import { each, clone } from "lodash";
+import "@tensorflow/tfjs-backend-cpu";
+import "@tensorflow/tfjs-backend-webgl";
 import {
-  Container,
   Button,
-  Row,
   Col,
-  OverlayTrigger,
-  Tooltip,
+  Container,
   Dropdown,
+  OverlayTrigger,
+  Row,
+  Tooltip,
 } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Janus } from "janus-gateway";
+import { PropsFromRedux } from "../containers/RoomPage";
+import { RouteComponentProps } from "react-router";
+import { clone, each } from "lodash";
 import {
   faCircleNotch,
-  faMicrophone,
-  faMicrophoneSlash,
-  faVideo,
-  faVideoSlash,
+  faDesktop,
   faDoorClosed,
   faDoorOpen,
-  faUser,
   faLock,
-  faDesktop,
+  faMicrophone,
+  faMicrophoneSlash,
+  faUser,
+  faVideo,
+  faVideoSlash,
   faWindowMaximize,
 } from "@fortawesome/free-solid-svg-icons";
-import { Janus } from "janus-gateway";
-import VideoList from "./VideoList";
 import AddUserToRoomModal from "./AddUserToRoomModal";
-import ScreenSharingModal from "./ScreenSharingModal";
 import MessageThreadPage from "../containers/MessageThreadPage";
-import posthog from "posthog-js";
+import React from "react";
+import ScreenSharingModal from "./ScreenSharingModal";
+import VideoList from "./VideoList";
 import hark from "hark";
-import "@tensorflow/tfjs-backend-webgl";
-import "@tensorflow/tfjs-backend-cpu";
-import { RouteComponentProps } from "react-router";
-import { PropsFromRedux } from "../containers/RoomPage";
+import posthog from "posthog-js";
 const bodyPix = require("@tensorflow-models/body-pix");
 const { BrowserWindow } = require("electron").remote;
 const { ipcRenderer } = require("electron");

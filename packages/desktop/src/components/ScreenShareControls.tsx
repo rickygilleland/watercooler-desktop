@@ -1,28 +1,15 @@
-import React from "react";
-import { ipcRenderer } from "electron";
-import {
-  Container,
-  Button,
-  Row,
-  Col,
-  OverlayTrigger,
-  Tooltip,
-  Dropdown,
-} from "react-bootstrap";
+import { Button, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faCircleNotch,
+  faDesktop,
+  faDoorClosed,
   faMicrophone,
   faMicrophoneSlash,
   faVideo,
   faVideoSlash,
-  faDoorClosed,
-  faDoorOpen,
-  faUser,
-  faLock,
-  faDesktop,
-  faWindowMaximize,
 } from "@fortawesome/free-solid-svg-icons";
+import { ipcRenderer } from "electron";
+import React from "react";
 
 class ScreenShareControls extends React.PureComponent {
   constructor(props) {

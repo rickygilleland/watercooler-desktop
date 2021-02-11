@@ -1,26 +1,16 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import {
-  Container,
-  Image,
-  Button,
-  Form,
-  Card,
-  Alert,
-  Navbar,
-} from "react-bootstrap";
-import routes from "../constants/routes.json";
+import { Container } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
-import { getOrganizations } from "../actions/organization";
+import React from "react";
+import routes from "../constants/routes.json";
 
 class MagicLogin extends React.Component {
   constructor(props) {
     super(props);
   }
 
-  componentDidMount() {
-    const { auth, match, push, code, authenticateUserMagicLink } = this.props;
+  componentDidMount(): void {
+    const { auth, match, push, authenticateUserMagicLink } = this.props;
 
     if (auth.isLoggedIn === true) {
       push(routes.LOADING);
@@ -29,7 +19,7 @@ class MagicLogin extends React.Component {
     authenticateUserMagicLink(match.params.code);
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps, prevState): void {
     const { auth, push } = this.props;
 
     if (auth.isLoggedIn === true) {
@@ -41,7 +31,7 @@ class MagicLogin extends React.Component {
     }
   }
 
-  render() {
+  render(): JSX.Element {
     return (
       <Container data-tid="container" fluid>
         <h1 className="text-center mt-5">Logging you in...</h1>

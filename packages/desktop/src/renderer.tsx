@@ -19,7 +19,7 @@ const render = () => {
     <AppContainer>
       <App store={store} history={history} persistor={persistor} />
     </AppContainer>,
-    document.getElementById("App")
+    document.getElementById("App"),
   );
 };
 

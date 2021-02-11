@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useState } from "react";
-import { Button, Modal, Image } from "react-bootstrap";
+import { Button, Image, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faCheck,
   faCircleNotch,
   faWindowClose,
-  faCheck,
 } from "@fortawesome/free-solid-svg-icons";
+import React, { useState } from "react";
 
 interface AddUserToRoomModalProps {
   handleSubmit: any;

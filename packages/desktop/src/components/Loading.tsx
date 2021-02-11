@@ -1,13 +1,8 @@
+import { Container } from "react-bootstrap";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import React from "react";
 import routes from "../constants/routes.json";
-import { Link } from "react-router-dom";
-import { Container, Image, Button, Card, Navbar, Table } from "react-bootstrap";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faCircleNotch,
-  faSignOutAlt,
-  faDoorOpen,
-} from "@fortawesome/free-solid-svg-icons";
 
 class Loading extends React.Component {
   constructor(props) {
@@ -17,17 +12,8 @@ class Loading extends React.Component {
     };
   }
 
-  componentDidMount() {
-    const {
-      getOrganizations,
-      getUserDetails,
-      push,
-      user,
-      auth,
-      organization,
-      organizationLoading,
-      teams,
-    } = this.props;
+  componentDidMount(): void {
+    const { getOrganizations, getUserDetails, push, user, auth } = this.props;
 
     if (auth.isLoggedIn == false) {
       return push("/login");
@@ -45,14 +31,13 @@ class Loading extends React.Component {
     }
   }
 
-  componentDidUpdate() {
+  componentDidUpdate(): void {
     const {
       organization,
       organizationUsers,
       auth,
       user,
       push,
-      teams,
       getUserDetails,
       getOrganizations,
       getOrganizationUsers,
@@ -87,7 +72,7 @@ class Loading extends React.Component {
     }
   }
 
-  render() {
+  render(): JSX.Element {
     return (
       <Container data-tid="container" fluid>
         <h1 className="text-center mt-5">Loading Blab...</h1>

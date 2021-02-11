@@ -1,14 +1,14 @@
-import { createStore, applyMiddleware } from "redux";
-import { persistStore, persistReducer } from "redux-persist";
-import createElectronStorage from "redux-persist-electron-storage";
-import autoMergeLevel2 from "redux-persist/lib/stateReconciler/autoMergeLevel2";
-import thunk from "redux-thunk";
+import { applyMiddleware, createStore } from "redux";
 import { createHashHistory } from "history";
+import { persistReducer, persistStore } from "redux-persist";
 import { routerMiddleware } from "connected-react-router";
-import createRootReducer from "../reducers";
-import axios from "axios";
-import logger from "redux-logger";
 import ElectronStore from "electron-store";
+import autoMergeLevel2 from "redux-persist/lib/stateReconciler/autoMergeLevel2";
+import axios from "axios";
+import createElectronStorage from "redux-persist-electron-storage";
+import createRootReducer from "../reducers";
+import logger from "redux-logger";
+import thunk from "redux-thunk";
 
 const hashHistory = createHashHistory();
 const rootReducer = createRootReducer(hashHistory);
@@ -16,7 +16,7 @@ const router = routerMiddleware(hashHistory);
 const enhancer = applyMiddleware(
   thunk.withExtraArgument(axios),
   router,
-  logger
+  logger,
 );
 
 const electronStore = new ElectronStore();

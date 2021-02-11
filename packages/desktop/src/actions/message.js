@@ -114,7 +114,7 @@ export function getMessagesByThreadId(threadId) {
       })
         .then((response) => {
           dispatch(
-            getMessagesByThreadIdSuccess({ data: response.data.messages })
+            getMessagesByThreadIdSuccess({ data: response.data.messages }),
           );
         })
         .catch((error) => {

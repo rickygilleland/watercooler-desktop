@@ -1,44 +1,37 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
-class VideoPlayer extends React.PureComponent {
-  constructor(props) {
-    super(props);
-  }
-
-  componentDidMount() {}
-
-  componentDidUpdate(prevProps, prevState) {}
-
-  render() {
-    const {
-      renderVideo,
-      stream,
-      publisher,
-      isLocal,
-      videoIsFaceOnly,
-    } = this.props;
-
-    let className = "shadow";
-
-    if (!publisher.id.includes("_screensharing")) {
-      className = className + " video-flip";
-    }
-
-    if (videoIsFaceOnly) {
-      className = className + " border-radius-round";
-    }
-
-    return (
-      <video
-        autoPlay
-        ref={renderVideo(stream)}
-        muted={isLocal}
-        playsInline
-        className={className}
-        style={{ height: "100%", width: "100%", borderRadius: 25 }}
-      ></video>
-    );
-  }
+interface VideoPlayerProps {
+  renderVideo: any;
+  stream: any;
+  publisher: any;
+  isLocal: boolean;
+  videoIsFaceOnly: boolean;
 }
 
-export default VideoPlayer;
+export default function VideoPlayer(props: VideoPlayerProps): JSX.Element {
+  const [className, setClassName] = useState("shadow");
+
+  useEffect(() => {
+    let className = "shadow";
+    if (!props.publisher.id.includes("_screensharing")) {
+      className += " video-flip";
+    }
+
+    if (props.videoIsFaceOnly) {
+      className += " border-radius-round";
+    }
+
+    setClassName(className);
+  }, [props.publisher.id, props.videoIsFaceOnly]);
+
+  return (
+    <video
+      autoPlay={true}
+      ref={props.renderVideo(props.stream)}
+      muted={props.isLocal}
+      playsInline={true}
+      className={className}
+      style={{ height: "100%", width: "100%", borderRadius: 25 }}
+    ></video>
+  );
+}

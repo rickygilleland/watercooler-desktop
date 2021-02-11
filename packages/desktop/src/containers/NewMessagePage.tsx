@@ -1,14 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { connect, ConnectedProps } from "react-redux";
-import { AnyAction, bindActionCreators, Dispatch } from "redux";
+import { AnyAction, Dispatch, bindActionCreators } from "redux";
+import { ConnectedProps, connect } from "react-redux";
+import { createMessage } from "../actions/message";
 import { push } from "connected-react-router";
 import { withRouter } from "react-router-dom";
 import NewMessage from "../components/NewMessage";
-import { createMessage } from "../actions/message";
+import { AuthState } from "../store/types/auth";
+import { User } from "../store/types/user";
 
 function mapStateToProps(state: {
-  auth: any;
-  user: any;
+  auth: AuthState;
+  user: User;
   organization: { organization: any; users: any };
   settings: any;
   message: { creating: any; lastCreatedMessage: any; error: any };

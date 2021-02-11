@@ -1,12 +1,11 @@
-import React, { useState } from "react";
 import {
-  Row,
-  Col,
-  Button,
-  Modal,
-  Form,
   Alert,
+  Button,
+  Col,
+  Form,
+  Modal,
   OverlayTrigger,
+  Row,
   Tooltip,
 } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -14,6 +13,7 @@ import {
   faCircleNotch,
   faWindowClose,
 } from "@fortawesome/free-solid-svg-icons";
+import React, { useState } from "react";
 
 function RoomsModal(props) {
   const [name, setName] = useState("");

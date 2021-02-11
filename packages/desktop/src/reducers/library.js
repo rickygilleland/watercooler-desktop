@@ -1,14 +1,14 @@
-import { Action } from "redux";
-import { orderBy, cloneDeep, sortBy } from "lodash";
 import {
-  GET_ITEMS_STARTED,
-  GET_ITEMS_SUCCESS,
-  GET_ITEMS_FAILURE,
+  ADD_NEW_ITEM_FROM_NOTIFICATION_SUCCESS,
+  CREATE_ITEM_FAILURE,
   CREATE_ITEM_STARTED,
   CREATE_ITEM_SUCCESS,
-  CREATE_ITEM_FAILURE,
-  ADD_NEW_ITEM_FROM_NOTIFICATION_SUCCESS,
+  GET_ITEMS_FAILURE,
+  GET_ITEMS_STARTED,
+  GET_ITEMS_SUCCESS,
 } from "../actions/library";
+import { Action } from "redux";
+import { cloneDeep, orderBy, sortBy } from "lodash";
 
 const initialState = {
   items: {},

@@ -1,26 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { DateTime } from "luxon";
 import {
-  Image,
   Button,
-  Row,
   Col,
+  Image,
   OverlayTrigger,
+  Row,
   Tooltip,
 } from "react-bootstrap";
+import { DateTime } from "luxon";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faCircleNotch,
-  faUserPlus,
-  faCircle,
-  faComment,
-} from "@fortawesome/free-solid-svg-icons";
-import InviteUsersModal from "./InviteUsersModal";
-import posthog from "posthog-js";
+import { Link } from "react-router-dom";
 import { PropsFromRedux } from "../containers/TeamPage";
 import { RouteComponentProps } from "react-router";
+import {
+  faCircle,
+  faCircleNotch,
+  faComment,
+  faUserPlus,
+} from "@fortawesome/free-solid-svg-icons";
+import InviteUsersModal from "./InviteUsersModal";
+import React, { useEffect, useState } from "react";
+import posthog from "posthog-js";
 
 interface TeamProps extends PropsFromRedux, RouteComponentProps {
   currentTime: any;

@@ -1,19 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { AnyAction, Dispatch, bindActionCreators } from "redux";
+import { connect } from "react-redux";
 import {
-  getOrganizations,
   getOrganizationUsers,
+  getOrganizations,
 } from "../actions/organization";
 import { getUserDetails } from "../actions/user";
-import { connect } from "react-redux";
-import { AnyAction, bindActionCreators, Dispatch } from "redux";
 import { push } from "connected-react-router";
 import { withRouter } from "react-router-dom";
 import Loading from "../components/Loading";
+import { User } from "../store/types/user";
+import { AuthState } from "../store/types/auth";
 
 function mapStateToProps(state: {
-  user: any;
+  user: User;
   organization: { organization: any; users: any; loading: any; teams: any };
-  auth: any;
+  auth: AuthState;
 }) {
   return {
     user: state.user,

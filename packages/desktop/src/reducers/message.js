@@ -1,14 +1,14 @@
-import { Action } from "redux";
-import { orderBy, cloneDeep } from "lodash";
 import {
+  ADD_NEW_MESSAGE_FROM_NOTIFICATION_SUCCESS,
+  CREATE_MESSAGE_FAILURE,
   CREATE_MESSAGE_STARTED,
   CREATE_MESSAGE_SUCCESS,
-  CREATE_MESSAGE_FAILURE,
+  GET_MESSAGES_BY_THREAD_ID_FAILURE,
   GET_MESSAGES_BY_THREAD_ID_STARTED,
   GET_MESSAGES_BY_THREAD_ID_SUCCESS,
-  GET_MESSAGES_BY_THREAD_ID_FAILURE,
-  ADD_NEW_MESSAGE_FROM_NOTIFICATION_SUCCESS,
 } from "../actions/message";
+import { Action } from "redux";
+import { cloneDeep, orderBy } from "lodash";
 
 const initialState = {
   messages: {},

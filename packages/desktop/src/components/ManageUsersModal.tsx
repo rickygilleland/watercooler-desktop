@@ -1,19 +1,19 @@
-import React from "react";
 import {
-  Row,
-  Col,
   Button,
-  Navbar,
-  Dropdown,
-  Modal,
   Card,
+  Col,
+  Dropdown,
   Image,
+  Modal,
+  Navbar,
+  Row,
 } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleNotch,
   faWindowClose,
 } from "@fortawesome/free-solid-svg-icons";
+import React from "react";
 
 function ManageUsersModal(props) {
   const { loading, users } = props;

@@ -1,17 +1,15 @@
-import React from "react";
-import { Image, Col, Row, Button } from "react-bootstrap";
-import { isEqual } from "lodash";
+import { Button, Col, Image, Row } from "react-bootstrap";
 import { DateTime } from "luxon";
-import VideoPlayer from "./VideoPlayer";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faVideoSlash,
+  faCircleNotch,
+  faCompress,
+  faExpand,
   faMicrophone,
   faMicrophoneSlash,
-  faCircleNotch,
-  faExpand,
-  faCompress,
 } from "@fortawesome/free-solid-svg-icons";
+import React from "react";
+import VideoPlayer from "./VideoPlayer";
 
 function Video(props) {
   const {
@@ -24,7 +22,6 @@ function Video(props) {
     publishing,
     speaking,
     hasVideo,
-    hasAudio,
     audioLoading,
     videoLoading,
     videoIsFaceOnly,
@@ -169,11 +166,11 @@ function Video(props) {
                 <Col>
                   {/*<p className="pr-2 mb-1 mt-1 font-weight-bolder text-right">
                                         <span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>
-                                            {publisher.hasAudio 
-                                                ? 
-                                                    <FontAwesomeIcon style={{color:"#2eb97b"}} icon={faMicrophone} /> 
-                                                : 
-                                                    <FontAwesomeIcon style={{color:"#f9426c"}} icon={faMicrophoneSlash} /> 
+                                            {publisher.hasAudio
+                                                ?
+                                                    <FontAwesomeIcon style={{color:"#2eb97b"}} icon={faMicrophone} />
+                                                :
+                                                    <FontAwesomeIcon style={{color:"#f9426c"}} icon={faMicrophoneSlash} />
                                             }
                                         </span>
                                     </p>*/}
@@ -351,11 +348,11 @@ function Video(props) {
                 <Col>
                   {/*<p className="pr-2 mb-1 mt-1 font-weight-bolder text-right">
                                         <span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>
-                                            {publisher.hasAudio 
-                                                ? 
-                                                    <FontAwesomeIcon style={{color:"#2eb97b"}} icon={faMicrophone} /> 
-                                                : 
-                                                    <FontAwesomeIcon style={{color:"#f9426c"}} icon={faMicrophoneSlash} /> 
+                                            {publisher.hasAudio
+                                                ?
+                                                    <FontAwesomeIcon style={{color:"#2eb97b"}} icon={faMicrophone} />
+                                                :
+                                                    <FontAwesomeIcon style={{color:"#f9426c"}} icon={faMicrophoneSlash} />
                                             }
                                         </span>
                                     </p>*/}

@@ -1,15 +1,15 @@
-import React from "react";
+import { Button, Card, Col, Container, Row } from "react-bootstrap";
+import { CopyToClipboard } from "react-copy-to-clipboard";
 import { DateTime } from "luxon";
-import { Container, Button, Card, Row, Col } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleNotch,
   faClipboard,
   faClipboardCheck,
 } from "@fortawesome/free-solid-svg-icons";
-import { CopyToClipboard } from "react-copy-to-clipboard";
-import SendMessage from "./SendMessage";
 import MessageMediaPlayer from "./MessageMediaPlayer";
+import React from "react";
+import SendMessage from "./SendMessage";
 
 class Library extends React.Component {
   constructor(props) {
@@ -21,13 +21,13 @@ class Library extends React.Component {
     this.scrollToTop = this.scrollToTop.bind(this);
   }
 
-  componentDidMount() {
+  componentDidMount(): void {
     const { getLibraryItems } = this.props;
 
     getLibraryItems();
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps): void {
     const { libraryItemCreating } = this.props;
 
     if (!prevProps.libraryItemCreating && libraryItemCreating) {
@@ -35,7 +35,7 @@ class Library extends React.Component {
     }
   }
 
-  scrollToTop() {
+  scrollToTop(): void {
     if (
       typeof this.itemsContainer != "undefined" &&
       this.itemsContainer != null
@@ -51,7 +51,7 @@ class Library extends React.Component {
     }
   }
 
-  render() {
+  render(): JSX.Element {
     const {
       libraryLoading,
       libraryItemCreating,

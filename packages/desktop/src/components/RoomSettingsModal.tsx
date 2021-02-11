@@ -1,29 +1,19 @@
-import React, { useState } from "react";
-import {
-  Row,
-  Col,
-  Button,
-  Navbar,
-  Dropdown,
-  Modal,
-  Card,
-  Image,
-  Form,
-} from "react-bootstrap";
+import { Button, Form, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faWindowClose, faDoorOpen } from "@fortawesome/free-solid-svg-icons";
+import { faDoorOpen, faWindowClose } from "@fortawesome/free-solid-svg-icons";
+import React, { useState } from "react";
 
 function RoomSettingsModal(props) {
   const { settings, updateRoomSettings } = props;
 
   const [audioEnabled, setAudioEnabled] = useState(
-    settings.roomSettings.audioEnabled
+    settings.roomSettings.audioEnabled,
   );
   const [videoEnabled, setVideoEnabled] = useState(
-    settings.roomSettings.videoEnabled
+    settings.roomSettings.videoEnabled,
   );
   const [backgroundBlurEnabled, setBackgroundBlurEnabled] = useState(
-    settings.roomSettings.backgroundBlurEnabled
+    settings.roomSettings.backgroundBlurEnabled,
   );
 
   function handleSettingsChange(event) {
@@ -40,7 +30,7 @@ function RoomSettingsModal(props) {
     if (event.target.name == "backgroundBlur") {
       updateRoomSettings(
         "backgroundBlurEnabled",
-        backgroundBlurEnabled ? false : true
+        backgroundBlurEnabled ? false : true,
       );
       setBackgroundBlurEnabled(backgroundBlurEnabled ? false : true);
     }
@@ -98,7 +88,7 @@ function RoomSettingsModal(props) {
 
           {/*process.env.REACT_APP_PLATFORM != "web" && (
                   <>
-                    <Form.Check 
+                    <Form.Check
                         type="switch"
                         id="background_blur_switch"
                         name="backgroundBlur"

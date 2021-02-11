@@ -18,7 +18,6 @@ export interface AuthState {
 
 interface RequestLoginCodeStartedAction {
   type: typeof REQUEST_LOGIN_CODE_STARTED;
-  payload: AuthState;
 }
 
 interface RequestLoginCodeSuccessAction {
@@ -42,7 +41,6 @@ interface AuthenticateUserSuccessAction {
 
 interface AuthenticateUserFailureAction {
   type: typeof AUTHENTICATE_USER_FAILURE;
-  payload: AuthState;
 }
 
 interface SetRedirectUrlAction {

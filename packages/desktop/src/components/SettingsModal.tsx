@@ -1,28 +1,16 @@
-import React, { useState } from "react";
-import {
-  Row,
-  Col,
-  Button,
-  Navbar,
-  Dropdown,
-  Modal,
-  Card,
-  Image,
-  Form,
-} from "react-bootstrap";
+import { Button, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faWindowClose,
-  faUserPlus,
   faCamera,
-  faSignOutAlt,
-  faFlask,
   faCog,
   faDoorOpen,
+  faSignOutAlt,
+  faWindowClose,
 } from "@fortawesome/free-solid-svg-icons";
+import React from "react";
 
 function SettingsModal(props) {
-  const { organization, handleShowModal, handleLogOut } = props;
+  const { handleShowModal, handleLogOut } = props;
 
   return (
     <Modal

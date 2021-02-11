@@ -1,22 +1,22 @@
 import { Action } from "redux";
-import { orderBy } from "lodash";
 import {
-  GET_ORGANIZATIONS_SUCCESS,
-  GET_ORGANIZATIONS_FAILURE,
-  GET_ORGANIZATION_USERS_STARTED,
-  GET_ORGANIZATION_USERS_SUCCESS,
-  GET_ORGANIZATION_USERS_FAILURE,
-  INVITE_USERS_STARTED,
-  INVITE_USERS_SUCCESS,
-  INVITE_USERS_FAILURE,
-  CREATE_ROOM_STARTED,
-  CREATE_ROOM_SUCCESS,
-  CREATE_ROOM_FAILURE,
+  CREATE_CALL_FAILURE,
   CREATE_CALL_STARTED,
   CREATE_CALL_SUCCESS,
-  CREATE_CALL_FAILURE,
+  CREATE_ROOM_FAILURE,
+  CREATE_ROOM_STARTED,
+  CREATE_ROOM_SUCCESS,
+  GET_ORGANIZATIONS_FAILURE,
+  GET_ORGANIZATIONS_SUCCESS,
+  GET_ORGANIZATION_USERS_FAILURE,
+  GET_ORGANIZATION_USERS_STARTED,
+  GET_ORGANIZATION_USERS_SUCCESS,
+  INVITE_USERS_FAILURE,
+  INVITE_USERS_STARTED,
+  INVITE_USERS_SUCCESS,
 } from "../actions/organization";
 import { faAudioDescription } from "@fortawesome/free-solid-svg-icons";
+import { orderBy } from "lodash";
 
 const initialState = {
   organization: {},
@@ -65,7 +65,7 @@ export default function organization(state = initialState, action = {}) {
       var updatedOrganizationUsers = orderBy(
         action.payload.data,
         ["first_name", "last_name"],
-        ["asc"]
+        ["asc"],
       );
       updatedState = {
         users: updatedOrganizationUsers,

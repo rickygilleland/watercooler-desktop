@@ -1,24 +1,10 @@
-import React, { useState } from "react";
-import {
-  Row,
-  Col,
-  Button,
-  Navbar,
-  Dropdown,
-  Modal,
-  Card,
-  Image,
-  Form,
-} from "react-bootstrap";
+import { Button, Form, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faCircleNotch,
-  faWindowClose,
-  faCamera,
-} from "@fortawesome/free-solid-svg-icons";
+import { faCamera, faWindowClose } from "@fortawesome/free-solid-svg-icons";
+import React, { useState } from "react";
 
 function ManageCameraModal(props) {
-  const { loading, users, settings } = props;
+  const { settings } = props;
 
   const [defaultVideoInput, setDefaultVideoInput] = useState(
     settings.defaultDevices != null &&
@@ -27,7 +13,7 @@ function ManageCameraModal(props) {
       : typeof settings.devices.videoInputs != "undefined" &&
         typeof settings.devices.videoInputs[0] != "undefined"
       ? settings.devices.videoInputs[0].deviceId
-      : ""
+      : "",
   );
   const [defaultAudioInput, setDefaultAudioInput] = useState(
     settings.defaultDevices != null &&
@@ -36,19 +22,19 @@ function ManageCameraModal(props) {
       : typeof settings.devices.audioInputs != "undefined" &&
         typeof settings.devices.audioInputs[0] != "undefined"
       ? settings.devices.audioInputs[0].deviceId
-      : ""
+      : "",
   );
-  const [defaultAudioOutput, setDefaultAudioOutput] = useState(
+  const [defaultAudioOutput] = useState(
     settings.defaultDevices != null &&
       typeof settings.defaultDevices.audioOutput != "undefined"
       ? settings.defaultDevices.audioOutput
       : typeof settings.devices.audioOutputs != "undefined" &&
         typeof settings.devices.audioOutputs[0] != "undefined"
       ? settings.devices.audioOutputs[0].deviceId
-      : ""
+      : "",
   );
   const [backgroundBlurAmount, setBackgroundBlurAmount] = useState(
-    settings.roomSettings.backgroundBlurAmount
+    settings.roomSettings.backgroundBlurAmount,
   );
 
   function handleVideoInputChange(event) {
@@ -59,10 +45,6 @@ function ManageCameraModal(props) {
     setDefaultAudioInput(event.target.value);
   }
 
-  function handleBackgroundBlurAmountChange(event) {
-    setBackgroundBlurAmount(event.target.value);
-  }
-
   function handleSubmit(event) {
     event.preventDefault();
 
@@ -70,7 +52,7 @@ function ManageCameraModal(props) {
       defaultVideoInput,
       defaultAudioInput,
       defaultAudioOutput,
-      backgroundBlurAmount
+      backgroundBlurAmount,
     );
     props.onHide();
   }

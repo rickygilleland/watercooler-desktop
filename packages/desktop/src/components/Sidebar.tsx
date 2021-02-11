@@ -1,67 +1,53 @@
-import React from "react";
-import { Switch, Route, NavLink, Redirect } from "react-router-dom";
-import routes from "../constants/routes.json";
-import { each, debounce } from "lodash";
-import { DateTime } from "luxon";
 import {
-  Row,
-  Col,
   Button,
+  Col,
   Navbar,
-  Dropdown,
-  Modal,
   OverlayTrigger,
+  Row,
   Tooltip,
 } from "react-bootstrap";
+import { DateTime } from "luxon";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { NavLink, Route, Switch } from "react-router-dom";
+import { each } from "lodash";
 import {
-  faCircleNotch,
-  faCircle,
-  faSignOutAlt,
-  faUserFriends,
-  faPlusSquare,
-  faCog,
-  faUserPlus,
-  faUsers,
-  faLock,
-  faCamera,
-  faVideo,
-  faMicrophone,
+  faArrowUp,
+  faBookOpen,
   faChevronCircleLeft,
   faChevronCircleRight,
+  faCircle,
+  faCog,
   faDesktop,
-  faBookOpen,
-  faArrowUp,
+  faLock,
+  faMicrophone,
+  faPlusSquare,
+  faUsers,
+  faVideo,
 } from "@fortawesome/free-solid-svg-icons";
-import { getOrganizationUsers } from "../actions/organization";
-import EnsureLoggedInContainer from "../containers/EnsureLoggedInContainer";
-import LibraryPage from "../containers/LibraryPage";
-import RoomPage from "../containers/RoomPage";
-import TeamPage from "../containers/TeamPage";
-import ErrorBoundary from "./ErrorBoundary";
-import SettingsModal from "./SettingsModal";
-import RoomSettingsModal from "./RoomSettingsModal";
-import ExperimentalSettingsModal from "./ExperimentalSettingsModal";
-import ManageUsersModal from "./ManageUsersModal";
-import InviteUsersModal from "./InviteUsersModal";
-import ManageCameraModal from "./ManageCameraModal";
-import RoomsModal from "./RoomsModal";
-import NewCallModal from "./NewCallModal";
-import IncomingCallModal from "./IncomingCallModal";
-import NewMessagePage from "../containers/NewMessagePage";
-import MessageThreadPage from "../containers/MessageThreadPage";
 import { isMobile } from "react-device-detect";
-import posthog from "posthog-js";
+import EnsureLoggedInContainer from "../containers/EnsureLoggedInContainer";
+import ErrorBoundary from "./ErrorBoundary";
+import InviteUsersModal from "./InviteUsersModal";
+import LibraryPage from "../containers/LibraryPage";
+import ManageCameraModal from "./ManageCameraModal";
+import ManageUsersModal from "./ManageUsersModal";
+import MessageThreadPage from "../containers/MessageThreadPage";
+import NewCallModal from "./NewCallModal";
+import NewMessagePage from "../containers/NewMessagePage";
 import Pusher from "pusher-js";
-import { getUserThreads, getThread } from "../actions/thread";
+import React from "react";
+import RoomPage from "../containers/RoomPage";
+import RoomSettingsModal from "./RoomSettingsModal";
+import RoomsModal from "./RoomsModal";
+import SettingsModal from "./SettingsModal";
+import TeamPage from "../containers/TeamPage";
+import posthog from "posthog-js";
+import routes from "../constants/routes.json";
 
 if (process.env.REACT_APP_PLATFORM != "web") {
-  var { BrowserWindow, nativeTheme } = require("electron").remote;
+  var { nativeTheme } = require("electron").remote;
 } else {
-  var BrowserWindow = null;
   var nativeTheme = null;
-  const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY = null;
-  const MAIN_WINDOW_WEBPACK_ENTRY = null;
 }
 
 class Sidebar extends React.Component {
@@ -438,9 +424,7 @@ class Sidebar extends React.Component {
     return userLogout();
   }
 
-  handleIncomingCall(acceptOrDecline) {
-    const { userPrivateNotificationChannel, incomingCall } = this.state;
-  }
+  handleIncomingCall() {}
 
   handleShowModal(modalToShow) {
     if (modalToShow == "inviteUsers") {
@@ -478,11 +462,8 @@ class Sidebar extends React.Component {
       billing,
       teams,
       privateThreads,
-      publicThreads,
       user,
-      auth,
       push,
-      currentUrl,
       getOrganizationUsers,
       organizationUsers,
       organizationLoading,
@@ -490,7 +471,6 @@ class Sidebar extends React.Component {
       inviteUsersSuccess,
       getAvailableDevices,
       settings,
-      updateExperimentalSettings,
       updateRoomSettings,
       updateDefaultDevices,
       createRoom,
@@ -502,13 +482,10 @@ class Sidebar extends React.Component {
       currentTime,
       showSettingsModal,
       showRoomSettingsModal,
-      showExperimentalSettingsModal,
       showInviteUsersModal,
       showManageUsersModal,
       showRoomsModal,
       showCallsModal,
-      showIncomingCallModal,
-      incomingCall,
       roomsModalReset,
       showManageCameraModal,
       pusherInstance,
@@ -773,17 +750,10 @@ class Sidebar extends React.Component {
       });
     }
 
-    let firstRoom = {};
     try {
       teams.forEach((team) => {
         if (team.rooms.length > 0) {
-          team.rooms.forEach((room) => {
-            firstRoom = {
-              slug: room.slug,
-              team: team,
-              room: room,
-            };
-          });
+          team.rooms.forEach((room) => {});
         }
       });
     } catch (error) {

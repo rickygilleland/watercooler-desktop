@@ -1,15 +1,14 @@
 import { combineReducers } from "redux";
-import { connectRouter , push } from "connected-react-router";
-
+import { connectRouter, push } from "connected-react-router";
 
 import auth from "./auth";
-import user from "./user";
 import library from "./library";
-import room from "./room";
 import message from "./message";
-import thread from "./thread";
 import organization from "./organization";
+import room from "./room";
 import settings from "./settings";
+import thread from "./thread";
+import user from "./user";
 
 export default (history) => {
   const appReducer = combineReducers({

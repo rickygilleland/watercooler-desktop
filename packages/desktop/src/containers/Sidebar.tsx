@@ -1,34 +1,36 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { userLogout } from "../actions/auth";
-import { updateUserDetails } from "../actions/user";
-import {
-  getOrganizations,
-  getOrganizationUsers,
-  inviteUsers,
-  createRoom,
-  createCall,
-} from "../actions/organization";
-import { getUserThreads, getThread } from "../actions/thread";
-import { addNewMessageFromNotification } from "../actions/message";
+import { AnyAction, Dispatch, bindActionCreators } from "redux";
 import {
   addNewItemFromNotification,
   getLibraryItems,
 } from "../actions/library";
+import { addNewMessageFromNotification } from "../actions/message";
+import { connect } from "react-redux";
+import {
+  createCall,
+  createRoom,
+  getOrganizationUsers,
+  getOrganizations,
+  inviteUsers,
+} from "../actions/organization";
 import {
   getAvailableDevices,
   updateDefaultDevices,
   updateExperimentalSettings,
   updateRoomSettings,
 } from "../actions/settings";
-import { connect } from "react-redux";
-import { AnyAction, bindActionCreators, Dispatch } from "redux";
+import { getThread, getUserThreads } from "../actions/thread";
 import { push } from "connected-react-router";
+import { updateUserDetails } from "../actions/user";
+import { userLogout } from "../actions/auth";
 import { withRouter } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
+import { AuthState } from "../store/types/auth";
+import { User } from "../store/types/user";
 
 function mapStateToProps(
   state: {
-    user: any;
+    user: User;
     organization: {
       organization: any;
       billing: any;
@@ -40,7 +42,7 @@ function mapStateToProps(
       teams: any;
     };
     thread: { publicThreads: any; privateThreads: any; sharedThreads: any };
-    auth: any;
+    auth: AuthState;
     settings: any;
   },
   ownProps: { location: { pathname: any } },

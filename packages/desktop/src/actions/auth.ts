@@ -1,14 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import {
-  AuthState,
-  REQUEST_LOGIN_CODE_STARTED,
-  REQUEST_LOGIN_CODE_SUCCESS,
-  REQUEST_LOGIN_CODE_FAILURE,
+  AUTHENTICATE_USER_FAILURE,
   AUTHENTICATE_USER_STARTED,
   AUTHENTICATE_USER_SUCCESS,
-  AUTHENTICATE_USER_FAILURE,
+  AuthActionTypes,
+  AuthState,
+  REQUEST_LOGIN_CODE_FAILURE,
+  REQUEST_LOGIN_CODE_STARTED,
+  REQUEST_LOGIN_CODE_SUCCESS,
   SET_REDIRECT_URL,
   USER_LOGOUT,
-  AuthActionTypes,
 } from "../store/types/auth";
 
 export function setRedirectUrl(payload: {
@@ -20,10 +22,9 @@ export function setRedirectUrl(payload: {
   };
 }
 
-export function requestLoginCodeStarted(payload: AuthState): AuthActionTypes {
+export function requestLoginCodeStarted(): AuthActionTypes {
   return {
     type: REQUEST_LOGIN_CODE_STARTED,
-    payload,
   };
 }
 
@@ -54,10 +55,9 @@ export function authenticateUserSuccess(payload: AuthState): AuthActionTypes {
   };
 }
 
-export function authenticateUserFailure(payload: AuthState): AuthActionTypes {
+export function authenticateUserFailure(): AuthActionTypes {
   return {
     type: AUTHENTICATE_USER_FAILURE,
-    payload,
   };
 }
 
@@ -78,14 +78,19 @@ export function requestLoginCode(email: string) {
         })
         .then((response: { data: { access_token: any } }) => {
           dispatch(
-            requestLoginCodeSuccess({ authKey: response.data.access_token }),
+            requestLoginCodeSuccess({
+              ...state,
+              authKey: response.data.access_token,
+            }),
           );
         })
         .catch((error: { message: any }) => {
-          dispatch(requestLoginCodeFailure({ error: error.message }));
+          dispatch(
+            requestLoginCodeFailure({ ...state, codeError: error.message }),
+          );
         });
     } catch (error) {
-      dispatch(requestLoginCodeFailure({ error: error }));
+      dispatch(requestLoginCodeFailure({ ...state, codeError: error }));
     }
   };
 }
@@ -123,14 +128,17 @@ export function authenticateUser(email: string, password: string) {
         })
         .then((response: { data: { access_token: any } }) => {
           dispatch(
-            authenticateUserSuccess({ authKey: response.data.access_token }),
+            authenticateUserSuccess({
+              ...state,
+              authKey: response.data.access_token,
+            }),
           );
         })
-        .catch((error: { message: any }) => {
-          dispatch(authenticateUserFailure({ error: error.message }));
+        .catch(() => {
+          dispatch(authenticateUserFailure());
         });
     } catch (error) {
-      dispatch(authenticateUserFailure({ error: error }));
+      dispatch(authenticateUserFailure());
     }
   };
 }
@@ -152,14 +160,17 @@ export function authenticateUserMagicLink(code: any) {
         })
         .then((response: { data: { access_token: any } }) => {
           dispatch(
-            authenticateUserSuccess({ authKey: response.data.access_token }),
+            authenticateUserSuccess({
+              ...state,
+              authKey: response.data.access_token,
+            }),
           );
         })
-        .catch((error: { message: any }) => {
-          dispatch(authenticateUserFailure({ error: error.message }));
+        .catch(() => {
+          dispatch(authenticateUserFailure());
         });
     } catch (error) {
-      dispatch(authenticateUserFailure({ error: error }));
+      dispatch(authenticateUserFailure());
     }
   };
 }
