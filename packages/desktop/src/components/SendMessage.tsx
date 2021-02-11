@@ -19,7 +19,8 @@ import {
   faVideo,
   faVideoSlash,
 } from "@fortawesome/free-solid-svg-icons";
-import MessageMediaPlayer from "./MessageMediaPlayer";
+import MessageMediaPlayer, { MediaType } from "./MessageMediaPlayer";
+
 import React from "react";
 import RecordRTC, { MediaStreamRecorder, StereoAudioRecorder } from "recordrtc";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -601,7 +602,7 @@ class SendMessage extends React.Component {
                     autoplay={true}
                     controls={false}
                     source={raw_local_stream}
-                    mediaType="video/mp4"
+                    mediaType={MediaType.Video}
                     muted={true}
                   />
                 )}
@@ -847,7 +848,9 @@ class SendMessage extends React.Component {
                         controls={true}
                         source={recordingBlobUrl}
                         mediaType={
-                          recordingType == "video" ? "video/mp4" : "audio/wav"
+                          recordingType == "video"
+                            ? MediaType.Video
+                            : MediaType.Audio
                         }
                         muted={false}
                       />

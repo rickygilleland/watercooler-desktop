@@ -14,7 +14,10 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Janus } from "janus-gateway";
 import { PropsFromRedux } from "../containers/RoomPage";
+import { Room as RoomType } from "../store/types/room";
 import { RouteComponentProps } from "react-router";
+import { Team } from "../store/types/organization";
+import { User } from "../store/types/user";
 import { clone, each } from "lodash";
 import {
   faCircleNotch,
@@ -53,17 +56,17 @@ interface RoomProps extends PropsFromRedux, RouteComponentProps {
 }
 
 interface State {
-  room: any;
-  team: any;
+  room: RoomType;
+  team: Team;
   isCall: boolean;
   loading: boolean;
-  members: any[];
+  members: User[];
   server: string | null;
   local_stream: any;
   publishers: any[];
   initialized: boolean;
   room_at_capacity: boolean;
-  me: any;
+  me: User;
   connected: boolean;
   publishing: boolean;
   heartbeatInterval?: NodeJS.Timeout;

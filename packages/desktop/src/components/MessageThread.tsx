@@ -1,32 +1,15 @@
-import {
-  Button,
-  Card,
-  CardColumns,
-  Col,
-  Container,
-  Image,
-  Navbar,
-  Overlay,
-  OverlayTrigger,
-  Popover,
-  Row,
-  Tooltip,
-} from "react-bootstrap";
+import { Button, Col, Container, Row } from "react-bootstrap";
 import { DateTime } from "luxon";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Link } from "react-router-dom";
 import {
   faChevronCircleDown,
   faChevronCircleUp,
   faCircleNotch,
   faComments,
 } from "@fortawesome/free-solid-svg-icons";
-import { isEqual } from "lodash";
 import Message from "./Message";
 import React from "react";
 import SendMessage from "./SendMessage";
-import posthog from "posthog-js";
-import routes from "../constants/routes.json";
 
 class MessageThread extends React.Component {
   constructor(props) {
@@ -47,13 +30,7 @@ class MessageThread extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const {
-      match,
-      push,
-      messageCreating,
-      collapsed,
-      threadLoading,
-    } = this.props;
+    const { match, messageCreating, collapsed, threadLoading } = this.props;
     const { thread } = this.state;
 
     if (
@@ -100,7 +77,6 @@ class MessageThread extends React.Component {
   initializeThread() {
     const {
       match,
-      push,
       publicThreads,
       privateThreads,
       sharedThreads,
@@ -195,7 +171,6 @@ class MessageThread extends React.Component {
       messageLoading,
       collapsed,
       toggleThreadCollapsed,
-      isLightMode,
     } = this.props;
     const {
       thread,

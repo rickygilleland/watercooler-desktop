@@ -9,6 +9,7 @@ import {
   User,
   UserActionTypes,
 } from "../store/types/user";
+import { GlobalState } from "../store/types/index";
 
 export function getUserDetailsSuccess(payload: User): UserActionTypes {
   return {
@@ -45,7 +46,7 @@ export function updateUserDetailsFailure(): UserActionTypes {
 export function getUserDetails() {
   return (
     dispatch: (arg0: UserActionTypes) => void,
-    getState: () => any,
+    getState: () => GlobalState,
     axios: {
       get: (
         arg0: string,
@@ -79,7 +80,7 @@ export function getUserDetails() {
 export function updateUserDetails(timezone: any) {
   return (
     dispatch: (arg0: UserActionTypes) => void,
-    getState: () => any,
+    getState: () => GlobalState,
     axios: (arg0: {
       method: string;
       url: string;

@@ -3,20 +3,28 @@ import { Button, Image, Row } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PropsFromRedux } from "../containers/NewMessagePage";
 import { RouteComponentProps } from "react-router";
+import { User } from "../store/types/user";
 import { faWindowClose } from "@fortawesome/free-solid-svg-icons";
 import Autosuggest from "react-autosuggest";
 import React from "react";
 import SendMessage from "./SendMessage";
 
-interface NewMessageProps extends PropsFromRedux, RouteComponentProps {
+interface NewMessageLocationState {
+  recipient?: User;
+}
+
+interface NewMessageProps
+  extends PropsFromRedux,
+    RouteComponentProps<{}, any, NewMessageLocationState> {
+  message: string | null;
   isLightMode: boolean;
   onClick(): void;
 }
 
 interface State {
-  users: any[];
-  suggestions: any[];
-  suggestionValue: string[];
+  users: Partial<User>[];
+  suggestions: User[];
+  suggestionValue: number[];
   suggestionDisplayValue: string;
   messageCreated: boolean;
 }
@@ -48,7 +56,7 @@ export default class NewMessage extends React.Component<
   componentDidMount(): void {
     const { organizationUsers, location } = this.props;
 
-    const users = [];
+    const users: Partial<User>[] = [];
 
     organizationUsers.forEach((user) => {
       users[user.id] = {
@@ -60,10 +68,7 @@ export default class NewMessage extends React.Component<
 
     this.setState({ users });
 
-    if (
-      typeof location.state != "undefined" &&
-      typeof location.state.recipient != "undefined"
-    ) {
+    if (location.state.recipient) {
       this.setState({
         suggestionValue: [location.state.recipient.id],
         suggestionDisplayValue:

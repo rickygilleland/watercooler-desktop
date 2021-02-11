@@ -1,17 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnyAction, Dispatch, bindActionCreators } from "redux";
+import { AuthState } from "../store/types/auth";
+import { OrganizationState } from "../store/types/organization";
+import { User } from "../store/types/user";
 import { connect } from "react-redux";
 import { createMessage, getMessagesByThreadId } from "../actions/message";
 import { push } from "connected-react-router";
 import { withRouter } from "react-router-dom";
 import MessageThread from "../components/MessageThread";
-import { AuthState } from "../store/types/auth";
-import { User } from "../store/types/user";
 
 function mapStateToProps(state: {
   auth: AuthState;
   user: User;
-  organization: { organization: any; users: any };
+  organization: OrganizationState;
   thread: {
     publicThreads: any;
     privateThreads: any;

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnyAction, Dispatch, bindActionCreators } from "redux";
 import { AuthState } from "../store/types/auth";
+import { OrganizationState } from "../store/types/organization";
 import { User } from "../store/types/user";
 import { authenticateUser, requestLoginCode } from "../actions/auth";
 import { connect } from "react-redux";
@@ -13,7 +14,7 @@ import Login from "../components/Login";
 function mapStateToProps(state: {
   auth: AuthState;
   user: User;
-  organization: { organization: any };
+  organization: OrganizationState;
 }) {
   return {
     auth: state.auth,

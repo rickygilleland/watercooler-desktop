@@ -12,6 +12,7 @@ import {
   SET_REDIRECT_URL,
   USER_LOGOUT,
 } from "../store/types/auth";
+import { GlobalState } from "../store/types/index";
 
 export function setRedirectUrl(payload: {
   redirectUrl: AuthState["redirectUrl"];
@@ -64,7 +65,7 @@ export function authenticateUserFailure(): AuthActionTypes {
 export function requestLoginCode(email: string) {
   return (
     dispatch: (arg0: AuthActionTypes) => void,
-    getState: () => AuthState,
+    getState: () => GlobalState,
     axios: { post: (arg0: string, arg1: { email: string }) => Promise<any> },
   ) => {
     dispatch(requestLoginCodeStarted());
@@ -79,18 +80,21 @@ export function requestLoginCode(email: string) {
         .then((response: { data: { access_token: any } }) => {
           dispatch(
             requestLoginCodeSuccess({
-              ...state,
+              ...state.auth,
               authKey: response.data.access_token,
             }),
           );
         })
         .catch((error: { message: any }) => {
           dispatch(
-            requestLoginCodeFailure({ ...state, codeError: error.message }),
+            requestLoginCodeFailure({
+              ...state.auth,
+              codeError: error.message,
+            }),
           );
         });
     } catch (error) {
-      dispatch(requestLoginCodeFailure({ ...state, codeError: error }));
+      dispatch(requestLoginCodeFailure({ ...state.auth, codeError: error }));
     }
   };
 }
@@ -98,7 +102,7 @@ export function requestLoginCode(email: string) {
 export function authenticateUser(email: string, password: string) {
   return (
     dispatch: (arg0: AuthActionTypes) => void,
-    getState: () => AuthState,
+    getState: () => GlobalState,
     axios: {
       post: (
         arg0: string,
@@ -115,7 +119,7 @@ export function authenticateUser(email: string, password: string) {
   ) => {
     dispatch(authenticateUserStarted());
 
-    const state: AuthState = getState();
+    const state: GlobalState = getState();
     try {
       axios
         .post(`https://blab.to/oauth/token`, {
@@ -126,10 +130,10 @@ export function authenticateUser(email: string, password: string) {
           password: password,
           scope: "",
         })
-        .then((response: { data: { access_token: any } }) => {
+        .then((response: { data: { access_token: string } }) => {
           dispatch(
             authenticateUserSuccess({
-              ...state,
+              ...state.auth,
               authKey: response.data.access_token,
             }),
           );
@@ -158,7 +162,7 @@ export function authenticateUserMagicLink(code: any) {
         .post(`https://blab.to/api/magic/auth`, {
           code: code,
         })
-        .then((response: { data: { access_token: any } }) => {
+        .then((response: { data: { access_token: string } }) => {
           dispatch(
             authenticateUserSuccess({
               ...state,

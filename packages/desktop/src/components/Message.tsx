@@ -92,6 +92,7 @@ class Message extends React.PureComponent {
                   source={message.attachments[0].temporary_url}
                   mediaType={message.attachments[0].mime_type}
                   thumbnail={message.attachments[0].thumbnail_url}
+                  muted={false}
                   id={`video_player_${message.id}`}
                 />
               </div>

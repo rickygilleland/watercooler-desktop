@@ -1,51 +1,52 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
 import ReactPlayer from "react-player";
 
-export default class MessageMediaPlayer extends React.Component {
-  componentDidMount() {}
+export enum MediaType {
+  Video = "video/mp4",
+  Audio = "audio/wav",
+}
 
-  componentWillUnmount() {}
+interface MessageMediaPlayerProps {
+  id?: string;
+  autoplay: boolean;
+  controls: any;
+  mediaType: MediaType;
+  muted: boolean;
+  thumbnail?: string;
+  source: any;
+}
 
-  render() {
-    const {
-      autoplay,
-      controls,
-      source,
-      mediaType,
-      muted,
-      thumbnail,
-    } = this.props;
-
-    return (
-      <div
-        className={
-          mediaType == "video/mp4"
-            ? "react-video-player-wrapper"
-            : "react-audio-player-wrapper"
-        }
-      >
-        <ReactPlayer
-          url={source}
-          controls={controls}
-          playing={autoplay}
-          muted={muted}
-          config={{
-            file: {
-              forceVideo: mediaType == "video/mp4",
-              forceAudio: mediaType == "audio/wav",
-              attributes: {
-                controlsList: "nodownload",
-              },
+export default function MessageMediaPlayer(
+  props: MessageMediaPlayerProps,
+): JSX.Element {
+  return (
+    <div
+      className={
+        props.mediaType == "video/mp4"
+          ? "react-video-player-wrapper"
+          : "react-audio-player-wrapper"
+      }
+    >
+      <ReactPlayer
+        url={props.source}
+        controls={props.controls}
+        playing={props.autoplay}
+        muted={props.muted}
+        config={{
+          file: {
+            forceVideo: props.mediaType === MediaType.Video,
+            forceAudio: props.mediaType === MediaType.Audio,
+            attributes: {
+              controlsList: "nodownload",
             },
-          }}
-          height="100%"
-          width="100%"
-          poster={mediaType == "video/mp4" ? thumbnail : undefined}
-          className="mx-auto react-player"
-        />
-      </div>
-    );
-  }
+          },
+        }}
+        height="100%"
+        width="100%"
+        poster={props.mediaType == "video/mp4" ? props.thumbnail : undefined}
+        className="mx-auto react-player"
+      />
+    </div>
+  );
 }

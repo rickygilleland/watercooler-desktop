@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AuthState } from "../store/types/auth";
+import { OrganizationState } from "../store/types/organization";
 import { connect } from "react-redux";
 import { push } from "connected-react-router";
 import { setRedirectUrl } from "../actions/auth";
@@ -10,7 +11,7 @@ interface EnsureLoggedInContainerProps {
   dispatch: any;
   currentURL: string;
   auth: AuthState;
-  organization: any;
+  organization: OrganizationState;
 }
 
 function EnsureLoggedInContainer(

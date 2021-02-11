@@ -196,6 +196,7 @@ class Library extends React.Component {
                                 source={item.attachments[0].temporary_url}
                                 mediaType={item.attachments[0].mime_type}
                                 thumbnail={item.attachments[0].thumbnail_url}
+                                muted={false}
                                 id={`video_player_${item.id}`}
                               />
                             </div>

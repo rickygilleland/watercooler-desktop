@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnyAction, Dispatch, bindActionCreators } from "redux";
+import { AuthState } from "../store/types/auth";
+import { OrganizationState } from "../store/types/organization";
+import { User } from "../store/types/user";
 import {
   addNewItemFromNotification,
   getLibraryItems,
@@ -25,22 +28,11 @@ import { updateUserDetails } from "../actions/user";
 import { userLogout } from "../actions/auth";
 import { withRouter } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import { AuthState } from "../store/types/auth";
-import { User } from "../store/types/user";
 
 function mapStateToProps(
   state: {
     user: User;
-    organization: {
-      organization: any;
-      billing: any;
-      users: any;
-      loading: any;
-      inviteUsersSuccess: any;
-      createRoomSuccess: any;
-      lastCreatedRoomSlug: any;
-      teams: any;
-    };
+    organization: OrganizationState;
     thread: { publicThreads: any; privateThreads: any; sharedThreads: any };
     auth: AuthState;
     settings: any;

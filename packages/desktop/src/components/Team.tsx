@@ -12,6 +12,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from "react-router-dom";
 import { PropsFromRedux } from "../containers/TeamPage";
 import { RouteComponentProps } from "react-router";
+import { User } from "../store/types/user";
 import {
   faCircle,
   faCircleNotch,
@@ -24,7 +25,7 @@ import posthog from "posthog-js";
 
 interface TeamProps extends PropsFromRedux, RouteComponentProps {
   currentTime: any;
-  organizationUsersOnline: any;
+  organizationUsersOnline: User[];
   isLightMode: boolean;
 }
 

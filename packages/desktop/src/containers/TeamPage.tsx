@@ -1,23 +1,17 @@
 import { AnyAction, Dispatch, bindActionCreators } from "redux";
+import { AuthState } from "../store/types/auth";
 import { ConnectedProps, connect } from "react-redux";
+import { OrganizationState } from "../store/types/organization";
+import { User } from "../store/types/user";
 import { getOrganizationUsers, inviteUsers } from "../actions/organization";
 import { push } from "connected-react-router";
 import { withRouter } from "react-router-dom";
 import Team from "../components/Team";
-import { AuthState } from "../store/types/auth";
-import { User } from "../store/types/user";
 
 function mapStateToProps(state: {
   auth: AuthState;
   user: User;
-  organization: {
-    organization: any;
-    users: any;
-    billing: any;
-    loading: any;
-    inviteUsersSuccess: any;
-    teams: any;
-  };
+  organization: OrganizationState;
 }) {
   return {
     auth: state.auth,

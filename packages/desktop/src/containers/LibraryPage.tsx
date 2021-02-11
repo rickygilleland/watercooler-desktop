@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnyAction, Dispatch, bindActionCreators } from "redux";
 import { AuthState } from "../store/types/auth";
+import { OrganizationState } from "../store/types/organization";
 import { User } from "../store/types/user";
 import { connect } from "react-redux";
 import { createItem, getLibraryItems } from "../actions/library";
@@ -11,7 +12,7 @@ import Library from "../components/Library";
 function mapStateToProps(state: {
   auth: AuthState;
   user: User;
-  organization: { organization: any; users: any };
+  organization: OrganizationState;
   library: { items: any; itemsOrder: any; loading: any; creating: any };
   settings: any;
 }) {
