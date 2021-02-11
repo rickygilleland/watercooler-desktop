@@ -3,6 +3,7 @@ import { AnyAction, Dispatch, bindActionCreators } from "redux";
 import { AuthState } from "../store/types/auth";
 import { ConnectedProps, connect } from "react-redux";
 import { OrganizationState } from "../store/types/organization";
+import { RoomState } from "../store/types/room";
 import { User } from "../store/types/user";
 import { addUserToRoom, getRoomUsers } from "../actions/room";
 import { push } from "connected-react-router";
@@ -13,7 +14,7 @@ function mapStateToProps(state: {
   auth: AuthState;
   user: User;
   organization: OrganizationState;
-  room: { loading: any; addUserLoading: any; users: any };
+  room: RoomState;
   settings: any;
 }) {
   return {

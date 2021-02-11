@@ -2,6 +2,7 @@
 import { AnyAction, Dispatch, bindActionCreators } from "redux";
 import { AuthState } from "../store/types/auth";
 import { OrganizationState } from "../store/types/organization";
+import { ThreadState } from "../store/types/thread";
 import { User } from "../store/types/user";
 import {
   addNewItemFromNotification,
@@ -33,7 +34,7 @@ function mapStateToProps(
   state: {
     user: User;
     organization: OrganizationState;
-    thread: { publicThreads: any; privateThreads: any; sharedThreads: any };
+    thread: ThreadState;
     auth: AuthState;
     settings: any;
   },

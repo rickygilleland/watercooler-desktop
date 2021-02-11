@@ -1,8 +1,7 @@
-import { Button, Col, Image, Row } from "react-bootstrap";
+import { Button, Image, Row } from "react-bootstrap";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { DateTime } from "luxon";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Link } from "react-router-dom";
 import {
   faCircleNotch,
   faClipboard,
@@ -10,7 +9,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import MessageMediaPlayer from "./MessageMediaPlayer";
 import React from "react";
-import routes from "../constants/routes.json";
 
 class Message extends React.PureComponent {
   constructor(props) {
@@ -25,8 +23,6 @@ class Message extends React.PureComponent {
     };
   }
 
-  componentDidMount() {}
-
   componentDidUpdate(prevProps) {
     const { message, lastCopiedMessageId } = this.props;
     const { copied } = this.state;
@@ -39,8 +35,6 @@ class Message extends React.PureComponent {
       this.setState({ copied: false });
     }
   }
-
-  componentWillUnmount() {}
 
   render() {
     const { message, renderHeading, handleCopyToClipbard } = this.props;

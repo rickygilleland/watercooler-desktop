@@ -17,7 +17,6 @@ import {
   INVITE_USERS_SUCCESS,
   OrganizationActionTypes,
   OrganizationResponse,
-  OrganizationState,
 } from "../store/types/organization";
 import { GlobalState } from "../store/types/index";
 import { Room } from "../store/types/room";

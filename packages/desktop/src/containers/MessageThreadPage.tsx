@@ -2,6 +2,7 @@
 import { AnyAction, Dispatch, bindActionCreators } from "redux";
 import { AuthState } from "../store/types/auth";
 import { OrganizationState } from "../store/types/organization";
+import { ThreadState } from "../store/types/thread";
 import { User } from "../store/types/user";
 import { connect } from "react-redux";
 import { createMessage, getMessagesByThreadId } from "../actions/message";
@@ -13,13 +14,7 @@ function mapStateToProps(state: {
   auth: AuthState;
   user: User;
   organization: OrganizationState;
-  thread: {
-    publicThreads: any;
-    privateThreads: any;
-    sharedThreads: any;
-    roomThreads: any;
-    loading: any;
-  };
+  thread: ThreadState;
   message: {
     messages: any;
     loading: any;
