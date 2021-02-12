@@ -1,8 +1,8 @@
+import * as Sentry from "@sentry/electron";
+import { AppContainer } from "react-hot-loader";
+import { history, persistor, store } from "./store";
 import React from "react";
 import ReactDOM from "react-dom";
-import { AppContainer } from "react-hot-loader";
-import { store, persistor, history } from "./store";
-import * as Sentry from "@sentry/electron";
 
 if (process.env.NODE_ENV != "development") {
   Sentry.init({
@@ -11,6 +11,9 @@ if (process.env.NODE_ENV != "development") {
     environment: process.env.NODE_ENV,
   });
 }
+
+export type StoreType = typeof store;
+export type HistoryType = typeof history;
 
 const render = () => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
