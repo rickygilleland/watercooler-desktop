@@ -1,27 +1,23 @@
+import * as contextMenu from "electron-context-menu";
 import {
-  app,
   BrowserWindow,
   Menu,
+  Notification,
+  Tray,
+  app,
   autoUpdater,
   dialog,
-  protocol,
   ipcMain,
-  webContents,
-  screen,
   powerMonitor,
-  Notification,
+  screen,
   systemPreferences,
-  Tray,
 } from "electron";
 import { init } from "@sentry/electron/dist/main";
-import * as Sentry from "@sentry/electron";
 import ElectronStore from "electron-store";
+import path from "path";
 if (require("electron-squirrel-startup")) app.quit();
-var path = require("path");
 
-var isDevMode = process.execPath.match(/[\\/]electron/);
-
-const contextMenu = require("electron-context-menu");
+var isDevMode = Boolean(process.execPath.match(/[\\/]electron/));
 
 let mainWindow;
 
@@ -55,7 +51,7 @@ if (!isDevMode) {
 
       updateNotification.show();
 
-      updateNotification.on("click", (clickEvent) => {
+      updateNotification.on("click", () => {
         autoUpdater.quitAndInstall();
       });
     } else {
@@ -76,7 +72,7 @@ if (!isDevMode) {
 }
 
 contextMenu({
-  prepend: (defaultActions, params, browserWindow) => [],
+  prepend: () => [],
 });
 
 const createWindow = () => {
@@ -141,6 +137,7 @@ const createWindow = () => {
       frame: false,
       webPreferences: {
         nodeIntegration: true,
+        // eslint-disable-next-line no-undef
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
         devTools: false,
         backgroundThrottling: false,
@@ -163,6 +160,7 @@ const createWindow = () => {
       frame: false,
       webPreferences: {
         nodeIntegration: true,
+        // eslint-disable-next-line no-undef
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
         backgroundThrottling: false,
         enableRemoteModule: true,
@@ -175,6 +173,7 @@ const createWindow = () => {
   }
 
   // and load the index.html of the app.
+  // eslint-disable-next-line no-undef
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
   powerMonitor.on("suspend", () => {
@@ -185,7 +184,7 @@ const createWindow = () => {
     mainWindow.webContents.send("power_update", "lock-screen");
   });
 
-  ipcMain.handle("get-current-window-dimensions", async (event) => {
+  ipcMain.handle("get-current-window-dimensions", async () => {
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
     return { width, height };
   });
@@ -376,6 +375,7 @@ const createWindow = () => {
 
   mainWindow.webContents.on("new-window", function (e, url) {
     e.preventDefault();
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     require("electron").shell.openExternal(url);
   });
 
