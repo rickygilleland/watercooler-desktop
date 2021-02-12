@@ -2,7 +2,9 @@
 import { AnyAction, Dispatch, bindActionCreators } from "redux";
 import { AuthState } from "../store/types/auth";
 import { ConnectedProps, connect } from "react-redux";
+import { MessageState } from "../store/types/message";
 import { OrganizationState } from "../store/types/organization";
+import { SettingsState } from "../store/types/settings";
 import { User } from "../store/types/user";
 import { createMessage } from "../actions/message";
 import { push } from "connected-react-router";
@@ -13,8 +15,8 @@ function mapStateToProps(state: {
   auth: AuthState;
   user: User;
   organization: OrganizationState;
-  settings: any;
-  message: { creating: any; lastCreatedMessage: any; error: any };
+  settings: SettingsState;
+  message: MessageState;
 }) {
   return {
     auth: state.auth,

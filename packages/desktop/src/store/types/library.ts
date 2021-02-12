@@ -1,3 +1,4 @@
+import { MediaType } from "../../components/MessageMediaPlayer";
 export const GET_ITEMS_STARTED = "GET_ITEMS_STARTED";
 export const GET_ITEMS_SUCCESS = "GET_ITEMS_SUCCESS";
 export const GET_ITEMS_FAILURE = "GET_ITEMS_FAILURE";
@@ -7,16 +8,26 @@ export const CREATE_ITEM_FAILURE = "CREATE_ITEM_FAILURE";
 export const ADD_NEW_ITEM_FROM_NOTIFICATION_SUCCESS =
   "ADD_NEW_ITEM_FROM_NOTIFICATION_SUCCESS";
 
-export interface LibraryItem {
+export interface Attachment {
   id: number;
   user_id: number;
   organization_id: number;
   path: string;
-  mime_type: string;
+  mime_type: MediaType;
   slug: string;
   processed: boolean;
   is_public: boolean;
+  thumbnail_url: string;
   temporary_url: string;
+}
+
+export interface LibraryItem {
+  id: number;
+  is_public: boolean;
+  slug: string;
+  public_url?: string;
+  attachments: Attachment[];
+  created_at: string;
 }
 
 export interface LibraryGroup {
@@ -25,7 +36,7 @@ export interface LibraryGroup {
 
 export interface LibraryState {
   items: LibraryGroup;
-  itemsOrder: LibraryItem[];
+  itemsOrder: number[];
   loading: boolean;
   creating: boolean;
   error: boolean;

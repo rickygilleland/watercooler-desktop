@@ -4,6 +4,7 @@ import { AuthState } from "../store/types/auth";
 import { ConnectedProps, connect } from "react-redux";
 import { OrganizationState } from "../store/types/organization";
 import { RoomState } from "../store/types/room";
+import { SettingsState } from "../store/types/settings";
 import { User } from "../store/types/user";
 import { addUserToRoom, getRoomUsers } from "../actions/room";
 import { push } from "connected-react-router";
@@ -15,7 +16,7 @@ function mapStateToProps(state: {
   user: User;
   organization: OrganizationState;
   room: RoomState;
-  settings: any;
+  settings: SettingsState;
 }) {
   return {
     auth: state.auth,

@@ -29,7 +29,7 @@ function EnsureLoggedInContainer(
         return props.dispatch(push("/login"));
       }
 
-      props.dispatch(setRedirectUrl({ redirectUrl: props.currentURL }));
+      props.dispatch(setRedirectUrl(props.currentURL));
       props.dispatch(push("/login"));
     }
 
@@ -57,8 +57,8 @@ function EnsureLoggedInContainer(
 }
 
 function mapStateToProps(
-  state: { auth: AuthState; organization: { organization: any } },
-  ownProps: { location: { pathname: any } },
+  state: { auth: AuthState; organization: { organization: OrganizationState } },
+  ownProps: { location: { pathname: string } },
 ) {
   return {
     auth: state.auth,

@@ -2,6 +2,7 @@
 import { AnyAction, Dispatch, bindActionCreators } from "redux";
 import { AuthState } from "../store/types/auth";
 import { OrganizationState } from "../store/types/organization";
+import { SettingsState } from "../store/types/settings";
 import { ThreadState } from "../store/types/thread";
 import { User } from "../store/types/user";
 import {
@@ -36,9 +37,9 @@ function mapStateToProps(
     organization: OrganizationState;
     thread: ThreadState;
     auth: AuthState;
-    settings: any;
+    settings: SettingsState;
   },
-  ownProps: { location: { pathname: any } },
+  ownProps: { location: { pathname: string } },
 ) {
   return {
     user: state.user,

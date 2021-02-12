@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnyAction, Dispatch, bindActionCreators } from "redux";
 import { AuthState } from "../store/types/auth";
+import { MessageState } from "../store/types/message";
 import { OrganizationState } from "../store/types/organization";
+import { SettingsState } from "../store/types/settings";
 import { ThreadState } from "../store/types/thread";
 import { User } from "../store/types/user";
 import { connect } from "react-redux";
@@ -15,14 +17,8 @@ function mapStateToProps(state: {
   user: User;
   organization: OrganizationState;
   thread: ThreadState;
-  message: {
-    messages: any;
-    loading: any;
-    creating: any;
-    lastCreatedMessage: any;
-    error: any;
-  };
-  settings: any;
+  message: MessageState;
+  settings: SettingsState;
 }) {
   return {
     auth: state.auth,
