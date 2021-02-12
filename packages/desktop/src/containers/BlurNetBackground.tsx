@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { ConnectedProps, connect } from "react-redux";
 import { SettingsState } from "../store/types/settings";
-import { connect } from "react-redux";
 import BlurNetBackground from "../components/BlurNetBackground";
 
 function mapStateToProps(state: { settings: SettingsState }) {
@@ -9,4 +9,7 @@ function mapStateToProps(state: { settings: SettingsState }) {
   };
 }
 
-export default connect(mapStateToProps)(BlurNetBackground);
+const connector = connect(mapStateToProps);
+export type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default connector(BlurNetBackground);

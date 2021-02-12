@@ -1,57 +1,50 @@
 import "@tensorflow/tfjs-backend-cpu";
 import "@tensorflow/tfjs-backend-webgl";
+import * as bodyPix from "@tensorflow-models/body-pix";
+import { PropsFromRedux } from "../containers/BlurNetBackground";
 import { ipcRenderer } from "electron";
-import React from "react";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const bodyPix = require("@tensorflow-models/body-pix");
+import { useEffect, useState } from "react";
 
-class BlurNetBackground extends React.Component {
-  constructor(props) {
-    super(props);
+export default function BlurNetBackground(props: PropsFromRedux): JSX.Element {
+  const [net, setNet] = useState<bodyPix.BodyPix>();
+  const [rawLocalStream, setRawLocalStream] = useState<MediaStream>();
+  const [active, setActive] = useState(false);
+  const [generated, setGenerated] = useState<number>();
 
-    this.state = {
-      raw_local_stream: null,
-      active: false,
+  useEffect(() => {
+    const startNet = async () => {
+      const net = await bodyPix.load({
+        architecture: "MobileNetV1",
+        outputStride: 16,
+        multiplier: 0.75,
+        quantBytes: 2,
+      });
+
+      setNet(net);
+
+      ipcRenderer.on("net-status-update", (_event, args) => {
+        if (args.net === "backgroundBlur" && args.status) {
+          if (!rawLocalStream) {
+            setActive(true);
+            startBackgroundBlur();
+            return;
+          }
+        }
+        setActive(false);
+        stopBackgroundBlur();
+      });
     };
 
-    this.startNet = this.startNet.bind(this);
-    this.startBackgroundBlur = this.startBackgroundBlur.bind(this);
-    this.stopBackgroundBlur = this.stopBackgroundBlur.bind(this);
+    startNet();
 
-    this.net = null;
-  }
+    return () => {
+      stopBackgroundBlur();
+      ipcRenderer.removeAllListeners("net-status-update");
+    };
+  }, []);
 
-  componentDidMount() {
-    this.startNet();
-  }
-
-  async startNet() {
-    this.net = await bodyPix.load({
-      architecture: "MobileNetV1",
-      outputStride: 16,
-      multiplier: 0.75,
-      quantBytes: 2,
-    });
-
-    ipcRenderer.on("net-status-update", (event, args) => {
-      if (args.net == "backgroundBlur") {
-        if (args.status) {
-          if (this.state.raw_local_stream == null) {
-            this.setState({ active: true });
-            return this.startBackgroundBlur();
-          }
-        } else {
-          this.setState({ active: false });
-          this.stopBackgroundBlur();
-        }
-      }
-    });
-  }
-
-  async startBackgroundBlur() {
-    const { settings } = this.props;
-
-    console.log("STARTED");
+  const startBackgroundBlur = async () => {
+    const { settings } = props;
 
     let streamOptions;
     if (
@@ -74,14 +67,14 @@ class BlurNetBackground extends React.Component {
       };
     }
 
-    const raw_local_stream = await navigator.mediaDevices.getUserMedia(
+    const rawLocalStream = await navigator.mediaDevices.getUserMedia(
       streamOptions,
     );
 
-    this.setState({ raw_local_stream });
+    setRawLocalStream(rawLocalStream);
 
     const localVideo = document.createElement("video");
-    localVideo.srcObject = raw_local_stream;
+    localVideo.srcObject = rawLocalStream;
     localVideo.autoplay = true;
     localVideo.muted = true;
 
@@ -90,36 +83,34 @@ class BlurNetBackground extends React.Component {
       localVideo.height = localVideo.videoHeight;
     };
 
-    let personSegmentation = null;
-
-    const that = this;
+    let personSegmentation: bodyPix.SemanticPersonSegmentation;
 
     localVideo.onplaying = async () => {
-      console.log("PLAYING");
-
       async function getUpdatedCoords() {
         const curDate = new Date();
 
-        if (that.state.active == false) {
+        if (!active) {
           return;
         }
 
         if (
-          (that.net != null && personSegmentation == null) ||
-          curDate.getTime() - personSegmentation.generated > 50
+          (net && !personSegmentation) ||
+          curDate.getTime() - generated > 50
         ) {
-          personSegmentation = await that.net.segmentPerson(localVideo, {
+          personSegmentation = await net.segmentPerson(localVideo, {
             internalResolution: "full",
             segmentationThreshold: 0.8,
             scoreThreshold: 0.2,
             maxDetections: 3,
           });
+          const generated = curDate.getTime();
 
-          personSegmentation.generated = curDate.getTime();
+          setGenerated(generated);
 
           ipcRenderer.invoke("background-blur-update", {
             type: "updated_coordinates",
             personSegmentation,
+            generated,
           });
         }
 
@@ -128,31 +119,19 @@ class BlurNetBackground extends React.Component {
 
       getUpdatedCoords();
     };
-  }
+  };
 
-  stopBackgroundBlur() {
-    const { raw_local_stream } = this.state;
-
-    console.log("STOPPED");
-
-    if (raw_local_stream != null) {
-      const tracks = raw_local_stream.getTracks();
+  const stopBackgroundBlur = () => {
+    if (rawLocalStream) {
+      const tracks = rawLocalStream.getTracks();
 
       tracks.forEach(function (track) {
         track.stop();
       });
     }
 
-    this.setState({ raw_local_stream: null });
-  }
+    setRawLocalStream(undefined);
+  };
 
-  componentWillUnmount() {
-    this.stopBackgroundBlur();
-  }
-
-  render() {
-    return null;
-  }
+  return null;
 }
-
-export default BlurNetBackground;
