@@ -7,7 +7,7 @@ export const ADD_USER_TO_ROOM_STARTED = "ADD_USER_TO_ROOM_STARTED";
 export const ADD_USER_TO_ROOM_SUCCESS = "ADD_USER_TO_ROOM_SUCCESS";
 export const ADD_USER_TO_ROOM_FAILURE = "ADD_USER_TO_ROOM_FAILURE";
 
-enum RoomType {
+export enum RoomType {
   Room = "room",
   Call = "call",
 }
@@ -16,6 +16,7 @@ export interface Room {
   id: number;
   team_id: number;
   organization_id: number;
+  name: string;
   slug: string;
   type?: RoomType;
   is_private: boolean;
@@ -25,6 +26,7 @@ export interface Room {
   pin: string;
   is_active: boolean;
   server_id: number;
+  participants?: number[];
 }
 
 export interface RoomState {

@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { AuthenticatedRequestHeaders, GlobalState } from "../store/types";
 import {
   GET_THREAD_FAILURE,
   GET_THREAD_STARTED,
@@ -11,7 +11,6 @@ import {
   ThreadActionTypes,
   ThreadResponse,
 } from "../store/types/thread";
-import { GlobalState } from "../store/types";
 
 export function getThreadStarted(): ThreadActionTypes {
   return {
@@ -60,8 +59,8 @@ export function getThread(threadId: number) {
     axios: (arg0: {
       method: string;
       url: string;
-      headers: { Accept: string; Authorization: string };
-    }) => Promise<any>,
+      headers: AuthenticatedRequestHeaders;
+    }) => Promise<{ data: Thread }>,
   ) => {
     dispatch(getThreadStarted());
     const state = getState();
@@ -94,8 +93,8 @@ export function getUserThreads() {
     axios: (arg0: {
       method: string;
       url: string;
-      headers: { Accept: string; Authorization: string };
-    }) => Promise<any>,
+      headers: AuthenticatedRequestHeaders;
+    }) => Promise<{ data: ThreadResponse }>,
   ) => {
     dispatch(getUserThreadsStarted());
     const state = getState();

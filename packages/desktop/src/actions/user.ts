@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { AuthenticatedRequestHeaders, GlobalState } from "../store/types/index";
 import {
   GET_USER_DETAILS_FAILURE,
   GET_USER_DETAILS_SUCCESS,
@@ -9,7 +9,6 @@ import {
   User,
   UserActionTypes,
 } from "../store/types/user";
-import { GlobalState } from "../store/types/index";
 
 export function getUserDetailsSuccess(payload: User): UserActionTypes {
   return {
@@ -50,12 +49,11 @@ export function getUserDetails() {
     axios: {
       get: (
         arg0: string,
-        arg1: { headers: { Accept: string; Authorization: string } },
-      ) => Promise<any>;
+        arg1: { headers: AuthenticatedRequestHeaders },
+      ) => Promise<{ data: User }>;
     },
   ) => {
     const state = getState();
-    //check if we need to do some state stuff
 
     try {
       axios
@@ -77,16 +75,16 @@ export function getUserDetails() {
   };
 }
 
-export function updateUserDetails(timezone: any) {
+export function updateUserDetails(timezone: string) {
   return (
     dispatch: (arg0: UserActionTypes) => void,
     getState: () => GlobalState,
     axios: (arg0: {
       method: string;
       url: string;
-      data: { timezone: any };
-      headers: { Accept: string; Authorization: string };
-    }) => Promise<any>,
+      data: { timezone: string };
+      headers: AuthenticatedRequestHeaders;
+    }) => Promise<{ data: User }>,
   ) => {
     const state = getState();
     dispatch(updateUserDetailsStarted());

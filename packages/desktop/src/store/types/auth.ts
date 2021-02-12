@@ -16,18 +16,25 @@ export interface AuthState {
   loading: boolean;
 }
 
+export interface AuthRequest {
+  grant_type: string;
+  client_id: number;
+  client_secret: string;
+  username: string;
+  password: string;
+  scope: string;
+}
+
 interface RequestLoginCodeStartedAction {
   type: typeof REQUEST_LOGIN_CODE_STARTED;
 }
 
 interface RequestLoginCodeSuccessAction {
   type: typeof REQUEST_LOGIN_CODE_SUCCESS;
-  payload: AuthState;
 }
 
 interface RequestLoginCodeFailureAction {
   type: typeof REQUEST_LOGIN_CODE_FAILURE;
-  payload: AuthState;
 }
 
 interface AuthenticateUserStartedAction {
@@ -36,7 +43,7 @@ interface AuthenticateUserStartedAction {
 
 interface AuthenticateUserSuccessAction {
   type: typeof AUTHENTICATE_USER_SUCCESS;
-  payload: AuthState;
+  payload: string;
 }
 
 interface AuthenticateUserFailureAction {
@@ -45,9 +52,7 @@ interface AuthenticateUserFailureAction {
 
 interface SetRedirectUrlAction {
   type: typeof SET_REDIRECT_URL;
-  payload: {
-    redirectUrl: string;
-  };
+  payload: string;
 }
 
 interface UserLogoutAction {

@@ -1,17 +1,19 @@
-import { Action } from "redux";
 import {
+  DefaultDevices,
+  DeviceInfo,
   GET_AVAILABLE_DEVICES_FAILURE,
   GET_AVAILABLE_DEVICES_STARTED,
   GET_AVAILABLE_DEVICES_SUCCESS,
+  SettingsActionTypes,
+  SettingsState,
   UPDATE_DEFAULT_DEVICES_SUCCESS,
   UPDATE_EXPERIMENTAL_SETTINGS_SUCCESS,
   UPDATE_ROOM_SETTINGS_SUCCESS,
-} from "../actions/settings";
-import { StaticRouter } from "react-router";
+} from "../store/types/settings";
 
-const initialState = {
+const initialState: SettingsState = {
   devices: [],
-  defaultDevices: {},
+  defaultDevices: {} as DefaultDevices,
   experimentalSettings: {
     faceTracking: false,
   },
@@ -23,13 +25,21 @@ const initialState = {
   },
 };
 
-export default function settings(state = initialState, action = {}) {
-  var updatedState = {};
+export default function settings(
+  state = initialState,
+  action: SettingsActionTypes,
+): SettingsState {
+  let updatedState = {};
   switch (action.type) {
-    case GET_AVAILABLE_DEVICES_STARTED:
+    case GET_AVAILABLE_DEVICES_STARTED: {
       return state;
-    case GET_AVAILABLE_DEVICES_SUCCESS:
-      let updatedDevices = {
+    }
+    case GET_AVAILABLE_DEVICES_SUCCESS: {
+      const updatedDevices: {
+        audioInputs: DeviceInfo[];
+        videoInputs: DeviceInfo[];
+        audioOutputs: DeviceInfo[];
+      } = {
         audioInputs: [],
         videoInputs: [],
         audioOutputs: [],
@@ -64,10 +74,12 @@ export default function settings(state = initialState, action = {}) {
       };
 
       break;
-    case GET_AVAILABLE_DEVICES_FAILURE:
+    }
+    case GET_AVAILABLE_DEVICES_FAILURE: {
       return state;
       break;
-    case UPDATE_DEFAULT_DEVICES_SUCCESS:
+    }
+    case UPDATE_DEFAULT_DEVICES_SUCCESS: {
       updatedState = {
         defaultDevices: {
           videoInput: action.payload.videoInput,
@@ -81,7 +93,8 @@ export default function settings(state = initialState, action = {}) {
       };
 
       break;
-    case UPDATE_EXPERIMENTAL_SETTINGS_SUCCESS:
+    }
+    case UPDATE_EXPERIMENTAL_SETTINGS_SUCCESS: {
       updatedState = {
         experimentalSettings: {
           [action.payload.settingToChange]: action.payload.updatedValue,
@@ -89,7 +102,8 @@ export default function settings(state = initialState, action = {}) {
       };
 
       break;
-    case UPDATE_ROOM_SETTINGS_SUCCESS:
+    }
+    case UPDATE_ROOM_SETTINGS_SUCCESS: {
       updatedState = {
         roomSettings: {
           ...state.roomSettings,
@@ -98,6 +112,7 @@ export default function settings(state = initialState, action = {}) {
       };
 
       break;
+    }
     default:
       //do nothing
       return state;

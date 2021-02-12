@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+import { AuthenticatedRequestHeaders, GlobalState } from "../store/types/index";
 import {
   CREATE_CALL_FAILURE,
   CREATE_CALL_STARTED,
@@ -18,8 +18,7 @@ import {
   OrganizationActionTypes,
   OrganizationResponse,
 } from "../store/types/organization";
-import { GlobalState } from "../store/types/index";
-import { Room } from "../store/types/room";
+import { Room, RoomType } from "../store/types/room";
 import { User } from "../store/types/user";
 
 export function getOrganizationsSuccess(
@@ -120,8 +119,8 @@ export function getOrganizations() {
     getState: () => GlobalState,
     axios: {
       get: (
-        arg0: string,
-        arg1: { headers: { Accept: string; Authorization: string } },
+        requestUrl: string,
+        arg1: { headers: AuthenticatedRequestHeaders },
       ) => Promise<{ data: OrganizationResponse }>;
     },
   ) => {
@@ -154,7 +153,7 @@ export function getOrganizationUsers(organization_id: number) {
     axios: {
       get: (
         arg0: string,
-        arg1: { headers: { Accept: string; Authorization: string } },
+        arg1: { headers: AuthenticatedRequestHeaders },
       ) => Promise<{ data: Partial<User>[] }>;
     },
   ) => {
@@ -190,8 +189,8 @@ export function inviteUsers(emails: string[]) {
       method: string;
       url: string;
       data: { emails: string[] };
-      headers: { Accept: string; Authorization: string };
-    }) => Promise<any>,
+      headers: AuthenticatedRequestHeaders;
+    }) => Promise<{ data: boolean }>,
   ) => {
     dispatch(inviteUsersStarted());
     const state = getState();
@@ -231,14 +230,8 @@ export function createRoom(
     axios: (arg0: {
       method: string;
       url: string;
-      data: {
-        name: string;
-        video_enabled: boolean;
-        is_private: boolean;
-        organization_id: any;
-        team_id: any;
-      };
-      headers: { Accept: string; Authorization: string };
+      data: Partial<Room>;
+      headers: AuthenticatedRequestHeaders;
     }) => Promise<{ data: Room }>,
   ) => {
     dispatch(createRoomStarted());
@@ -279,13 +272,8 @@ export function createCall(participants: number[]) {
     axios: (arg0: {
       method: string;
       url: string;
-      data: {
-        organization_id: any;
-        team_id: any;
-        participants: number[];
-        type: string;
-      };
-      headers: { Accept: string; Authorization: string };
+      data: Partial<Room>;
+      headers: AuthenticatedRequestHeaders;
     }) => Promise<{ data: Room }>,
   ) => {
     dispatch(createCallStarted());
@@ -299,7 +287,7 @@ export function createCall(participants: number[]) {
           organization_id: state.organization.organization.id,
           team_id: state.organization.teams[0].id,
           participants,
-          type: "call",
+          type: RoomType.Call,
         },
         headers: {
           Accept: "application/json",

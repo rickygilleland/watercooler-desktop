@@ -51,7 +51,7 @@ export default function auth(
       break;
     case AUTHENTICATE_USER_SUCCESS:
       updatedState = {
-        authKey: action.payload.authKey,
+        authKey: action.payload,
         isLoggedIn: true,
         loginError: false,
         loading: false,
@@ -66,7 +66,7 @@ export default function auth(
       break;
     case SET_REDIRECT_URL:
       updatedState = {
-        redirectUrl: action.payload.redirectUrl,
+        redirectUrl: action.payload,
       };
       break;
     case AUTHENTICATE_USER_STARTED:

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import {
   ADD_USER_TO_ROOM_FAILURE,
@@ -9,7 +8,7 @@ import {
   GET_ROOM_USERS_SUCCESS,
   RoomActionTypes,
 } from "../store/types/room";
-import { GlobalState } from "../store/types";
+import { AuthenticatedRequestHeaders, GlobalState } from "../store/types";
 import { User } from "../store/types/user";
 
 export function getRoomUsersStarted(): RoomActionTypes {
@@ -55,9 +54,9 @@ export function getRoomUsers(roomId: number) {
     getState: () => GlobalState,
     axios: {
       get: (
-        arg0: string,
-        arg1: { headers: { Accept: string; Authorization: string } },
-      ) => Promise<any>;
+        requestUrl: string,
+        headers: { headers: AuthenticatedRequestHeaders },
+      ) => Promise<{ data: User[] }>;
     },
   ) => {
     const state = getState();
@@ -90,9 +89,9 @@ export function addUserToRoom(roomId: number, userId: number) {
     axios: (arg0: {
       method: string;
       url: string;
-      data: { user_id: any };
-      headers: { Accept: string; Authorization: string };
-    }) => Promise<any>,
+      data: { user_id: number };
+      headers: AuthenticatedRequestHeaders;
+    }) => Promise<{ data: boolean }>,
   ) => {
     dispatch(addUserToRoomStarted());
     const state = getState();

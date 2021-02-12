@@ -1,22 +1,18 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import {
   AUTHENTICATE_USER_FAILURE,
   AUTHENTICATE_USER_STARTED,
   AUTHENTICATE_USER_SUCCESS,
   AuthActionTypes,
-  AuthState,
+  AuthRequest,
   REQUEST_LOGIN_CODE_FAILURE,
   REQUEST_LOGIN_CODE_STARTED,
   REQUEST_LOGIN_CODE_SUCCESS,
   SET_REDIRECT_URL,
   USER_LOGOUT,
 } from "../store/types/auth";
-import { GlobalState } from "../store/types/index";
 
-export function setRedirectUrl(payload: {
-  redirectUrl: AuthState["redirectUrl"];
-}): AuthActionTypes {
+export function setRedirectUrl(payload: string): AuthActionTypes {
   return {
     type: SET_REDIRECT_URL,
     payload,
@@ -29,17 +25,15 @@ export function requestLoginCodeStarted(): AuthActionTypes {
   };
 }
 
-export function requestLoginCodeSuccess(payload: AuthState): AuthActionTypes {
+export function requestLoginCodeSuccess(): AuthActionTypes {
   return {
     type: REQUEST_LOGIN_CODE_SUCCESS,
-    payload: payload,
   };
 }
 
-export function requestLoginCodeFailure(payload: AuthState): AuthActionTypes {
+export function requestLoginCodeFailure(): AuthActionTypes {
   return {
     type: REQUEST_LOGIN_CODE_FAILURE,
-    payload: payload,
   };
 }
 
@@ -49,7 +43,7 @@ export function authenticateUserStarted(): AuthActionTypes {
   };
 }
 
-export function authenticateUserSuccess(payload: AuthState): AuthActionTypes {
+export function authenticateUserSuccess(payload: string): AuthActionTypes {
   return {
     type: AUTHENTICATE_USER_SUCCESS,
     payload,
@@ -65,36 +59,28 @@ export function authenticateUserFailure(): AuthActionTypes {
 export function requestLoginCode(email: string) {
   return (
     dispatch: (arg0: AuthActionTypes) => void,
-    getState: () => GlobalState,
-    axios: { post: (arg0: string, arg1: { email: string }) => Promise<any> },
+    axios: {
+      post: (
+        requestUrl: string,
+        arg1: { email: string },
+      ) => Promise<{ data: boolean }>;
+    },
   ) => {
     dispatch(requestLoginCodeStarted());
-
-    const state = getState();
 
     try {
       axios
         .post(`https://blab.to/api/login_code`, {
           email: email,
         })
-        .then((response: { data: { access_token: any } }) => {
-          dispatch(
-            requestLoginCodeSuccess({
-              ...state.auth,
-              authKey: response.data.access_token,
-            }),
-          );
+        .then(() => {
+          dispatch(requestLoginCodeSuccess());
         })
-        .catch((error: { message: any }) => {
-          dispatch(
-            requestLoginCodeFailure({
-              ...state.auth,
-              codeError: error.message,
-            }),
-          );
+        .catch(() => {
+          dispatch(requestLoginCodeFailure());
         });
     } catch (error) {
-      dispatch(requestLoginCodeFailure({ ...state.auth, codeError: error }));
+      dispatch(requestLoginCodeFailure());
     }
   };
 }
@@ -102,24 +88,15 @@ export function requestLoginCode(email: string) {
 export function authenticateUser(email: string, password: string) {
   return (
     dispatch: (arg0: AuthActionTypes) => void,
-    getState: () => GlobalState,
     axios: {
       post: (
-        arg0: string,
-        arg1: {
-          grant_type: string;
-          client_id: number;
-          client_secret: string;
-          username: string;
-          password: string;
-          scope: string;
-        },
-      ) => Promise<any>;
+        requestUrl: string,
+        authRequest: AuthRequest,
+      ) => Promise<{ data: { access_token: string } }>;
     },
   ) => {
     dispatch(authenticateUserStarted());
 
-    const state: GlobalState = getState();
     try {
       axios
         .post(`https://blab.to/oauth/token`, {
@@ -131,12 +108,7 @@ export function authenticateUser(email: string, password: string) {
           scope: "",
         })
         .then((response: { data: { access_token: string } }) => {
-          dispatch(
-            authenticateUserSuccess({
-              ...state.auth,
-              authKey: response.data.access_token,
-            }),
-          );
+          dispatch(authenticateUserSuccess(response.data.access_token));
         })
         .catch(() => {
           dispatch(authenticateUserFailure());
@@ -147,15 +119,17 @@ export function authenticateUser(email: string, password: string) {
   };
 }
 
-export function authenticateUserMagicLink(code: any) {
+export function authenticateUserMagicLink(code: string) {
   return (
     dispatch: (arg0: AuthActionTypes) => void,
-    getState: () => any,
-    axios: { post: (arg0: string, arg1: { code: any }) => Promise<any> },
+    axios: {
+      post: (
+        requestUrl: string,
+        magicLinkCode: { code: string },
+      ) => Promise<{ data: { access_token: string } }>;
+    },
   ) => {
     dispatch(authenticateUserStarted());
-
-    const state = getState();
 
     try {
       axios
@@ -163,12 +137,7 @@ export function authenticateUserMagicLink(code: any) {
           code: code,
         })
         .then((response: { data: { access_token: string } }) => {
-          dispatch(
-            authenticateUserSuccess({
-              ...state,
-              authKey: response.data.access_token,
-            }),
-          );
+          dispatch(authenticateUserSuccess(response.data.access_token));
         })
         .catch(() => {
           dispatch(authenticateUserFailure());

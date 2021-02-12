@@ -6,11 +6,13 @@ import {
   GET_ITEMS_FAILURE,
   GET_ITEMS_STARTED,
   GET_ITEMS_SUCCESS,
-} from "../actions/library";
-import { Action } from "redux";
-import { cloneDeep, orderBy, sortBy } from "lodash";
+  LibraryActionTypes,
+  LibraryGroup,
+  LibraryState,
+} from "../store/types/library";
+import { cloneDeep, sortBy } from "lodash";
 
-const initialState = {
+const initialState: LibraryState = {
   items: {},
   itemsOrder: [],
   loading: false,
@@ -18,24 +20,28 @@ const initialState = {
   error: false,
 };
 
-export default function library(state = initialState, action = {}) {
-  var updatedState = {};
+export default function library(
+  state = initialState,
+  action: LibraryActionTypes,
+): LibraryState {
+  let updatedState = {};
   switch (action.type) {
-    case GET_ITEMS_STARTED:
+    case GET_ITEMS_STARTED: {
       updatedState = {
         loading: true,
         creating: false,
         error: false,
       };
       break;
-    case GET_ITEMS_SUCCESS:
-      var updatedItems = {};
+    }
+    case GET_ITEMS_SUCCESS: {
+      const updatedItems: LibraryGroup = {};
 
-      action.payload.data.forEach((item) => {
+      action.payload.forEach((item) => {
         updatedItems[item.id] = item;
       });
 
-      var itemsOrder = sortBy(Object.keys(updatedItems)).reverse();
+      const itemsOrder = sortBy(Object.keys(updatedItems)).reverse();
 
       updatedState = {
         items: updatedItems,
@@ -45,26 +51,29 @@ export default function library(state = initialState, action = {}) {
         error: false,
       };
       break;
-    case GET_ITEMS_FAILURE:
+    }
+    case GET_ITEMS_FAILURE: {
       updatedState = {
         loading: false,
         creating: false,
         error: true,
       };
       break;
-    case CREATE_ITEM_STARTED:
+    }
+    case CREATE_ITEM_STARTED: {
       updatedState = {
         creating: true,
         error: false,
       };
       break;
+    }
     case ADD_NEW_ITEM_FROM_NOTIFICATION_SUCCESS:
-    case CREATE_ITEM_SUCCESS:
-      var updatedItems = cloneDeep(state.items);
+    case CREATE_ITEM_SUCCESS: {
+      const updatedItems = cloneDeep(state.items);
 
-      updatedItems[action.payload.data.id] = action.payload.data;
+      updatedItems[action.payload.id] = action.payload;
 
-      var itemsOrder = sortBy(Object.keys(updatedItems)).reverse();
+      const itemsOrder = sortBy(Object.keys(updatedItems)).reverse();
 
       updatedState = {
         items: updatedItems,
@@ -73,15 +82,18 @@ export default function library(state = initialState, action = {}) {
         error: false,
       };
       break;
-    case CREATE_ITEM_FAILURE:
+    }
+    case CREATE_ITEM_FAILURE: {
       updatedState = {
         creating: false,
         error: true,
       };
       break;
-    default:
+    }
+    default: {
       //do nothing
       return state;
+    }
   }
   const newState = Object.assign({}, state, { ...state, ...updatedState });
   return newState;
