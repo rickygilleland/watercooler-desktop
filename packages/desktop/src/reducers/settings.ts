@@ -1,6 +1,6 @@
 import {
   DefaultDevices,
-  DeviceInfo,
+  Devices,
   GET_AVAILABLE_DEVICES_FAILURE,
   GET_AVAILABLE_DEVICES_STARTED,
   GET_AVAILABLE_DEVICES_SUCCESS,
@@ -12,7 +12,11 @@ import {
 } from "../store/types/settings";
 
 const initialState: SettingsState = {
-  devices: [],
+  devices: {
+    audioInputs: [],
+    audioOutputs: [],
+    videoInputs: [],
+  },
   defaultDevices: {} as DefaultDevices,
   experimentalSettings: {
     faceTracking: false,
@@ -35,11 +39,7 @@ export default function settings(
       return state;
     }
     case GET_AVAILABLE_DEVICES_SUCCESS: {
-      const updatedDevices: {
-        audioInputs: DeviceInfo[];
-        videoInputs: DeviceInfo[];
-        audioOutputs: DeviceInfo[];
-      } = {
+      const updatedDevices: Devices = {
         audioInputs: [],
         videoInputs: [],
         audioOutputs: [],

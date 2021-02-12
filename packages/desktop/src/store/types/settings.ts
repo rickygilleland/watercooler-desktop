@@ -30,8 +30,14 @@ export interface DeviceInfo {
   rawInfo: MediaDeviceInfo;
 }
 
+export interface Devices {
+  audioInputs: DeviceInfo[];
+  videoInputs: DeviceInfo[];
+  audioOutputs: DeviceInfo[];
+}
+
 export interface SettingsState {
-  devices: DeviceInfo[];
+  devices: Devices;
   defaultDevices: DefaultDevices;
   experimentalSettings: ExperimentalSettings;
   roomSettings: RoomSettings;

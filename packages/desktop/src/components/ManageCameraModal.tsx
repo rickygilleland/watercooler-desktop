@@ -1,9 +1,25 @@
 import { Button, Form, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { SettingsState } from "../store/types/settings";
 import { faCamera, faWindowClose } from "@fortawesome/free-solid-svg-icons";
 import React, { useState } from "react";
 
-function ManageCameraModal(props) {
+interface ManageCameraModalProps {
+  settings: SettingsState;
+  handleSubmit(
+    defaultVideoInput: string,
+    defaultAudioInput: string,
+    defaultAudioOutput: string,
+    backgroundBlurAmount: number,
+  ): void;
+  onHide(): void;
+  show: boolean;
+  onShow(): void;
+}
+
+export default function ManageCameraModal(
+  props: ManageCameraModalProps,
+): JSX.Element {
   const { settings } = props;
 
   const [defaultVideoInput, setDefaultVideoInput] = useState(
@@ -37,15 +53,21 @@ function ManageCameraModal(props) {
     settings.roomSettings.backgroundBlurAmount,
   );
 
-  function handleVideoInputChange(event) {
+  function handleVideoInputChange(event: React.ChangeEvent<HTMLInputElement>) {
     setDefaultVideoInput(event.target.value);
   }
 
-  function handleAudioInputChange(event) {
+  function handleAudioInputChange(event: React.ChangeEvent<HTMLInputElement>) {
     setDefaultAudioInput(event.target.value);
   }
 
-  function handleSubmit(event) {
+  function handleBackgroundBlurAmountChange(
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    setBackgroundBlurAmount(parseInt(event.target.value));
+  }
+
+  function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
 
     props.handleSubmit(
@@ -116,12 +138,14 @@ function ManageCameraModal(props) {
               take effect.
             </p>
 
-            {/*process.env.REACT_APP_PLATFORM != "web" && (
-                        <>
-                            <Form.Label className="pt-3">Background Blur Amount</Form.Label>
-                            <Form.Control type="range" className="mb-3" name="backgroundBlurAmount" value={backgroundBlurAmount} onChange={handleBackgroundBlurAmountChange} />
-                        </>
-                    )*/}
+            <Form.Label className="pt-3">Background Blur Amount</Form.Label>
+            <Form.Control
+              type="range"
+              className="mb-3"
+              name="backgroundBlurAmount"
+              value={backgroundBlurAmount}
+              onChange={handleBackgroundBlurAmountChange}
+            />
 
             <Button className="mt-3" variant="primary" type="submit">
               Update Camera Settings
@@ -134,5 +158,3 @@ function ManageCameraModal(props) {
     </Modal>
   );
 }
-
-export default ManageCameraModal;
