@@ -1,5 +1,6 @@
 import { Button, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Organization } from "../store/types/organization";
 import {
   faCamera,
   faCog,
@@ -9,13 +10,20 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import React from "react";
 
-function SettingsModal(props) {
+interface SettingsModalProps {
+  show: boolean;
+  handleShowModal(modalToShow: string): void;
+  handleLogOut(): void;
+  organization: Organization;
+  onHide(): void;
+}
+
+export default function SettingsModal(props: SettingsModalProps): JSX.Element {
   const { handleShowModal, handleLogOut } = props;
 
   return (
     <Modal
       show={props.show}
-      onShow={props.onShow}
       onHide={props.onHide}
       size="lg"
       aria-labelledby="contained-modal-title-vcenter"
@@ -60,18 +68,15 @@ function SettingsModal(props) {
                 </Button>
               </center>
             )*/}
-        <center>
-          <Button
-            variant="danger"
-            className="mt-3"
-            onClick={() => handleLogOut()}
-          >
-            <FontAwesomeIcon icon={faSignOutAlt} /> Sign Out
-          </Button>
-        </center>
+
+        <Button
+          variant="danger"
+          className="mt-3"
+          onClick={() => handleLogOut()}
+        >
+          <FontAwesomeIcon icon={faSignOutAlt} /> Sign Out
+        </Button>
       </Modal.Body>
     </Modal>
   );
 }
-
-export default SettingsModal;

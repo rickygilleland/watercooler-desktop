@@ -1,9 +1,19 @@
 import { Button, Form, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { SettingsState } from "../store/types/settings";
 import { faDoorOpen, faWindowClose } from "@fortawesome/free-solid-svg-icons";
 import React, { useState } from "react";
 
-function RoomSettingsModal(props) {
+interface RoomSettingsModalProps {
+  show: boolean;
+  settings: SettingsState;
+  updateRoomSettings(settingToUpdate: string, newValue: boolean): void;
+  onHide(): void;
+}
+
+export default function RoomSettingsModal(
+  props: RoomSettingsModalProps,
+): JSX.Element {
   const { settings, updateRoomSettings } = props;
 
   const [audioEnabled, setAudioEnabled] = useState(
@@ -16,7 +26,7 @@ function RoomSettingsModal(props) {
     settings.roomSettings.backgroundBlurEnabled,
   );
 
-  function handleSettingsChange(event) {
+  function handleSettingsChange(event: React.ChangeEvent<HTMLInputElement>) {
     if (event.target.name == "audio") {
       updateRoomSettings("audioEnabled", audioEnabled ? false : true);
       setAudioEnabled(audioEnabled ? false : true);
@@ -39,7 +49,6 @@ function RoomSettingsModal(props) {
   return (
     <Modal
       show={props.show}
-      onShow={props.onShow}
       onHide={props.onHide}
       size="lg"
       aria-labelledby="contained-modal-title-vcenter"
@@ -70,7 +79,6 @@ function RoomSettingsModal(props) {
             name="audio"
             checked={audioEnabled}
             label="Microphone"
-            size="lg"
             onChange={handleSettingsChange}
             style={{ marginTop: "1.9rem" }}
           />
@@ -81,31 +89,29 @@ function RoomSettingsModal(props) {
             name="video"
             checked={videoEnabled}
             label="Video"
-            size="lg"
             onChange={handleSettingsChange}
             style={{ marginTop: "1.9rem" }}
           />
 
-          {/*process.env.REACT_APP_PLATFORM != "web" && (
-                  <>
-                    <Form.Check
-                        type="switch"
-                        id="background_blur_switch"
-                        name="backgroundBlur"
-                        checked={backgroundBlurEnabled}
-                        label="Background Blur"
-                        size="lg"
-                        onChange={handleSettingsChange}
-                        style={{marginTop:"1.9rem"}}
-                    />
-                    <p className="text-muted pt-1">Background blur uses an on-device neural network to blur your background and surroundings.</p>
-                    <p className="text-muted small">Enabling this feature may cause performance issues on lower-end computers and is not guaranteed to hide private information.</p>
-                  </>
-                )*/}
+          <Form.Check
+            type="switch"
+            id="background_blur_switch"
+            name="backgroundBlur"
+            checked={backgroundBlurEnabled}
+            label="Background Blur"
+            onChange={handleSettingsChange}
+            style={{ marginTop: "1.9rem" }}
+          />
+          <p className="text-muted pt-1">
+            Background blur uses an on-device neural network to blur your
+            background and surroundings.
+          </p>
+          <p className="text-muted small">
+            Enabling this feature may cause performance issues on lower-end
+            computers and is not guaranteed to hide private information.
+          </p>
         </Form>
       </Modal.Body>
     </Modal>
   );
 }
-
-export default RoomSettingsModal;

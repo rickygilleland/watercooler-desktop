@@ -1,5 +1,7 @@
 import { Alert, Button, Form, Modal } from "react-bootstrap";
+import { Billing } from "../store/types/organization";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { User } from "../store/types/user";
 import {
   faCircleNotch,
   faUserPlus,
@@ -13,6 +15,8 @@ interface InviteUsersModalProps {
   show: boolean;
   inviteuserssuccess: boolean;
   loading: boolean;
+  organizationusers: User[];
+  billing: Billing;
 }
 
 export default function InviteUsersModal(

@@ -18,35 +18,33 @@ function EnsureLoggedInContainer(
   props: EnsureLoggedInContainerProps,
 ): JSX.Element {
   const [showChildren, setShowChildren] = useState(false);
+  const { auth, currentURL, dispatch } = props;
 
   useEffect(() => {
     if (
-      (!props.auth.isLoggedIn || props.auth.loginError) &&
-      props.currentURL != "/login" &&
-      !props.currentURL.includes("/magic/login")
+      (!auth.isLoggedIn || auth.loginError) &&
+      currentURL != "/login" &&
+      !currentURL.includes("/magic/login")
     ) {
-      if (props.auth.redirectUrl === props.currentURL) {
-        return props.dispatch(push("/login"));
+      if (auth.redirectUrl === currentURL) {
+        return dispatch(push("/login"));
       }
 
-      props.dispatch(setRedirectUrl(props.currentURL));
-      props.dispatch(push("/login"));
+      dispatch(setRedirectUrl(currentURL));
+      dispatch(push("/login"));
     }
 
-    if (
-      props.auth.isLoggedIn &&
-      props.currentURL != "/" &&
-      props.currentURL != "/loading"
-    ) {
+    if (auth.isLoggedIn && currentURL != "/" && currentURL != "/loading") {
       setShowChildren(true);
     } else {
       setShowChildren(false);
     }
   }, [
-    props.auth.isLoggedIn,
-    props.auth.loginError,
-    props.auth.redirectUrl,
-    props.currentURL,
+    auth.isLoggedIn,
+    auth.loginError,
+    auth.redirectUrl,
+    currentURL,
+    dispatch,
   ]);
 
   if (!showChildren) {
