@@ -1,4 +1,3 @@
-import * as contextMenu from "electron-context-menu";
 import {
   BrowserWindow,
   Menu,
@@ -15,11 +14,19 @@ import {
 import { init } from "@sentry/electron/dist/main";
 import ElectronStore from "electron-store";
 import path from "path";
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare let MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare let MAIN_WINDOW_WEBPACK_ENTRY: any;
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const contextMenu = require("electron-context-menu");
 if (require("electron-squirrel-startup")) app.quit();
+const isDevMode = Boolean(process.execPath.match(/[\\/]electron/));
 
-var isDevMode = Boolean(process.execPath.match(/[\\/]electron/));
-
-let mainWindow;
+let mainWindow: Electron.BrowserWindow;
+let tray: Electron.Tray;
+let trayMenu: Electron.Menu;
+const iconPath = path.resolve(__dirname, "icons", "appIconTemplate.png");
 
 if (!isDevMode) {
   init({
@@ -31,7 +38,9 @@ if (!isDevMode) {
   const server = "https://updater.blab.to";
   const feed = `${server}/update/${process.platform}/${app.getVersion()}`;
 
-  autoUpdater.setFeedURL(feed);
+  autoUpdater.setFeedURL({
+    url: feed,
+  });
 
   setInterval(() => {
     try {
@@ -72,7 +81,7 @@ if (!isDevMode) {
 }
 
 contextMenu({
-  prepend: () => [],
+  prepend: (): Electron.MenuItem[] => [],
 });
 
 const createWindow = () => {
@@ -80,18 +89,21 @@ const createWindow = () => {
 
   // Create the browser window.
   if (!isDevMode) {
-    var template = [
+    let template: Electron.MenuItemConstructorOptions[] = [
       {
         label: "Application",
         submenu: [
           {
-            label: "About Application",
-            selector: "orderFrontStandardAboutPanel:",
+            label: "About Blab",
+            role: "about",
           },
-          { label: "Check for Updates", click: autoUpdater.checkForUpdates() },
+          {
+            label: "Check for Updates",
+            click: () => autoUpdater.checkForUpdates(),
+          },
           { type: "separator" },
           {
-            label: "Quit",
+            label: "Quit Blab",
             accelerator: "Command+Q",
             click: function () {
               app.quit();
@@ -101,28 +113,12 @@ const createWindow = () => {
       },
       {
         label: "Edit",
-        submenu: [
-          { label: "Undo", accelerator: "CmdOrCtrl+Z", selector: "undo:" },
-          {
-            label: "Redo",
-            accelerator: "Shift+CmdOrCtrl+Z",
-            selector: "redo:",
-          },
-          { type: "separator" },
-          { label: "Cut", accelerator: "CmdOrCtrl+X", selector: "cut:" },
-          { label: "Copy", accelerator: "CmdOrCtrl+C", selector: "copy:" },
-          { label: "Paste", accelerator: "CmdOrCtrl+V", selector: "paste:" },
-          {
-            label: "Select All",
-            accelerator: "CmdOrCtrl+A",
-            selector: "selectAll:",
-          },
-        ],
+        role: "editMenu",
       },
     ];
 
     if (process.platform != "darwin") {
-      template = [];
+      template = null;
     }
 
     mainWindow = new BrowserWindow({
@@ -137,7 +133,6 @@ const createWindow = () => {
       frame: false,
       webPreferences: {
         nodeIntegration: true,
-        // eslint-disable-next-line no-undef
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
         devTools: false,
         backgroundThrottling: false,
@@ -160,7 +155,6 @@ const createWindow = () => {
       frame: false,
       webPreferences: {
         nodeIntegration: true,
-        // eslint-disable-next-line no-undef
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
         backgroundThrottling: false,
         enableRemoteModule: true,
@@ -173,7 +167,6 @@ const createWindow = () => {
   }
 
   // and load the index.html of the app.
-  // eslint-disable-next-line no-undef
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
   powerMonitor.on("suspend", () => {
@@ -198,12 +191,12 @@ const createWindow = () => {
   });
 
   ipcMain.handle("update-tray-icon", async (event, args) => {
-    if (typeof args.enable != "undefined" && tray == null) {
+    if (args.enable && !tray) {
       tray = new Tray(iconPath);
       tray.setToolTip("Blab");
     }
 
-    if (typeof args.disable != "undefined" && tray != null) {
+    if (args.disable && !tray) {
       tray.destroy();
       return (tray = null);
     }
@@ -229,7 +222,7 @@ const createWindow = () => {
               }
 
               if (process.platform == "darwin") {
-                var screenAccessGranted = systemPreferences.getMediaAccessStatus(
+                const screenAccessGranted = systemPreferences.getMediaAccessStatus(
                   "screen",
                 );
 
@@ -286,7 +279,7 @@ const createWindow = () => {
               }
 
               if (process.platform == "darwin") {
-                var screenAccessGranted = systemPreferences.getMediaAccessStatus(
+                const screenAccessGranted = systemPreferences.getMediaAccessStatus(
                   "screen",
                 );
 
@@ -380,7 +373,7 @@ const createWindow = () => {
   });
 
   mainWindow.on("closed", () => {
-    let allWindows = BrowserWindow.getAllWindows();
+    const allWindows = BrowserWindow.getAllWindows();
 
     if (allWindows.length !== 0) {
       allWindows.forEach((backgroundWindow) => {
@@ -407,7 +400,7 @@ app.commandLine.appendSwitch(
   "force-fieldtrials",
   "WebRTC-SupportVP9SVC/EnabledByFlag_2SL3TL/",
 );
-app.commandLine.appendSwitch("webrtc-max-cpu-consumption-percentage", 100);
+app.commandLine.appendSwitch("webrtc-max-cpu-consumption-percentage", "100");
 app.commandLine.appendSwitch("enable-precise-memory-info");
 app.commandLine.appendSwitch("enable-gpu-rasterization");
 app.commandLine.appendSwitch("enable-native-gpu-memory-buffers");
@@ -418,10 +411,6 @@ if (process.platform == "darwin") {
   app.commandLine.appendSwitch("enable-oop-rasterization");
   app.commandLine.appendSwitch("enable-features", "metal");
 }
-
-let tray = null;
-let trayMenu = null;
-let iconPath = path.resolve(__dirname, "icons", "appIconTemplate.png");
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

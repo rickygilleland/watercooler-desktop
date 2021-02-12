@@ -43,6 +43,10 @@ const bodyPix = require("@tensorflow-models/body-pix");
 const { BrowserWindow } = require("electron").remote;
 const { ipcRenderer } = require("electron");
 const { desktopCapturer } = require("electron");
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare let MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: any;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare let MAIN_WINDOW_WEBPACK_ENTRY: any;
 
 interface RoomProps extends PropsFromRedux, RouteComponentProps {
   pusherInstance: any;
