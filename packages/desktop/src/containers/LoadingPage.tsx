@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnyAction, Dispatch, bindActionCreators } from "redux";
 import { AuthState } from "../store/types/auth";
+import { ConnectedProps, connect } from "react-redux";
 import { OrganizationState } from "../store/types/organization";
 import { User } from "../store/types/user";
-import { connect } from "react-redux";
 import {
   getOrganizationUsers,
   getOrganizations,
@@ -40,6 +40,7 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
   );
 }
 
-export default withRouter(
-  connect(mapStateToProps, mapDispatchToProps)(Loading),
-);
+const connector = connect(mapStateToProps, mapDispatchToProps);
+export type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default withRouter(connector(Loading));
