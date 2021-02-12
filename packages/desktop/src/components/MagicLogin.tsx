@@ -1,51 +1,42 @@
 import { Container } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { PropsFromRedux } from "../containers/MagicLoginPage";
+import { RouteComponentProps } from "react-router";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
-import React from "react";
+import React, { useEffect } from "react";
 import routes from "../constants/routes.json";
 
-class MagicLogin extends React.Component {
-  constructor(props) {
-    super(props);
-  }
+interface MagicLoginProps extends PropsFromRedux, RouteComponentProps {}
 
-  componentDidMount(): void {
-    const { auth, match, push, authenticateUserMagicLink } = this.props;
-
-    if (auth.isLoggedIn === true) {
-      push(routes.LOADING);
+export default function MagicLogin(props: MagicLoginProps): JSX.Element {
+  useEffect(() => {
+    if (props.auth.isLoggedIn) {
+      props.push(routes.LOADING);
+      return;
     }
+  }, [props, props.auth.isLoggedIn]);
 
-    authenticateUserMagicLink(match.params.code);
-  }
-
-  componentDidUpdate(prevProps, prevState): void {
-    const { auth, push } = this.props;
-
-    if (auth.isLoggedIn === true) {
-      push(routes.LOADING);
+  useEffect(() => {
+    if (props.auth.loginError) {
+      props.push(routes.LOGIN);
     }
+  }, [props, props.auth.loginError]);
 
-    if (auth.loginError) {
-      push(routes.LOGIN);
-    }
-  }
+  useEffect(() => {
+    props.authenticateUserMagicLink(props.loginCode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [props.loginCode]);
 
-  render(): JSX.Element {
-    return (
-      <Container data-tid="container" fluid>
-        <h1 className="text-center mt-5">Logging you in...</h1>
-        <center>
-          <FontAwesomeIcon
-            icon={faCircleNotch}
-            className="mt-3"
-            style={{ fontSize: "2.4rem", color: "#6772ef" }}
-            spin
-          />
-        </center>
-      </Container>
-    );
-  }
+  return (
+    <Container data-tid="container" fluid>
+      <h1 className="text-center mt-5">Logging you in...</h1>
+
+      <FontAwesomeIcon
+        icon={faCircleNotch}
+        className="mt-3"
+        style={{ fontSize: "2.4rem", color: "#6772ef" }}
+        spin
+      />
+    </Container>
+  );
 }
-
-export default MagicLogin;

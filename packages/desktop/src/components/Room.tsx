@@ -53,7 +53,6 @@ interface RoomProps extends PropsFromRedux, RouteComponentProps {
   userPrivateNotificationChannel: any;
   currentTime: any;
   backgroundBlurWindow: any;
-  faceTrackingNetWindow: any;
   sidebarIsVisible: boolean;
   isLightMode: boolean;
   onClick(): void;
@@ -100,7 +99,6 @@ interface State {
   videoStatus: boolean;
   audioStatus: boolean;
   videoIsFaceOnly: boolean;
-  faceTrackingNetWindow: any;
   backgroundBlurWindow: any;
   backgroundBlurEnabled: boolean;
   backgroundBlurAmount: number;
@@ -164,7 +162,6 @@ export default class Room extends React.Component<RoomProps, State> {
       videoStatus: settings.roomSettings.videoEnabled && billing.plan == "Plus",
       audioStatus: settings.roomSettings.audioEnabled,
       videoIsFaceOnly: false,
-      faceTrackingNetWindow: null,
       backgroundBlurWindow: null,
       backgroundBlurEnabled: settings.roomSettings.backgroundBlurEnabled,
       backgroundBlurAmount: settings.roomSettings.backgroundBlurAmount / 5,
@@ -209,8 +206,6 @@ export default class Room extends React.Component<RoomProps, State> {
       this,
     );
 
-    this.startFaceTracking = this.startFaceTracking.bind(this);
-    this.stopFaceTracking = this.stopFaceTracking.bind(this);
     this.startBackgroundBlur = this.startBackgroundBlur.bind(this);
     this.stopBackgroundBlur = this.stopBackgroundBlur.bind(this);
 
@@ -406,19 +401,9 @@ export default class Room extends React.Component<RoomProps, State> {
       });
 
       this.setState({ publishers: updatedPublishers });
-
-      if (videoIsFaceOnly) {
-        this.startFaceTracking();
-      } else {
-        this.stopFaceTracking();
-      }
     }
 
     if (!videoStatus && prevState.videoStatus) {
-      if (videoIsFaceOnly) {
-        this.stopFaceTracking();
-      }
-
       if (backgroundBlurEnabled) {
         this.stopBackgroundBlur();
       }
@@ -430,19 +415,6 @@ export default class Room extends React.Component<RoomProps, State> {
       settings.roomSettings.backgroundBlurEnabled
     ) {
       this.startBackgroundBlur();
-    }
-
-    if (
-      prevProps.settings.experimentalSettings.faceTracking !=
-      settings.experimentalSettings.faceTracking
-    ) {
-      if (
-        settings.experimentalSettings.faceTracking == false &&
-        videoIsFaceOnly
-      ) {
-        this.stopFaceTracking();
-        this.setState({ videoIsFaceOnly: false });
-      }
     }
 
     if (
@@ -1550,10 +1522,6 @@ export default class Room extends React.Component<RoomProps, State> {
       this.stopBackgroundBlur();
     }
 
-    if (videoIsFaceOnly) {
-      this.stopFaceTracking();
-    }
-
     let updatedPublishers = [...publishers];
 
     updatedPublishers = updatedPublishers.filter((publisher) => {
@@ -1586,60 +1554,6 @@ export default class Room extends React.Component<RoomProps, State> {
       screenSharingWindow: null,
       heartbeatInterval: null,
     });
-  }
-
-  startFaceTracking() {
-    const { user, faceTrackingNetWindow } = this.props;
-    const { videoRoomStreamerHandle, room } = this.state;
-
-    ipcRenderer.invoke("net-status-update", {
-      window: faceTrackingNetWindow.id,
-      net: "faceTracking",
-      status: true,
-    });
-
-    if (videoRoomStreamerHandle != null) {
-      const dataMsg = {
-        type: "face_only_status_toggled",
-        publisher_id: user.id,
-        face_only_status: true,
-      };
-
-      videoRoomStreamerHandle.data({
-        text: JSON.stringify(dataMsg),
-      });
-    }
-
-    posthog.capture("face-tracking-started", { room_id: room.id });
-  }
-
-  stopFaceTracking() {
-    const { user, faceTrackingNetWindow } = this.props;
-    const { videoRoomStreamerHandle, videoIsFaceOnly, room } = this.state;
-
-    if (videoRoomStreamerHandle != null) {
-      const dataMsg = {
-        type: "face_only_status_toggled",
-        publisher_id: user.id,
-        face_only_status: false,
-      };
-
-      videoRoomStreamerHandle.data({
-        text: JSON.stringify(dataMsg),
-      });
-    }
-
-    if (videoIsFaceOnly) {
-      this.setState({ videoIsFaceOnly: false });
-    }
-
-    ipcRenderer.invoke("net-status-update", {
-      window: faceTrackingNetWindow.id,
-      net: "faceTracking",
-      status: false,
-    });
-
-    posthog.capture("face-tracking-stopped", { room_id: room.id });
   }
 
   startBackgroundBlur() {

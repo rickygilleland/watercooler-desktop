@@ -78,7 +78,6 @@ class Sidebar extends React.Component {
       organizationUsersOnline: [],
       currentTime: DateTime.local(),
       backgroundBlurWindow: null,
-      faceTrackingNetWindow: null,
       sidebarIsVisible: true,
       isLightMode: nativeTheme == null || !nativeTheme.shouldUseDarkColors,
     };
@@ -303,36 +302,6 @@ class Sidebar extends React.Component {
       });
     }
 
-    /*
-        if (process.env.REACT_APP_PLATFORM != "web") {
-
-            let backgroundBlurWindow = new BrowserWindow({
-                show: false,
-                webPreferences: {
-                    nodeIntegration: true,
-                    preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-                    devTools: true,
-                    backgroundThrottling: false
-                }
-            })
-
-            backgroundBlurWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/blur_net_background");
-
-            let faceTrackingNetWindow = new BrowserWindow({
-                show: false,
-                webPreferences: {
-                    nodeIntegration: true,
-                    preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-                    devTools: true,
-                    backgroundThrottling: false
-                }
-            })
-
-            faceTrackingNetWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY+"#/face_tracking_net_background");
-
-            this.setState({ backgroundBlurWindow, faceTrackingNetWindow });
-        }*/
-
     getUserThreads();
     getLibraryItems();
   }
@@ -368,7 +337,6 @@ class Sidebar extends React.Component {
       pusherInstance,
       timeInterval,
       updateInterval,
-      faceTrackingNetWindow,
       backgroundBlurWindow,
     } = this.state;
 
@@ -388,10 +356,6 @@ class Sidebar extends React.Component {
       pusherInstance.unsubscribe(`presence-room.${organization.id}`);
       pusherInstance.unsubscribe(`user.${user.id}`);
       pusherInstance.disconnect();
-    }
-
-    if (faceTrackingNetWindow != null) {
-      faceTrackingNetWindow.destroy();
     }
 
     if (backgroundBlurWindow != null) {
@@ -492,7 +456,6 @@ class Sidebar extends React.Component {
       userPrivateNotificationChannel,
       organizationUsersOnline,
       backgroundBlurWindow,
-      faceTrackingNetWindow,
       sidebarIsVisible,
       isLightMode,
     } = this.state;
@@ -1133,7 +1096,6 @@ class Sidebar extends React.Component {
                           key={routeProps.match.params.roomSlug}
                           currentTime={currentTime}
                           backgroundBlurWindow={backgroundBlurWindow}
-                          faceTrackingNetWindow={faceTrackingNetWindow}
                           sidebarIsVisible={sidebarIsVisible}
                           isLightMode={isLightMode}
                           onClick={() => {

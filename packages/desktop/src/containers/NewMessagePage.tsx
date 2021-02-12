@@ -11,13 +11,22 @@ import { push } from "connected-react-router";
 import { withRouter } from "react-router-dom";
 import NewMessage from "../components/NewMessage";
 
-function mapStateToProps(state: {
-  auth: AuthState;
-  user: User;
-  organization: OrganizationState;
-  settings: SettingsState;
-  message: MessageState;
-}) {
+function mapStateToProps(
+  state: {
+    auth: AuthState;
+    user: User;
+    organization: OrganizationState;
+    settings: SettingsState;
+    message: MessageState;
+  },
+  ownProps: {
+    location: {
+      state: {
+        recipient: User;
+      };
+    };
+  },
+) {
   return {
     auth: state.auth,
     user: state.user,
@@ -28,6 +37,7 @@ function mapStateToProps(state: {
     lastCreatedMessage: state.message.lastCreatedMessage,
     messageLoading: state.message.loading,
     messageError: state.message.error,
+    recipient: ownProps.location.state.recipient,
   };
 }
 

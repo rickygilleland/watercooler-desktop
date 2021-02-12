@@ -21,13 +21,11 @@ export default function InviteUsersModal(
   const [emails, setEmails] = useState("");
   const [formSubmitted, setFormSubmitted] = useState(false);
 
-  function handleEmailChange(event: {
-    target: { value: React.SetStateAction<string> };
-  }) {
+  function handleEmailChange(event: React.ChangeEvent<HTMLInputElement>) {
     setEmails(event.target.value);
   }
 
-  function handleSubmit(event: { preventDefault: () => void }) {
+  function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
 
     setFormSubmitted(true);
@@ -64,13 +62,11 @@ export default function InviteUsersModal(
         </Button>
       </Modal.Header>
       <Modal.Body>
-        {props.inviteuserssuccess && formSubmitted ? (
+        {props.inviteuserssuccess && formSubmitted && (
           <Alert variant="success" className="text-center">
             Your invites were successfully sent. Let them know to check their
             email to get started with Blab!
           </Alert>
-        ) : (
-          ""
         )}
 
         <Form onSubmit={handleSubmit}>

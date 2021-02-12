@@ -6,7 +6,6 @@ import { Persistor } from "redux-persist";
 import { Provider } from "react-redux";
 import { Redirect, Route, Switch } from "react-router-dom";
 import BlurNetBackground from "./containers/BlurNetBackground";
-import FaceTrackingNetBackground from "./containers/FaceTrackingNetBackground";
 import LoadingPage from "./containers/LoadingPage";
 import LoginPage from "./containers/LoginPage";
 import MagicLoginPage from "./containers/MagicLoginPage";
@@ -72,11 +71,7 @@ export default function App(props: AppProps): JSX.Element {
               exact
               component={ScreenShareControls}
             />
-            <Route
-              path="/face_tracking_net_background"
-              exact
-              component={FaceTrackingNetBackground}
-            />
+
             <Route
               path="/blur_net_background"
               exact

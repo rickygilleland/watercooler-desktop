@@ -12,7 +12,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from "react-router-dom";
 import { PropsFromRedux } from "../containers/TeamPage";
 import { RouteComponentProps } from "react-router";
-import { User } from "../store/types/user";
 import {
   faCircle,
   faCircleNotch,
@@ -25,7 +24,7 @@ import posthog from "posthog-js";
 
 interface TeamProps extends PropsFromRedux, RouteComponentProps {
   currentTime: any;
-  organizationUsersOnline: User[];
+  organizationUsersOnline: number[];
   isLightMode: boolean;
 }
 
@@ -133,88 +132,80 @@ export default function Team(props: TeamProps): JSX.Element {
           className="pt-3 px-3 team-container"
           style={{ overflowY: "scroll", paddingBottom: 100 }}
         >
-          {props.organizationUsers.map(
-            (organizationUser: {
-              id: string;
-              avatar_url: string;
-              first_name: string;
-              last_name: string;
-              timezone: string;
-            }) => (
-              <Col
-                xs={12}
-                md={6}
-                xl={4}
-                key={organizationUser.id}
-                className="mb-5"
-              >
-                <div className="d-flex">
-                  <div style={{ width: 125 }}>
-                    <Image
-                      src={organizationUser.avatar_url}
-                      fluid
-                      style={{ maxHeight: 125, borderRadius: 15 }}
-                      className="shadow"
-                    />
-                  </div>
-                  <div className="ml-3 align-self-center">
-                    <p
-                      className="font-weight-bold mb-0"
-                      style={{ fontSize: ".95rem" }}
-                    >
-                      {props.organizationUsersOnline.includes(
-                        organizationUser.id,
-                      ) ? (
-                        <FontAwesomeIcon
-                          icon={faCircle}
-                          className="mr-1"
-                          style={{
-                            color: "#3ecf8e",
-                            fontSize: ".5rem",
-                            verticalAlign: "middle",
-                          }}
-                        />
-                      ) : (
-                        <FontAwesomeIcon
-                          icon={faCircle}
-                          className="mr-1"
-                          style={{
-                            color: "#f9426c",
-                            fontSize: ".5rem",
-                            verticalAlign: "middle",
-                          }}
-                        />
-                      )}{" "}
-                      {organizationUser.first_name} {organizationUser.last_name}{" "}
-                      {props.user.id == organizationUser.id ? "(you)" : ""}
-                    </p>
-                    {organizationUser.timezone != null ? (
-                      <p style={{ fontSize: ".8rem" }}>
-                        <strong>Local Time:</strong>{" "}
-                        {props.currentTime
-                          .setZone(organizationUser.timezone)
-                          .toLocaleString(DateTime.TIME_SIMPLE)}
-                      </p>
-                    ) : (
-                      ""
-                    )}
-                    <Link
-                      to={{
-                        pathname: `/messages/new`,
-                        state: {
-                          recipient: organizationUser,
-                        },
-                      }}
-                    >
-                      <Button variant="link" className="icon-button" size="lg">
-                        <FontAwesomeIcon icon={faComment} />
-                      </Button>
-                    </Link>
-                  </div>
+          {props.organizationUsers.map((organizationUser) => (
+            <Col
+              xs={12}
+              md={6}
+              xl={4}
+              key={organizationUser.id}
+              className="mb-5"
+            >
+              <div className="d-flex">
+                <div style={{ width: 125 }}>
+                  <Image
+                    src={organizationUser.avatar_url}
+                    fluid
+                    style={{ maxHeight: 125, borderRadius: 15 }}
+                    className="shadow"
+                  />
                 </div>
-              </Col>
-            ),
-          )}
+                <div className="ml-3 align-self-center">
+                  <p
+                    className="font-weight-bold mb-0"
+                    style={{ fontSize: ".95rem" }}
+                  >
+                    {props.organizationUsersOnline.includes(
+                      organizationUser.id,
+                    ) ? (
+                      <FontAwesomeIcon
+                        icon={faCircle}
+                        className="mr-1"
+                        style={{
+                          color: "#3ecf8e",
+                          fontSize: ".5rem",
+                          verticalAlign: "middle",
+                        }}
+                      />
+                    ) : (
+                      <FontAwesomeIcon
+                        icon={faCircle}
+                        className="mr-1"
+                        style={{
+                          color: "#f9426c",
+                          fontSize: ".5rem",
+                          verticalAlign: "middle",
+                        }}
+                      />
+                    )}{" "}
+                    {organizationUser.first_name} {organizationUser.last_name}{" "}
+                    {props.user.id == organizationUser.id ? "(you)" : ""}
+                  </p>
+                  {organizationUser.timezone != null ? (
+                    <p style={{ fontSize: ".8rem" }}>
+                      <strong>Local Time:</strong>{" "}
+                      {props.currentTime
+                        .setZone(organizationUser.timezone)
+                        .toLocaleString(DateTime.TIME_SIMPLE)}
+                    </p>
+                  ) : (
+                    ""
+                  )}
+                  <Link
+                    to={{
+                      pathname: `/messages/new`,
+                      state: {
+                        recipient: organizationUser,
+                      },
+                    }}
+                  >
+                    <Button variant="link" className="icon-button" size="lg">
+                      <FontAwesomeIcon icon={faComment} />
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </Col>
+          ))}
         </Row>
       )}
     </>

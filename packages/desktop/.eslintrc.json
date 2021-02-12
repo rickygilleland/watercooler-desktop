@@ -20,8 +20,10 @@
       }
     }
   },
-  "plugins": ["sort-imports-es6-autofix"],
+  "plugins": ["sort-imports-es6-autofix", "react-hooks"],
   "rules": {
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
     "sort-imports-es6-autofix/sort-imports-es6": [
       2,
       {

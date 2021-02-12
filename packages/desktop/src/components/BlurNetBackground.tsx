@@ -41,6 +41,7 @@ export default function BlurNetBackground(props: PropsFromRedux): JSX.Element {
       stopBackgroundBlur();
       ipcRenderer.removeAllListeners("net-status-update");
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const startBackgroundBlur = async () => {

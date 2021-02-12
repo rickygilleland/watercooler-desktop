@@ -6,7 +6,7 @@ import { push } from "connected-react-router";
 import React, { useEffect } from "react";
 import routes from "../constants/routes.json";
 
-export default function loading(props: PropsFromRedux): JSX.Element {
+export default function Loading(props: PropsFromRedux): JSX.Element {
   useEffect(() => {
     if (!props.auth.isLoggedIn) {
       props.push("/login");
@@ -25,6 +25,7 @@ export default function loading(props: PropsFromRedux): JSX.Element {
     };
 
     fetchAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

@@ -1,24 +1,38 @@
 import { Alert, Button, Card, Form } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { PropsFromRedux } from "../containers/LoginPage";
+import { RouteComponentProps } from "react-router";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import React from "react";
 import routes from "../constants/routes.json";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { ipcRenderer } = require("electron");
 
-if (process.env.REACT_APP_PLATFORM != "web") {
-  var { ipcRenderer } = require("electron");
-} else {
-  var ipcRenderer = null;
+interface State {
+  username: string;
+  password: string;
+  missingUsername: boolean;
+  missingPassword: boolean;
+  loginError: boolean;
+  codeError: boolean;
+  loginCodeRequested: boolean;
+  loading: boolean;
 }
 
-class Login extends React.Component {
-  constructor(props) {
+interface LoginProps extends PropsFromRedux, RouteComponentProps {}
+
+export default class Login extends React.Component<LoginProps, State> {
+  constructor(props: LoginProps) {
     super(props);
     this.state = {
       username: "",
+      password: "",
       missingUsername: false,
+      missingPassword: false,
       loginError: false,
       codeError: false,
       loginCodeRequested: false,
+      loading: false,
     };
 
     this.handleUsernameChange = this.handleUsernameChange.bind(this);
@@ -34,18 +48,16 @@ class Login extends React.Component {
       push(routes.LOADING);
     }
 
-    if (process.env.REACT_APP_PLATFORM != "web") {
-      ipcRenderer.on("url_update", (event, arg) => {
-        const pushUrl = arg.slice(13);
+    ipcRenderer.on("url_update", (event, arg) => {
+      const pushUrl = arg.slice(13);
 
-        if (pushUrl.includes("magic")) {
-          push(arg.slice(13));
-        }
-      });
-    }
+      if (pushUrl.includes("magic")) {
+        push(arg.slice(13));
+      }
+    });
   }
 
-  componentDidUpdate(prevProps, prevState): void {
+  componentDidUpdate(prevProps: PropsFromRedux): void {
     const { auth, push } = this.props;
 
     if (auth.isLoggedIn === true) {
@@ -77,15 +89,15 @@ class Login extends React.Component {
     ipcRenderer.removeAllListeners("url_update");
   }
 
-  handleUsernameChange(event): void {
+  handleUsernameChange(event: React.ChangeEvent<HTMLInputElement>): void {
     this.setState({ username: event.target.value });
   }
 
-  handlePasswordChange(event): void {
+  handlePasswordChange(event: React.ChangeEvent<HTMLInputElement>): void {
     this.setState({ password: event.target.value });
   }
 
-  handleSubmit(event): void {
+  handleSubmit(event: React.MouseEvent): void {
     event.preventDefault();
     const { requestLoginCode, authenticateUser } = this.props;
     const { loginCodeRequested, username, password } = this.state;
@@ -101,7 +113,8 @@ class Login extends React.Component {
 
       this.setState({ missingUsername: false, missingPassword: false });
 
-      return authenticateUser(username, password.trim());
+      authenticateUser(username, password.trim());
+      return;
     }
 
     requestLoginCode(username);
@@ -138,73 +151,50 @@ class Login extends React.Component {
               Sign in to Blab
             </h1>
 
-            {loginError ? (
+            {loginError && (
               <Alert variant="danger" className="text-center">
                 Oops! The login code you entered was incorrect, has already been
                 used, or is expired.
               </Alert>
-            ) : (
-              ""
             )}
 
-            {codeError ? (
+            {codeError && (
               <Alert variant="danger" className="text-center">
                 Oops! We couldn't find an account under that email address.
               </Alert>
-            ) : (
-              ""
             )}
 
-            {loginCodeRequested && !codeError && !loginError ? (
+            {loginCodeRequested && !codeError && !loginError && (
               <Alert variant="success" className="text-center">
                 We sent a temporary login code to {username}. Enter the
                 temporary code below to sign in.
               </Alert>
-            ) : (
-              ""
             )}
 
-            {missingUsername ? (
+            {missingUsername && (
               <Alert variant="danger" className="text-center">
                 Oops! You forgot to enter your email address.
               </Alert>
-            ) : (
-              ""
             )}
 
-            {missingPassword ? (
+            {missingPassword && (
               <Alert variant="danger" className="text-center">
                 Oops! You forgot to enter your password.
               </Alert>
-            ) : (
-              ""
             )}
 
             <Form>
               <Form.Group controlId="formBasicEmail">
-                {loginCodeRequested ? (
-                  <Form.Control
-                    type="hidden"
-                    placeholder="eleanor@yourworkemail.com"
-                    value={username}
-                    onChange={this.handleUsernameChange}
-                    size="lg"
-                  />
-                ) : (
-                  <>
-                    <Form.Label>Work Email address</Form.Label>
-                    <Form.Control
-                      type="text"
-                      placeholder="eleanor@yourworkemail.com"
-                      value={username}
-                      onChange={this.handleUsernameChange}
-                      size="lg"
-                    />
-                  </>
-                )}
+                <Form.Control
+                  type={loginCodeRequested ? "hidden" : "text"}
+                  placeholder="eleanor@yourworkemail.com"
+                  value={username}
+                  onChange={this.handleUsernameChange}
+                  size="lg"
+                />
               </Form.Group>
 
-              {loginCodeRequested ? (
+              {loginCodeRequested && (
                 <Form.Group controlId="formBasicPassword">
                   <Form.Label>Login Code</Form.Label>
                   <Form.Control
@@ -217,33 +207,19 @@ class Login extends React.Component {
                     className="ph-no-capture"
                   />
                 </Form.Group>
-              ) : (
-                ""
               )}
 
-              {auth.loading ? (
-                <Button
-                  variant="primary"
-                  className="btn-block btn-lg mt-4"
-                  type="submit"
-                  disabled
-                >
-                  <FontAwesomeIcon icon={faCircleNotch} spin />{" "}
-                  {loginCodeRequested ? "Log In" : "Continue"}
-                </Button>
-              ) : (
-                <Button
-                  variant="primary"
-                  className="btn-block btn-lg mt-4"
-                  type="submit"
-                  onClick={this.handleSubmit}
-                >
-                  {loginCodeRequested ? "Log In" : "Continue"}
-                </Button>
-              )}
+              <Button
+                variant="primary"
+                className="btn-block btn-lg mt-4"
+                type="submit"
+                disabled={auth.loading}
+              >
+                {auth.loading && <FontAwesomeIcon icon={faCircleNotch} spin />}
+                {loginCodeRequested ? "Log In" : "Continue"}
+              </Button>
             </Form>
-
-            {loginCodeRequested ? (
+            {loginCodeRequested && (
               <>
                 <hr />
                 <Button
@@ -255,8 +231,6 @@ class Login extends React.Component {
                   Request a New Code
                 </Button>
               </>
-            ) : (
-              ""
             )}
           </Card>
         </div>
@@ -264,5 +238,3 @@ class Login extends React.Component {
     );
   }
 }
-
-export default Login;

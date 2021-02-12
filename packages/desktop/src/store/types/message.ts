@@ -1,4 +1,5 @@
 import { LibraryItem } from "./library";
+import { Thread } from "./thread";
 
 export const CREATE_MESSAGE_STARTED = "CREATE_MESSAGE_STARTED";
 export const CREATE_MESSAGE_SUCCESS = "CREATE_MESSAGE_SUCCESS";
@@ -14,6 +15,7 @@ export const ADD_NEW_MESSAGE_FROM_NOTIFICATION_SUCCESS =
 
 export interface Message extends LibraryItem {
   thread_id: number;
+  thread: Thread;
 }
 
 export interface MessageGroup {

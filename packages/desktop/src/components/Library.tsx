@@ -23,6 +23,7 @@ export default function Library(props: LibraryProps): JSX.Element {
 
   useEffect(() => {
     props.getLibraryItems();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {

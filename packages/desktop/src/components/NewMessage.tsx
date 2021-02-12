@@ -9,13 +9,7 @@ import Autosuggest from "react-autosuggest";
 import React from "react";
 import SendMessage from "./SendMessage";
 
-interface NewMessageLocationState {
-  recipient?: User;
-}
-
-interface NewMessageProps
-  extends PropsFromRedux,
-    RouteComponentProps<{}, any, NewMessageLocationState> {
+interface NewMessageProps extends PropsFromRedux, RouteComponentProps {
   message: string | null;
   isLightMode: boolean;
   onClick(): void;
@@ -68,13 +62,13 @@ export default class NewMessage extends React.Component<
 
     this.setState({ users });
 
-    if (location.state.recipient) {
+    if (this.props.recipient) {
       this.setState({
-        suggestionValue: [location.state.recipient.id],
+        suggestionValue: [this.props.recipient.id],
         suggestionDisplayValue:
-          location.state.recipient.first_name +
+          this.props.recipient.first_name +
           " " +
-          location.state.recipient.last_name,
+          this.props.recipient.last_name,
       });
     }
   }
