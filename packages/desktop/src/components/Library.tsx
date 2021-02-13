@@ -11,7 +11,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import MessageMediaPlayer from "./MessageMediaPlayer";
 import React, { useEffect, useRef, useState } from "react";
-import SendMessage from "./SendMessage";
 
 interface LibraryProps extends PropsFromRedux, RouteComponentProps {
   isLightMode: boolean;
@@ -251,15 +250,6 @@ export default function Library(props: LibraryProps): JSX.Element {
           </Row>
         )}
       </Container>
-      <div className="mt-auto" style={{ borderBottomLeftRadius: 15 }}>
-        <SendMessage
-          settings={props.settings}
-          user={props.user}
-          isLibrary={true}
-          createItem={props.createItem}
-          libraryItemCreating={props.libraryItemCreating}
-        />
-      </div>
     </div>
   );
 }

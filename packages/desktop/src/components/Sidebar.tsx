@@ -12,7 +12,6 @@ import { NavLink, Route, Switch } from "react-router-dom";
 import { each } from "lodash";
 import {
   faArrowUp,
-  faBookOpen,
   faChevronCircleLeft,
   faChevronCircleRight,
   faCircle,
@@ -21,19 +20,14 @@ import {
   faLock,
   faMicrophone,
   faPlusSquare,
-  faUsers,
-  faVideo,
 } from "@fortawesome/free-solid-svg-icons";
 import { isMobile } from "react-device-detect";
 import EnsureLoggedInContainer from "../containers/EnsureLoggedInContainer";
 import ErrorBoundary from "./ErrorBoundary";
 import InviteUsersModal from "./InviteUsersModal";
-import LibraryPage from "../containers/LibraryPage";
 import ManageCameraModal from "./ManageCameraModal";
 import ManageUsersModal from "./ManageUsersModal";
-import MessageThreadPage from "../containers/MessageThreadPage";
 import NewCallModal from "./NewCallModal";
-import NewMessagePage from "../containers/NewMessagePage";
 import Pusher from "pusher-js";
 import React from "react";
 import RoomPage from "../containers/RoomPage";
@@ -44,12 +38,8 @@ import TeamPage from "../containers/TeamPage";
 import posthog from "posthog-js";
 import routes from "../constants/routes.json";
 
-if (process.env.REACT_APP_PLATFORM != "web") {
-  var { nativeTheme } = require("electron").remote;
-} else {
-  var nativeTheme = null;
-}
-
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { nativeTheme } = require("electron").remote;
 class Sidebar extends React.Component {
   constructor(props) {
     super(props);
@@ -716,7 +706,7 @@ class Sidebar extends React.Component {
     try {
       teams.forEach((team) => {
         if (team.rooms.length > 0) {
-          team.rooms.forEach((room) => {});
+          team.rooms.forEach(() => {});
         }
       });
     } catch (error) {
@@ -771,7 +761,7 @@ class Sidebar extends React.Component {
               <InviteUsersModal
                 show={showInviteUsersModal}
                 handleSubmit={inviteUsers}
-                loading={organizationLoading.toString() ?? false}
+                loading={organizationLoading}
                 inviteuserssuccess={inviteUsersSuccess}
                 organizationusers={organizationUsers}
                 billing={billing}
@@ -779,14 +769,14 @@ class Sidebar extends React.Component {
               />
               <ManageUsersModal
                 users={organizationUsers}
-                loading={organizationLoading.toString()}
+                loading={organizationLoading}
                 show={showManageUsersModal}
                 onShow={() => getOrganizationUsers(organization.id)}
                 onHide={() => this.setState({ showManageUsersModal: false })}
               />
               <RoomsModal
                 show={showRoomsModal}
-                loading={organizationLoading.toString()}
+                loading={organizationLoading}
                 billing={billing}
                 createroomsuccess={createRoomSuccess}
                 lastCreatedRoomSlug={lastCreatedRoomSlug}
@@ -799,7 +789,7 @@ class Sidebar extends React.Component {
                 userId={user.id}
                 users={organizationUsers}
                 show={showCallsModal}
-                loading={organizationLoading.toString()}
+                loading={organizationLoading}
                 createroomsuccess={createRoomSuccess}
                 lastCreatedRoomSlug={lastCreatedRoomSlug}
                 roomsModalReset={roomsModalReset}
@@ -956,67 +946,7 @@ class Sidebar extends React.Component {
                             </a>
                           </li>
                         )}
-                        <li key="public-blabs-nav-button" className="nav-item">
-                          <NavLink
-                            exact={true}
-                            activeStyle={{
-                              fontWeight: "bold",
-                            }}
-                            className="d-block py-1"
-                            to={{
-                              pathname: `/library`,
-                            }}
-                          >
-                            <p
-                              className={
-                                "mb-0 pl-3" +
-                                (!isLightMode ||
-                                process.env.REACT_APP_PLATFORM == "web" ||
-                                process.platform != "darwin"
-                                  ? " text-light"
-                                  : " text-dark")
-                              }
-                            >
-                              <FontAwesomeIcon
-                                icon={faBookOpen}
-                                style={{
-                                  fontSize: ".7rem",
-                                  marginRight: ".2rem",
-                                }}
-                              />{" "}
-                              Library
-                            </p>
-                          </NavLink>
-                        </li>
-                        <li key="people-nav-button" className="nav-item">
-                          <NavLink
-                            exact={true}
-                            activeStyle={{
-                              fontWeight: "bold",
-                            }}
-                            className="d-block py-1"
-                            to={{
-                              pathname: `/team`,
-                            }}
-                          >
-                            <p
-                              className={
-                                "mb-0 pl-3" +
-                                (!isLightMode ||
-                                process.env.REACT_APP_PLATFORM == "web" ||
-                                process.platform != "darwin"
-                                  ? " text-light"
-                                  : " text-dark")
-                              }
-                            >
-                              <FontAwesomeIcon
-                                icon={faUsers}
-                                style={{ fontSize: ".65rem" }}
-                              />{" "}
-                              Team
-                            </p>
-                          </NavLink>
-                        </li>
+
                         <li key="settings-nav-button" className="nav-item">
                           <Button
                             variant="link"
@@ -1120,66 +1050,6 @@ class Sidebar extends React.Component {
                           organizationUsersOnline={organizationUsersOnline}
                           currentTime={currentTime}
                           isLightMode={isLightMode}
-                          onClick={() => {
-                            if (window.innerWidth < 768) {
-                              this.setState({
-                                sidebarIsVisible: sidebarIsVisible
-                                  ? false
-                                  : true,
-                              });
-                            }
-                          }}
-                        />
-                      </ErrorBoundary>
-                    )}
-                  />
-                  <Route
-                    path={routes.LIBRARY}
-                    render={(routeProps) => (
-                      <ErrorBoundary showError={true}>
-                        <LibraryPage
-                          {...routeProps}
-                          isLightMode={isLightMode}
-                          onClick={() => {
-                            if (window.innerWidth < 768) {
-                              this.setState({
-                                sidebarIsVisible: sidebarIsVisible
-                                  ? false
-                                  : true,
-                              });
-                            }
-                          }}
-                        />
-                      </ErrorBoundary>
-                    )}
-                  />
-                  <Route
-                    path={routes.MESSAGE.NEW}
-                    render={(routeProps) => (
-                      <ErrorBoundary showError={true}>
-                        <NewMessagePage
-                          {...routeProps}
-                          isLightMode={isLightMode}
-                          onClick={() => {
-                            if (window.innerWidth < 768) {
-                              this.setState({
-                                sidebarIsVisible: sidebarIsVisible
-                                  ? false
-                                  : true,
-                              });
-                            }
-                          }}
-                        />
-                      </ErrorBoundary>
-                    )}
-                  />
-                  <Route
-                    path={routes.MESSAGE.THREAD}
-                    render={(routeProps) => (
-                      <ErrorBoundary showError={true}>
-                        <MessageThreadPage
-                          isLightMode={isLightMode}
-                          {...routeProps}
                           onClick={() => {
                             if (window.innerWidth < 768) {
                               this.setState({

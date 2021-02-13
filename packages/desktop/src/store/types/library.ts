@@ -1,4 +1,5 @@
 import { MediaType } from "../../components/MessageMediaPlayer";
+import { User } from "./user";
 export const GET_ITEMS_STARTED = "GET_ITEMS_STARTED";
 export const GET_ITEMS_SUCCESS = "GET_ITEMS_SUCCESS";
 export const GET_ITEMS_FAILURE = "GET_ITEMS_FAILURE";
@@ -28,6 +29,7 @@ export interface LibraryItem {
   public_url?: string;
   attachments: Attachment[];
   created_at: string;
+  user?: User;
 }
 
 export interface LibraryGroup {

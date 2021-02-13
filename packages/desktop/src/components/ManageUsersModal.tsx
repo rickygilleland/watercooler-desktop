@@ -1,21 +1,17 @@
-import {
-  Button,
-  Card,
-  Col,
-  Dropdown,
-  Image,
-  Modal,
-  Navbar,
-  Row,
-} from "react-bootstrap";
+import { Button, Col, Image, Modal, Row } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faCircleNotch,
-  faWindowClose,
-} from "@fortawesome/free-solid-svg-icons";
+import { User } from "../store/types/user";
+import { faWindowClose } from "@fortawesome/free-solid-svg-icons";
+import CenteredLoadingSpinner from "./CenteredLoadingSpinner";
 import React from "react";
 
-function ManageUsersModal(props) {
+interface ManageUsersModalProps {
+  loading: boolean;
+  users: User[];
+  onHide(): void;
+}
+
+function ManageUsersModal(props: ManageUsersModalProps): JSX.Element {
   const { loading, users } = props;
 
   return (
@@ -37,44 +33,35 @@ function ManageUsersModal(props) {
         </Button>
       </Modal.Header>
       <Modal.Body>
-        {loading == "true" ? (
+        {loading && (
           <>
             <h1 className="text-center h5">Loading Team...</h1>
-            <center>
-              <FontAwesomeIcon
-                icon={faCircleNotch}
-                className="mt-3"
-                style={{ fontSize: "2.4rem", color: "#6772ef" }}
-                spin
-              />
-            </center>
-          </>
-        ) : (
-          <>
-            {users.map((user) => (
-              <div key={user.id}>
-                <Row className="align-items-center justify-content-center">
-                  <Col xs={2} className="pr-0">
-                    <Image
-                      src={user.avatar_url}
-                      fluid
-                      roundedCircle
-                      style={{ maxHeight: 40 }}
-                    />
-                  </Col>
-                  <Col xs={4} className="pl-0">
-                    <p className="text-left" style={{ fontWeight: 600 }}>
-                      {user.first_name} {user.last_name}
-                    </p>
-                  </Col>
-                  <Col xs={{ span: 4, offset: 2 }}>
-                    <Button size="sm">Manage User</Button>
-                  </Col>
-                </Row>
-              </div>
-            ))}
+            <CenteredLoadingSpinner />
           </>
         )}
+        {!loading &&
+          users.map((user) => (
+            <div key={user.id}>
+              <Row className="align-items-center justify-content-center">
+                <Col xs={2} className="pr-0">
+                  <Image
+                    src={user.avatar_url}
+                    fluid
+                    roundedCircle
+                    style={{ maxHeight: 40 }}
+                  />
+                </Col>
+                <Col xs={4} className="pl-0">
+                  <p className="text-left" style={{ fontWeight: 600 }}>
+                    {user.first_name} {user.last_name}
+                  </p>
+                </Col>
+                <Col xs={{ span: 4, offset: 2 }}>
+                  <Button size="sm">Manage User</Button>
+                </Col>
+              </Row>
+            </div>
+          ))}
       </Modal.Body>
     </Modal>
   );

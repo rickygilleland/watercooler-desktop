@@ -1,10 +1,9 @@
 import { Container } from "react-bootstrap";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PropsFromRedux } from "../containers/LoadingPage";
-import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
-import { push } from "connected-react-router";
+import CenteredLoadingSpinner from "./CenteredLoadingSpinner";
 import React, { useEffect } from "react";
 import routes from "../constants/routes.json";
+import styled from "styled-components";
 
 export default function Loading(props: PropsFromRedux): JSX.Element {
   useEffect(() => {
@@ -21,7 +20,8 @@ export default function Loading(props: PropsFromRedux): JSX.Element {
       );
 
       await Promise.all([getUser, getOrganization, getOrganizationUser]);
-      push(routes.TEAM);
+      props.push(routes.TEAM);
+      return;
     };
 
     fetchAll();
@@ -30,13 +30,13 @@ export default function Loading(props: PropsFromRedux): JSX.Element {
 
   return (
     <Container data-tid="container" fluid>
-      <h1 className="text-center mt-5">Loading Blab...</h1>
-      <FontAwesomeIcon
-        icon={faCircleNotch}
-        className="mt-3"
-        style={{ fontSize: "2.4rem", color: "#6772ef" }}
-        spin
-      />
+      <Title className="mt-5">Loading Blab...</Title>
+      <CenteredLoadingSpinner />
     </Container>
   );
 }
+
+const Title = styled.h1`
+  text-align: center;
+  color: #fff;
+`;

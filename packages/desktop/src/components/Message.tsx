@@ -2,6 +2,7 @@ import { Button, Image, Row } from "react-bootstrap";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { DateTime } from "luxon";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Message as MessageType } from "../store/types/message";
 import {
   faCircleNotch,
   faClipboard,
@@ -10,20 +11,31 @@ import {
 import MessageMediaPlayer from "./MessageMediaPlayer";
 import React from "react";
 
-class Message extends React.PureComponent {
-  constructor(props) {
+interface MessageProps {
+  message: MessageType;
+  renderHeading: boolean;
+  handleCopyToClipboard(messageId: number): void;
+  lastCopiedMessageId: number;
+}
+
+interface State {
+  formattedDate: string;
+  copied: boolean;
+}
+
+export default class Message extends React.PureComponent<MessageProps, State> {
+  constructor(props: MessageProps) {
     super(props);
 
     const date = DateTime.fromISO(this.props.message.created_at);
 
     this.state = {
-      waveSurfer: null,
       formattedDate: date.toLocaleString(DateTime.TIME_SIMPLE),
       copied: false,
     };
   }
 
-  componentDidUpdate(prevProps) {
+  componentDidUpdate(prevProps: MessageProps): void {
     const { message, lastCopiedMessageId } = this.props;
     const { copied } = this.state;
 
@@ -36,8 +48,8 @@ class Message extends React.PureComponent {
     }
   }
 
-  render() {
-    const { message, renderHeading, handleCopyToClipbard } = this.props;
+  render(): JSX.Element {
+    const { message, renderHeading, handleCopyToClipboard } = this.props;
     const { formattedDate, copied } = this.state;
 
     return (
@@ -114,7 +126,7 @@ class Message extends React.PureComponent {
                 text={message.public_url}
                 onCopy={() => {
                   this.setState({ copied: true });
-                  handleCopyToClipbard(message.id);
+                  handleCopyToClipboard(message.id);
                 }}
               >
                 <Button
@@ -139,5 +151,3 @@ class Message extends React.PureComponent {
     );
   }
 }
-
-export default Message;

@@ -33,7 +33,6 @@ import {
   faWindowMaximize,
 } from "@fortawesome/free-solid-svg-icons";
 import AddUserToRoomModal from "./AddUserToRoomModal";
-import MessageThreadPage from "../containers/MessageThreadPage";
 import React from "react";
 import ScreenSharingModal from "./ScreenSharingModal";
 import VideoList from "./VideoList";
@@ -2742,29 +2741,6 @@ export default class Room extends React.Component<RoomProps, State> {
               </p>
             </React.Fragment>
           )}
-        </Container>
-        <Container
-          className="px-0"
-          style={{
-            height: videoSizes.threadContainerHeight,
-            backgroundColor: "rgb(27, 30, 47, .015)",
-          }}
-          fluid
-        >
-          {typeof room.thread != "undefined" &&
-            typeof room.thread.id != "undefined" && (
-              <MessageThreadPage
-                threadType="room"
-                threadId={room.thread.id}
-                toggleThreadCollapsed={() =>
-                  this.setState({
-                    showChatThread: this.state.showChatThread ? false : true,
-                  })
-                }
-                collapsed={showChatThread}
-                isLightMode={isLightMode}
-              />
-            )}
         </Container>
       </React.Fragment>
     );
