@@ -127,9 +127,9 @@ const createWindow = () => {
       transparent: true, //necessary for vibrancy fix on macos
       backgroundColor: "#80FFFFFF", //necessary for vibrancy fix on macos
       width: 1000,
-      height: 600,
-      minWidth: 700,
-      minHeight: 600,
+      height: 500,
+      minWidth: 250,
+      minHeight: 350,
       frame: false,
       webPreferences: {
         nodeIntegration: true,
@@ -149,9 +149,9 @@ const createWindow = () => {
       transparent: true, //necessary for vibrancy fix on macos
       backgroundColor: "#80FFFFFF", //necessary for vibrancy fix on macos
       width: 1100,
-      height: 600,
-      minWidth: 700,
-      minHeight: 600,
+      height: 500,
+      minWidth: 250,
+      minHeight: 350,
       frame: false,
       webPreferences: {
         nodeIntegration: true,

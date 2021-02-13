@@ -199,9 +199,8 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
     }
   }, [teams]);
 
-  const userLogout = () => {
-    const { userLogout } = this.props;
-
+  const handleUserLogout = () => {
+    const { userLogout } = props;
     if (pusherInstance) {
       if (organizationPresenceChannel && organization.id) {
         pusherInstance.unsubscribe(`presence-room.${organization.id}`);
@@ -277,8 +276,16 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
             {showSettingsModal && (
               <SettingsModal
                 show={showSettingsModal}
-                handleShowModal={this.handleShowModal}
-                handleLogOut={() => this.userLogout()}
+                handleShowModal={(modalToShow: string) => {
+                  if (modalToShow === "cameraSettings") {
+                    setShowManageCameraModal(true);
+                  }
+
+                  if (modalToShow === "roomSettings") {
+                    setShowRoomSettingsModal(true);
+                  }
+                }}
+                handleLogOut={() => handleUserLogout()}
                 organization={organization}
                 onHide={() => setShowSettingsModal(false)}
               />
@@ -306,8 +313,9 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
               <ErrorBoundary showError={true}>
                 <RoomsListPage
                   {...routeProps}
-                  userLogout={userLogout}
+                  handleUserLogout={handleUserLogout}
                   isLightMode={isLightMode}
+                  activeTeam={activeTeam}
                 />
               </ErrorBoundary>
             )}

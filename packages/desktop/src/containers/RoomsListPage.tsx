@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnyAction, Dispatch, bindActionCreators } from "redux";
 import { AuthState } from "../store/types/auth";
 import { ConnectedProps, connect } from "react-redux";
 import { OrganizationState } from "../store/types/organization";
-import { RoomState } from "../store/types/room";
 import { SettingsState } from "../store/types/settings";
 import { User } from "../store/types/user";
 import { push } from "connected-react-router";
@@ -14,7 +12,6 @@ function mapStateToProps(state: {
   auth: AuthState;
   user: User;
   organization: OrganizationState;
-  room: RoomState;
   settings: SettingsState;
 }) {
   return {
@@ -22,7 +19,6 @@ function mapStateToProps(state: {
     user: state.user,
     organization: state.organization.organization,
     organizationUsers: state.organization.users,
-    teams: state.organization.teams,
   };
 }
 
