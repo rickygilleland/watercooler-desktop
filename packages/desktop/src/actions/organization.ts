@@ -181,14 +181,14 @@ export function getOrganizationUsers(organization_id: number) {
   };
 }
 
-export function inviteUsers(emails: string[]) {
+export function inviteUsers(emails: string) {
   return (
     dispatch: (arg0: OrganizationActionTypes) => void,
     getState: () => GlobalState,
     axios: (arg0: {
       method: string;
       url: string;
-      data: { emails: string[] };
+      data: { emails: string };
       headers: AuthenticatedRequestHeaders;
     }) => Promise<{ data: boolean }>,
   ) => {

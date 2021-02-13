@@ -5,15 +5,15 @@ import { PersistGate } from "redux-persist/integration/react";
 import { Persistor } from "redux-persist";
 import { Provider } from "react-redux";
 import { Redirect, Route, Switch } from "react-router-dom";
+import { Routes } from "./components/RootComponent";
 import BlurNetBackground from "./containers/BlurNetBackground";
 import LoadingPage from "./containers/LoadingPage";
 import LoginPage from "./containers/LoginPage";
 import MagicLoginPage from "./containers/MagicLoginPage";
 import React from "react";
+import RootContainer from "./containers/RootContainer";
 import ScreenShareControls from "./components/ScreenShareControls";
-import Sidebar from "./containers/Sidebar";
 import posthog from "posthog-js";
-import routes from "./constants/routes.json";
 
 let path = window.location.href;
 path = path.substring(path.lastIndexOf("#") + 1);
@@ -60,24 +60,23 @@ export default function App(props: AppProps): JSX.Element {
               from="/"
               exact
               to={{
-                pathname: routes.LOADING,
+                pathname: Routes.Loading,
               }}
             />
-            <Route path={routes.LOGIN} component={LoginPage} />
-            <Route path={routes.MAGIC_LOGIN} component={MagicLoginPage} />
-            <Route path={routes.LOADING} component={LoadingPage} />
+            <Route path={Routes.Login} component={LoginPage} />
+            <Route path={Routes.MagicLogin} component={MagicLoginPage} />
+            <Route path={Routes.Loading} component={LoadingPage} />
             <Route
               path="/screensharing_controls"
               exact
               component={ScreenShareControls}
             />
-
             <Route
               path="/blur_net_background"
               exact
               component={BlurNetBackground}
             />
-            <Route path="/*" component={Sidebar} />
+            <Route path="/*" component={RootContainer} />
           </Switch>
         </ConnectedRouter>
       </PersistGate>

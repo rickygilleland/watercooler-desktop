@@ -65,7 +65,7 @@ interface UpdateExperimentalSettingsSuccessAction {
   type: typeof UPDATE_EXPERIMENTAL_SETTINGS_SUCCESS;
   payload: {
     settingToChange: string;
-    updatedValue: Partial<ExperimentalSettings>;
+    updatedValue: boolean;
   };
 }
 
@@ -73,7 +73,7 @@ interface UpdateRoomSettingsSuccessAction {
   type: typeof UPDATE_ROOM_SETTINGS_SUCCESS;
   payload: {
     settingToChange: string;
-    updatedValue: Partial<RoomSettings>;
+    updatedValue: boolean;
   };
 }
 

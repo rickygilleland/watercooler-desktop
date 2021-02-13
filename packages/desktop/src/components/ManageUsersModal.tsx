@@ -8,6 +8,8 @@ import React from "react";
 interface ManageUsersModalProps {
   loading: boolean;
   users: User[];
+  show: boolean;
+  onShow(): void;
   onHide(): void;
 }
 

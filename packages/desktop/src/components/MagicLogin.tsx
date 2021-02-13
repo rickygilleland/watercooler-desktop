@@ -2,23 +2,23 @@ import { Container } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PropsFromRedux } from "../containers/MagicLoginPage";
 import { RouteComponentProps } from "react-router";
+import { Routes } from "./RootComponent";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import React, { useEffect } from "react";
-import routes from "../constants/routes.json";
 
 interface MagicLoginProps extends PropsFromRedux, RouteComponentProps {}
 
 export default function MagicLogin(props: MagicLoginProps): JSX.Element {
   useEffect(() => {
     if (props.auth.isLoggedIn) {
-      props.push(routes.LOADING);
+      props.push(Routes.Loading);
       return;
     }
   }, [props, props.auth.isLoggedIn]);
 
   useEffect(() => {
     if (props.auth.loginError) {
-      props.push(routes.LOGIN);
+      props.push(Routes.Login);
     }
   }, [props, props.auth.loginError]);
 

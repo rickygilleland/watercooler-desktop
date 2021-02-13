@@ -56,12 +56,12 @@ function EnsureLoggedInContainer(
 
 function mapStateToProps(
   state: { auth: AuthState; organization: { organization: OrganizationState } },
-  ownProps: { location: { pathname: string } },
+  ownProps: { currentURL: string },
 ) {
   return {
     auth: state.auth,
     organization: state.organization.organization,
-    currentURL: ownProps.location.pathname,
+    currentURL: ownProps.currentURL,
   };
 }
 

@@ -1,14 +1,14 @@
 import { Container } from "react-bootstrap";
 import { PropsFromRedux } from "../containers/LoadingPage";
+import { Routes } from "./RootComponent";
 import CenteredLoadingSpinner from "./CenteredLoadingSpinner";
 import React, { useEffect } from "react";
-import routes from "../constants/routes.json";
 import styled from "styled-components";
 
 export default function Loading(props: PropsFromRedux): JSX.Element {
   useEffect(() => {
     if (!props.auth.isLoggedIn) {
-      props.push("/login");
+      props.push(Routes.Login);
       return;
     }
 
@@ -20,7 +20,7 @@ export default function Loading(props: PropsFromRedux): JSX.Element {
       );
 
       await Promise.all([getUser, getOrganization, getOrganizationUser]);
-      props.push(routes.TEAM);
+      props.push(Routes.RoomList);
       return;
     };
 

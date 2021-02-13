@@ -49,7 +49,7 @@ export default function VideoList(props: VideoListProps): JSX.Element {
     if (shouldUpdate) {
       setProcessedPublishers([...publishers]);
     }
-  });
+  }, [processedPublishers, publishers]);
 
   function checkVideoAudioStatus(publisher: any): any {
     let videoLoading = false;

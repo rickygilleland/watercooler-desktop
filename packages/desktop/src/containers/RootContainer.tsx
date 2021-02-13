@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnyAction, Dispatch, bindActionCreators } from "redux";
 import { AuthState } from "../store/types/auth";
+import { ConnectedProps, connect } from "react-redux";
 import { OrganizationState } from "../store/types/organization";
 import { SettingsState } from "../store/types/settings";
 import { ThreadState } from "../store/types/thread";
@@ -10,7 +11,6 @@ import {
   getLibraryItems,
 } from "../actions/library";
 import { addNewMessageFromNotification } from "../actions/message";
-import { connect } from "react-redux";
 import {
   createCall,
   createRoom,
@@ -29,7 +29,7 @@ import { push } from "connected-react-router";
 import { updateUserDetails } from "../actions/user";
 import { userLogout } from "../actions/auth";
 import { withRouter } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
+import RootComponent from "../components/RootComponent";
 
 function mapStateToProps(
   state: {
@@ -85,6 +85,7 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
   );
 }
 
-export default withRouter(
-  connect(mapStateToProps, mapDispatchToProps)(Sidebar),
-);
+const connector = connect(mapStateToProps, mapDispatchToProps);
+export type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default withRouter(connector(RootComponent));

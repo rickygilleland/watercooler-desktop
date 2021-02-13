@@ -2,9 +2,9 @@ import { Alert, Button, Card, Form } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PropsFromRedux } from "../containers/LoginPage";
 import { RouteComponentProps } from "react-router";
+import { Routes } from "./RootComponent";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import React from "react";
-import routes from "../constants/routes.json";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { ipcRenderer } = require("electron");
 
@@ -45,7 +45,7 @@ export default class Login extends React.Component<LoginProps, State> {
     const { auth, push } = this.props;
 
     if (auth.isLoggedIn === true) {
-      push(routes.LOADING);
+      push(Routes.Loading);
     }
 
     ipcRenderer.on("url_update", (event, arg) => {
@@ -61,7 +61,7 @@ export default class Login extends React.Component<LoginProps, State> {
     const { auth, push } = this.props;
 
     if (auth.isLoggedIn === true) {
-      push(routes.LOADING);
+      push(Routes.Loading);
     }
 
     if (prevProps.auth !== auth) {

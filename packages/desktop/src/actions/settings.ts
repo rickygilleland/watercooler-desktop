@@ -37,7 +37,7 @@ export function updateDefaultDevicesSuccess(
 
 export function updateExperimentalSettingsSuccess(payload: {
   settingToChange: string;
-  updatedValue: Partial<ExperimentalSettings>;
+  updatedValue: boolean;
 }): SettingsActionTypes {
   return {
     type: UPDATE_EXPERIMENTAL_SETTINGS_SUCCESS,
@@ -47,7 +47,7 @@ export function updateExperimentalSettingsSuccess(payload: {
 
 export function updateRoomSettingsSuccess(payload: {
   settingToChange: string;
-  updatedValue: Partial<RoomSettings>;
+  updatedValue: boolean;
 }): SettingsActionTypes {
   return {
     type: UPDATE_ROOM_SETTINGS_SUCCESS,
@@ -96,7 +96,7 @@ export function updateDefaultDevices(
 
 export function updateExperimentalSettings(
   settingToChange: string,
-  updatedValue: Partial<ExperimentalSettings>,
+  updatedValue: boolean,
 ) {
   return (dispatch: (arg0: SettingsActionTypes) => void) => {
     try {
@@ -114,7 +114,7 @@ export function updateExperimentalSettings(
 
 export function updateRoomSettings(
   settingToChange: string,
-  updatedValue: Partial<RoomSettings>,
+  updatedValue: boolean,
 ) {
   return (dispatch: (arg0: SettingsActionTypes) => void) => {
     try {
