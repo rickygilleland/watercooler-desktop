@@ -50,7 +50,7 @@ if (!isDevMode) {
     }
   }, 3600000);
 
-  autoUpdater.on("update-downloaded", (event, releaseNotes, releaseName) => {
+  autoUpdater.on("update-downloaded", (_event, releaseNotes, releaseName) => {
     if (Notification.isSupported()) {
       const updateNotification = new Notification({
         title: "An Update is Available",
@@ -126,9 +126,9 @@ const createWindow = () => {
       vibrancy: "sidebar",
       transparent: true, //necessary for vibrancy fix on macos
       backgroundColor: "#80FFFFFF", //necessary for vibrancy fix on macos
-      width: 1000,
-      height: 500,
-      minWidth: 250,
+      width: 350,
+      height: 520,
+      minWidth: 350,
       minHeight: 350,
       frame: false,
       webPreferences: {
@@ -148,9 +148,9 @@ const createWindow = () => {
       vibrancy: "sidebar",
       transparent: true, //necessary for vibrancy fix on macos
       backgroundColor: "#80FFFFFF", //necessary for vibrancy fix on macos
-      width: 1100,
-      height: 500,
-      minWidth: 250,
+      width: 350,
+      height: 520,
+      minWidth: 350,
       minHeight: 350,
       frame: false,
       webPreferences: {
@@ -177,12 +177,27 @@ const createWindow = () => {
     mainWindow.webContents.send("power_update", "lock-screen");
   });
 
+  ipcMain.handle(
+    "update-main-window-width",
+    async (
+      _event,
+      args: {
+        type: string;
+      },
+    ) => {
+      const width = args.type === "full" ? 1100 : 350;
+      const height = args.type === "full" ? 600 : 520;
+
+      mainWindow.setContentSize(width, height, true);
+    },
+  );
+
   ipcMain.handle("get-current-window-dimensions", async () => {
     const { width, height } = screen.getPrimaryDisplay().workAreaSize;
     return { width, height };
   });
 
-  ipcMain.handle("get-media-access-status", async (event, args) => {
+  ipcMain.handle("get-media-access-status", async (_event, args) => {
     if (process.platform != "darwin") {
       return "granted";
     }
@@ -190,7 +205,7 @@ const createWindow = () => {
     return systemPreferences.getMediaAccessStatus(args.mediaType);
   });
 
-  ipcMain.handle("update-tray-icon", async (event, args) => {
+  ipcMain.handle("update-tray-icon", async (_event, args) => {
     if (args.enable && !tray) {
       tray = new Tray(iconPath);
       tray.setToolTip("Blab");
@@ -318,7 +333,7 @@ const createWindow = () => {
     tray.setContextMenu(trayMenu);
   });
 
-  ipcMain.handle("update-screen-sharing-controls", async (event, args) => {
+  ipcMain.handle("update-screen-sharing-controls", async (_event, args) => {
     if (typeof args.starting != "undefined") {
       return mainWindow.hide();
     }
@@ -341,7 +356,7 @@ const createWindow = () => {
     return true;
   });
 
-  ipcMain.handle("face-tracking-update", async (event, args) => {
+  ipcMain.handle("face-tracking-update", async (_event, args) => {
     if (typeof args.type != "undefined") {
       if (args.type == "updated_coordinates") {
         mainWindow.webContents.send("face-tracking-update", args);
@@ -349,7 +364,7 @@ const createWindow = () => {
     }
   });
 
-  ipcMain.handle("net-status-update", async (event, args) => {
+  ipcMain.handle("net-status-update", async (_event, args) => {
     if (typeof args.net != "undefined" && args.window != "undefined") {
       BrowserWindow.fromId(args.window).webContents.send(
         "net-status-update",
@@ -358,7 +373,7 @@ const createWindow = () => {
     }
   });
 
-  ipcMain.handle("background-blur-update", async (event, args) => {
+  ipcMain.handle("background-blur-update", async (_event, args) => {
     if (typeof args.type != "undefined") {
       if (args.type == "updated_coordinates") {
         mainWindow.webContents.send("background-blur-update", args);

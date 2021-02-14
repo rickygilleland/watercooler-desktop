@@ -1,79 +1,56 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Link } from "react-router-dom";
-import { PropsFromRedux } from "../containers/RoomsListPage";
 import { Room } from "../store/types/room";
-import { RouteComponentProps } from "react-router";
-import { Routes } from "./RootComponent";
-import { Team } from "../store/types/organization";
-import { faMicrophoneAlt, faVideo } from "@fortawesome/free-solid-svg-icons";
-import React, { useEffect, useState } from "react";
+import {
+  faMicrophoneAlt,
+  faPlus,
+  faVideo,
+} from "@fortawesome/free-solid-svg-icons";
+import { ipcRenderer } from "electron";
+import React from "react";
 import styled from "styled-components";
 
-interface RoomsListProps extends PropsFromRedux, RouteComponentProps {
-  activeTeam: Team | undefined;
-  isLightMode: boolean;
-  handleUserLogout(): void;
+interface RoomsListProps {
+  rooms: Room[] | undefined;
+  setShowCreateRoomForm(show: boolean): void;
 }
 
 export default function RoomsList(props: RoomsListProps): JSX.Element {
-  const { activeTeam } = props;
+  const { rooms } = props;
 
-  const [rooms, setRooms] = useState<Room[] | undefined>(activeTeam?.rooms);
-
-  useEffect(() => {
-    setRooms(activeTeam?.rooms);
-  }, [activeTeam?.rooms]);
+  const handleWindowWidthChange = () => {
+    ipcRenderer.invoke("update-main-window-width", {
+      type: "full",
+    });
+  };
 
   return (
     <Container>
-      <Title>Rooms</Title>
-      <RoomsContainer>
-        {rooms?.map((room) => (
-          <RoomButtonContainer
-            key={room.id}
-            to={{
-              pathname: `/room/${room.slug}`,
-            }}
-          >
-            <RoomTitleContainer>
-              <FontAwesomeIcon
-                icon={room.video_enabled ? faVideo : faMicrophoneAlt}
-              />
-              <RoomTitle>{room.name}</RoomTitle>
-            </RoomTitleContainer>
-          </RoomButtonContainer>
-        ))}
-        {rooms?.map((room) => (
-          <RoomButtonContainer
-            key={room.id}
-            to={{
-              pathname: `/room/${room.slug}`,
-            }}
-          >
-            <RoomTitleContainer>
-              <FontAwesomeIcon
-                icon={room.video_enabled ? faVideo : faMicrophoneAlt}
-              />
-              <RoomTitle>{room.name}</RoomTitle>
-            </RoomTitleContainer>
-          </RoomButtonContainer>
-        ))}
-        {rooms?.map((room) => (
-          <RoomButtonContainer
-            key={room.id}
-            to={{
-              pathname: `/room/${room.slug}`,
-            }}
-          >
-            <RoomTitleContainer>
-              <FontAwesomeIcon
-                icon={!room.video_enabled ? faVideo : faMicrophoneAlt}
-              />
-              <RoomTitle>{room.name}</RoomTitle>
-            </RoomTitleContainer>
-          </RoomButtonContainer>
-        ))}
-      </RoomsContainer>
+      {!rooms && <Title>No rooms yet.</Title>}
+      {rooms && (
+        <RoomsContainer>
+          {rooms?.map((room) => (
+            <RoomButtonContainer
+              key={room.id}
+              onClick={() => handleWindowWidthChange()}
+              to={{
+                pathname: `/room/${room.slug}`,
+              }}
+            >
+              <RoomTitleContainer>
+                <FontAwesomeIcon
+                  icon={room.video_enabled ? faVideo : faMicrophoneAlt}
+                />
+                <RoomTitle>{room.name}</RoomTitle>
+              </RoomTitleContainer>
+            </RoomButtonContainer>
+          ))}
+        </RoomsContainer>
+      )}
+      <NewRoomButton onClick={() => props.setShowCreateRoomForm(true)}>
+        <FontAwesomeIcon icon={faPlus} />
+        <NewRoomButtonText>Create Room</NewRoomButtonText>
+      </NewRoomButton>
     </Container>
   );
 }
@@ -82,7 +59,6 @@ const Container = styled.div`
   width: 100%;
   height: 100%;
   color: #fff;
-  padding: 12px;
 `;
 
 const Title = styled.h1`
@@ -92,6 +68,9 @@ const Title = styled.h1`
 const RoomsContainer = styled.div`
   display: flex;
   flex-wrap: wrap;
+  height: calc(100vh - 140px);
+  overflow: auto;
+  padding: 12px;
 `;
 
 const RoomButtonContainer = styled(Link)`
@@ -101,8 +80,9 @@ const RoomButtonContainer = styled(Link)`
   margin: 12px 12px 12px 0;
   padding: 12px;
   min-width: 230px;
+  max-height: 120px;
   width: 25%;
-  transition: width 0.2s ease-out;
+  transition: width 0.2s ease;
   transition: border 0.2s ease;
   color: #fff !important;
   &:hover {
@@ -112,6 +92,7 @@ const RoomButtonContainer = styled(Link)`
 
   @media (max-width: 480px) {
     width: 100%;
+    margin-right: 0;
   }
 `;
 
@@ -127,4 +108,26 @@ const RoomTitleContainer = styled.div`
 const RoomTitle = styled.div`
   font-size: 14px;
   font-weight: 600;
+`;
+
+const NewRoomButton = styled.div`
+  height: 50px;
+  display: flex;
+  position: fixed;
+  bottom: 0;
+  align-items: center;
+  cursor: pointer;
+  width: 100%;
+  justify-content: center;
+  background-color: rgb(40, 199, 93, 0.95);
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: rgb(40, 199, 93, 0.65);
+  }
+`;
+
+const NewRoomButtonText = styled.div`
+  font-weight: 600;
+  margin-left: 8px;
 `;

@@ -20,7 +20,7 @@ export default function Loading(props: PropsFromRedux): JSX.Element {
       );
 
       await Promise.all([getUser, getOrganization, getOrganizationUser]);
-      props.push(Routes.RoomList);
+      props.push(Routes.Home);
       return;
     };
 

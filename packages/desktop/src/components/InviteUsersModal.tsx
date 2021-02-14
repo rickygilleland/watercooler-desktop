@@ -8,6 +8,7 @@ import {
   faWindowClose,
 } from "@fortawesome/free-solid-svg-icons";
 import React, { useState } from "react";
+import styled from "styled-components";
 
 interface InviteUsersModalProps {
   handleSubmit: (emails: string) => void;
@@ -53,10 +54,10 @@ export default function InviteUsersModal(
       scrollable={true}
     >
       <Modal.Header>
-        <Modal.Title className="font-weight-bolder">
+        <Title>
           <FontAwesomeIcon icon={faUserPlus} className="mr-2" /> Invite Someone
           New
-        </Modal.Title>
+        </Title>
         <Button
           variant="outline-secondary"
           style={{ borderColor: "transparent" }}
@@ -95,7 +96,7 @@ export default function InviteUsersModal(
             type="submit"
             disabled={props.loading}
           >
-            <FontAwesomeIcon icon={faCircleNotch} spin />{" "}
+            {props.loading && <FontAwesomeIcon icon={faCircleNotch} spin />}{" "}
             {props.loading ? "Sending Invites" : "Send Invites"}
           </Button>
         </Form>
@@ -103,3 +104,8 @@ export default function InviteUsersModal(
     </Modal>
   );
 }
+
+const Title = styled.div`
+  font-size: 16px;
+  font-weight: 700;
+`;

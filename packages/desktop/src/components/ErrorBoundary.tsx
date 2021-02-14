@@ -34,7 +34,8 @@ export default class ErrorBoundary extends React.Component<
             <h1 className="text-center">Oh no, something went wrong!</h1>
             <p className="text-center" style={{ fontSize: "1rem" }}>
               <span style={{ fontWeight: 600 }}>
-                Sorry about that. Try going to another page or restarting Blab.
+                Sorry about that :( Try going to another page or restarting
+                Blab.
               </span>
               <br />
               The error has been logged and we're already working to make sure

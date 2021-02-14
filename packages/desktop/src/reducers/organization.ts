@@ -53,6 +53,7 @@ export default function organization(
         },
         billing: action.payload.billing,
         teams: teams,
+        loading: false,
       };
       break;
     }
@@ -81,7 +82,9 @@ export default function organization(
       break;
     }
     case GET_ORGANIZATION_USERS_FAILURE: {
-      return state;
+      updatedState = {
+        loading: false,
+      };
       break;
     }
     case INVITE_USERS_STARTED: {

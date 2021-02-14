@@ -4,9 +4,10 @@ import { ConnectedProps, connect } from "react-redux";
 import { OrganizationState } from "../store/types/organization";
 import { SettingsState } from "../store/types/settings";
 import { User } from "../store/types/user";
+import { createRoom } from "../actions/organization";
 import { push } from "connected-react-router";
 import { withRouter } from "react-router-dom";
-import RoomsList from "../components/RoomsList";
+import Main from "../components/Main";
 
 function mapStateToProps(state: {
   auth: AuthState;
@@ -19,12 +20,17 @@ function mapStateToProps(state: {
     user: state.user,
     organization: state.organization.organization,
     organizationUsers: state.organization.users,
+    billing: state.organization.billing,
+    organizationLoading: state.organization.loading,
+    lastCreatedRoomSlug: state.organization.lastCreatedRoomSlug,
+    createRoomSuccess: state.organization.createRoomSuccess,
   };
 }
 
 function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
   return bindActionCreators(
     {
+      createRoom,
       push,
     },
     dispatch,
@@ -34,4 +40,4 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
 const connector = connect(mapStateToProps, mapDispatchToProps);
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
-export default withRouter(connector(RoomsList));
+export default withRouter(connector(Main));

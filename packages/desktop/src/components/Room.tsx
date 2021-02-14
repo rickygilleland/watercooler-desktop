@@ -122,8 +122,8 @@ export default class Room extends React.Component<RoomProps, State> {
     const { settings, billing } = this.props;
 
     this.state = {
-      room: {},
-      team: {},
+      room: {} as RoomType,
+      team: {} as Team,
       isCall: false,
       loading: true,
       members: [],
@@ -132,7 +132,7 @@ export default class Room extends React.Component<RoomProps, State> {
       publishers: [],
       initialized: false,
       room_at_capacity: false,
-      me: {},
+      me: {} as User,
       connected: false,
       publishing: false,
       screenSharingActive: false,
@@ -210,8 +210,6 @@ export default class Room extends React.Component<RoomProps, State> {
 
     this.stopPublishingStream = this.stopPublishingStream.bind(this);
 
-    //this.updateDisplayedVideos = debounce(this.updateDisplayedVideos, 200);
-
     this.openMediaHandle = this.openMediaHandle.bind(this);
     this.renderVideo = this.renderVideo.bind(this);
 
@@ -226,7 +224,7 @@ export default class Room extends React.Component<RoomProps, State> {
     this.handleResize = this.handleResize.bind(this);
   }
 
-  componentDidMount() {
+  componentDidMount(): void {
     const { match, pusherInstance } = this.props;
 
     this._mounted = true;

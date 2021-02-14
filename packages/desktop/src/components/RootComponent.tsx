@@ -8,23 +8,21 @@ import { each } from "lodash";
 import EnsureLoggedInContainer from "../containers/EnsureLoggedInContainer";
 import ErrorBoundary from "./ErrorBoundary";
 import InviteUsersModal from "./InviteUsersModal";
+import MainPage from "../containers/MainPage";
 import ManageCameraModal from "./ManageCameraModal";
 import ManageUsersModal from "./ManageUsersModal";
 import Pusher, { Channel, Members } from "pusher-js";
 import React, { useEffect, useState } from "react";
 import RoomPage from "../containers/RoomPage";
 import RoomSettingsModal from "./RoomSettingsModal";
-import RoomsListPage from "../containers/RoomsListPage";
-import RoomsModal from "./RoomsModal";
 import SettingsModal from "./SettingsModal";
 import posthog from "posthog-js";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { nativeTheme } = require("electron").remote;
 
 export enum Routes {
-  Home = "/",
+  Home = "/home",
   Room = "/room/:roomSlug",
-  RoomList = "/rooms",
   Call = "/call/:roomSlug",
   Login = "/login",
   MagicLogin = "/magic/login/:code",
@@ -53,6 +51,7 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
     getOrganizations,
     getOrganizationUsers,
     addNewItemFromNotification,
+    updateUserDetails,
   } = props;
   const [isLightMode, setIsLightMode] = useState(false);
   const [pusherInstance, setPusherInstance] = useState<Pusher>();
@@ -64,7 +63,7 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
 
   const [organizationUsersOnline, setOrganizationUsersOnline] = useState<
     number[]
-  >();
+  >([]);
 
   const [showInviteUsersModal, setShowInviteUsersModal] = useState(false);
 
@@ -79,6 +78,8 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
     backgroundBlurWindow,
     setBackgroundBlurWindow,
   ] = useState<Electron.BrowserWindow>();
+
+  const [showCreateRoomForm, setShowCreateRoomForm] = useState(false);
 
   useEffect(() => {
     nativeTheme.on("updated", () => {
@@ -115,6 +116,14 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
       version: require("electron").remote.app.getVersion(),
     });
   }, [user.id, user.email, organization.id]);
+
+  useEffect(() => {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    if (user.timezone != timezone) {
+      updateUserDetails(timezone);
+    }
+  }, [user.timezone, updateUserDetails]);
 
   useEffect(() => {
     if (pusherInstance) {
@@ -244,18 +253,6 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
                 onHide={() => setShowManageUsersModal(false)}
               />
             )}
-            {showRoomsModal && (
-              <RoomsModal
-                show={showRoomsModal}
-                loading={organizationLoading}
-                billing={billing}
-                createroomsuccess={props.createRoomSuccess}
-                lastCreatedRoomSlug={props.lastCreatedRoomSlug}
-                handleSubmit={props.createRoom}
-                push={props.push}
-                onHide={() => setShowRoomsModal(false)}
-              />
-            )}
             {showManageCameraModal && (
               <ManageCameraModal
                 show={showManageCameraModal}
@@ -308,14 +305,18 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
             )}
           />
           <Route
-            path={Routes.RoomList}
+            path={Routes.Home}
             render={(routeProps) => (
               <ErrorBoundary showError={true}>
-                <RoomsListPage
+                <MainPage
                   {...routeProps}
                   handleUserLogout={handleUserLogout}
                   isLightMode={isLightMode}
                   activeTeam={activeTeam}
+                  organizationUsersOnline={organizationUsersOnline}
+                  setShowInviteUsersModal={setShowInviteUsersModal}
+                  showCreateRoomForm={showCreateRoomForm}
+                  setShowCreateRoomForm={setShowCreateRoomForm}
                 />
               </ErrorBoundary>
             )}
