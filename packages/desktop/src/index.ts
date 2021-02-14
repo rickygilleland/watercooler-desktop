@@ -129,7 +129,7 @@ const createWindow = () => {
       width: 350,
       height: 520,
       minWidth: 350,
-      minHeight: 350,
+      minHeight: 520,
       frame: false,
       webPreferences: {
         nodeIntegration: true,
@@ -151,7 +151,7 @@ const createWindow = () => {
       width: 350,
       height: 520,
       minWidth: 350,
-      minHeight: 350,
+      minHeight: 520,
       frame: false,
       webPreferences: {
         nodeIntegration: true,

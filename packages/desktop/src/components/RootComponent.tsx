@@ -15,7 +15,6 @@ import Pusher, { Channel, Members } from "pusher-js";
 import React, { useEffect, useState } from "react";
 import RoomPage from "../containers/RoomPage";
 import RoomSettingsModal from "./RoomSettingsModal";
-import SettingsModal from "./SettingsModal";
 import posthog from "posthog-js";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { nativeTheme } = require("electron").remote;
@@ -67,11 +66,9 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
 
   const [showInviteUsersModal, setShowInviteUsersModal] = useState(false);
 
-  const [showRoomsModal, setShowRoomsModal] = useState(false);
   const [showRoomSettingsModal, setShowRoomSettingsModal] = useState(false);
   const [showManageUsersModal, setShowManageUsersModal] = useState(false);
   const [showManageCameraModal, setShowManageCameraModal] = useState(false);
-  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const [activeTeam, setActiveTeam] = useState<Team>();
   const [
@@ -268,23 +265,6 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
                 settings={settings}
                 updateRoomSettings={props.updateRoomSettings}
                 onHide={() => setShowRoomSettingsModal(false)}
-              />
-            )}
-            {showSettingsModal && (
-              <SettingsModal
-                show={showSettingsModal}
-                handleShowModal={(modalToShow: string) => {
-                  if (modalToShow === "cameraSettings") {
-                    setShowManageCameraModal(true);
-                  }
-
-                  if (modalToShow === "roomSettings") {
-                    setShowRoomSettingsModal(true);
-                  }
-                }}
-                handleLogOut={() => handleUserLogout()}
-                organization={organization}
-                onHide={() => setShowSettingsModal(false)}
               />
             )}
           </ErrorBoundary>

@@ -4,11 +4,16 @@ import { Room } from "../store/types/room";
 import { RouteComponentProps } from "react-router";
 import { Team } from "../store/types/organization";
 import { User } from "../store/types/user";
-import { faCommentAlt, faUserFriends } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCog,
+  faCommentAlt,
+  faUserFriends,
+} from "@fortawesome/free-solid-svg-icons";
 import CreateRoomForm from "./CreateRoomForm";
 import React, { useEffect, useState } from "react";
 import RoomsList from "./RoomsList";
 import TeamList from "./TeamList";
+import UserSettings from "./UserSettings";
 import styled from "styled-components";
 
 interface MainProps extends PropsFromRedux, RouteComponentProps {
@@ -24,6 +29,7 @@ interface MainProps extends PropsFromRedux, RouteComponentProps {
 enum Tab {
   Rooms,
   Team,
+  UserSettings,
 }
 
 export default function Main(props: MainProps): JSX.Element {
@@ -90,6 +96,15 @@ export default function Main(props: MainProps): JSX.Element {
           <FontAwesomeIcon icon={faUserFriends} />
           <MenuTitle active={activeTab === Tab.Team}>Team</MenuTitle>
         </MenuButton>
+        <MenuButton
+          active={activeTab === Tab.UserSettings}
+          onClick={() => setActiveTab(Tab.UserSettings)}
+        >
+          <FontAwesomeIcon icon={faCog} />
+          <MenuTitle active={activeTab === Tab.UserSettings}>
+            Settings
+          </MenuTitle>
+        </MenuButton>
       </Menu>
       {activeTab === Tab.Rooms && (
         <RoomsList
@@ -104,6 +119,9 @@ export default function Main(props: MainProps): JSX.Element {
           user={user}
           setShowInviteUsersModal={props.setShowInviteUsersModal}
         />
+      )}
+      {activeTab === Tab.UserSettings && (
+        <UserSettings handleUserLogout={props.handleUserLogout} />
       )}
     </Container>
   );

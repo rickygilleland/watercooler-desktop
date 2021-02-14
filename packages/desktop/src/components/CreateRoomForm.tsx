@@ -136,15 +136,16 @@ export default function CreateRoomForm(
             />
           </Col>
         </Row>
-        {props.loading && (
-          <Button className="mt-3" variant="primary" type="submit" disabled>
-            <FontAwesomeIcon icon={faCircleNotch} spin /> Creating Room
-          </Button>
-        )}
-        {!props.loading && (
-          <SubmitButton onClick={handleSubmit}>Create Room</SubmitButton>
-        )}
       </FormContainer>
+      {props.loading && (
+        <SubmitButton>
+          {" "}
+          <FontAwesomeIcon icon={faCircleNotch} spin /> Creating Room
+        </SubmitButton>
+      )}
+      {!props.loading && (
+        <SubmitButton onClick={handleSubmit}>Create Room</SubmitButton>
+      )}
     </Container>
   );
 }
@@ -189,6 +190,7 @@ const FormContainer = styled(Form)`
   height: calc(100vh - 90px);
   overflow: auto;
   padding: 12px;
+  flex-direction: column;
 `;
 
 const SubmitButton = styled.div`
@@ -200,9 +202,9 @@ const SubmitButton = styled.div`
   justify-content: center;
   background-color: rgb(40, 199, 93, 0.95);
   transition: background-color 0.3s ease;
-  border-radius: 8px;
   font-weight: 600;
-  align-self: flex-end;
+  position: fixed;
+  bottom: 0;
 
   &:hover {
     background-color: rgb(40, 199, 93, 0.65);
