@@ -38,6 +38,7 @@ import ScreenSharingModal from "./ScreenSharingModal";
 import VideoList from "./VideoList";
 import hark from "hark";
 import posthog from "posthog-js";
+import styled from "styled-components";
 const bodyPix = require("@tensorflow-models/body-pix");
 const { BrowserWindow } = require("electron").remote;
 const { ipcRenderer } = require("electron");
@@ -2697,14 +2698,14 @@ export default class Room extends React.Component<RoomProps, State> {
           {loading ? (
             <div style={{ overflowY: "scroll" }}>
               <h1 className="text-center mt-5">Loading Room...</h1>
-              <center>
+              <Center>
                 <FontAwesomeIcon
                   icon={faCircleNotch}
                   className="mt-3"
                   style={{ fontSize: "2.4rem", color: "#6772ef" }}
                   spin
                 />
-              </center>
+              </Center>
             </div>
           ) : !room_at_capacity ? (
             <React.Fragment>
@@ -2744,3 +2745,7 @@ export default class Room extends React.Component<RoomProps, State> {
     );
   }
 }
+
+const Center = styled.div`
+  margin: 0 auto;
+`;

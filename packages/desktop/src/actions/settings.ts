@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import {
   DefaultDevices,
-  ExperimentalSettings,
   GET_AVAILABLE_DEVICES_FAILURE,
   GET_AVAILABLE_DEVICES_SUCCESS,
-  RoomSettings,
   SettingsActionTypes,
   UPDATE_DEFAULT_DEVICES_SUCCESS,
   UPDATE_EXPERIMENTAL_SETTINGS_SUCCESS,

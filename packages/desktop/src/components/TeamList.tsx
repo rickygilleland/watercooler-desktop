@@ -2,9 +2,8 @@ import { DateTime } from "luxon";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { User } from "../store/types/user";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
-import { ipcRenderer } from "electron";
 import { useGetCurrentTime } from "../hooks/team";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import styled from "styled-components";
 
 interface TeamListProps {

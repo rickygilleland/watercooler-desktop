@@ -5,14 +5,26 @@ import {
   faWindowClose,
 } from "@fortawesome/free-solid-svg-icons";
 import React from "react";
+import styled from "styled-components";
 
-function ScreenSharingModal(props) {
+interface ScreenSharingModalProps {
+  show: boolean;
+  onShow(): void;
+  loading: boolean;
+  sources: Electron.DesktopCapturerSource[];
+  handleSubmit(screenToShare: string): void;
+  onHide(): void;
+}
+
+export default function ScreenSharingModal(
+  props: ScreenSharingModalProps,
+): JSX.Element {
   const { loading, sources } = props;
 
-  function handleSubmit(screenToShare) {
+  const handleSubmit = (screenToShare: string) => {
     props.handleSubmit(screenToShare);
     props.onHide();
-  }
+  };
 
   return (
     <Modal
@@ -40,14 +52,14 @@ function ScreenSharingModal(props) {
         {loading ? (
           <>
             <h1 className="text-center h4">Loading your open windows...</h1>
-            <center>
+            <Center>
               <FontAwesomeIcon
                 icon={faCircleNotch}
                 className="mt-3"
                 style={{ fontSize: "2.4rem", color: "#6772ef" }}
                 spin
               />
-            </center>
+            </Center>
           </>
         ) : (
           <Row>
@@ -59,9 +71,9 @@ function ScreenSharingModal(props) {
                   className="border-0 mb-2"
                   onClick={() => handleSubmit(source.id)}
                 >
-                  {source.thumbnail != "data:image/png;base64," ? (
+                  {source.thumbnail && (
                     <Card.Img
-                      src={source.thumbnail}
+                      src={source.thumbnail.toDataURL()}
                       style={{
                         maxHeight: 180,
                         width: "100%",
@@ -69,12 +81,14 @@ function ScreenSharingModal(props) {
                         objectPosition: "0 0",
                       }}
                     />
-                  ) : (
-                    ""
                   )}
+
                   <Card.Body className="p-0">
                     <p className="font-weight-bold text-light pt-2">
-                      <img src={source.icon} style={{ height: 20 }} />{" "}
+                      <img
+                        src={source.appIcon.toDataURL()}
+                        style={{ height: 20 }}
+                      />{" "}
                       {source.name}
                     </p>
                   </Card.Body>
@@ -88,4 +102,6 @@ function ScreenSharingModal(props) {
   );
 }
 
-export default ScreenSharingModal;
+const Center = styled.div`
+  margin: 0 auto;
+`;
