@@ -230,36 +230,7 @@ export default class Room extends React.Component<RoomProps, State> {
 
     this._mounted = true;
 
-    if (match.path == "/call/:roomSlug") {
-      this.setState({ isCall: true });
-    }
-
     if (process.env.REACT_APP_PLATFORM != "web") {
-      ipcRenderer
-        .invoke("get-media-access-status", { mediaType: "screen" })
-        .then((response) => {
-          if (response == "granted") {
-            this.getAvailableScreensToShare();
-          }
-        });
-    }
-
-    window.addEventListener("resize", this.handleResize);
-    this.handleResize();
-
-    window.addEventListener("online", this.reconnectNetworkConnections);
-    window.addEventListener("offline", this.disconnectNetworkConnections);
-
-    if (process.env.REACT_APP_PLATFORM != "web") {
-      ipcRenderer.on("power_update", (event, arg) => {
-        if (arg == "suspend" || arg == "lock-screen") {
-          this.disconnectNetworkConnections();
-        }
-        if (arg == "unlock-screen" || arg == "resume") {
-          this.reconnectNetworkConnections();
-        }
-      });
-
       ipcRenderer.on("update-screen-sharing-controls", (event, args) => {
         if (typeof args.toggleVideoOrAudio != "undefined") {
           return this.toggleVideoOrAudio(args.toggleVideoOrAudio);
@@ -377,10 +348,6 @@ export default class Room extends React.Component<RoomProps, State> {
       this.updateDisplayedVideosSizes(null, true);
     }
 
-    if (prevState.showChatThread != showChatThread) {
-      this.handleResize();
-    }
-
     if (
       prevState.publishers != publishers &&
       publishers.length > 0 &&
@@ -468,12 +435,7 @@ export default class Room extends React.Component<RoomProps, State> {
       clearInterval(heartbeatInterval);
     }
 
-    window.removeEventListener("resize", this.handleResize);
-    window.removeEventListener("online", this.reconnectNetworkConnections);
-    window.removeEventListener("offline", this.disconnectNetworkConnections);
-
     if (process.env.REACT_APP_PLATFORM != "web") {
-      ipcRenderer.removeAllListeners("power_update");
       ipcRenderer.removeAllListeners("update-screen-sharing-controls");
       ipcRenderer.removeAllListeners("face-tracking-update");
       ipcRenderer.removeAllListeners("background-blur-update");
@@ -2202,47 +2164,6 @@ export default class Room extends React.Component<RoomProps, State> {
         publishers: updatedPublishers,
       });
     }
-  }
-
-  async getAvailableScreensToShare() {
-    const screenSources: {
-      icon: string;
-      display_id: string;
-      id: string;
-      name: string;
-      thumbnail: string;
-    }[] = [];
-
-    const sources = await desktopCapturer.getSources({
-      types: ["window", "screen"],
-      thumbnailSize: { width: 1000, height: 1000 },
-      fetchWindowIcons: true,
-    });
-
-    sources.forEach((source) => {
-      if (!source.name.includes("Blab")) {
-        let icon = null;
-        if (source.appIcon != null) {
-          icon = source.appIcon.toDataURL();
-        }
-
-        if (source.name != null && source.name.length > 50) {
-          source.name = source.name.slice(0, 49);
-          source.name = source.name.trim() + "...";
-        }
-
-        const newSource = {
-          icon,
-          display_id: source.display_id,
-          id: source.id,
-          name: source.name,
-          thumbnail: source.thumbnail.toDataURL(),
-        };
-        screenSources.push(newSource);
-      }
-    });
-
-    this.setState({ screenSources, screenSourcesLoading: false });
   }
 
   async toggleScreenSharing(streamId = null) {

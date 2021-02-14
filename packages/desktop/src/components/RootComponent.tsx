@@ -185,7 +185,7 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
             getOrganizations();
           }
 
-          if (event === "library.items.updated") {
+          if (event === "library.items.updated" && data.item) {
             addNewItemFromNotification(data.item);
           }
         });
