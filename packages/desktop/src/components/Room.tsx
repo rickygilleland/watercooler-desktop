@@ -18,6 +18,7 @@ import {
   faDesktop,
   faDoorClosed,
   faDoorOpen,
+  faGlasses,
   faLock,
   faMicrophone,
   faMicrophoneSlash,
@@ -46,14 +47,7 @@ import React, { useCallback, useEffect, useState } from "react";
 
 import ScreenSharingModal from "./ScreenSharingModal";
 import VideoList from "./VideoList";
-import posthog from "posthog-js";
 import styled from "styled-components";
-const { BrowserWindow } = require("electron").remote;
-const { ipcRenderer } = require("electron");
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare let MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: any;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-declare let MAIN_WINDOW_WEBPACK_ENTRY: any;
 
 interface RoomProps extends PropsFromRedux, RouteComponentProps {
   pusherInstance: Pusher | undefined;
@@ -83,9 +77,6 @@ export default function Room(props: RoomProps): JSX.Element {
   const [audioStatus, setAudioStatus] = useState(
     settings.roomSettings.audioEnabled,
   );
-  const [screenSharingWindow, setScreenSharingWindow] = useState<
-    Electron.BrowserWindow | undefined
-  >();
   const [screenSharingActive, setScreenSharingActive] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showChatThread] = useState(false);
@@ -286,6 +277,12 @@ export default function Room(props: RoomProps): JSX.Element {
       }
     };
   }, [audioStatus, rawLocalStream, videoStatus]);
+
+  useEffect(() => {
+    if (rootMediaHandleInitialized && joinedMediaHandle) {
+      setLoading(false);
+    }
+  }, [rootMediaHandleInitialized, joinedMediaHandle]);
 
   return (
     <React.Fragment>
