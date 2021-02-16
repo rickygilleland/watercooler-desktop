@@ -9,7 +9,6 @@ import styled from "styled-components";
 
 interface ScreenSharingModalProps {
   show: boolean;
-  onShow(): void;
   loading: boolean;
   sources: Electron.DesktopCapturerSource[];
   handleSubmit(screenToShare: string): void;

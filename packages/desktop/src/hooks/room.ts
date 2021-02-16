@@ -1,10 +1,15 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
-import { Channel, Members } from "pusher-js";
 import { Janus } from "janus-gateway";
+import { Room } from "../store/types/room";
+import { Team } from "../store/types/organization";
+import { User } from "../store/types/user";
 import { desktopCapturer, ipcRenderer } from "electron";
 import { each } from "lodash";
 import { useEffect, useRef, useState } from "react";
+import Pusher, { Channel, Members } from "pusher-js";
+import axios from "axios";
 import hark from "hark";
+import posthog from "posthog-js";
 
 export interface Dimensions {
   width: number;
@@ -39,7 +44,7 @@ export interface Publisher {
   display: string;
 }
 
-interface Member {
+export interface Member {
   id: string;
   info: {
     room_at_capacity: boolean;
@@ -48,6 +53,10 @@ interface Member {
     streamer_key: string;
     room_pin: string;
   };
+  timezone?: string;
+  first_name?: string;
+  last_name?: string;
+  avatar?: string;
 }
 
 interface WebsocketDataResponse {
@@ -60,6 +69,50 @@ export interface CanvasElement extends HTMLCanvasElement {
   captureStream(frameRate?: number): MediaStream;
 }
 
+export const useInitializeRoom = (
+  roomSlug: string | undefined,
+  teams: Team[],
+  pusherInstance: Pusher,
+  userId: number | null,
+): {
+  room: Room | undefined;
+  team: Team | undefined;
+  presenceChannel: Channel | undefined;
+  setPresenceChannel(channel: Channel | undefined): void;
+} => {
+  const [room, setRoom] = useState<Room | undefined>();
+  const [team, setTeam] = useState<Team | undefined>();
+  const [presenceChannel, setPresenceChannel] = useState<Channel | undefined>();
+
+  useEffect(() => {
+    let updatedRoom: Room | undefined;
+
+    for (const team of teams) {
+      const updatedRoom = team.rooms.find(
+        (teamRoom) => teamRoom.slug === roomSlug,
+      );
+      if (updatedRoom) {
+        setRoom(updatedRoom);
+        setTeam(team);
+        break;
+      }
+    }
+
+    if (!updatedRoom) {
+      return;
+    }
+
+    posthog.capture("$pageview", { room_id: updatedRoom.id });
+
+    const presenceChannel = pusherInstance.subscribe(
+      `presence-room.${updatedRoom.channel_id}`,
+    );
+
+    setPresenceChannel(presenceChannel);
+  }, [teams, roomSlug, pusherInstance, userId]);
+
+  return { room, team, presenceChannel, setPresenceChannel };
+};
 export const useInitializeJanus = (): boolean => {
   const [initialized, setInitialized] = useState(false);
 
@@ -74,17 +127,21 @@ export const useInitializeJanus = (): boolean => {
   return initialized;
 };
 
-export const useGetAvailableScreensToShare = (): {
+export const useGetAvailableScreensToShare = (
+  showScreenSharingModal: boolean,
+): {
   availableScreensToShare: Electron.DesktopCapturerSource[];
-  screensourcesLoading: boolean;
+  screenSourcesLoading: boolean;
 } => {
   const [availableScreensToShare, setAvailableScreensToShare] = useState<
     Electron.DesktopCapturerSource[]
   >([]);
-  const [screensourcesLoading, setScreenSourcesLoading] = useState(false);
+  const [screenSourcesLoading, setScreenSourcesLoading] = useState(false);
 
   useEffect(() => {
-    setScreenSourcesLoading(false);
+    if (!showScreenSharingModal) return;
+
+    setScreenSourcesLoading(true);
     ipcRenderer
       .invoke("get-media-access-status", { mediaType: "screen" })
       .then(async (response: string) => {
@@ -111,12 +168,12 @@ export const useGetAvailableScreensToShare = (): {
           });
 
           setAvailableScreensToShare(availableScreensToShare);
-          setScreenSourcesLoading(true);
+          setScreenSourcesLoading(false);
         }
       });
-  }, []);
+  }, [showScreenSharingModal]);
 
-  return { availableScreensToShare, screensourcesLoading };
+  return { availableScreensToShare, screenSourcesLoading };
 };
 
 export const useResizeListener = (): Dimensions => {
@@ -1165,4 +1222,36 @@ export const useRenderVideo = (source: MediaStream) => {
   }, [videoRef, source]);
 
   return videoRef;
+};
+
+export const useGetRoomUsers = (
+  roomId: number | undefined,
+  authKey: string | null,
+): User[] => {
+  const [roomUsers, setRoomUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    const getRoomUsers = async () => {
+      try {
+        const roomUsersResponse: {
+          data: User[];
+        } = await axios.get(`https://blab.to/api/room/${roomId}/users`, {
+          headers: {
+            Accept: "application/json",
+            Authorization: "Bearer " + authKey,
+          },
+        });
+
+        setRoomUsers(roomUsersResponse.data);
+      } catch (error) {
+        //
+      }
+    };
+
+    if (roomId && authKey !== null) {
+      getRoomUsers();
+    }
+  }, [roomId, authKey]);
+
+  return roomUsers;
 };

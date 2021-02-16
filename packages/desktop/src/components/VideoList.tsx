@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { User } from "../store/types/user";
+import { useGetCurrentTime } from "../hooks/team";
 import React, { useEffect, useState } from "react";
 import Video from "./Video";
 
@@ -8,10 +9,8 @@ interface VideoListProps {
   user: User;
   publishers: any;
   videoSizes: any;
-  renderVideo: any;
   togglePinned: any;
   pinned: any;
-  currentTime: any;
 }
 
 export default function VideoList(props: VideoListProps): JSX.Element {
@@ -20,11 +19,11 @@ export default function VideoList(props: VideoListProps): JSX.Element {
     user,
     publishers,
     videoSizes,
-    renderVideo,
     togglePinned,
     pinned,
-    currentTime,
   } = props;
+
+  const currentTime = useGetCurrentTime(props.user.timezone);
 
   const [processedPublishers, setProcessedPublishers] = useState([
     ...publishers,
@@ -105,38 +104,16 @@ export default function VideoList(props: VideoListProps): JSX.Element {
         showPinToggle={showPinToggle}
         videoSizes={videoSizes}
         publisher={publisher}
-        renderVideo={renderVideo}
         togglePinned={togglePinned}
         publishing={publishing}
-        speaking={
-          typeof publisher.speaking != "undefined" ? publisher.speaking : false
-        }
+        speaking={publisher.speaking}
         currentTime={currentTime}
         localTimezone={user.timezone}
-        active={
-          typeof publisher.active != "undefined" ? publisher.active : false
-        }
-        hasVideo={
-          typeof publisher.hasVideo != "undefined" ? publisher.hasVideo : false
-        }
-        hasAudio={
-          typeof publisher.hasAudio != "undefined" ? publisher.hasAudio : false
-        }
-        videoLoading={
-          typeof publisher.videoLoading != "undefined"
-            ? publisher.videoLoading
-            : true
-        }
-        audioLoading={
-          typeof publisher.audioLoading != "undefined"
-            ? publisher.audioLoading
-            : true
-        }
-        videoIsFaceOnly={
-          typeof publisher.videoIsFaceOnly != "undefined" && publishing
-            ? publisher.videoIsFaceOnly
-            : false
-        }
+        hasVideo={publisher.hasVideo}
+        hasAudio={publisher.hasAudio}
+        videoLoading={publisher.videoLoading}
+        audioLoading={publisher.audioLoading}
+        videoIsFaceOnly={publisher.videoIsFaceOnly}
         showBeforeJoin={publisher.id.includes("_screensharing") ? false : true}
         pinned={true}
         key={publisher.id}
@@ -158,7 +135,6 @@ export default function VideoList(props: VideoListProps): JSX.Element {
         showPinToggle={showPinToggle}
         videoSizes={videoSizes}
         publisher={publisher}
-        renderVideo={renderVideo}
         togglePinned={togglePinned}
         publishing={publishing}
         speaking={

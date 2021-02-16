@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Button, Image, Modal } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Member } from "../hooks/room";
+import { Room } from "../store/types/room";
+import { User } from "../store/types/user";
 import {
   faCheck,
   faCircleNotch,
@@ -11,28 +14,19 @@ import React, { useState } from "react";
 interface AddUserToRoomModalProps {
   handleSubmit: any;
   onHide: any;
-  show: any;
+  show: boolean;
   loading: boolean;
-  addUserLoading: any;
-  users: any;
-  room: any;
-  me: any;
-  organizationUsers: any;
-  getRoomUsers: any;
+  addUserLoading: boolean;
+  users: User[];
+  room: Room;
+  me: Member;
+  organizationUsers: User[];
 }
 
 export default function AddUserToRoomModal(
   props: AddUserToRoomModalProps,
 ): JSX.Element {
-  const {
-    loading,
-    addUserLoading,
-    users,
-    room,
-    me,
-    organizationUsers,
-    getRoomUsers,
-  } = props;
+  const { loading, addUserLoading, users, room, me, organizationUsers } = props;
 
   const [showAddUserForm, setShowAddUserForm] = useState(false);
   const [loadingUser, setLoadingUser] = useState(null);
@@ -59,7 +53,6 @@ export default function AddUserToRoomModal(
     setShowAddUserForm(false);
     setFilteredUsers([]);
     setUsersAdded([]);
-    getRoomUsers(room.id);
     props.onHide();
   }
 

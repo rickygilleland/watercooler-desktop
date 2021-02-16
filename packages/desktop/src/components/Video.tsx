@@ -1,6 +1,7 @@
 import { Button, Col, Image, Row } from "react-bootstrap";
 import { DateTime } from "luxon";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Publisher, VideoSizes, useRenderVideo } from "../hooks/room";
 import {
   faCircleNotch,
   faCompress,
@@ -8,10 +9,30 @@ import {
   faMicrophone,
   faMicrophoneSlash,
 } from "@fortawesome/free-solid-svg-icons";
+
 import React from "react";
 import VideoPlayer from "./VideoPlayer";
 
-function Video(props) {
+interface VideoProps {
+  showPinToggle: boolean;
+  showBeforeJoin: boolean;
+  videoSizes: VideoSizes;
+  publisher: Publisher;
+  localTimezone: string;
+  currentTime: DateTime;
+  publishing: boolean;
+  speaking: boolean;
+  hasVideo: boolean;
+  hasAudio: boolean;
+  audioLoading: boolean;
+  videoLoading: boolean;
+  videoIsFaceOnly: boolean;
+  togglePinned(publisher: Publisher): void;
+  pinned: boolean;
+  isLocal: boolean;
+}
+
+function Video(props: VideoProps) {
   const {
     showPinToggle,
     showBeforeJoin,
@@ -25,11 +46,13 @@ function Video(props) {
     audioLoading,
     videoLoading,
     videoIsFaceOnly,
-    renderVideo,
     togglePinned,
     pinned,
     isLocal,
+    hasAudio,
   } = props;
+
+  const videoRef = useRenderVideo(publisher.stream);
 
   let classAppend = "";
 
@@ -58,7 +81,7 @@ function Video(props) {
             }}
           >
             <VideoPlayer
-              renderVideo={renderVideo}
+              videoRef={videoRef}
               isLocal={isLocal}
               stream={publisher.stream}
               publisher={publisher}
@@ -68,8 +91,8 @@ function Video(props) {
               className="position-absolute overlay"
               style={{ top: 8, width: "100%" }}
             >
-              {publisher.member.timezone != null &&
-              publisher.member.timezone != localTimezone ? (
+              {publisher.member?.timezone != null &&
+              publisher.member?.timezone != localTimezone ? (
                 <p
                   className="pl-2 mb-1 mt-1 font-weight-bolder"
                   style={{ fontSize: "1.1rem" }}
@@ -96,7 +119,7 @@ function Video(props) {
             >
               <Row>
                 <Col>
-                  {!publisher.hasAudio ? (
+                  {!hasAudio ? (
                     <p
                       className="pl-2 mb-1 mt-1 font-weight-bolder"
                       style={{ fontSize: "1.1rem" }}
@@ -138,10 +161,10 @@ function Video(props) {
                       }}
                     >
                       {publisher.id.includes("_screensharing")
-                        ? publisher.member.first_name + "'s Screen"
-                        : publisher.member.first_name}
+                        ? publisher.member?.first_name + "'s Screen"
+                        : publisher.member?.first_name}
 
-                      {publisher.hasAudio ? (
+                      {hasAudio ? (
                         <FontAwesomeIcon
                           style={{
                             color: "#2eb97b",
@@ -166,7 +189,7 @@ function Video(props) {
                 <Col>
                   {/*<p className="pr-2 mb-1 mt-1 font-weight-bolder text-right">
                                         <span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>
-                                            {publisher.hasAudio
+                                            {hasAudio
                                                 ?
                                                     <FontAwesomeIcon style={{color:"#2eb97b"}} icon={faMicrophone} />
                                                 :
@@ -219,8 +242,8 @@ function Video(props) {
               className="position-absolute overlay"
               style={{ top: 8, width: "100%" }}
             >
-              {publisher.member.timezone != null &&
-              publisher.member.timezone != localTimezone ? (
+              {publisher.member?.timezone != null &&
+              publisher.member?.timezone != localTimezone ? (
                 <p
                   className="pl-2 mb-1 mt-1 font-weight-bolder"
                   style={{ fontSize: "1.1rem" }}
@@ -233,7 +256,7 @@ function Video(props) {
                     }}
                   >
                     {currentTime
-                      .setZone(publisher.member.timezone)
+                      .setZone(publisher.member?.timezone)
                       .toLocaleString(DateTime.TIME_SIMPLE)}
                   </span>
                 </p>
@@ -245,12 +268,12 @@ function Video(props) {
               autoPlay
               muted={isLocal}
               playsInline
-              ref={renderVideo(publisher.stream)}
+              ref={videoRef}
               style={{ height: 0, width: 0 }}
             ></video>
             <div className="mx-auto align-self-center">
               <Image
-                src={publisher.member.avatar}
+                src={publisher.member?.avatar}
                 style={{ maxHeight: 75, borderRadius: 15 }}
                 fluid
               />
@@ -278,7 +301,7 @@ function Video(props) {
             >
               <Row>
                 <Col>
-                  {!publisher.hasAudio ? (
+                  {!hasAudio ? (
                     <p
                       className="pl-2 mb-1 mt-1 font-weight-bolder"
                       style={{ fontSize: "1.1rem" }}
@@ -320,10 +343,10 @@ function Video(props) {
                       }}
                     >
                       {publisher.id.includes("_screensharing")
-                        ? publisher.member.first_name + "'s Screen"
-                        : publisher.member.first_name}
+                        ? publisher.member?.first_name + "'s Screen"
+                        : publisher.member?.first_name}
 
-                      {publisher.hasAudio ? (
+                      {hasAudio ? (
                         <FontAwesomeIcon
                           style={{
                             color: "#2eb97b",
@@ -348,7 +371,7 @@ function Video(props) {
                 <Col>
                   {/*<p className="pr-2 mb-1 mt-1 font-weight-bolder text-right">
                                         <span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>
-                                            {publisher.hasAudio
+                                            {hasAudio
                                                 ?
                                                     <FontAwesomeIcon style={{color:"#2eb97b"}} icon={faMicrophone} />
                                                 :
@@ -384,8 +407,8 @@ function Video(props) {
           className="position-absolute overlay"
           style={{ top: 8, width: "100%" }}
         >
-          {publisher.member.timezone != null &&
-          publisher.member.timezone != localTimezone ? (
+          {publisher.member?.timezone != null &&
+          publisher.member?.timezone != localTimezone ? (
             <p
               className="pl-2 mb-1 mt-1 font-weight-bolder"
               style={{ fontSize: "1.1rem" }}
@@ -408,7 +431,7 @@ function Video(props) {
         </div>
         <div className="mx-auto align-self-center">
           <Image
-            src={publisher.member.avatar}
+            src={publisher.member?.avatar}
             style={{ maxHeight: 75, borderRadius: 15 }}
             fluid
           />
@@ -445,7 +468,7 @@ function Video(props) {
                 padding: ".6rem",
               }}
             >
-              {publisher.member.first_name}
+              {publisher.member?.first_name}
             </span>
           </p>
         </div>
