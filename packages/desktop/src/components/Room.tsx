@@ -41,7 +41,7 @@ import {
   useStartPublishingStream,
 } from "../hooks/room";
 import AddUserToRoomModal from "./AddUserToRoomModal";
-import Pusher, { PresenceChannel } from "pusher-js";
+import Pusher, { Channel } from "pusher-js";
 import React, { useCallback, useEffect, useState } from "react";
 
 import ScreenSharingModal from "./ScreenSharingModal";
@@ -56,11 +56,10 @@ declare let MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: any;
 declare let MAIN_WINDOW_WEBPACK_ENTRY: any;
 
 interface RoomProps extends PropsFromRedux, RouteComponentProps {
-  pusherInstance: Pusher;
-  userPrivateNotificationChannel: PresenceChannel;
-  sidebarIsVisible: boolean;
+  pusherInstance: Pusher | undefined;
+  userPrivateNotificationChannel: Channel | undefined;
   isLightMode: boolean;
-  onClick(): void;
+  roomSlug: string | undefined;
 }
 
 export default function Room(props: RoomProps): JSX.Element {
@@ -93,6 +92,9 @@ export default function Room(props: RoomProps): JSX.Element {
   const [rawLocalStream, setRawLocalStream] = useState<
     MediaStream | undefined
   >();
+  const [pinnedPublisherId, setPinnedPublisherIdId] = useState<
+    string | undefined
+  >();
 
   const [showAddUserToRoomModal, setShowAddUserToRoomModal] = useState(false);
   const [showScreenSharingModal, setShowScreenSharingModal] = useState(false);
@@ -100,7 +102,7 @@ export default function Room(props: RoomProps): JSX.Element {
     false,
   );
 
-  const { room, team, presenceChannel, setPresenceChannel } = useInitializeRoom(
+  const { room, presenceChannel, setPresenceChannel } = useInitializeRoom(
     roomSlug,
     teams,
     pusherInstance,
@@ -135,6 +137,7 @@ export default function Room(props: RoomProps): JSX.Element {
     localStream,
     speakingPublishers,
     publishing,
+    setPublishing,
   } = useStartPublishingStream(
     rawLocalStream,
     rootMediaHandle,
@@ -226,7 +229,7 @@ export default function Room(props: RoomProps): JSX.Element {
   }, [networkOnline]);
 
   const reconnectNetworkConnections = useCallback(() => {
-    if (!room?.channel_id) {
+    if (!room?.channel_id || !pusherInstance) {
       return;
     }
 
@@ -243,9 +246,9 @@ export default function Room(props: RoomProps): JSX.Element {
     }
 
     if (publishing) {
-      stopPublishingStream();
+      setPublishing(false);
     }
-  }, [presenceChannel, publishing, setPresenceChannel]);
+  }, [presenceChannel, publishing, setPresenceChannel, setPublishing]);
 
   const getNewServer = useCallback(() => {
     disconnectNetworkConnections();
@@ -360,10 +363,7 @@ export default function Room(props: RoomProps): JSX.Element {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: false,
         video: {
-          mandatory: {
-            chromeMediaSource: "desktop",
-            chromeMediaSourceId: streamId,
-          },
+          deviceId: streamId,
         },
       });
 
@@ -556,7 +556,7 @@ export default function Room(props: RoomProps): JSX.Element {
                     style={{ whiteSpace: "nowrap" }}
                     className="mx-3 icon-button btn-lg text-red"
                     size="lg"
-                    onClick={() => this.stopPublishingStream()}
+                    onClick={() => setPublishing(false)}
                   >
                     <FontAwesomeIcon icon={faDoorClosed} /> Leave
                   </Button>
@@ -569,7 +569,7 @@ export default function Room(props: RoomProps): JSX.Element {
                   style={{ whiteSpace: "nowrap" }}
                   size="lg"
                   className="mx-3 icon-button btn-lg text-red"
-                  onClick={() => this.stopPublishingStream()}
+                  onClick={() => setPublishing(false)}
                 >
                   <FontAwesomeIcon icon={faDoorClosed} /> Leave
                 </Button>
@@ -782,11 +782,13 @@ export default function Room(props: RoomProps): JSX.Element {
                   publishers={publishers}
                   publishing={publishing}
                   user={user}
-                  togglePinned={this.togglePinned}
-                  pinned={pinned}
+                  togglePinned={(publisherId: string) =>
+                    setPinnedPublisherIdId(publisherId)
+                  }
+                  pinnedPublisherId={pinnedPublisherId}
                 ></VideoList>
               ) : (
-                currentLoadingMessage
+                "Loading..."
               )}
             </div>
           </React.Fragment>

@@ -74,16 +74,14 @@ export interface CanvasElement extends HTMLCanvasElement {
 export const useInitializeRoom = (
   roomSlug: string | undefined,
   teams: Team[],
-  pusherInstance: Pusher,
+  pusherInstance: Pusher | undefined,
   userId: number | null,
 ): {
   room: Room | undefined;
-  team: Team | undefined;
   presenceChannel: Channel | undefined;
   setPresenceChannel(channel: Channel | undefined): void;
 } => {
   const [room, setRoom] = useState<Room | undefined>();
-  const [team, setTeam] = useState<Team | undefined>();
   const [presenceChannel, setPresenceChannel] = useState<Channel | undefined>();
 
   useEffect(() => {
@@ -95,7 +93,6 @@ export const useInitializeRoom = (
       );
       if (updatedRoom) {
         setRoom(updatedRoom);
-        setTeam(team);
         break;
       }
     }
@@ -106,14 +103,16 @@ export const useInitializeRoom = (
 
     posthog.capture("$pageview", { room_id: updatedRoom.id });
 
-    const presenceChannel = pusherInstance.subscribe(
-      `presence-room.${updatedRoom.channel_id}`,
-    );
+    if (pusherInstance) {
+      const presenceChannel = pusherInstance.subscribe(
+        `presence-room.${updatedRoom.channel_id}`,
+      );
 
-    setPresenceChannel(presenceChannel);
+      setPresenceChannel(presenceChannel);
+    }
   }, [teams, roomSlug, pusherInstance, userId]);
 
-  return { room, team, presenceChannel, setPresenceChannel };
+  return { room, presenceChannel, setPresenceChannel };
 };
 export const useInitializeJanus = (): boolean => {
   const [initialized, setInitialized] = useState(false);
@@ -1055,6 +1054,7 @@ export const useStartPublishingStream = (
   localStream: MediaStream | undefined;
   speakingPublishers: string[];
   publishing: boolean;
+  setPublishing(publishing: boolean): void;
 } => {
   const localVideoContainer = useRef<CanvasElement>(null);
   const localVideoCanvasContainer = useRef<CanvasElement>(null);
@@ -1211,7 +1211,7 @@ export const useStartPublishingStream = (
     heartbeatInterval,
   ]);
 
-  return { localStream, speakingPublishers, publishing };
+  return { localStream, speakingPublishers, publishing, setPublishing };
 };
 
 export const useRenderVideo = (source: MediaStream) => {

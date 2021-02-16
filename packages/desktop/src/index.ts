@@ -2,7 +2,6 @@ import {
   BrowserWindow,
   Menu,
   Notification,
-  Tray,
   app,
   autoUpdater,
   dialog,
@@ -13,7 +12,6 @@ import {
 } from "electron";
 import { init } from "@sentry/electron/dist/main";
 import ElectronStore from "electron-store";
-import path from "path";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare let MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: any;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -24,9 +22,6 @@ if (require("electron-squirrel-startup")) app.quit();
 const isDevMode = Boolean(process.execPath.match(/[\\/]electron/));
 
 let mainWindow: Electron.BrowserWindow;
-let tray: Electron.Tray;
-let trayMenu: Electron.Menu;
-const iconPath = path.resolve(__dirname, "icons", "appIconTemplate.png");
 
 if (!isDevMode) {
   init({
@@ -89,7 +84,7 @@ const createWindow = () => {
 
   // Create the browser window.
   if (!isDevMode) {
-    let template: Electron.MenuItemConstructorOptions[] = [
+    let template: Electron.MenuItemConstructorOptions[] | null = [
       {
         label: "Application",
         submenu: [
@@ -140,7 +135,9 @@ const createWindow = () => {
       },
     });
 
-    Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+    if (template) {
+      Menu.setApplicationMenu(Menu.buildFromTemplate(template));
+    }
   } else {
     // Create the browser window.
     mainWindow = new BrowserWindow({
@@ -205,7 +202,7 @@ const createWindow = () => {
     return systemPreferences.getMediaAccessStatus(args.mediaType);
   });
 
-  ipcMain.handle("update-tray-icon", async (_event, args) => {
+  /*ipcMain.handle("update-tray-icon", async (_event, args) => {
     if (args.enable && !tray) {
       tray = new Tray(iconPath);
       tray.setToolTip("Blab");
@@ -331,55 +328,41 @@ const createWindow = () => {
     }
 
     tray.setContextMenu(trayMenu);
-  });
+  });*/
 
-  ipcMain.handle("update-screen-sharing-controls", async (_event, args) => {
-    if (typeof args.starting != "undefined") {
-      return mainWindow.hide();
-    }
-
-    if (
-      typeof args.leaveRoom != "undefined" ||
-      typeof args.toggleScreenSharing != "undefined"
-    ) {
-      mainWindow.show();
-    }
-
-    if (typeof args.screenSharingWindow != "undefined") {
-      BrowserWindow.fromId(args.screenSharingWindow).webContents.send(
-        "update-screen-sharing-controls",
-        args,
-      );
-    } else {
-      mainWindow.webContents.send("update-screen-sharing-controls", args);
-    }
-    return true;
-  });
-
-  ipcMain.handle("face-tracking-update", async (_event, args) => {
-    if (typeof args.type != "undefined") {
-      if (args.type == "updated_coordinates") {
-        mainWindow.webContents.send("face-tracking-update", args);
+  ipcMain.handle(
+    "update-screen-sharing-controls",
+    async (
+      _event,
+      args: {
+        starting?: boolean;
+        leaveRoom?: boolean;
+        toggleScreenSharing?: boolean;
+        screenSharingWindow?: number;
+      },
+    ) => {
+      if (typeof args.starting != "undefined") {
+        return mainWindow.hide();
       }
-    }
-  });
 
-  ipcMain.handle("net-status-update", async (_event, args) => {
-    if (typeof args.net != "undefined" && args.window != "undefined") {
-      BrowserWindow.fromId(args.window).webContents.send(
-        "net-status-update",
-        args,
-      );
-    }
-  });
-
-  ipcMain.handle("background-blur-update", async (_event, args) => {
-    if (typeof args.type != "undefined") {
-      if (args.type == "updated_coordinates") {
-        mainWindow.webContents.send("background-blur-update", args);
+      if (
+        typeof args.leaveRoom != "undefined" ||
+        typeof args.toggleScreenSharing != "undefined"
+      ) {
+        mainWindow.show();
       }
-    }
-  });
+
+      if (args.screenSharingWindow) {
+        BrowserWindow.fromId(args.screenSharingWindow)?.webContents.send(
+          "update-screen-sharing-controls",
+          args,
+        );
+      } else {
+        mainWindow.webContents.send("update-screen-sharing-controls", args);
+      }
+      return true;
+    },
+  );
 
   mainWindow.webContents.on("new-window", function (e, url) {
     e.preventDefault();

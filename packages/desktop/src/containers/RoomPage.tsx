@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { AnyAction, Dispatch, bindActionCreators } from "redux";
 import { AuthState } from "../store/types/auth";
 import { ConnectedProps, connect } from "react-redux";
@@ -11,22 +10,13 @@ import { push } from "connected-react-router";
 import { withRouter } from "react-router-dom";
 import Room from "../components/Room";
 
-function mapStateToProps(
-  state: {
-    auth: AuthState;
-    user: User;
-    organization: OrganizationState;
-    room: RoomState;
-    settings: SettingsState;
-  },
-  ownProps: {
-    match: {
-      params: {
-        roomSlug: string;
-      };
-    };
-  },
-) {
+function mapStateToProps(state: {
+  auth: AuthState;
+  user: User;
+  organization: OrganizationState;
+  room: RoomState;
+  settings: SettingsState;
+}) {
   return {
     auth: state.auth,
     user: state.user,
@@ -38,7 +28,6 @@ function mapStateToProps(
     addUserLoading: state.room.addUserLoading,
     roomUsers: state.room.users,
     settings: state.settings,
-    roomSlug: ownProps.match.params.roomSlug,
   };
 }
 

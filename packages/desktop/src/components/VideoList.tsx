@@ -9,10 +9,8 @@ interface VideoListProps {
   user: User;
   publishers: Publisher[];
   videoSizes: VideoSizes;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  togglePinned: any;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  pinned: any;
+  togglePinned(publisherId: string): void;
+  pinnedPublisherId: string | undefined;
 }
 
 export default function VideoList(props: VideoListProps): JSX.Element {
@@ -22,7 +20,7 @@ export default function VideoList(props: VideoListProps): JSX.Element {
     publishers,
     videoSizes,
     togglePinned,
-    pinned,
+    pinnedPublisherId,
   } = props;
 
   const currentTime = useGetCurrentTime(props.user.timezone);
@@ -30,6 +28,10 @@ export default function VideoList(props: VideoListProps): JSX.Element {
   const [processedPublishers, setProcessedPublishers] = useState<Publisher[]>([
     ...publishers,
   ]);
+  const [pinnedPublisher, setPinnedPublisher] = useState<
+    Publisher | undefined
+  >();
+  const [showPinToggle, setShowPinToggle] = useState(false);
 
   useEffect(() => {
     if (processedPublishers.length != publishers.length) {
@@ -51,6 +53,13 @@ export default function VideoList(props: VideoListProps): JSX.Element {
       setProcessedPublishers([...publishers]);
     }
   }, [processedPublishers, publishers]);
+
+  useEffect(() => {
+    const pinnedPublisher = processedPublishers.find(
+      (publisher) => publisher.id === pinnedPublisherId,
+    );
+    setPinnedPublisher(pinnedPublisher);
+  }, [pinnedPublisherId, processedPublishers]);
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -98,36 +107,34 @@ export default function VideoList(props: VideoListProps): JSX.Element {
     }
   }, [processedPublishers]);
 
-  let showPinToggle = false;
-  if (processedPublishers.length > 1) {
-    showPinToggle = true;
-  }
+  useEffect(() => {
+    setShowPinToggle(Boolean(processedPublishers.length > 1));
+  }, [processedPublishers.length]);
 
-  if (pinned !== false || !showPinToggle) {
-    let publisher = processedPublishers[0];
-    if (pinned !== false) {
-      publisher = processedPublishers[pinned];
-    }
+  if (pinnedPublisher || showPinToggle) {
+    const publisherToShow = pinnedPublisher ?? processedPublishers[0];
 
     return (
       <Video
         showPinToggle={showPinToggle}
         videoSizes={videoSizes}
-        publisher={publisher}
+        publisher={publisherToShow}
         togglePinned={togglePinned}
         publishing={publishing}
-        speaking={Boolean(publisher.speaking)}
+        speaking={Boolean(publisherToShow.speaking)}
         currentTime={currentTime}
         localTimezone={user.timezone}
-        hasVideo={publisher.hasVideo}
-        hasAudio={publisher.hasAudio}
-        videoLoading={Boolean(publisher.videoLoading)}
-        audioLoading={Boolean(publisher.audioLoading)}
-        videoIsFaceOnly={Boolean(publisher.videoIsFaceOnly)}
-        showBeforeJoin={publisher.id.includes("_screensharing") ? false : true}
+        hasVideo={publisherToShow.hasVideo}
+        hasAudio={publisherToShow.hasAudio}
+        videoLoading={Boolean(publisherToShow.videoLoading)}
+        audioLoading={Boolean(publisherToShow.audioLoading)}
+        videoIsFaceOnly={Boolean(publisherToShow.videoIsFaceOnly)}
+        showBeforeJoin={
+          publisherToShow.id.includes("_screensharing") ? false : true
+        }
         pinned={true}
-        key={publisher.id}
-        isLocal={publisher.member?.id == user.id.toString()}
+        key={publisherToShow.id}
+        isLocal={publisherToShow.member?.id == user.id.toString()}
       ></Video>
     );
   }

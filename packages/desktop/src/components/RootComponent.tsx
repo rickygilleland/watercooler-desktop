@@ -71,10 +71,6 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
   const [showManageCameraModal, setShowManageCameraModal] = useState(false);
 
   const [activeTeam, setActiveTeam] = useState<Team>();
-  const [
-    backgroundBlurWindow,
-    setBackgroundBlurWindow,
-  ] = useState<Electron.BrowserWindow>();
 
   const [showCreateRoomForm, setShowCreateRoomForm] = useState(false);
 
@@ -278,8 +274,8 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
                   pusherInstance={pusherInstance}
                   userPrivateNotificationChannel={userChannel}
                   key={routeProps.match.params.roomSlug}
-                  backgroundBlurWindow={backgroundBlurWindow}
                   isLightMode={isLightMode}
+                  roomSlug={routeProps.match.params.roomSlug}
                 />
               </ErrorBoundary>
             )}

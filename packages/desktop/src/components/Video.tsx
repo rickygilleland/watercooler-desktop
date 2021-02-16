@@ -27,12 +27,12 @@ interface VideoProps {
   audioLoading: boolean;
   videoLoading: boolean;
   videoIsFaceOnly: boolean;
-  togglePinned(publisher: Publisher): void;
+  togglePinned(publisherId: string): void;
   pinned: boolean;
   isLocal: boolean;
 }
 
-function Video(props: VideoProps) {
+export default function Video(props: VideoProps): JSX.Element {
   const {
     showPinToggle,
     showBeforeJoin,
@@ -202,7 +202,7 @@ function Video(props: VideoProps) {
                       <Button
                         variant="dark"
                         className="float-right mb-1 mr-2 toggle-pinned-btn border-0"
-                        onClick={() => togglePinned(publisher)}
+                        onClick={() => togglePinned(publisher.id)}
                       >
                         <FontAwesomeIcon icon={faCompress} />
                       </Button>
@@ -210,7 +210,7 @@ function Video(props: VideoProps) {
                       <Button
                         variant="dark"
                         className="float-right mb-1 mr-2 toggle-pinned-btn border-0"
-                        onClick={() => togglePinned(publisher)}
+                        onClick={() => togglePinned(publisher.id)}
                       >
                         <FontAwesomeIcon icon={faExpand} />
                       </Button>
@@ -389,7 +389,7 @@ function Video(props: VideoProps) {
   }
 
   if (showBeforeJoin == false) {
-    return null;
+    return <React.Fragment></React.Fragment>;
   }
 
   return (
@@ -476,5 +476,3 @@ function Video(props: VideoProps) {
     </div>
   );
 }
-
-export default React.memo(Video);

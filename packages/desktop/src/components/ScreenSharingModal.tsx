@@ -28,7 +28,6 @@ export default function ScreenSharingModal(
   return (
     <Modal
       show={props.show}
-      onShow={props.onShow}
       onHide={props.onHide}
       size="lg"
       aria-labelledby="contained-modal-title-vcenter"

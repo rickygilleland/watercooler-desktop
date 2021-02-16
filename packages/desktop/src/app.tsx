@@ -6,7 +6,6 @@ import { Persistor } from "redux-persist";
 import { Provider } from "react-redux";
 import { Redirect, Route, Switch } from "react-router-dom";
 import { Routes } from "./components/RootComponent";
-import BlurNetBackground from "./containers/BlurNetBackground";
 import LoadingPage from "./containers/LoadingPage";
 import LoginPage from "./containers/LoginPage";
 import MagicLoginPage from "./containers/MagicLoginPage";
@@ -70,11 +69,6 @@ export default function App(props: AppProps): JSX.Element {
               path="/screensharing_controls"
               exact
               component={ScreenShareControls}
-            />
-            <Route
-              path="/blur_net_background"
-              exact
-              component={BlurNetBackground}
             />
             <Route path="/*" component={RootContainer} />
           </Switch>
