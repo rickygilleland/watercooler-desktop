@@ -4,7 +4,7 @@ import { Room } from "../store/types/room";
 import { Team } from "../store/types/organization";
 import { User } from "../store/types/user";
 import { desktopCapturer, ipcRenderer } from "electron";
-import { each } from "lodash";
+import { each, update } from "lodash";
 import { useEffect, useRef, useState } from "react";
 import Pusher, { Channel, Members } from "pusher-js";
 import axios from "axios";
@@ -88,9 +88,7 @@ export const useInitializeRoom = (
     let updatedRoom: Room | undefined;
 
     for (const team of teams) {
-      const updatedRoom = team.rooms.find(
-        (teamRoom) => teamRoom.slug === roomSlug,
-      );
+      updatedRoom = team.rooms.find((teamRoom) => teamRoom.slug === roomSlug);
       if (updatedRoom) {
         setRoom(updatedRoom);
         break;
@@ -116,13 +114,16 @@ export const useInitializeRoom = (
 };
 export const useInitializeJanus = (): boolean => {
   const [initialized, setInitialized] = useState(false);
+  const dependencies = Janus.useDefaultDependencies();
 
-  Janus.init({
-    debug: process.env.NODE_ENV == "production" ? false : true,
-    dependencies: Janus.useDefaultDependencies(),
-    callback: () => {
-      setInitialized(true);
-    },
+  useEffect(() => {
+    Janus.init({
+      debug: process.env.NODE_ENV == "production" ? false : true,
+      dependencies,
+      callback: () => {
+        setInitialized(true);
+      },
+    });
   });
 
   return initialized;
@@ -446,6 +447,7 @@ export const useGetMediaHandle = (
   const [videoRoomStreamHandle, setVideoRoomStreamHandle] = useState<any>();
   const [mediaHandleError, setMediaHandleError] = useState(false);
   const [privateId, setPrivateId] = useState<string | undefined>();
+  const [mediaHandleCreated, setMediaHandleCreated] = useState(false);
   const [joinedMediaHandle, setJoinedMediaHandle] = useState(false);
 
   useEffect(() => {
@@ -455,10 +457,13 @@ export const useGetMediaHandle = (
       !rootMediaHandleInitialized ||
       !roomChannelId ||
       !streamerKey ||
-      !roomPin
+      !roomPin ||
+      mediaHandleCreated
     ) {
       return;
     }
+
+    setMediaHandleCreated(true);
 
     rootMediaHandle.attach({
       plugin: "janus.plugin.videoroom",
@@ -572,6 +577,7 @@ export const useGetMediaHandle = (
     roomPin,
     publishers,
     subscribedPublishers,
+    mediaHandleCreated,
   ]);
 
   useEffect(() => {
