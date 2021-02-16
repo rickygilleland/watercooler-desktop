@@ -12,6 +12,7 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "strictNullChecks": true,
+    "downlevelIteration": true,
     "paths": {
       "*": ["node_modules/*"]
     }

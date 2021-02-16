@@ -11,13 +11,22 @@ import { push } from "connected-react-router";
 import { withRouter } from "react-router-dom";
 import Room from "../components/Room";
 
-function mapStateToProps(state: {
-  auth: AuthState;
-  user: User;
-  organization: OrganizationState;
-  room: RoomState;
-  settings: SettingsState;
-}) {
+function mapStateToProps(
+  state: {
+    auth: AuthState;
+    user: User;
+    organization: OrganizationState;
+    room: RoomState;
+    settings: SettingsState;
+  },
+  ownProps: {
+    match: {
+      params: {
+        roomSlug: string;
+      };
+    };
+  },
+) {
   return {
     auth: state.auth,
     user: state.user,
@@ -29,6 +38,7 @@ function mapStateToProps(state: {
     addUserLoading: state.room.addUserLoading,
     roomUsers: state.room.users,
     settings: state.settings,
+    roomSlug: ownProps.match.params.roomSlug,
   };
 }
 
