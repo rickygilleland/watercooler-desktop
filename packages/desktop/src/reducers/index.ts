@@ -25,7 +25,10 @@ export default (history: History): Reducer => {
     settings,
   });
 
-  const rootReducer = (state: GlobalState, action: GlobalActionTypes) => {
+  const rootReducer = (
+    state: GlobalState | undefined,
+    action: GlobalActionTypes,
+  ) => {
     if (action.type === USER_LOGOUT) {
       state = undefined;
     }

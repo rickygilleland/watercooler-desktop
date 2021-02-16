@@ -6,6 +6,7 @@ import {
   GET_MESSAGES_BY_THREAD_ID_FAILURE,
   GET_MESSAGES_BY_THREAD_ID_STARTED,
   GET_MESSAGES_BY_THREAD_ID_SUCCESS,
+  Message,
   MessageActionTypes,
   MessageState,
 } from "../store/types/message";
@@ -13,7 +14,7 @@ import { cloneDeep } from "lodash";
 
 const initialState: MessageState = {
   messages: {},
-  lastCreatedMessage: null,
+  lastCreatedMessage: {} as Message,
   loading: false,
   creating: false,
   error: false,

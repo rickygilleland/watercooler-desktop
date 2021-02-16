@@ -9,7 +9,7 @@ interface CreateRoomFormProps {
   loading: boolean;
   billing: Billing;
   createRoomSuccess: boolean;
-  lastCreatedRoomSlug: string;
+  lastCreatedRoomSlug: string | null;
   handleSubmit(name: string, videoEnabled: boolean, isPrivate: boolean): void;
   push(location: string): void;
   onHide(): void;

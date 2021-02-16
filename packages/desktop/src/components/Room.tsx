@@ -535,7 +535,7 @@ export default function Room(props: RoomProps): JSX.Element {
                       style={{ whiteSpace: "nowrap" }}
                       className="mx-3 icon-button btn-lg"
                       size="lg"
-                      onClick={() => this.startPublishingStream()}
+                      onClick={() => startPublishingStream()}
                     >
                       <FontAwesomeIcon icon={faDoorOpen} /> Join
                     </Button>
@@ -782,7 +782,6 @@ export default function Room(props: RoomProps): JSX.Element {
                   publishers={publishers}
                   publishing={publishing}
                   user={user}
-                  renderVideo={this.renderVideo}
                   togglePinned={this.togglePinned}
                   pinned={pinned}
                 ></VideoList>

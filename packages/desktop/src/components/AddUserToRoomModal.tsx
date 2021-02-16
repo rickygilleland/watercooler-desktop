@@ -9,7 +9,7 @@ import {
   faCircleNotch,
   faWindowClose,
 } from "@fortawesome/free-solid-svg-icons";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 interface AddUserToRoomModalProps {
   handleSubmit: any;
@@ -30,22 +30,17 @@ export default function AddUserToRoomModal(
 
   const [showAddUserForm, setShowAddUserForm] = useState(false);
   const [loadingUser, setLoadingUser] = useState(null);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [usersAdded, setUsersAdded] = useState([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [usersAdded, setUsersAdded] = useState<number[]>([]);
+
+  useEffect(() => {
+    const usersAdded = users.map((user) => user.id);
+    setUsersAdded(usersAdded);
+  }, [users]);
 
   function addUser(userId: any) {
     setLoadingUser(userId);
-
-    const updatedUsersAdded = [];
-
-    usersAdded.forEach((user) => {
-      updatedUsersAdded.push(user);
-    });
-
-    updatedUsersAdded.push(userId);
-
-    setUsersAdded(updatedUsersAdded);
-
+    setUsersAdded([...new Set([...usersAdded, userId])]);
     props.handleSubmit(room.id, userId);
   }
 
@@ -57,22 +52,12 @@ export default function AddUserToRoomModal(
   }
 
   function filterCurrentUsers() {
-    const usersToInvite: React.SetStateAction<any[]> = [];
+    const filteredUsers = organizationUsers.filter(
+      (organizationUser) =>
+        !users.find((user) => user.id === organizationUser.id),
+    );
+    setFilteredUsers(filteredUsers);
 
-    organizationUsers.forEach((filterUser: { id: any; in_room: boolean }) => {
-      let found = false;
-      users.forEach((roomUser: { id: any }) => {
-        if (roomUser.id == filterUser.id) {
-          return (found = true);
-        }
-      });
-
-      filterUser.in_room = found;
-
-      usersToInvite.push(filterUser);
-    });
-
-    setFilteredUsers(usersToInvite);
     setShowAddUserForm(true);
   }
 
@@ -164,7 +149,7 @@ export default function AddUserToRoomModal(
                   }}
                 >
                   {user.first_name} {user.last_name}{" "}
-                  {user.id === me.id && "(you)"}
+                  {user.id.toString() === me.id && "(you)"}
                 </p>
                 {addUserLoading && loadingUser === user.id && (
                   <Button size="sm" className="ml-auto" disabled>
@@ -173,7 +158,7 @@ export default function AddUserToRoomModal(
                 )}
                 {addUserLoading &&
                   loadingUser !== user.id &&
-                  (user.in_room || usersAdded.includes(user.id)) && (
+                  usersAdded.includes(user.id) && (
                     <Button size="sm" className="ml-auto" disabled>
                       {usersAdded.includes(user.id) ? (
                         <>
@@ -191,7 +176,6 @@ export default function AddUserToRoomModal(
 
                 {addUserLoading &&
                   loadingUser !== user.id &&
-                  !user.in_room &&
                   !usersAdded.includes(user.id) && (
                     <Button
                       size="sm"

@@ -42,6 +42,8 @@ export interface Publisher {
   containerBackgroundColor?: string;
   loading?: boolean;
   display: string;
+  videoLoading?: boolean;
+  audioLoading?: boolean;
 }
 
 export interface Member {

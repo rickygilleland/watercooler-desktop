@@ -34,7 +34,7 @@ export default function Library(props: LibraryProps): JSX.Element {
   const scrollToTop = () => {
     if (itemsContainerRef) {
       setTimeout(() => {
-        itemsContainerRef.current.scrollTop;
+        itemsContainerRef.current?.scrollTop;
       }, 50);
     }
   };
