@@ -145,8 +145,8 @@ export default class Login extends React.Component<LoginProps, State> {
 
     return (
       <React.Fragment>
-        <div className="w-100 vh-100">
-          <Card className="mt-5 shadow-sm mx-auto" style={{ width: 600 }} body>
+        <div>
+          <Card className="mt-5 shadow-sm mx-auto" body>
             <h1 className="h2 text-center mt-3 mb-3 font-weight-bolder">
               Sign in to Blab
             </h1>
@@ -214,6 +214,7 @@ export default class Login extends React.Component<LoginProps, State> {
                 className="btn-block btn-lg mt-4"
                 type="submit"
                 disabled={auth.loading}
+                onClick={this.handleSubmit}
               >
                 {auth.loading && <FontAwesomeIcon icon={faCircleNotch} spin />}
                 {loginCodeRequested ? "Log In" : "Continue"}

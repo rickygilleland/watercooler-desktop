@@ -11,6 +11,8 @@ import {
   SET_REDIRECT_URL,
   USER_LOGOUT,
 } from "../store/types/auth";
+import { AxiosStatic } from "axios";
+import { GlobalState } from "../store/types";
 
 export function setRedirectUrl(payload: string): AuthActionTypes {
   return {
@@ -59,12 +61,8 @@ export function authenticateUserFailure(): AuthActionTypes {
 export function requestLoginCode(email: string) {
   return (
     dispatch: (arg0: AuthActionTypes) => void,
-    axios: {
-      post: (
-        requestUrl: string,
-        arg1: { email: string },
-      ) => Promise<{ data: boolean }>;
-    },
+    getState: () => GlobalState,
+    axios: AxiosStatic,
   ) => {
     dispatch(requestLoginCodeStarted());
 
@@ -88,12 +86,8 @@ export function requestLoginCode(email: string) {
 export function authenticateUser(email: string, password: string) {
   return (
     dispatch: (arg0: AuthActionTypes) => void,
-    axios: {
-      post: (
-        requestUrl: string,
-        authRequest: AuthRequest,
-      ) => Promise<{ data: { access_token: string } }>;
-    },
+    getState: () => GlobalState,
+    axios: AxiosStatic,
   ) => {
     dispatch(authenticateUserStarted());
 
@@ -122,12 +116,8 @@ export function authenticateUser(email: string, password: string) {
 export function authenticateUserMagicLink(code: string) {
   return (
     dispatch: (arg0: AuthActionTypes) => void,
-    axios: {
-      post: (
-        requestUrl: string,
-        magicLinkCode: { code: string },
-      ) => Promise<{ data: { access_token: string } }>;
-    },
+    getState: () => GlobalState,
+    axios: AxiosStatic,
   ) => {
     dispatch(authenticateUserStarted());
 
