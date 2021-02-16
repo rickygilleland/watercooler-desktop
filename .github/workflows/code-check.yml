@@ -22,7 +22,7 @@ jobs:
             ${{ runner.os }}-node-
       - name: Install
         run: yarn install
-        
+
       - name: Typecheck
         run: yarn workspace @blab/desktop type-check
 
@@ -31,8 +31,3 @@ jobs:
 
       - name: Format
         run: yarn workspace @blab/desktop format:check
-
-      - name: Make
-        run: yarn workspace @blab/desktop make
-
-  
