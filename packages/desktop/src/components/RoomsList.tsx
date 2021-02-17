@@ -7,7 +7,7 @@ import {
   faVideo,
 } from "@fortawesome/free-solid-svg-icons";
 import { ipcRenderer } from "electron";
-import React from "react";
+import React, { useEffect } from "react";
 import styled from "styled-components";
 
 interface RoomsListProps {
@@ -24,6 +24,12 @@ export default function RoomsList(props: RoomsListProps): JSX.Element {
     });
   };
 
+  useEffect(() => {
+    ipcRenderer.invoke("update-main-window-width", {
+      type: "sidebar",
+    });
+  });
+
   return (
     <Container>
       {!rooms && <Title>No rooms yet.</Title>}
@@ -32,7 +38,11 @@ export default function RoomsList(props: RoomsListProps): JSX.Element {
           {rooms?.map((room) => (
             <RoomButtonContainer
               key={room.id}
-              onClick={() => handleWindowWidthChange()}
+              onClick={() => {
+                if (room.video_enabled) {
+                  handleWindowWidthChange();
+                }
+              }}
               to={{
                 pathname: `/room/${room.slug}`,
               }}

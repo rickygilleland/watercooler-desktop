@@ -29,11 +29,11 @@ import {
   useToggleVideoAudioStatus,
 } from "../hooks/room";
 import { RouteComponentProps } from "react-router";
+import { Routes } from "./RootComponent";
 import {
+  faArrowLeft,
   faCircleNotch,
   faDesktop,
-  faDoorClosed,
-  faDoorOpen,
   faLock,
   faMicrophone,
   faMicrophoneSlash,
@@ -74,7 +74,7 @@ export default function Room(props: RoomProps): JSX.Element {
 
   const [isCall, setIsCall] = useState(false);
   const [videoStatus, setVideoStatus] = useState(
-    !settings.roomSettings.videoEnabled && billing.video_enabled,
+    settings.roomSettings.videoEnabled && billing.video_enabled,
   );
   const [audioStatus, setAudioStatus] = useState(
     settings.roomSettings.audioEnabled,
@@ -124,6 +124,12 @@ export default function Room(props: RoomProps): JSX.Element {
     pusherInstance,
     user.id,
   );
+
+  useEffect(() => {
+    if (!room?.video_enabled && videoStatus) {
+      setVideoStatus(false);
+    }
+  }, [room?.video_enabled, videoStatus]);
 
   const {
     availableScreensToShare,
@@ -486,8 +492,6 @@ export default function Room(props: RoomProps): JSX.Element {
         return;
       }
 
-      console.log("publishing");
-
       const localStream = localVideoCanvas.captureStream(60);
 
       rawLocalStream
@@ -763,6 +767,15 @@ export default function Room(props: RoomProps): JSX.Element {
         }}
         onHide={() => setShowScreenSharingModal(false)}
       />
+      <Header>
+        <HeaderContent>
+          <FontAwesomeIcon
+            icon={faArrowLeft}
+            onClick={() => props.push(Routes.Home)}
+          />
+          <Title>{room?.name}</Title>
+        </HeaderContent>
+      </Header>
       <Row
         className="pl-0 ml-0 w-100"
         style={{ minHeight: 60, maxHeight: 120 }}
@@ -770,12 +783,6 @@ export default function Room(props: RoomProps): JSX.Element {
         <Col xs={{ span: 8 }} md={{ span: 5 }}>
           <div className="d-flex flex-row justify-content-start">
             <div className="align-self-center">
-              <p
-                style={{ fontWeight: "bolder", fontSize: "1.4rem" }}
-                className="pb-0 mb-0"
-              >
-                {room?.name}
-              </p>
               {room?.is_private ? (
                 <React.Fragment>
                   <FontAwesomeIcon
@@ -981,17 +988,15 @@ export default function Room(props: RoomProps): JSX.Element {
         style={{ height: videoSizes.containerHeight - 20 }}
       >
         {loading && (
-          <div style={{ overflowY: "scroll" }}>
-            <LoadingMessage>Loading Room...</LoadingMessage>
-            <Center>
-              <FontAwesomeIcon
-                icon={faCircleNotch}
-                className="mt-3"
-                style={{ fontSize: "2.4rem", color: "#6772ef" }}
-                spin
-              />
-            </Center>
-          </div>
+          <LoadingContainer>
+            <LoadingMessage>Loading Room</LoadingMessage>
+
+            <FontAwesomeIcon
+              icon={faCircleNotch}
+              style={{ fontSize: "1.4rem", color: "#6772ef" }}
+              spin
+            />
+          </LoadingContainer>
         )}
         {!loading &&
           !roomAtCapacity &&
@@ -1023,13 +1028,44 @@ export default function Room(props: RoomProps): JSX.Element {
   );
 }
 
-const Center = styled.div`
-  margin: 0 auto;
+const LoadingContainer = styled.div`
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
 `;
 
 const LoadingMessage = styled.div`
-  margin: auto;
+  font-size: 22px;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+  margin-bottom: 10px;
+`;
+
+const Header = styled.div`
+  height: 50px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1.5px solid rgb(255, 255, 255, 0.3);
+  user-select: none;
+  margin-top: 10px;
+`;
+
+const HeaderContent = styled.div`
+  margin-left: 12px;
+  display: flex;
+  align-items: center;
+
+  svg {
+    cursor: pointer;
+    color: #f9426c;
+  }
+`;
+
+const Title = styled.div`
   font-size: 16px;
+  margin-left: 12px;
   font-weight: 600;
   color: #fff;
 `;
