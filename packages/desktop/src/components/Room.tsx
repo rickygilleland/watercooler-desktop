@@ -275,6 +275,7 @@ export default function Room(props: RoomProps): JSX.Element {
   }, [rootMediaHandleInitialized, videoRoomStreamHandle]);
 
   const startPublishingStream = useCallback(async () => {
+    let publishingStarted = false;
     let streamOptions;
     /* TODO: Manually prompt for camera and microphone access on macos to handle it more gracefully - systemPreferences.getMediaAccessStatus(mediaType) */
     if (
@@ -485,6 +486,8 @@ export default function Room(props: RoomProps): JSX.Element {
         return;
       }
 
+      console.log("publishing");
+
       const localStream = localVideoCanvas.captureStream(60);
 
       rawLocalStream
@@ -544,9 +547,6 @@ export default function Room(props: RoomProps): JSX.Element {
 
           videoRoomStreamHandle.send({ message: request, jsep: jsep });
 
-          setPublishing(true);
-          setLocalStream(localStream);
-
           const isCurrentPublisher = publishers.find(
             (publisher) => publisher.id === user.id.toString(),
           );
@@ -565,6 +565,11 @@ export default function Room(props: RoomProps): JSX.Element {
               },
             ]);
           }
+
+          publishingStarted = true;
+
+          setPublishing(publishingStarted);
+          setLocalStream(localStream);
 
           handleRemoteStreams();
         },
@@ -601,7 +606,7 @@ export default function Room(props: RoomProps): JSX.Element {
       const ctx = localVideoCanvas.getContext("2d");
 
       const getNextFrame = async () => {
-        if (!publishing || !videoStatus || !ctx) {
+        if (!publishingStarted || !videoStatus || !ctx) {
           requestAnimationFrame(getNextFrame);
           return;
         }
@@ -629,7 +634,6 @@ export default function Room(props: RoomProps): JSX.Element {
     peerUuid,
     privateId,
     publishers,
-    publishing,
     room?.channel_id,
     rootMediaHandle,
     settings.defaultDevices,
@@ -725,10 +729,15 @@ export default function Room(props: RoomProps): JSX.Element {
 
   useEffect(() => {
     if (rootMediaHandleInitialized && joinedMediaHandle) {
-      setLoading(false);
       startPublishingStream();
     }
   }, [rootMediaHandleInitialized, joinedMediaHandle, startPublishingStream]);
+
+  useEffect(() => {
+    if (publishing) {
+      setLoading(false);
+    }
+  }, [publishing]);
 
   return (
     <React.Fragment>
