@@ -14,7 +14,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PropsFromRedux } from "../containers/RoomPage";
 import {
   Publisher,
-  useAddLocalUserToPublishers,
   useAddMemberDataToPublishers,
   useBindPresenceChannelEvents,
   useCreateHeartbeatIntervals,
@@ -75,7 +74,7 @@ export default function Room(props: RoomProps): JSX.Element {
 
   const [isCall, setIsCall] = useState(false);
   const [videoStatus, setVideoStatus] = useState(
-    settings.roomSettings.videoEnabled && billing.video_enabled,
+    !settings.roomSettings.videoEnabled && billing.video_enabled,
   );
   const [audioStatus, setAudioStatus] = useState(
     settings.roomSettings.audioEnabled,
@@ -159,16 +158,6 @@ export default function Room(props: RoomProps): JSX.Element {
     setPublishers,
     videoRoomStreamHandle,
     user?.id.toString(),
-  );
-
-  useAddLocalUserToPublishers(
-    publishing,
-    audioStatus,
-    videoStatus,
-    currentWebsocketUser,
-    localStream,
-    publishers,
-    setPublishers,
   );
 
   const publishersWithMembersData = useAddMemberDataToPublishers(
@@ -558,6 +547,25 @@ export default function Room(props: RoomProps): JSX.Element {
           setPublishing(true);
           setLocalStream(localStream);
 
+          const isCurrentPublisher = publishers.find(
+            (publisher) => publisher.id === user.id.toString(),
+          );
+
+          if (!isCurrentPublisher) {
+            setPublishers([
+              ...publishers,
+              {
+                hasVideo: videoStatus,
+                hasAudio: audioStatus,
+                id: user?.id.toString(),
+                stream: localStream,
+                active: true,
+                display: user?.id.toString(),
+                member: currentWebsocketUser,
+              },
+            ]);
+          }
+
           handleRemoteStreams();
         },
       });
@@ -578,19 +586,52 @@ export default function Room(props: RoomProps): JSX.Element {
 
     localVideo.onplaying = async () => {
       publishStream();
+
+      const drawParams = {
+        sourceX: 0,
+        sourceY: 0,
+        sourceWidth: 0,
+        sourceHeight: 0,
+        destinationX: 0,
+        destinationY: 0,
+        destinationWidth: 0,
+        destinationHeight: 0,
+        sourceNoseScore: 0,
+      };
+      const ctx = localVideoCanvas.getContext("2d");
+
+      const getNextFrame = async () => {
+        if (!publishing || !videoStatus || !ctx) {
+          requestAnimationFrame(getNextFrame);
+          return;
+        }
+
+        localVideoCanvas.width = localVideo.width;
+        localVideoCanvas.height = localVideo.height;
+
+        ///background blur logic will go here with segmentation coords -- bodyPix.drawBokehEffect and refetch again
+
+        ctx.drawImage(localVideo, 0, 0);
+
+        requestAnimationFrame(getNextFrame);
+        return;
+      };
+
+      getNextFrame();
     };
 
     setRawLocalStream(rawLocalStream);
   }, [
     audioStatus,
+    currentWebsocketUser,
     localVideo,
     localVideoCanvas,
     peerUuid,
     privateId,
     publishers,
+    publishing,
     room?.channel_id,
     rootMediaHandle,
-    setPublishers,
     settings.defaultDevices,
     speakingPublishers,
     streamerKey,
@@ -599,24 +640,13 @@ export default function Room(props: RoomProps): JSX.Element {
     videoStatus,
   ]);
 
-  const stopPublishingStream = () => {
-    const request = {
-      request: "unpublish",
-    };
-
-    videoRoomStreamHandle.send({ message: request });
-
-    localStream?.getTracks()?.forEach((track) => track.stop());
-
-    for (const publisher of publishers) {
-      if (publisher.active) {
-        publisher.handle.detach();
+  useEffect(() => {
+    return () => {
+      if (rawLocalStream) {
+        rawLocalStream.getTracks().forEach((track) => track.stop());
       }
-    }
-
-    setPublishers([]);
-    setPublishing(false);
-  };
+    };
+  }, [rawLocalStream]);
 
   useEffect(() => {
     if (props.match.path === "/call/:roomSlug") {
@@ -696,8 +726,9 @@ export default function Room(props: RoomProps): JSX.Element {
   useEffect(() => {
     if (rootMediaHandleInitialized && joinedMediaHandle) {
       setLoading(false);
+      startPublishingStream();
     }
-  }, [rootMediaHandleInitialized, joinedMediaHandle]);
+  }, [rootMediaHandleInitialized, joinedMediaHandle, startPublishingStream]);
 
   return (
     <React.Fragment>
@@ -779,36 +810,7 @@ export default function Room(props: RoomProps): JSX.Element {
             <div style={{ height: 60 }}></div>
           </div>
         </Col>
-        <Col xs={{ span: 4 }} md={{ span: 2 }}>
-          <div className="d-flex flex-row justify-content-center">
-            <div className="align-self-center">
-              {!isCall && !loading && !localStream && (
-                <Button
-                  variant="link"
-                  style={{ whiteSpace: "nowrap" }}
-                  className="mx-3 icon-button btn-lg"
-                  size="lg"
-                  disabled={roomAtCapacity}
-                  onClick={() => startPublishingStream()}
-                >
-                  <FontAwesomeIcon icon={faDoorOpen} /> Join
-                </Button>
-              )}
-              {!isCall && !loading && localStream && (
-                <Button
-                  variant="link"
-                  style={{ whiteSpace: "nowrap" }}
-                  className="mx-3 icon-button btn-lg text-red"
-                  size="lg"
-                  onClick={() => stopPublishingStream()}
-                >
-                  <FontAwesomeIcon icon={faDoorClosed} /> Leave
-                </Button>
-              )}
-            </div>
-            <div style={{ height: 60 }}></div>
-          </div>
-        </Col>
+
         <Col xs={{ span: 12 }} md={{ span: 5 }} className="pr-0 mx-auto">
           {localStream ? (
             <div className="d-flex flex-row flex-nowrap justify-content-end">

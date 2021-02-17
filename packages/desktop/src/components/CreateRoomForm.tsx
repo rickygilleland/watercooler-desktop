@@ -73,7 +73,7 @@ export default function CreateRoomForm(
             </p>
           </Col>
           <Col className="text-right">
-            {props.billing.video_enabled ? (
+            {!props.billing.video_enabled ? (
               <OverlayTrigger
                 overlay={
                   <Tooltip id="tooltip-view-members">

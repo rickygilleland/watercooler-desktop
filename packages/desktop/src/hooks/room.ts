@@ -432,8 +432,6 @@ export const useToggleVideoAudioStatus = (
       (publisher) => publisher.id === userId,
     );
 
-    console.log("toggle", localStream?.getTracks());
-
     if (
       !localStream ||
       !localPublisher ||
@@ -482,50 +480,6 @@ export const useToggleVideoAudioStatus = (
     publishers,
     userId,
     videoRoomStreamHandle,
-    setPublishers,
-  ]);
-};
-
-export const useAddLocalUserToPublishers = (
-  publishing: boolean,
-  audioStatus: boolean,
-  videoStatus: boolean,
-  currentWebsocketUser: Member | undefined,
-  localStream: MediaStream | undefined,
-  publishers: Publisher[],
-  setPublishers: (publishers: Publisher[]) => void,
-): void => {
-  useEffect(() => {
-    if (!localStream || !currentWebsocketUser) {
-      return;
-    }
-    if (publishing) {
-      const isCurrentPublisher = publishers.find(
-        (publisher) => publisher.id === currentWebsocketUser.id,
-      );
-
-      if (!isCurrentPublisher) {
-        setPublishers([
-          ...publishers,
-          {
-            member: currentWebsocketUser,
-            hasVideo: videoStatus,
-            hasAudio: audioStatus,
-            id: currentWebsocketUser.id.toString(),
-            stream: localStream,
-            active: true,
-            display: currentWebsocketUser.id.toString(),
-          },
-        ]);
-      }
-    }
-  }, [
-    publishing,
-    audioStatus,
-    videoStatus,
-    currentWebsocketUser,
-    localStream,
-    publishers,
     setPublishers,
   ]);
 };
@@ -629,8 +583,8 @@ export const useBindPresenceChannelEvents = (
         data: WebsocketDataResponse,
       ) {
         if (event == "pusher:subscription_succeeded") {
+          setCurrentWebsocketUser(data.me);
           if (data.me.info.room_at_capacity) {
-            setCurrentWebsocketUser(data.me);
             setRoomAtCapacity(true);
             return;
           }
