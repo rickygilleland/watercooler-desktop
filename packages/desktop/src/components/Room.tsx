@@ -12,13 +12,29 @@ import {
 } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PropsFromRedux } from "../containers/RoomPage";
+import {
+  Publisher,
+  useAddLocalUserToPublishers,
+  useAddMemberDataToPublishers,
+  useBindPresenceChannelEvents,
+  useCreateHeartbeatIntervals,
+  useCreateVideoContainers,
+  useGetAvailableScreensToShare,
+  useGetRoomUsers,
+  useGetRootMediaHandle,
+  useGetVideoSizes,
+  useInitializeJanus,
+  useInitializeRoom,
+  useOnlineListener,
+  useResizeListener,
+  useToggleVideoAudioStatus,
+} from "../hooks/room";
 import { RouteComponentProps } from "react-router";
 import {
   faCircleNotch,
   faDesktop,
   faDoorClosed,
   faDoorOpen,
-  faGlasses,
   faLock,
   faMicrophone,
   faMicrophoneSlash,
@@ -27,23 +43,10 @@ import {
   faVideoSlash,
   faWindowMaximize,
 } from "@fortawesome/free-solid-svg-icons";
-import {
-  useAddMemberDataToPublishers,
-  useBindPresenceChannelEvents,
-  useGetAvailableScreensToShare,
-  useGetMediaHandle,
-  useGetRoomUsers,
-  useGetRootMediaHandle,
-  useGetVideoSizes,
-  useInitializeJanus,
-  useInitializeRoom,
-  useOnlineListener,
-  useResizeListener,
-  useStartPublishingStream,
-} from "../hooks/room";
 import AddUserToRoomModal from "./AddUserToRoomModal";
 import Pusher, { Channel } from "pusher-js";
 import React, { useCallback, useEffect, useState } from "react";
+import hark from "hark";
 
 import ScreenSharingModal from "./ScreenSharingModal";
 import VideoList from "./VideoList";
@@ -86,12 +89,35 @@ export default function Room(props: RoomProps): JSX.Element {
   const [pinnedPublisherId, setPinnedPublisherIdId] = useState<
     string | undefined
   >();
+  const [publishers, setPublishers] = useState<Publisher[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [videoRoomStreamHandle, setVideoRoomStreamHandle] = useState<any>();
+  const [joinedMediaHandle, setJoinedMediaHandle] = useState(false);
+  const [mediaHandleError, setMediaHandleError] = useState(false);
+  const [privateId, setPrivateId] = useState<string | undefined>();
+  const [publishing, setPublishing] = useState(false);
 
   const [showAddUserToRoomModal, setShowAddUserToRoomModal] = useState(false);
   const [showScreenSharingModal, setShowScreenSharingModal] = useState(false);
   const [showScreenSharingDropdown, setShowScreenSharingDropdown] = useState(
     false,
   );
+
+  const {
+    localVideoContainer,
+    localVideoCanvasContainer,
+    localVideoCanvas,
+    backgroundBlurVideoCanvasCopy,
+    localVideo,
+  } = useCreateVideoContainers();
+
+  const {
+    heartbeatInterval,
+    setHeartbeatInterval,
+  } = useCreateHeartbeatIntervals();
+
+  const [speakingPublishers, setSpeakingPublishers] = useState<string[]>([]);
+  const [localStream, setLocalStream] = useState<MediaStream | undefined>();
 
   const { room, presenceChannel, setPresenceChannel } = useInitializeRoom(
     roomSlug,
@@ -119,43 +145,30 @@ export default function Room(props: RoomProps): JSX.Element {
     roomServerUpdated,
     currentWebsocketUser,
   } = useBindPresenceChannelEvents(presenceChannel, room?.id, user?.id);
+
   const { rootMediaHandle, rootMediaHandleInitialized } = useGetRootMediaHandle(
     mediaServer,
     janusInitialized,
   );
 
-  const {
+  useToggleVideoAudioStatus(
     localStream,
-    speakingPublishers,
-    publishing,
-    setPublishing,
-  } = useStartPublishingStream(
-    rawLocalStream,
-    rootMediaHandle,
-    user.id.toString(),
     videoStatus,
     audioStatus,
+    publishers,
+    setPublishers,
+    videoRoomStreamHandle,
+    user?.id.toString(),
   );
 
-  const {
-    videoRoomStreamHandle,
-    publishers,
-    mediaHandleError,
-    privateId,
-    joinedMediaHandle,
-  } = useGetMediaHandle(
-    rootMediaHandle,
-    rootMediaHandleInitialized,
-    room?.channel_id,
-    peerUuid,
-    streamerKey,
-    roomPin,
+  useAddLocalUserToPublishers(
     publishing,
-    currentWebsocketUser,
     audioStatus,
     videoStatus,
+    currentWebsocketUser,
     localStream,
-    user.id.toString(),
+    publishers,
+    setPublishers,
   );
 
   const publishersWithMembersData = useAddMemberDataToPublishers(
@@ -168,8 +181,109 @@ export default function Room(props: RoomProps): JSX.Element {
   const videoSizes = useGetVideoSizes(
     dimensions,
     showChatThread,
-    publishers.length,
+    publishersWithMembersData.length,
   );
+
+  const getVideoRoomStreamHandle = () => {
+    if (!room) {
+      return;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let handle: any;
+
+    rootMediaHandle.attach({
+      plugin: "janus.plugin.videoroom",
+      opaqueId: peerUuid,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      success: function (videoRoomStreamHandle: any) {
+        handle = videoRoomStreamHandle;
+        setVideoRoomStreamHandle(videoRoomStreamHandle);
+
+        //register a publisher
+        const request = {
+          request: "join",
+          room: room.channel_id,
+          ptype: "publisher",
+          display: peerUuid,
+          token: streamerKey,
+          pin: roomPin,
+        };
+
+        handle.send({ message: request });
+      },
+      error: function () {
+        setMediaHandleError(true);
+      },
+      onmessage: function (
+        msg: {
+          videoroom: string;
+          private_id: string;
+          publishers?: Publisher[];
+          leaving?: string;
+          unpublished?: string;
+        },
+        jsep: string,
+      ) {
+        if (jsep != null) {
+          handle.handleRemoteJsep({ jsep: jsep });
+        }
+
+        if (msg.videoroom === "joined") {
+          setPrivateId(msg.private_id);
+          setJoinedMediaHandle(true);
+        }
+
+        if (msg.videoroom === "event") {
+          //check if we have new publishers to subscribe to
+          if (msg.publishers) {
+            setPublishers(msg.publishers);
+          }
+
+          if (msg.leaving || msg.unpublished) {
+            const msgToCheck = msg.leaving ?? msg.unpublished;
+
+            const updatedPublishers = publishers.filter(
+              (publisher) => publisher.id !== msgToCheck,
+            );
+            setPublishers(updatedPublishers);
+          }
+        }
+      },
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      ondataopen: function () {},
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      ondata: function () {},
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      slowLink: function () {},
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      mediaState: function () {},
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      webrtcState: function () {},
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      iceState: function () {},
+      oncleanup: function () {
+        // PeerConnection with the plugin closed, clean the UI
+        // The plugin handle is still valid so we can create a new one
+      },
+      detached: function () {
+        // Connection with the plugin closed, get rid of its features
+        // The plugin handle is not valid anymore
+        setVideoRoomStreamHandle(undefined);
+      },
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      destroyed: function () {
+        setVideoRoomStreamHandle(undefined);
+      },
+    });
+  };
+
+  useEffect(() => {
+    if (rootMediaHandleInitialized && videoRoomStreamHandle === undefined) {
+      getVideoRoomStreamHandle();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rootMediaHandleInitialized, videoRoomStreamHandle]);
 
   const startPublishingStream = useCallback(async () => {
     let streamOptions;
@@ -200,8 +314,309 @@ export default function Room(props: RoomProps): JSX.Element {
       streamOptions,
     );
 
+    const handleRemoteStreams = () => {
+      if (!user) {
+        return;
+      }
+      const unsubscribedRemotePublishers = publishers.filter(
+        (publisher) =>
+          publisher.id !== user.id.toString() && !publisher.subscribed,
+      );
+
+      for (const publisher of unsubscribedRemotePublishers) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let handle: any;
+
+        rootMediaHandle.attach({
+          plugin: "janus.plugin.videoroom",
+          opaqueId: peerUuid,
+          success: function (remoteHandle: {
+            send: (arg0: {
+              message: {
+                request: string;
+                room: string;
+                ptype: string;
+                display: string;
+                token: string;
+                feed: string;
+                private_id: string;
+              };
+            }) => void;
+          }) {
+            if (room?.channel_id && peerUuid && streamerKey && privateId) {
+              //subscribe to the feed
+              const request = {
+                request: "join",
+                room: room.channel_id,
+                ptype: "subscriber",
+                display: peerUuid,
+                token: streamerKey,
+                feed: publisher.id,
+                private_id: privateId,
+              };
+
+              handle = remoteHandle;
+
+              remoteHandle.send({ message: request });
+            }
+          },
+          error: function () {
+            //
+          },
+          onmessage: function (
+            msg: { display?: string; room: string },
+            jsep?: string,
+          ) {
+            if (jsep != null && msg.display) {
+              handle.createAnswer({
+                jsep: jsep,
+                media: { audioSend: false, videoSend: false, data: true },
+                success: function (jsep: string) {
+                  const request = {
+                    request: "start",
+                    room: msg.room,
+                  };
+
+                  handle.send({ message: request, jsep: jsep });
+                },
+              });
+            }
+          },
+          onremotestream: function (remote_stream: MediaStream) {
+            const updatedPublishers = publishers.map((publisherToUpdate) => {
+              if (publisherToUpdate.display === publisher.display) {
+                publisherToUpdate.stream = remote_stream;
+                publisherToUpdate.hasVideo = publisher.id.includes(
+                  "_screensharing",
+                );
+                publisherToUpdate.hasAudio = true;
+                publisherToUpdate.active = true;
+                publisherToUpdate.subscribed = true;
+              }
+
+              return publisherToUpdate;
+            });
+
+            setPublishers(updatedPublishers);
+          },
+          ondataopen: function () {
+            const dataMsg = {
+              type: "initial_video_audio_status",
+              publisher_id: user.id.toString(),
+              video_status: videoStatus,
+              audio_status: audioStatus,
+              face_only_status: false,
+            };
+
+            setTimeout(() => {
+              videoRoomStreamHandle.data({
+                text: JSON.stringify(dataMsg),
+              });
+            }, 1000);
+          },
+          ondata: function (data: string) {
+            const dataMsg = JSON.parse(data);
+
+            if (
+              dataMsg.type === "initial_video_audio_status_response" &&
+              dataMsg.requesting_publisher_id !== user.id.toString()
+            ) {
+              return;
+            }
+
+            const updatedPublishers = [...publishers];
+
+            updatedPublishers.forEach((publisher) => {
+              if (publisher.member?.id == dataMsg.publisher_id) {
+                if (dataMsg.type === "audio_toggled") {
+                  publisher.hasAudio = dataMsg.audio_status;
+                }
+
+                if (dataMsg.type === "video_toggled") {
+                  publisher.hasVideo = dataMsg.video_status;
+                }
+
+                if (dataMsg.type === "face_only_status_toggled") {
+                  publisher.videoIsFaceOnly = dataMsg.face_only_status;
+                }
+
+                if (dataMsg.type === "initial_video_audio_status") {
+                  publisher.hasAudio = dataMsg.audio_status;
+                  publisher.hasVideo = dataMsg.video_status;
+                  publisher.videoIsFaceOnly = dataMsg.face_only_status;
+                }
+
+                if (dataMsg.type === "started_speaking") {
+                  publisher.speaking = true;
+                }
+
+                if (dataMsg.type === "stopped_speaking") {
+                  publisher.speaking = false;
+                }
+
+                if (dataMsg.type === "participant_status_update") {
+                  publisher.hasAudio = dataMsg.audio_status;
+                  publisher.hasVideo = dataMsg.video_status;
+                  publisher.videoIsFaceOnly = dataMsg.face_only_status;
+                }
+              }
+            });
+
+            if (dataMsg.type === "initial_video_audio_status" && user) {
+              const dataMsgResponse = {
+                type: "initial_video_audio_status_response",
+                publisher_id: user.id.toString(),
+                requesting_publisher_id: dataMsg.publisher_id,
+                video_status: videoStatus,
+                audio_status: audioStatus,
+                face_only_status: false,
+              };
+
+              videoRoomStreamHandle.data({
+                text: JSON.stringify(dataMsgResponse),
+              });
+            }
+
+            setPublishers(updatedPublishers);
+          },
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          slowLink: function () {},
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          mediaState: function () {},
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          oncleanup: function () {},
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          detached: function () {},
+        });
+      }
+    };
+
+    const publishStream = async () => {
+      if (!user) {
+        return;
+      }
+
+      const localStream = localVideoCanvas.captureStream(60);
+
+      rawLocalStream
+        .getAudioTracks()
+        .forEach((track) => localStream.addTrack(track));
+
+      const speechEvents = hark(localStream);
+
+      speechEvents.on("speaking", function () {
+        setSpeakingPublishers([
+          ...new Set([...speakingPublishers, user.id.toString()]),
+        ]);
+
+        const dataMsg = {
+          type: "started_speaking",
+          publisher_id: user.id,
+        };
+
+        videoRoomStreamHandle.data({
+          text: JSON.stringify(dataMsg),
+        });
+      });
+
+      speechEvents.on("stopped_speaking", function () {
+        const dataMsg = {
+          type: "stopped_speaking",
+          publisher_id: user.id,
+        };
+
+        videoRoomStreamHandle.data({
+          text: JSON.stringify(dataMsg),
+        });
+
+        const updatedSpeakingPublishers = speakingPublishers.filter(
+          (speakingId) => speakingId !== user.id.toString(),
+        );
+        setSpeakingPublishers(updatedSpeakingPublishers);
+      });
+
+      //publish our feed
+      videoRoomStreamHandle.createOffer({
+        stream: localStream,
+        media: {
+          audioRecv: false,
+          videoRecv: false,
+          audioSend: true,
+          videoSend: true,
+          data: true,
+        },
+        success: function (jsep: string) {
+          const request = {
+            request: "publish",
+            audio: true,
+            video: true,
+            data: true,
+          };
+
+          videoRoomStreamHandle.send({ message: request, jsep: jsep });
+
+          setPublishing(true);
+          setLocalStream(localStream);
+
+          handleRemoteStreams();
+        },
+      });
+    };
+
+    localVideo.srcObject = rawLocalStream;
+    localVideo.muted = true;
+    localVideo.autoplay = true;
+    localVideo.setAttribute("playsinline", "");
+    localVideo.play();
+
+    localVideo.onloadedmetadata = () => {
+      if (localVideo) {
+        localVideo.width = localVideo.videoWidth;
+        localVideo.height = localVideo.videoHeight;
+      }
+    };
+
+    localVideo.onplaying = async () => {
+      publishStream();
+    };
+
     setRawLocalStream(rawLocalStream);
-  }, [settings.defaultDevices]);
+  }, [
+    audioStatus,
+    localVideo,
+    localVideoCanvas,
+    peerUuid,
+    privateId,
+    publishers,
+    room?.channel_id,
+    rootMediaHandle,
+    setPublishers,
+    settings.defaultDevices,
+    speakingPublishers,
+    streamerKey,
+    user,
+    videoRoomStreamHandle,
+    videoStatus,
+  ]);
+
+  const stopPublishingStream = () => {
+    const request = {
+      request: "unpublish",
+    };
+
+    videoRoomStreamHandle.send({ message: request });
+
+    localStream?.getTracks()?.forEach((track) => track.stop());
+
+    for (const publisher of publishers) {
+      if (publisher.active) {
+        publisher.handle.detach();
+      }
+    }
+
+    setPublishers([]);
+    setPublishing(false);
+  };
 
   useEffect(() => {
     if (props.match.path === "/call/:roomSlug") {
@@ -367,51 +782,25 @@ export default function Room(props: RoomProps): JSX.Element {
         <Col xs={{ span: 4 }} md={{ span: 2 }}>
           <div className="d-flex flex-row justify-content-center">
             <div className="align-self-center">
-              {!isCall ? (
-                loading ? (
-                  ""
-                ) : localStream === null ? (
-                  !roomAtCapacity ? (
-                    <Button
-                      variant="link"
-                      style={{ whiteSpace: "nowrap" }}
-                      className="mx-3 icon-button btn-lg"
-                      size="lg"
-                      onClick={() => startPublishingStream()}
-                    >
-                      <FontAwesomeIcon icon={faDoorOpen} /> Join
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="link"
-                      style={{ whiteSpace: "nowrap" }}
-                      className="mx-3 icon-button btn-lg"
-                      size="lg"
-                      disabled
-                    >
-                      <FontAwesomeIcon icon={faDoorOpen} /> Join
-                    </Button>
-                  )
-                ) : (
-                  <Button
-                    variant="link"
-                    style={{ whiteSpace: "nowrap" }}
-                    className="mx-3 icon-button btn-lg text-red"
-                    size="lg"
-                    onClick={() => setPublishing(false)}
-                  >
-                    <FontAwesomeIcon icon={faDoorClosed} /> Leave
-                  </Button>
-                )
-              ) : loading || localStream === null ? (
-                ""
-              ) : (
+              {!isCall && !loading && !localStream && (
                 <Button
                   variant="link"
                   style={{ whiteSpace: "nowrap" }}
+                  className="mx-3 icon-button btn-lg"
                   size="lg"
+                  disabled={roomAtCapacity}
+                  onClick={() => startPublishingStream()}
+                >
+                  <FontAwesomeIcon icon={faDoorOpen} /> Join
+                </Button>
+              )}
+              {!isCall && !loading && localStream && (
+                <Button
+                  variant="link"
+                  style={{ whiteSpace: "nowrap" }}
                   className="mx-3 icon-button btn-lg text-red"
-                  onClick={() => setPublishing(false)}
+                  size="lg"
+                  onClick={() => stopPublishingStream()}
                 >
                   <FontAwesomeIcon icon={faDoorClosed} /> Leave
                 </Button>
@@ -580,9 +969,9 @@ export default function Room(props: RoomProps): JSX.Element {
         fluid
         style={{ height: videoSizes.containerHeight - 20 }}
       >
-        {loading ? (
+        {loading && (
           <div style={{ overflowY: "scroll" }}>
-            <h1 className="text-center mt-5">Loading Room...</h1>
+            <LoadingMessage>Loading Room...</LoadingMessage>
             <Center>
               <FontAwesomeIcon
                 icon={faCircleNotch}
@@ -592,26 +981,22 @@ export default function Room(props: RoomProps): JSX.Element {
               />
             </Center>
           </div>
-        ) : !roomAtCapacity ? (
-          <React.Fragment>
-            <div className={videoSizes.display} style={{ overflowY: "scroll" }}>
-              {publishers.length > 0 ? (
-                <VideoList
-                  videoSizes={videoSizes}
-                  publishers={publishers}
-                  publishing={publishing}
-                  user={user}
-                  togglePinned={(publisherId: string) =>
-                    setPinnedPublisherIdId(publisherId)
-                  }
-                  pinnedPublisherId={pinnedPublisherId}
-                ></VideoList>
-              ) : (
-                "Loading..."
-              )}
-            </div>
-          </React.Fragment>
-        ) : (
+        )}
+        {!loading &&
+          !roomAtCapacity &&
+          publishersWithMembersData.length > 0 && (
+            <VideoList
+              videoSizes={videoSizes}
+              publishers={publishersWithMembersData}
+              publishing={publishing}
+              user={user}
+              togglePinned={(publisherId: string) =>
+                setPinnedPublisherIdId(publisherId)
+              }
+              pinnedPublisherId={pinnedPublisherId}
+            ></VideoList>
+          )}
+        {!loading && roomAtCapacity && (
           <React.Fragment>
             <h1 className="text-center mt-5">Oops!</h1>
             <h2 className="text-center h3" style={{ fontWeight: 600 }}>
@@ -629,4 +1014,11 @@ export default function Room(props: RoomProps): JSX.Element {
 
 const Center = styled.div`
   margin: 0 auto;
+`;
+
+const LoadingMessage = styled.div`
+  margin: auto;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
 `;

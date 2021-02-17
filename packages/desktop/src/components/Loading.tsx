@@ -19,9 +19,9 @@ export default function Loading(props: PropsFromRedux): JSX.Element {
         props.organization.id,
       );
 
-      await Promise.all([getUser, getOrganization, getOrganizationUser]);
-      props.push(Routes.Home);
-      return;
+      Promise.all([getUser, getOrganization, getOrganizationUser]).then(() => {
+        props.push(Routes.Home);
+      });
     };
 
     fetchAll();

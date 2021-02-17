@@ -4,11 +4,10 @@ import { Room } from "../store/types/room";
 import { Team } from "../store/types/organization";
 import { User } from "../store/types/user";
 import { desktopCapturer, ipcRenderer } from "electron";
-import { each, update } from "lodash";
+import { each } from "lodash";
 import { useEffect, useRef, useState } from "react";
 import Pusher, { Channel, Members } from "pusher-js";
 import axios from "axios";
-import hark from "hark";
 import posthog from "posthog-js";
 
 export interface Dimensions {
@@ -44,6 +43,7 @@ export interface Publisher {
   display: string;
   videoLoading?: boolean;
   audioLoading?: boolean;
+  subscribed?: boolean;
 }
 
 export interface Member {
@@ -417,169 +417,82 @@ export const useGetRootMediaHandle = (
   return { rootMediaHandle, rootMediaHandleInitialized };
 };
 
-export const useGetMediaHandle = (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  rootMediaHandle: any,
-  rootMediaHandleInitialized: boolean,
-  roomChannelId: string | undefined,
-  peerUuid: string | undefined,
-  streamerKey: string | undefined,
-  roomPin: string | undefined,
-  publishing: boolean,
-  currentWebsocketUser: Member | undefined,
+export const useToggleVideoAudioStatus = (
+  localStream: MediaStream | undefined,
   videoStatus: boolean,
   audioStatus: boolean,
-  localStream: MediaStream | undefined,
-  userId: string,
-): {
+  publishers: Publisher[],
+  setPublishers: (publishers: Publisher[]) => void,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  videoRoomStreamHandle: any;
-  publishers: Publisher[];
-  mediaHandleError: boolean;
-  privateId: string | undefined;
-  joinedMediaHandle: boolean;
-} => {
-  const [publishers, setPublishers] = useState<Publisher[]>([]);
-  const [subscribedPublishers, setSubscribedPublishers] = useState<string[]>(
-    [],
-  );
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [videoRoomStreamHandle, setVideoRoomStreamHandle] = useState<any>();
-  const [mediaHandleError, setMediaHandleError] = useState(false);
-  const [privateId, setPrivateId] = useState<string | undefined>();
-  const [mediaHandleCreated, setMediaHandleCreated] = useState(false);
-  const [joinedMediaHandle, setJoinedMediaHandle] = useState(false);
-
+  videoRoomStreamHandle: any,
+  userId: string | undefined,
+): void => {
   useEffect(() => {
+    const localPublisher = publishers.find(
+      (publisher) => publisher.id === userId,
+    );
+
     if (
-      !rootMediaHandle ||
-      !peerUuid ||
-      !rootMediaHandleInitialized ||
-      !roomChannelId ||
-      !streamerKey ||
-      !roomPin ||
-      mediaHandleCreated
+      !localStream ||
+      !localPublisher ||
+      (localPublisher.hasAudio === audioStatus &&
+        localPublisher.hasVideo === videoStatus)
     ) {
       return;
     }
 
-    setMediaHandleCreated(true);
+    localStream
+      .getVideoTracks()
+      .forEach((track) => (track.enabled = videoStatus));
+    localStream
+      .getAudioTracks()
+      .forEach((track) => (track.enabled = audioStatus));
 
-    rootMediaHandle.attach({
-      plugin: "janus.plugin.videoroom",
-      opaqueId: peerUuid,
-      success: function (videoRoomStreamHandle: {
-        send: (arg0: {
-          message: {
-            request: string;
-            room: string;
-            ptype: string;
-            display: string;
-            token: string;
-            pin: string;
-          };
-        }) => void;
-      }) {
-        setVideoRoomStreamHandle(videoRoomStreamHandle);
+    const updatedPublishers = publishers.map((publisher) => {
+      if (publisher.id === userId) {
+        publisher.hasAudio = audioStatus;
+        publisher.hasVideo = videoStatus;
+      }
+      return publisher;
+    });
 
-        //register a publisher
-        const request = {
-          request: "join",
-          room: roomChannelId,
-          ptype: "publisher",
-          display: peerUuid,
-          token: streamerKey,
-          pin: roomPin,
-        };
+    setPublishers(updatedPublishers);
 
-        videoRoomStreamHandle.send({ message: request });
-      },
-      error: function () {
-        setMediaHandleError(true);
-      },
-      onmessage: function (
-        msg: {
-          videoroom: string;
-          private_id: string;
-          publishers?: Publisher[];
-          leaving?: string;
-          unpublished?: string;
-        },
-        jsep: string,
-      ) {
-        if (jsep != null) {
-          videoRoomStreamHandle.handleRemoteJsep({ jsep: jsep });
-        }
+    videoRoomStreamHandle.data({
+      text: JSON.stringify({
+        type: "video_toggled",
+        publisher_id: userId,
+        video_status: videoStatus,
+      }),
+    });
 
-        if (msg.videoroom == "joined") {
-          setPrivateId(msg.private_id);
-          setJoinedMediaHandle(true);
-        }
-
-        if (msg.videoroom == "event") {
-          //check if we have new publishers to subscribe to
-          if (msg.publishers) {
-            setPublishers(msg.publishers);
-          }
-
-          if (msg.leaving || msg.unpublished) {
-            const msgToCheck = msg.leaving ?? msg.unpublished;
-
-            const updatedPublishers = publishers.filter(
-              (publisher) => publisher.id !== msgToCheck,
-            );
-            setPublishers(updatedPublishers);
-
-            if (msgToCheck && subscribedPublishers.includes(msgToCheck)) {
-              const updatedSubscribedPublishers = subscribedPublishers.filter(
-                (id) => id === msgToCheck,
-              );
-              setSubscribedPublishers(updatedSubscribedPublishers);
-            }
-          }
-        }
-      },
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      ondataopen: function () {},
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      ondata: function () {},
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      slowLink: function () {},
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      mediaState: function () {},
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      webrtcState: function () {},
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      iceState: function () {},
-      oncleanup: function () {
-        // PeerConnection with the plugin closed, clean the UI
-        // The plugin handle is still valid so we can create a new one
-      },
-      detached: function () {
-        // Connection with the plugin closed, get rid of its features
-        // The plugin handle is not valid anymore
-        setJoinedMediaHandle(false);
-        setVideoRoomStreamHandle(undefined);
-      },
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      destroyed: function () {
-        setJoinedMediaHandle(false);
-        setVideoRoomStreamHandle(undefined);
-      },
+    videoRoomStreamHandle.data({
+      text: JSON.stringify({
+        type: "audio_toggled",
+        publisher_id: userId,
+        audio_status: audioStatus,
+      }),
     });
   }, [
-    peerUuid,
-    rootMediaHandle,
-    videoRoomStreamHandle,
-    rootMediaHandleInitialized,
-    roomChannelId,
-    streamerKey,
-    roomPin,
+    videoStatus,
+    audioStatus,
+    localStream,
     publishers,
-    subscribedPublishers,
-    mediaHandleCreated,
+    userId,
+    videoRoomStreamHandle,
+    setPublishers,
   ]);
+};
 
+export const useAddLocalUserToPublishers = (
+  publishing: boolean,
+  audioStatus: boolean,
+  videoStatus: boolean,
+  currentWebsocketUser: Member | undefined,
+  localStream: MediaStream | undefined,
+  publishers: Publisher[],
+  setPublishers: (publishers: Publisher[]) => void,
+): void => {
   useEffect(() => {
     if (!localStream || !currentWebsocketUser) {
       return;
@@ -589,34 +502,20 @@ export const useGetMediaHandle = (
         (publisher) => publisher.id === currentWebsocketUser.id,
       );
 
-      if (isCurrentPublisher) {
-        const updatedPublishers = publishers.map((publisher) => {
-          publisher.hasVideo = videoStatus;
-          publisher.hasAudio = audioStatus;
-
-          return publisher;
-        });
-        setPublishers(updatedPublishers);
-        return;
+      if (!isCurrentPublisher) {
+        setPublishers([
+          ...publishers,
+          {
+            member: currentWebsocketUser,
+            hasVideo: videoStatus,
+            hasAudio: audioStatus,
+            id: currentWebsocketUser.id.toString(),
+            stream: localStream,
+            active: true,
+            display: currentWebsocketUser.id.toString(),
+          },
+        ]);
       }
-
-      setPublishers([
-        ...publishers,
-        {
-          member: currentWebsocketUser,
-          hasVideo: videoStatus,
-          hasAudio: audioStatus,
-          id: currentWebsocketUser.id.toString(),
-          stream: localStream,
-          active: true,
-          display: currentWebsocketUser.id.toString(),
-        },
-      ]);
-    } else {
-      const updatedPublishers = publishers.filter(
-        (publisher) => publisher.id !== currentWebsocketUser.id,
-      );
-      setPublishers(updatedPublishers);
     }
   }, [
     publishing,
@@ -625,286 +524,8 @@ export const useGetMediaHandle = (
     currentWebsocketUser,
     localStream,
     publishers,
+    setPublishers,
   ]);
-
-  useEffect(() => {
-    if (
-      !peerUuid ||
-      !streamerKey ||
-      !privateId ||
-      !publishing ||
-      !roomChannelId
-    ) {
-      return;
-    }
-
-    const unsubscribedRemotePublishers = publishers.filter(
-      (publisher) =>
-        publisher.id !== userId && !subscribedPublishers.includes(publisher.id),
-    );
-
-    for (const publisher of unsubscribedRemotePublishers) {
-      let handle: {
-        createAnswer: (arg0: {
-          jsep: string;
-          media: { audioSend: boolean; videoSend: boolean; data: boolean };
-          success: (jsep: string) => void;
-        }) => void;
-        send: (arg0: {
-          message: { request: string; room: string };
-          jsep: string;
-        }) => void;
-      };
-
-      rootMediaHandle.attach({
-        plugin: "janus.plugin.videoroom",
-        opaqueId: peerUuid,
-        success: function (remoteHandle: {
-          send: (arg0: {
-            message: {
-              request: string;
-              room: string;
-              ptype: string;
-              display: string;
-              token: string;
-              feed: string;
-              private_id: string;
-            };
-          }) => void;
-        }) {
-          //subscribe to the feed
-          const request = {
-            request: "join",
-            room: roomChannelId,
-            ptype: "subscriber",
-            display: peerUuid,
-            token: streamerKey,
-            feed: publisher.id,
-            private_id: privateId,
-          };
-
-          remoteHandle.send({ message: request });
-        },
-        error: function () {
-          //
-        },
-        onmessage: function (
-          msg: { display?: string; room: string },
-          jsep?: string,
-        ) {
-          if (jsep != null && msg.display) {
-            handle.createAnswer({
-              jsep: jsep,
-              media: { audioSend: false, videoSend: false, data: true },
-              success: function (jsep: string) {
-                const request = {
-                  request: "start",
-                  room: msg.room,
-                };
-
-                handle.send({ message: request, jsep: jsep });
-              },
-            });
-          }
-        },
-        onremotestream: function (remote_stream: MediaStream) {
-          setSubscribedPublishers([
-            ...new Set([...subscribedPublishers, publisher.id]),
-          ]);
-
-          const updatedPublishers = publishers.map((publisherToUpdate) => {
-            if (publisherToUpdate.display === publisher.display) {
-              publisherToUpdate.stream = remote_stream;
-              publisherToUpdate.hasVideo = publisher.id.includes(
-                "_screensharing",
-              );
-              publisherToUpdate.hasAudio = true;
-              publisherToUpdate.active = true;
-            }
-
-            return publisherToUpdate;
-          });
-
-          setPublishers(updatedPublishers);
-        },
-        ondataopen: function () {
-          const dataMsg = {
-            type: "initial_video_audio_status",
-            publisher_id: userId,
-            video_status: videoStatus,
-            audio_status: audioStatus,
-            face_only_status: false,
-          };
-
-          setTimeout(() => {
-            videoRoomStreamHandle.data({
-              text: JSON.stringify(dataMsg),
-            });
-          }, 1000);
-        },
-        ondata: function (data: string) {
-          const dataMsg = JSON.parse(data);
-
-          if (
-            dataMsg.type === "initial_video_audio_status_response" &&
-            dataMsg.requesting_publisher_id !== userId
-          ) {
-            return;
-          }
-
-          const updatedPublishers = [...publishers];
-
-          updatedPublishers.forEach((publisher) => {
-            if (publisher.member?.id == dataMsg.publisher_id) {
-              if (dataMsg.type === "audio_toggled") {
-                publisher.hasAudio = dataMsg.audio_status;
-              }
-
-              if (dataMsg.type === "video_toggled") {
-                publisher.hasVideo = dataMsg.video_status;
-              }
-
-              if (dataMsg.type === "face_only_status_toggled") {
-                publisher.videoIsFaceOnly = dataMsg.face_only_status;
-              }
-
-              if (dataMsg.type === "initial_video_audio_status") {
-                publisher.hasAudio = dataMsg.audio_status;
-                publisher.hasVideo = dataMsg.video_status;
-                publisher.videoIsFaceOnly = dataMsg.face_only_status;
-              }
-
-              if (dataMsg.type === "started_speaking") {
-                publisher.speaking = true;
-              }
-
-              if (dataMsg.type === "stopped_speaking") {
-                publisher.speaking = false;
-              }
-
-              if (dataMsg.type === "participant_status_update") {
-                publisher.hasAudio = dataMsg.audio_status;
-                publisher.hasVideo = dataMsg.video_status;
-                publisher.videoIsFaceOnly = dataMsg.face_only_status;
-              }
-            }
-          });
-
-          if (dataMsg.type === "initial_video_audio_status") {
-            const dataMsgResponse = {
-              type: "initial_video_audio_status_response",
-              publisher_id: userId,
-              requesting_publisher_id: dataMsg.publisher_id,
-              video_status: videoStatus,
-              audio_status: audioStatus,
-              face_only_status: false,
-            };
-
-            videoRoomStreamHandle.data({
-              text: JSON.stringify(dataMsgResponse),
-            });
-          }
-
-          setPublishers(updatedPublishers);
-        },
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        slowLink: function () {},
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        mediaState: function () {},
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        oncleanup: function () {},
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
-        detached: function () {},
-      });
-    }
-  }, [
-    audioStatus,
-    peerUuid,
-    privateId,
-    publishers,
-    publishing,
-    roomChannelId,
-    rootMediaHandle,
-    streamerKey,
-    subscribedPublishers,
-    userId,
-    videoRoomStreamHandle,
-    videoStatus,
-  ]);
-
-  //handle video/audio toggles
-  useEffect(() => {
-    if (localStream) {
-      localStream
-        .getVideoTracks()
-        .forEach((track) => (track.enabled = videoStatus));
-      localStream
-        .getAudioTracks()
-        .forEach((track) => (track.enabled = audioStatus));
-
-      const updatedPublishers = publishers.map((publisher) => {
-        if (publisher.id === userId) {
-          publisher.hasAudio = audioStatus;
-          publisher.hasVideo = videoStatus;
-        }
-        return publisher;
-      });
-
-      setPublishers(updatedPublishers);
-
-      videoRoomStreamHandle.data({
-        text: JSON.stringify({
-          type: "video_toggled",
-          publisher_id: userId,
-          video_status: videoStatus,
-        }),
-      });
-
-      videoRoomStreamHandle.data({
-        text: JSON.stringify({
-          type: "audio_toggled",
-          publisher_id: userId,
-          audio_status: audioStatus,
-        }),
-      });
-    }
-  }, [
-    videoStatus,
-    audioStatus,
-    localStream,
-    publishers,
-    userId,
-    videoRoomStreamHandle,
-  ]);
-
-  //cleanup after stop publishing
-  useEffect(() => {
-    if (!publishing && publishers && localStream) {
-      const request = {
-        request: "unpublish",
-      };
-
-      videoRoomStreamHandle.send({ message: request });
-
-      localStream.getTracks().forEach((track) => track.stop());
-
-      for (const publisher of publishers) {
-        if (publisher.active) {
-          publisher.handle.detach();
-        }
-      }
-
-      setPublishers([]);
-    }
-  }, [publishing, publishers, localStream, videoRoomStreamHandle]);
-
-  return {
-    videoRoomStreamHandle,
-    publishers,
-    mediaHandleError,
-    privateId,
-    joinedMediaHandle,
-  };
 };
 
 export const useAddMemberDataToPublishers = (
@@ -1048,176 +669,62 @@ export const useBindPresenceChannelEvents = (
   };
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const useStartPublishingStream = (
-  rawLocalStream: MediaStream | undefined,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  videoRoomStreamHandle: any,
-  userId: string,
-  videoStatus: boolean,
-  audioStatus: boolean,
-): {
-  localStream: MediaStream | undefined;
-  speakingPublishers: string[];
-  publishing: boolean;
-  setPublishing(publishing: boolean): void;
-} => {
-  const localVideoContainer = useRef<CanvasElement>(null);
-  const localVideoCanvasContainer = useRef<CanvasElement>(null);
-  const localVideoCanvas = useRef<CanvasElement>(null);
-  const backgroundBlurVideoCanvasCopy = useRef<CanvasElement>(null);
-  const localVideo = useRef<HTMLVideoElement>(null);
+export const useCreateVideoContainers = () => {
+  const [localVideoContainer] = useState<CanvasElement>(
+    <CanvasElement>document.createElement("canvas"),
+  );
+  const [localVideoCanvasContainer] = useState<CanvasElement>(
+    <CanvasElement>document.createElement("canvas"),
+  );
+  const [localVideoCanvas] = useState<CanvasElement>(
+    <CanvasElement>document.createElement("canvas"),
+  );
+  const [backgroundBlurVideoCanvasCopy] = useState<CanvasElement>(
+    <CanvasElement>document.createElement("canvas"),
+  );
+  const [localVideo] = useState<HTMLVideoElement>(
+    document.createElement("video"),
+  );
 
-  const [speakingPublishers, setSpeakingPublishers] = useState<string[]>([]);
-  const [publishing, setPublishing] = useState(false);
-  const [localStream, setLocalStream] = useState<MediaStream | undefined>();
+  useEffect(() => {
+    return () => {
+      localVideoContainer.remove();
+      localVideoCanvasContainer.remove();
+      localVideoCanvas.remove();
+      backgroundBlurVideoCanvasCopy.remove();
+      localVideo.remove();
+    };
+  }, [
+    backgroundBlurVideoCanvasCopy,
+    localVideo,
+    localVideoCanvas,
+    localVideoCanvasContainer,
+    localVideoContainer,
+  ]);
 
+  return {
+    localVideoContainer,
+    localVideoCanvasContainer,
+    localVideoCanvas,
+    backgroundBlurVideoCanvasCopy,
+    localVideo,
+  };
+};
+
+export const useCreateHeartbeatIntervals = () => {
   const [heartbeatInterval, setHeartbeatInterval] = useState<
     NodeJS.Timeout | undefined
   >();
 
   useEffect(() => {
-    if (
-      !rawLocalStream ||
-      !localVideoContainer.current ||
-      !localVideoCanvasContainer.current ||
-      !localVideoCanvas.current ||
-      !backgroundBlurVideoCanvasCopy.current ||
-      !localVideo.current
-    ) {
-      return;
-    }
-
-    const publishStream = async () => {
-      if (
-        !rawLocalStream ||
-        !localVideoContainer.current ||
-        !localVideoCanvasContainer.current ||
-        !localVideoCanvas.current ||
-        !backgroundBlurVideoCanvasCopy.current
-      ) {
-        return;
-      }
-
-      const localStream = localVideoCanvas.current.captureStream(60);
-
-      rawLocalStream
-        .getAudioTracks()
-        .forEach((track) => localStream.addTrack(track));
-
-      const speechEvents = hark(localStream);
-
-      speechEvents.on("speaking", function () {
-        setSpeakingPublishers([...new Set([...speakingPublishers, userId])]);
-
-        const dataMsg = {
-          type: "started_speaking",
-          publisher_id: userId,
-        };
-
-        videoRoomStreamHandle.data({
-          text: JSON.stringify(dataMsg),
-        });
-      });
-
-      speechEvents.on("stopped_speaking", function () {
-        const dataMsg = {
-          type: "stopped_speaking",
-          publisher_id: userId,
-        };
-
-        videoRoomStreamHandle.data({
-          text: JSON.stringify(dataMsg),
-        });
-
-        const updatedSpeakingPublishers = speakingPublishers.filter(
-          (speakingId) => speakingId !== userId,
-        );
-        setSpeakingPublishers(updatedSpeakingPublishers);
-      });
-
-      //publish our feed
-      videoRoomStreamHandle.createOffer({
-        stream: localStream,
-        media: {
-          audioRecv: false,
-          videoRecv: false,
-          audioSend: true,
-          videoSend: true,
-          data: true,
-        },
-        success: function (jsep: string) {
-          const request = {
-            request: "publish",
-            audio: true,
-            video: true,
-            data: true,
-          };
-
-          videoRoomStreamHandle.send({ message: request, jsep: jsep });
-
-          setPublishing(true);
-          setLocalStream(localStream);
-        },
-      });
-    };
-
-    localVideo.current.srcObject = rawLocalStream;
-    localVideo.current.muted = true;
-    localVideo.current.autoplay = true;
-    localVideo.current.setAttribute("playsinline", "");
-    localVideo.current.play();
-
-    localVideo.current.onloadedmetadata = () => {
-      if (localVideo.current) {
-        localVideo.current.width = localVideo.current.videoWidth;
-        localVideo.current.height = localVideo.current.videoHeight;
-      }
-    };
-
-    localVideo.current.onplaying = async () => {
-      publishStream();
-    };
-  }, [rawLocalStream, speakingPublishers, userId, videoRoomStreamHandle]);
-
-  useEffect(() => {
-    if (publishing && !heartbeatInterval) {
-      const heartbeatInterval = setInterval(() => {
-        const dataMsg = {
-          type: "participant_status_update",
-          publisher_id: userId,
-          video_status: videoStatus,
-          audio_status: audioStatus,
-          face_only_status: false,
-        };
-
-        videoRoomStreamHandle.data({
-          text: JSON.stringify(dataMsg),
-        });
-      }, 30000);
-
-      setHeartbeatInterval(heartbeatInterval);
-    }
-
-    if (!publishing && heartbeatInterval) {
-      clearInterval(heartbeatInterval);
-    }
-
     return () => {
       if (heartbeatInterval) {
         clearInterval(heartbeatInterval);
       }
     };
-  }, [
-    publishing,
-    videoStatus,
-    audioStatus,
-    userId,
-    videoRoomStreamHandle,
-    heartbeatInterval,
-  ]);
+  }, [heartbeatInterval]);
 
-  return { localStream, speakingPublishers, publishing, setPublishing };
+  return { heartbeatInterval, setHeartbeatInterval };
 };
 
 export const useRenderVideo = (source: MediaStream) => {
