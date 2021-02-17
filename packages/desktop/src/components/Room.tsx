@@ -42,13 +42,13 @@ import {
   faVideoSlash,
   faWindowMaximize,
 } from "@fortawesome/free-solid-svg-icons";
+import { ipcRenderer } from "electron";
 import AddUserToRoomModal from "./AddUserToRoomModal";
 import Pusher, { Channel } from "pusher-js";
 import React, { useCallback, useEffect, useState } from "react";
-import hark from "hark";
-
 import ScreenSharingModal from "./ScreenSharingModal";
 import VideoList from "./VideoList";
+import hark from "hark";
 import styled from "styled-components";
 
 interface RoomProps extends PropsFromRedux, RouteComponentProps {
@@ -743,6 +743,16 @@ export default function Room(props: RoomProps): JSX.Element {
     }
   }, [publishing]);
 
+  useEffect(() => {
+    return () => {
+      if (room?.video_enabled) {
+        ipcRenderer.invoke("update-main-window-width", {
+          type: "sidebar",
+        });
+      }
+    };
+  }, [room?.video_enabled]);
+
   return (
     <React.Fragment>
       {showAddUserToRoomModal && room && currentWebsocketUser && (
@@ -771,217 +781,158 @@ export default function Room(props: RoomProps): JSX.Element {
         <HeaderContent>
           <FontAwesomeIcon
             icon={faArrowLeft}
+            style={{ color: "#f9426c", cursor: "pointer" }}
             onClick={() => props.push(Routes.Home)}
           />
           <Title>{room?.name}</Title>
-        </HeaderContent>
-      </Header>
-      <Row
-        className="pl-0 ml-0 w-100"
-        style={{ minHeight: 60, maxHeight: 120 }}
-      >
-        <Col xs={{ span: 8 }} md={{ span: 5 }}>
-          <div className="d-flex flex-row justify-content-start">
-            <div className="align-self-center">
-              {room?.is_private ? (
-                <React.Fragment>
-                  <FontAwesomeIcon
-                    icon={faLock}
-                    style={{
-                      fontSize: ".7rem",
-                      marginRight: ".3rem",
-                      marginBottom: 3,
-                    }}
-                  />
-                  <OverlayTrigger
-                    placement="bottom-start"
-                    overlay={
-                      <Tooltip id="tooltip-view-members">
-                        View current members of this private room and add new
-                        ones.
-                      </Tooltip>
-                    }
-                  >
-                    <span className="d-inline-block">
-                      <Button
-                        variant="link"
-                        className="pt-0 pl-1"
-                        style={{ color: "black", fontSize: ".7rem" }}
-                        onClick={() => setShowAddUserToRoomModal(true)}
-                      >
-                        <FontAwesomeIcon icon={faUser} />{" "}
-                        {roomUsers.length > 0 ? roomUsers.length : ""}
-                      </Button>
-                    </span>
-                  </OverlayTrigger>
-                </React.Fragment>
-              ) : (
-                /*<OverlayTrigger placement="bottom-start" overlay={<Tooltip id="tooltip-view-members">This room is visible to everyone on your team.</Tooltip>}>
-                                  <span className="d-inline-block">
-                                  <Button variant="link" className="pl-0 pt-0" style={{color:"black",fontSize:".7rem", pointerEvents: 'none'}}><FontAwesomeIcon icon={faUser} /></Button>
-                                  </span>
-                              </OverlayTrigger>*/ ""
-              )}
-            </div>
-            <div style={{ height: 60 }}></div>
-          </div>
-        </Col>
 
-        <Col xs={{ span: 12 }} md={{ span: 5 }} className="pr-0 mx-auto">
-          {localStream ? (
-            <div className="d-flex flex-row flex-nowrap justify-content-end">
-              <div className="align-self-center pr-4">
-                {!billing.video_enabled ||
-                process.env.REACT_APP_PLATFORM == "web" ? (
-                  <OverlayTrigger
-                    placement="bottom-start"
-                    overlay={
-                      <Tooltip id="tooltip-disabled">
-                        {process.env.REACT_APP_PLATFORM == "web"
-                          ? "Screen sharing is only available in the Blab desktop app"
-                          : "Screen sharing is not enabled for your organization."}
-                      </Tooltip>
-                    }
-                  >
-                    <span className="d-inline-block">
-                      <Button
-                        variant="link"
-                        className="mx-3 icon-button btn-lg"
-                        style={{ pointerEvents: "none" }}
-                        disabled
-                      >
-                        <FontAwesomeIcon icon={faDesktop} />
-                      </Button>
-                    </span>
-                  </OverlayTrigger>
-                ) : screenSharingActive ? (
+          <RoomPrivacyContainer>
+            <OverlayTrigger
+              placement="bottom-start"
+              overlay={
+                <Tooltip id="tooltip-view-members">
+                  View current members of this private room and add new ones.
+                </Tooltip>
+              }
+            >
+              <span className="d-inline-block">
+                <Button
+                  variant="link"
+                  className="pt-0 pl-1"
+                  style={{ fontSize: ".7rem" }}
+                  onClick={() => setShowAddUserToRoomModal(true)}
+                >
+                  <FontAwesomeIcon icon={faLock} />{" "}
+                  {roomUsers.length > 0 ? roomUsers.length : ""}
+                </Button>
+              </span>
+            </OverlayTrigger>
+          </RoomPrivacyContainer>
+          <RoomControlsContainer>
+            {!billing.video_enabled && room?.video_enabled && (
+              <OverlayTrigger
+                placement="bottom-start"
+                overlay={
+                  <Tooltip id="tooltip-disabled">
+                    Screen sharing is not enabled for your organization.
+                  </Tooltip>
+                }
+              >
+                <span className="d-inline-block">
                   <Button
                     variant="link"
-                    className="mx-3 icon-button btn-lg text-red"
-                    onClick={() => {
-                      //
-                    }}
+                    className="mx-3 icon-button btn-lg"
+                    style={{ pointerEvents: "none" }}
+                    disabled
                   >
                     <FontAwesomeIcon icon={faDesktop} />
                   </Button>
-                ) : (
-                  <Dropdown className="p-0 m-0" as="span">
-                    <Dropdown.Toggle
-                      variant="link"
-                      id="screensharing-dropdown"
-                      className="mx-3 no-carat icon-button btn-lg"
-                    >
-                      <FontAwesomeIcon icon={faDesktop} />
-                    </Dropdown.Toggle>
-                    <Dropdown.Menu show={showScreenSharingDropdown}>
-                      <Dropdown.Item className="no-hover-bg">
-                        <Button
-                          variant="info"
-                          className="btn-block ph-no-capture"
-                          onClick={() => {
-                            //
-                          }}
-                        >
-                          <FontAwesomeIcon icon={faDesktop} /> Share Whole
-                          Screen
-                        </Button>
-                      </Dropdown.Item>
-                      <Dropdown.Item className="no-hover-bg">
-                        <Button
-                          variant="info"
-                          className="btn-block ph-no-capture"
-                          onClick={() => {
-                            setShowScreenSharingModal(true);
-                            setShowScreenSharingDropdown(false);
-                          }}
-                        >
-                          <FontAwesomeIcon icon={faWindowMaximize} /> Share a
-                          Window
-                        </Button>
-                      </Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown>
-                )}
+                </span>
+              </OverlayTrigger>
+            )}
+            {billing.video_enabled &&
+              room?.video_enabled &&
+              screenSharingActive && (
                 <Button
                   variant="link"
-                  className={
-                    "mx-3 icon-button btn-lg ph-no-capture" +
-                    (audioStatus ? " text-green" : " text-red")
-                  }
-                  onClick={() => setAudioStatus(!audioStatus)}
+                  className="mx-3 icon-button btn-lg text-red"
+                  onClick={() => {
+                    //
+                  }}
                 >
-                  <FontAwesomeIcon
-                    icon={audioStatus ? faMicrophone : faMicrophoneSlash}
-                  />
+                  <FontAwesomeIcon icon={faDesktop} />
                 </Button>
-                {!billing.video_enabled ? (
-                  <OverlayTrigger
-                    placement="bottom-start"
-                    overlay={
-                      <Tooltip id="tooltip-disabled">
-                        Video is not enabled for your organization.
-                      </Tooltip>
-                    }
+              )}
+            {billing.video_enabled &&
+              room?.video_enabled &&
+              !screenSharingActive && (
+                <Dropdown className="p-0 m-0" as="span">
+                  <Dropdown.Toggle
+                    variant="link"
+                    id="screensharing-dropdown"
+                    className="mx-3 no-carat icon-button btn-lg"
                   >
-                    <span className="d-inline-block">
+                    <FontAwesomeIcon icon={faDesktop} />
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu show={showScreenSharingDropdown}>
+                    <Dropdown.Item className="no-hover-bg">
                       <Button
-                        variant="link"
-                        className="mx-3 icon-button btn-lg ph-no-capture text-red"
-                        disabled
-                        style={{ pointerEvents: "none" }}
+                        variant="info"
+                        className="btn-block ph-no-capture"
+                        onClick={() => {
+                          //
+                        }}
                       >
-                        <FontAwesomeIcon
-                          icon={videoStatus ? faVideo : faVideoSlash}
-                        />
+                        <FontAwesomeIcon icon={faDesktop} /> Share Whole Screen
                       </Button>
-                    </span>
-                  </OverlayTrigger>
-                ) : room?.video_enabled ? (
-                  <React.Fragment>
-                    <Button
-                      variant="link"
-                      className={
-                        "mx-3 icon-button btn-lg ph-no-capture" +
-                        (videoStatus ? " text-green" : " text-red")
-                      }
-                      onClick={() => setVideoStatus(!videoStatus)}
-                    >
-                      <FontAwesomeIcon
-                        icon={videoStatus ? faVideo : faVideoSlash}
-                      />
-                    </Button>
-                  </React.Fragment>
-                ) : (
-                  <OverlayTrigger
-                    placement="bottom-start"
-                    overlay={
-                      <Tooltip id="tooltip-disabled">
-                        Video is disabled in this room.
-                      </Tooltip>
-                    }
+                    </Dropdown.Item>
+                    <Dropdown.Item className="no-hover-bg">
+                      <Button
+                        variant="info"
+                        className="btn-block ph-no-capture"
+                        onClick={() => {
+                          setShowScreenSharingModal(true);
+                          setShowScreenSharingDropdown(false);
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faWindowMaximize} /> Share a
+                        Window
+                      </Button>
+                    </Dropdown.Item>
+                  </Dropdown.Menu>
+                </Dropdown>
+              )}
+            <Button
+              variant="link"
+              className={
+                "mx-3 icon-button btn-lg ph-no-capture" +
+                (audioStatus ? " text-green" : " text-red")
+              }
+              onClick={() => setAudioStatus(!audioStatus)}
+            >
+              <FontAwesomeIcon
+                icon={audioStatus ? faMicrophone : faMicrophoneSlash}
+              />
+            </Button>
+            {!billing.video_enabled && room?.video_enabled && (
+              <OverlayTrigger
+                placement="bottom-start"
+                overlay={
+                  <Tooltip id="tooltip-disabled">
+                    Video is not enabled for your organization.
+                  </Tooltip>
+                }
+              >
+                <span className="d-inline-block">
+                  <Button
+                    variant="link"
+                    className="mx-3 icon-button btn-lg ph-no-capture text-red"
+                    disabled
+                    style={{ pointerEvents: "none" }}
                   >
-                    <span className="d-inline-block">
-                      <Button
-                        variant="link"
-                        className="mx-3 icon-button btn-lg ph-no-capture text-red"
-                        disabled
-                        style={{ pointerEvents: "none" }}
-                      >
-                        <FontAwesomeIcon
-                          icon={videoStatus ? faVideo : faVideoSlash}
-                        />
-                      </Button>
-                    </span>
-                  </OverlayTrigger>
-                )}
-              </div>
-              <div style={{ height: 60 }}></div>
-            </div>
-          ) : (
-            ""
-          )}
-        </Col>
-      </Row>
+                    <FontAwesomeIcon
+                      icon={videoStatus ? faVideo : faVideoSlash}
+                    />
+                  </Button>
+                </span>
+              </OverlayTrigger>
+            )}
+
+            {billing.video_enabled && room?.video_enabled && (
+              <Button
+                variant="link"
+                className={
+                  "mx-3 icon-button btn-lg ph-no-capture" +
+                  (videoStatus ? " text-green" : " text-red")
+                }
+                onClick={() => setVideoStatus(!videoStatus)}
+              >
+                <FontAwesomeIcon icon={videoStatus ? faVideo : faVideoSlash} />
+              </Button>
+            )}
+          </RoomControlsContainer>
+        </HeaderContent>
+      </Header>
       <Container
         className="ml-0 stage-container"
         fluid
@@ -1056,11 +1007,22 @@ const HeaderContent = styled.div`
   margin-left: 12px;
   display: flex;
   align-items: center;
+  width: 100%;
+`;
+
+const RoomPrivacyContainer = styled.div`
+  margin-left: 8px;
+  color: #fff;
 
   svg {
-    cursor: pointer;
-    color: #f9426c;
+    color: #fff;
   }
+`;
+
+const RoomControlsContainer = styled.div`
+  display: flex;
+  align-items: center;
+  margin-left: auto;
 `;
 
 const Title = styled.div`

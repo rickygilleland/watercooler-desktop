@@ -7,7 +7,7 @@ import {
   faVideo,
 } from "@fortawesome/free-solid-svg-icons";
 import { ipcRenderer } from "electron";
-import React, { useEffect } from "react";
+import React from "react";
 import styled from "styled-components";
 
 interface RoomsListProps {
@@ -23,12 +23,6 @@ export default function RoomsList(props: RoomsListProps): JSX.Element {
       type: "full",
     });
   };
-
-  useEffect(() => {
-    ipcRenderer.invoke("update-main-window-width", {
-      type: "sidebar",
-    });
-  });
 
   return (
     <Container>

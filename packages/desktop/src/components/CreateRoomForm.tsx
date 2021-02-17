@@ -22,6 +22,7 @@ export default function CreateRoomForm(
   const [name, setName] = useState("");
   const [videoEnabled, setVideoEnabled] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   const handleNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
@@ -38,13 +39,14 @@ export default function CreateRoomForm(
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     props.handleSubmit(name, videoEnabled, isPrivate);
+    setSubmitted(true);
   };
 
   useEffect(() => {
-    if (createRoomSuccess) {
+    if (createRoomSuccess && submitted) {
       onHide();
     }
-  }, [createRoomSuccess, onHide]);
+  }, [createRoomSuccess, submitted, onHide]);
 
   return (
     <Container>
