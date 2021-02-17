@@ -73,11 +73,11 @@ export default function CreateRoomForm(
             </p>
           </Col>
           <Col className="text-right">
-            {props.billing.plan !== "Plus" ? (
+            {props.billing.video_enabled ? (
               <OverlayTrigger
                 overlay={
                   <Tooltip id="tooltip-view-members">
-                    Video rooms are only available on the Plus Plan.
+                    Video rooms are not enabled for your organization.
                   </Tooltip>
                 }
               >

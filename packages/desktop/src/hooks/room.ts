@@ -432,6 +432,8 @@ export const useToggleVideoAudioStatus = (
       (publisher) => publisher.id === userId,
     );
 
+    console.log("toggle", localStream?.getTracks());
+
     if (
       !localStream ||
       !localPublisher ||

@@ -75,7 +75,7 @@ export default function Room(props: RoomProps): JSX.Element {
 
   const [isCall, setIsCall] = useState(false);
   const [videoStatus, setVideoStatus] = useState(
-    settings.roomSettings.videoEnabled && billing.plan == "Plus",
+    settings.roomSettings.videoEnabled && billing.video_enabled,
   );
   const [audioStatus, setAudioStatus] = useState(
     settings.roomSettings.audioEnabled,
@@ -813,7 +813,7 @@ export default function Room(props: RoomProps): JSX.Element {
           {localStream ? (
             <div className="d-flex flex-row flex-nowrap justify-content-end">
               <div className="align-self-center pr-4">
-                {billing.plan != "Plus" ||
+                {!billing.video_enabled ||
                 process.env.REACT_APP_PLATFORM == "web" ? (
                   <OverlayTrigger
                     placement="bottom-start"
@@ -821,7 +821,7 @@ export default function Room(props: RoomProps): JSX.Element {
                       <Tooltip id="tooltip-disabled">
                         {process.env.REACT_APP_PLATFORM == "web"
                           ? "Screen sharing is only available in the Blab desktop app"
-                          : "The Plus Plan is required for screen sharing."}
+                          : "Screen sharing is not enabled for your organization."}
                       </Tooltip>
                     }
                   >
@@ -896,12 +896,12 @@ export default function Room(props: RoomProps): JSX.Element {
                     icon={audioStatus ? faMicrophone : faMicrophoneSlash}
                   />
                 </Button>
-                {billing.plan != "Plus" ? (
+                {!billing.video_enabled ? (
                   <OverlayTrigger
                     placement="bottom-start"
                     overlay={
                       <Tooltip id="tooltip-disabled">
-                        The Plus Plan is required for video.
+                        Video is not enabled for your organization.
                       </Tooltip>
                     }
                   >
