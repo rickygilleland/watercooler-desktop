@@ -487,7 +487,6 @@ export const useToggleVideoAudioStatus = (
 export const useAddMemberDataToPublishers = (
   publishers: Publisher[],
   members: Members | undefined,
-  speakingPublishers: string[],
 ) => {
   const [publishersWithMembersData, setPublishersWithMembersData] = useState<
     Publisher[]
@@ -533,20 +532,6 @@ export const useAddMemberDataToPublishers = (
 
     setPublishersWithMembersData(filteredPublishersWithMembersData);
   }, [publishers, members, containerBackgroundColors]);
-
-  useEffect(() => {
-    if (speakingPublishers.length > 0) {
-      const updatedPublishersWithMembersData = publishersWithMembersData.map(
-        (publisher) => {
-          publisher.speaking = speakingPublishers.includes(publisher.id);
-
-          return publisher;
-        },
-      );
-
-      setPublishersWithMembersData(updatedPublishersWithMembersData);
-    }
-  }, [publishersWithMembersData, speakingPublishers]);
 
   return publishersWithMembersData;
 };

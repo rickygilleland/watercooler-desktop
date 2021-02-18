@@ -3,11 +3,9 @@ import "@tensorflow/tfjs-backend-cpu";
 import "@tensorflow/tfjs-backend-webgl";
 import {
   Button,
-  Col,
   Container,
   Dropdown,
   OverlayTrigger,
-  Row,
   Tooltip,
 } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -37,7 +35,6 @@ import {
   faLock,
   faMicrophone,
   faMicrophoneSlash,
-  faUser,
   faVideo,
   faVideoSlash,
   faWindowMaximize,
@@ -101,6 +98,9 @@ export default function Room(props: RoomProps): JSX.Element {
   const [showScreenSharingDropdown, setShowScreenSharingDropdown] = useState(
     false,
   );
+
+  //needed so the startPublishingStream(); effect doesn't run constantly
+  const [startPublishingCalled, setStartPublishingCalled] = useState(false);
 
   const {
     localVideoContainer,
@@ -169,7 +169,6 @@ export default function Room(props: RoomProps): JSX.Element {
   const publishersWithMembersData = useAddMemberDataToPublishers(
     publishers,
     members,
-    speakingPublishers,
   );
 
   const dimensions = useResizeListener();
@@ -281,6 +280,8 @@ export default function Room(props: RoomProps): JSX.Element {
   }, [rootMediaHandleInitialized, videoRoomStreamHandle]);
 
   const startPublishingStream = useCallback(async () => {
+    setStartPublishingCalled(true);
+
     let publishingStarted = false;
     let streamOptions;
     /* TODO: Manually prompt for camera and microphone access on macos to handle it more gracefully - systemPreferences.getMediaAccessStatus(mediaType) */
@@ -715,27 +716,19 @@ export default function Room(props: RoomProps): JSX.Element {
   }, [getNewServer, roomServerUpdated]);
 
   useEffect(() => {
-    if (rawLocalStream) {
-      rawLocalStream
-        .getVideoTracks()
-        .forEach((track) => (track.enabled = videoStatus));
-      rawLocalStream
-        .getAudioTracks()
-        .forEach((track) => (track.enabled = audioStatus));
-    }
-
-    return () => {
-      if (rawLocalStream) {
-        rawLocalStream.getTracks().forEach((track) => track.stop());
-      }
-    };
-  }, [audioStatus, rawLocalStream, videoStatus]);
-
-  useEffect(() => {
-    if (rootMediaHandleInitialized && joinedMediaHandle) {
+    if (
+      rootMediaHandleInitialized &&
+      joinedMediaHandle &&
+      !startPublishingCalled
+    ) {
       startPublishingStream();
     }
-  }, [rootMediaHandleInitialized, joinedMediaHandle, startPublishingStream]);
+  }, [
+    rootMediaHandleInitialized,
+    joinedMediaHandle,
+    startPublishingCalled,
+    startPublishingStream,
+  ]);
 
   useEffect(() => {
     if (publishing) {
