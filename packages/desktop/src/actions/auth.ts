@@ -95,8 +95,8 @@ export function authenticateUser(email: string, password: string) {
       axios
         .post(`https://blab.to/oauth/token`, {
           grant_type: "password",
-          client_id: 2,
-          client_secret: "c1bE8I6EMEG8TEHt9PTsLaJwvoyo8L8LtNP25mIv",
+          client_id: 4,
+          client_secret: "Ke51h8Du4QGaab56E4RNTWAuOkZ6sdKpHwTcLtH5",
           username: email,
           password: password,
           scope: "",

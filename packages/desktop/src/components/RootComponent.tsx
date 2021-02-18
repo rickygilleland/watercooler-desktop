@@ -81,7 +81,11 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
 
     const pusherInstance = new Pusher("3eb4f9d419966b6e1e0b", {
       forceTLS: true,
-      wsHost: "socket.blab.to",
+      wsHost: "blab.to",
+      httpHost: "blab.to",
+      disableStats: true,
+      wsPath: "/socket",
+      httpPath: "/socket",
       wsPort: 443,
       authEndpoint: "https://blab.to/broadcasting/auth",
       authTransport: "ajax",
