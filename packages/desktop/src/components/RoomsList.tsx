@@ -33,7 +33,11 @@ export default function RoomsList(props: RoomsListProps): JSX.Element {
           {rooms?.map((room) => (
             <RoomButtonContainer
               key={room.id}
-              hasActiveUsers={room.active_users?.length > 0}
+              hasActiveUsers={
+                room.active_users && room.active_users?.length > 0
+                  ? true
+                  : false
+              }
               onClick={() => {
                 if (room.video_enabled) {
                   handleWindowWidthChange();
