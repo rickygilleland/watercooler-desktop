@@ -3,6 +3,7 @@ import { User } from "../store/types/user";
 import { useGetCurrentTime } from "../hooks/team";
 import React, { useEffect, useState } from "react";
 import Video from "./Video";
+import styled from "styled-components";
 
 interface VideoListProps {
   publishing: boolean;
@@ -115,57 +116,110 @@ export default function VideoList(props: VideoListProps): JSX.Element {
     const publisherToShow = pinnedPublisher ?? processedPublishers[0];
 
     return (
-      <Video
-        showPinToggle={showPinToggle}
-        videoSizes={videoSizes}
-        publisher={publisherToShow}
-        togglePinned={togglePinned}
-        publishing={publishing}
-        speaking={Boolean(publisherToShow.speaking)}
-        currentTime={currentTime}
-        localTimezone={user.timezone}
-        hasVideo={publisherToShow.hasVideo}
-        hasAudio={publisherToShow.hasAudio}
-        videoLoading={Boolean(publisherToShow.videoLoading)}
-        audioLoading={Boolean(publisherToShow.audioLoading)}
-        videoIsFaceOnly={Boolean(publisherToShow.videoIsFaceOnly)}
-        showBeforeJoin={
-          publisherToShow.id.includes("_screensharing") ? false : true
-        }
-        pinned={true}
-        key={publisherToShow.id}
-        isLocal={publisherToShow.member?.id == user.id.toString()}
-      ></Video>
+      <VideoContainer
+        gridRows={videoSizes.rows}
+        gridColumns={videoSizes.columns}
+      >
+        <VideoItem gridRows={videoSizes.rows} gridColumns={videoSizes.columns}>
+          <Video
+            showPinToggle={showPinToggle}
+            videoSizes={videoSizes}
+            publisher={publisherToShow}
+            togglePinned={togglePinned}
+            publishing={publishing}
+            speaking={Boolean(publisherToShow.speaking)}
+            currentTime={currentTime}
+            localTimezone={user.timezone}
+            hasVideo={publisherToShow.hasVideo}
+            hasAudio={publisherToShow.hasAudio}
+            videoLoading={Boolean(publisherToShow.videoLoading)}
+            audioLoading={Boolean(publisherToShow.audioLoading)}
+            videoIsFaceOnly={Boolean(publisherToShow.videoIsFaceOnly)}
+            showBeforeJoin={
+              publisherToShow.id.includes("_screensharing") ? false : true
+            }
+            pinned={true}
+            key={publisherToShow.id}
+            isLocal={publisherToShow.member?.id == user.id.toString()}
+          ></Video>
+        </VideoItem>
+      </VideoContainer>
     );
   }
 
   return (
-    <React.Fragment>
+    <VideoContainer gridRows={videoSizes.rows} gridColumns={videoSizes.columns}>
       {processedPublishers.map((publisher) => {
         return (
-          <Video
-            showPinToggle={showPinToggle}
-            videoSizes={videoSizes}
-            publisher={publisher}
-            togglePinned={togglePinned}
-            publishing={publishing}
-            speaking={Boolean(publisher.speaking)}
-            currentTime={currentTime}
-            localTimezone={user.timezone}
-            hasVideo={publisher.hasVideo}
-            hasAudio={publisher.hasAudio}
-            videoLoading={Boolean(publisher.videoLoading)}
-            audioLoading={Boolean(publisher.audioLoading)}
-            videoIsFaceOnly={Boolean(publisher.videoIsFaceOnly)}
-            showBeforeJoin={
-              publisher.id.includes("_screensharing") ? false : true
-            }
-            pinned={false}
-            key={publisher.id}
-            isLocal={publisher.member?.id === user.id.toString()}
-          ></Video>
+          <VideoItem
+            gridRows={videoSizes.rows}
+            gridColumns={videoSizes.columns}
+          >
+            <Video
+              showPinToggle={showPinToggle}
+              videoSizes={videoSizes}
+              publisher={publisher}
+              togglePinned={togglePinned}
+              publishing={publishing}
+              speaking={Boolean(publisher.speaking)}
+              currentTime={currentTime}
+              localTimezone={user.timezone}
+              hasVideo={publisher.hasVideo}
+              hasAudio={publisher.hasAudio}
+              videoLoading={Boolean(publisher.videoLoading)}
+              audioLoading={Boolean(publisher.audioLoading)}
+              videoIsFaceOnly={Boolean(publisher.videoIsFaceOnly)}
+              showBeforeJoin={
+                publisher.id.includes("_screensharing") ? false : true
+              }
+              pinned={false}
+              key={publisher.id}
+              isLocal={publisher.member?.id === user.id.toString()}
+            ></Video>
+          </VideoItem>
         );
       })}
-    </React.Fragment>
+    </VideoContainer>
   );
 }
+
+/* sort of working, doesn't scale height well*/
+const VideoContainer = styled.div<{
+  gridRows: number;
+  gridColumns: number;
+}>`
+  display: grid;
+  justify-content: center;
+  align-items: center;
+  grid-template-columns: repeat(${(props) => props.gridColumns}, 1fr);
+  grid-template-rows: max-content;
+  height: 100%;
+`;
+
+const VideoItem = styled.div<{
+  gridRows: number;
+  gridColumns: number;
+}>`
+  video {
+    width: auto;
+    max-height: calc((100vh - 120px) / ${(props) => props.gridRows});
+  }
+`;
+
+/*
+const VideoContainer = styled.div`
+  display: flex;
+  height: calc(100vh - 120px);
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+`;
+
+const VideoItem = styled.div`
+  flex: 1 0 auto;
+  margin: 10px;
+
+  video {
+    max-height: calc(100vh - 120px);
+  }
+`;*/

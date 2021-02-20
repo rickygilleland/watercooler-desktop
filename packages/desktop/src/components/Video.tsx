@@ -69,14 +69,10 @@ export default function Video(props: VideoProps): JSX.Element {
 
     if (hasVideo === true && !videoLoading) {
       return (
-        <div className="col p-0 video-col">
+        <div>
           <div
             className={`video-container mx-auto position-relative text-light ${classAppend}`}
             style={{
-              height: pinned ? videoSizes.pinnedHeight : height,
-              width: pinned ? videoSizes.pinnedWidth : videoSizes.width,
-              maxHeight: videoIsFaceOnly ? 400 : videoSizes.height,
-              maxWidth: videoIsFaceOnly ? 400 : videoSizes.width,
               borderRadius: 25,
             }}
           >
@@ -228,12 +224,10 @@ export default function Video(props: VideoProps): JSX.Element {
 
     if (!audioLoading) {
       return (
-        <div className="col p-0 video-col">
+        <div>
           <div
             className={`video-container shadow mx-auto d-flex flex-column justify-content-center position-relative text-light ${classAppend}`}
             style={{
-              height: videoSizes.height,
-              width: videoSizes.width,
               backgroundColor: publisher.containerBackgroundColor,
               borderRadius: 25,
             }}
@@ -393,12 +387,10 @@ export default function Video(props: VideoProps): JSX.Element {
   }
 
   return (
-    <div className="col p-0 video-col">
+    <div>
       <div
         className="video-container shadow mx-auto d-flex flex-column justify-content-center position-relative text-light"
         style={{
-          height: videoSizes.height,
-          width: videoSizes.width,
           backgroundColor: publisher.containerBackgroundColor,
           borderRadius: 25,
         }}

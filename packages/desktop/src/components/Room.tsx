@@ -94,6 +94,8 @@ export default function Room(props: RoomProps): JSX.Element {
   const [privateId, setPrivateId] = useState<string | undefined>();
   const [publishing, setPublishing] = useState(false);
 
+  const [windowIsExpanded, setWindowIsExpanded] = useState(false);
+
   const [showAddUserToRoomModal, setShowAddUserToRoomModal] = useState(false);
   const [showScreenSharingModal, setShowScreenSharingModal] = useState(false);
   const [showScreenSharingDropdown, setShowScreenSharingDropdown] = useState(
@@ -766,6 +768,24 @@ export default function Room(props: RoomProps): JSX.Element {
     setHasVideoPublishers(Boolean(hasVideoPublishers.length > 0));
   }, [publishers]);
 
+  useEffect(() => {
+    if (hasVideoPublishers && !windowIsExpanded) {
+      ipcRenderer.invoke("update-main-window-width", {
+        type: "full",
+      });
+
+      setWindowIsExpanded(true);
+    }
+
+    if (!hasVideoPublishers && windowIsExpanded) {
+      ipcRenderer.invoke("update-main-window-width", {
+        type: "sidebar",
+      });
+
+      setWindowIsExpanded(false);
+    }
+  }, [hasVideoPublishers, windowIsExpanded]);
+
   return (
     <React.Fragment>
       {showAddUserToRoomModal && room && currentWebsocketUser && (
@@ -951,7 +971,7 @@ export default function Room(props: RoomProps): JSX.Element {
       <Container
         className="ml-0 stage-container"
         fluid
-        style={{ height: videoSizes.containerHeight - 20 }}
+        style={{ height: "calc('100vh - 140px')" }}
       >
         {loading && (
           <LoadingContainer>

@@ -19,12 +19,6 @@ interface RoomsListProps {
 export default function RoomsList(props: RoomsListProps): JSX.Element {
   const { rooms } = props;
 
-  const handleWindowWidthChange = () => {
-    ipcRenderer.invoke("update-main-window-width", {
-      type: "full",
-    });
-  };
-
   return (
     <Container>
       {rooms && rooms.length === 0 && <Title>No rooms yet.</Title>}
@@ -38,11 +32,6 @@ export default function RoomsList(props: RoomsListProps): JSX.Element {
                   ? true
                   : false
               }
-              onClick={() => {
-                if (room.video_enabled) {
-                  handleWindowWidthChange();
-                }
-              }}
               to={{
                 pathname: `/room/${room.slug}`,
               }}
