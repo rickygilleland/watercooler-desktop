@@ -1,8 +1,8 @@
-import { DateTime } from "luxon";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { User } from "../store/types/user";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import { useGetCurrentTime } from "../hooks/team";
+import Person from "./Person";
 import React from "react";
 import styled from "styled-components";
 
@@ -22,23 +22,13 @@ export default function TeamList(props: TeamListProps): JSX.Element {
       <PersonListContainer>
         {users &&
           users.map((teamUser) => (
-            <PersonContainer key={teamUser.id}>
-              <AvatarContainer>
-                <Avatar src={teamUser.avatar_url} />
-                <OnlineIndicator online={onlineUsers.includes(teamUser.id)} />
-              </AvatarContainer>
-              <NameTimeContainer>
-                <Name>{`${teamUser.first_name} ${teamUser.last_name}`}</Name>
-                {teamUser.timezone !== props.user.timezone && (
-                  <Time>
-                    Local time:{" "}
-                    {currentTime
-                      .setZone(teamUser.timezone)
-                      .toLocaleString(DateTime.TIME_SIMPLE)}
-                  </Time>
-                )}
-              </NameTimeContainer>
-            </PersonContainer>
+            <Person
+              key={teamUser.id}
+              currentUser={props.user}
+              user={teamUser}
+              onlineUsers={onlineUsers}
+              currentTime={currentTime}
+            />
           ))}
       </PersonListContainer>
       <InviteUserButton onClick={() => props.setShowInviteUsersModal(true)}>
@@ -59,54 +49,6 @@ const PersonListContainer = styled.div`
   height: calc(100vh - 140px);
   overflow: auto;
   padding: 12px;
-`;
-
-const PersonContainer = styled.div`
-  width: 100%;
-  display: flex;
-  align-items: center;
-  margin: 20px 0;
-`;
-
-const NameTimeContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const Name = styled.div`
-  font-size: 14px;
-  font-weight: 600;
-`;
-
-const AvatarContainer = styled.div`
-  width: 40px;
-  height: 40px;
-  margin-right: 12px;
-`;
-
-const Avatar = styled.img`
-  border-radius: 50%;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-`;
-
-const OnlineIndicator = styled.div<{
-  online: boolean;
-}>`
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background-color: ${(props) =>
-    props.online ? "rgb(51, 255, 119, .95)" : "#f9426c"};
-  border: 2px solid rgb(33, 37, 41, 0.6);
-  left: 29px;
-  bottom: 11px;
-  position: relative;
-`;
-
-const Time = styled.div`
-  font-size: 14px;
 `;
 
 const InviteUserButton = styled.div`

@@ -86,6 +86,7 @@ export const useInitializeRoom = (
 
   useEffect(() => {
     let updatedRoom: Room | undefined;
+    let presenceChannel: Channel | undefined;
 
     for (const team of teams) {
       updatedRoom = team.rooms.find((teamRoom) => teamRoom.slug === roomSlug);
@@ -102,12 +103,16 @@ export const useInitializeRoom = (
     posthog.capture("$pageview", { room_id: updatedRoom.id });
 
     if (pusherInstance) {
-      const presenceChannel = pusherInstance.subscribe(
+      presenceChannel = pusherInstance.subscribe(
         `presence-room.${updatedRoom.channel_id}`,
       );
 
       setPresenceChannel(presenceChannel);
     }
+
+    return () => {
+      presenceChannel?.unsubscribe();
+    };
   }, [teams, roomSlug, pusherInstance, userId]);
 
   return { room, presenceChannel, setPresenceChannel };

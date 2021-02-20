@@ -7,6 +7,7 @@ import {
   faVideo,
 } from "@fortawesome/free-solid-svg-icons";
 import { ipcRenderer } from "electron";
+import Person, { Avatar, AvatarContainer } from "./Person";
 import React from "react";
 import styled from "styled-components";
 
@@ -32,6 +33,7 @@ export default function RoomsList(props: RoomsListProps): JSX.Element {
           {rooms?.map((room) => (
             <RoomButtonContainer
               key={room.id}
+              hasActiveUsers={room.active_users?.length > 0}
               onClick={() => {
                 if (room.video_enabled) {
                   handleWindowWidthChange();
@@ -47,6 +49,18 @@ export default function RoomsList(props: RoomsListProps): JSX.Element {
                 />
                 <RoomTitle>{room.name}</RoomTitle>
               </RoomTitleContainer>
+              <ActiveUserAvatars>
+                {room.active_users?.map((activeUser) => (
+                  <AvatarContainer>
+                    <Avatar src={activeUser.avatar_url} />
+                  </AvatarContainer>
+                ))}
+              </ActiveUserAvatars>
+              <ActiveUsers>
+                {room.active_users?.map((activeUser) => (
+                  <Person user={activeUser} />
+                ))}
+              </ActiveUsers>
             </RoomButtonContainer>
           ))}
         </RoomsContainer>
@@ -75,10 +89,27 @@ const RoomsContainer = styled.div`
   height: calc(100vh - 140px);
   overflow: auto;
   padding: 12px;
+  align-content: flex-start;
 `;
 
-const RoomButtonContainer = styled(Link)`
+const ActiveUserAvatars = styled.div`
   display: flex;
+`;
+
+const ActiveUsers = styled.div`
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 500;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+`;
+
+const RoomButtonContainer = styled(Link)<{
+  hasActiveUsers: boolean;
+}>`
+  display: flex;
+  flex-direction: column;
   border: 1px solid rgb(255, 255, 255, 0.4);
   border-radius: 4px;
   margin: 12px 12px 12px 0;
@@ -86,12 +117,23 @@ const RoomButtonContainer = styled(Link)`
   min-width: 230px;
   max-height: 120px;
   width: 25%;
-  transition: width 0.2s ease;
-  transition: border 0.2s ease;
+  height: 50px;
+  transition: width 0.3s ease-in-out;
+  transition: border 0.3s ease-in-out;
+  transition: height 0.3s ease-in-out;
   color: #fff !important;
   &:hover {
     text-decoration: none;
     border: 1px solid #408af8;
+    height: ${(props) => (props.hasActiveUsers ? "85px" : undefined)};
+
+    ${ActiveUsers} {
+      opacity: 1;
+    }
+
+    ${ActiveUserAvatars} {
+      display: none;
+    }
   }
 
   @media (max-width: 480px) {

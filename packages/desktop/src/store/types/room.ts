@@ -27,6 +27,7 @@ export interface Room {
   is_active: boolean;
   server_id: number;
   participants?: number[];
+  active_users?: User[];
 }
 
 export interface RoomState {

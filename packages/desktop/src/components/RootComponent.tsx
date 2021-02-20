@@ -1,9 +1,11 @@
 import { LibraryItem } from "../store/types/library";
 import { Message } from "../store/types/message";
 import { PropsFromRedux } from "../containers/RootContainer";
+import { Room } from "../store/types/room";
 import { Route, Switch } from "react-router-dom";
 import { Team } from "../store/types/organization";
 import { Thread } from "../store/types/thread";
+import { User } from "../store/types/user";
 import { each } from "lodash";
 import EnsureLoggedInContainer from "../containers/EnsureLoggedInContainer";
 import ErrorBoundary from "./ErrorBoundary";
@@ -140,6 +142,8 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
               id: number;
             };
             myId: number;
+            room?: Room;
+            user?: User;
           },
         ) {
           if (event == "pusher:subscription_succeeded") {
@@ -164,6 +168,14 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
           }
 
           if (event == "billing.updated") {
+            getOrganizations();
+          }
+
+          if (
+            (event === "room.user.joined" || event === "room.user.joined") &&
+            data.user?.id !== user.id
+          ) {
+            getOrganizationUsers(organization.id);
             getOrganizations();
           }
         });
