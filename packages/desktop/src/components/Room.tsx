@@ -41,6 +41,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { ipcRenderer } from "electron";
 import AddUserToRoomModal from "./AddUserToRoomModal";
+import AudioList from "./AudioList";
 import Pusher, { Channel } from "pusher-js";
 import React, { useCallback, useEffect, useState } from "react";
 import ScreenSharingModal from "./ScreenSharingModal";
@@ -117,6 +118,8 @@ export default function Room(props: RoomProps): JSX.Element {
 
   const [speakingPublishers, setSpeakingPublishers] = useState<string[]>([]);
   const [localStream, setLocalStream] = useState<MediaStream | undefined>();
+
+  const [hasVideoPublishers, setHasVideoPublishers] = useState(false);
 
   const { room, presenceChannel, setPresenceChannel } = useInitializeRoom(
     roomSlug,
@@ -445,10 +448,19 @@ export default function Room(props: RoomProps): JSX.Element {
 
                 if (dataMsg.type === "started_speaking") {
                   publisher.speaking = true;
+
+                  setSpeakingPublishers([
+                    ...new Set([...speakingPublishers, user.id.toString()]),
+                  ]);
                 }
 
                 if (dataMsg.type === "stopped_speaking") {
                   publisher.speaking = false;
+
+                  const updatedSpeakingPublishers = speakingPublishers.filter(
+                    (speakingId) => speakingId !== user.id.toString(),
+                  );
+                  setSpeakingPublishers(updatedSpeakingPublishers);
                 }
 
                 if (dataMsg.type === "participant_status_update") {
@@ -746,6 +758,14 @@ export default function Room(props: RoomProps): JSX.Element {
     };
   }, [room?.video_enabled]);
 
+  useEffect(() => {
+    const hasVideoPublishers = publishers.filter(
+      (publisher) => publisher.hasVideo,
+    );
+
+    setHasVideoPublishers(Boolean(hasVideoPublishers.length > 0));
+  }, [publishers]);
+
   return (
     <React.Fragment>
       {showAddUserToRoomModal && room && currentWebsocketUser && (
@@ -779,28 +799,30 @@ export default function Room(props: RoomProps): JSX.Element {
           />
           <Title>{room?.name}</Title>
 
-          <RoomPrivacyContainer>
-            <OverlayTrigger
-              placement="bottom-start"
-              overlay={
-                <Tooltip id="tooltip-view-members">
-                  View current members of this private room and add new ones.
-                </Tooltip>
-              }
-            >
-              <span className="d-inline-block">
-                <Button
-                  variant="link"
-                  className="pt-0 pl-1"
-                  style={{ fontSize: ".7rem" }}
-                  onClick={() => setShowAddUserToRoomModal(true)}
-                >
-                  <FontAwesomeIcon icon={faLock} />{" "}
-                  {roomUsers.length > 0 ? roomUsers.length : ""}
-                </Button>
-              </span>
-            </OverlayTrigger>
-          </RoomPrivacyContainer>
+          {room?.is_private && (
+            <RoomPrivacyContainer>
+              <OverlayTrigger
+                placement="bottom-start"
+                overlay={
+                  <Tooltip id="tooltip-view-members">
+                    View current members of this private room and add new ones.
+                  </Tooltip>
+                }
+              >
+                <span className="d-inline-block">
+                  <Button
+                    variant="link"
+                    className="pt-0 pl-1"
+                    style={{ fontSize: ".7rem" }}
+                    onClick={() => setShowAddUserToRoomModal(true)}
+                  >
+                    <FontAwesomeIcon icon={faLock} />{" "}
+                    {roomUsers.length > 0 ? roomUsers.length : ""}
+                  </Button>
+                </span>
+              </OverlayTrigger>
+            </RoomPrivacyContainer>
+          )}
           <RoomControlsContainer>
             {!billing.video_enabled && room?.video_enabled && (
               <OverlayTrigger
@@ -944,7 +966,8 @@ export default function Room(props: RoomProps): JSX.Element {
         )}
         {!loading &&
           !roomAtCapacity &&
-          publishersWithMembersData.length > 0 && (
+          publishersWithMembersData.length > 0 &&
+          hasVideoPublishers && (
             <VideoList
               videoSizes={videoSizes}
               publishers={publishersWithMembersData}
@@ -955,6 +978,17 @@ export default function Room(props: RoomProps): JSX.Element {
               }
               pinnedPublisherId={pinnedPublisherId}
             ></VideoList>
+          )}
+        {!loading &&
+          !roomAtCapacity &&
+          publishersWithMembersData.length > 0 &&
+          !hasVideoPublishers && (
+            <AudioList
+              publishers={publishersWithMembersData}
+              publishing={publishing}
+              speakingPublishers={speakingPublishers}
+              user={user}
+            ></AudioList>
           )}
         {!loading && roomAtCapacity && (
           <React.Fragment>

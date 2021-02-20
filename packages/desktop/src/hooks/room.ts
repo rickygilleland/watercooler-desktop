@@ -54,11 +54,11 @@ export interface Member {
     peer_uuid: string;
     streamer_key: string;
     room_pin: string;
+    timezone?: string;
+    first_name?: string;
+    last_name?: string;
+    avatar?: string;
   };
-  timezone?: string;
-  first_name?: string;
-  last_name?: string;
-  avatar?: string;
 }
 
 interface WebsocketDataResponse {
