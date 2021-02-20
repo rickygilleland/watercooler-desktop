@@ -13,7 +13,6 @@ import styled from "styled-components";
 
 interface RoomsListProps {
   rooms: Room[] | undefined;
-  loading: boolean;
   setShowCreateRoomForm(show: boolean): void;
 }
 
