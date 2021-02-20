@@ -13,6 +13,7 @@ import styled from "styled-components";
 
 interface RoomsListProps {
   rooms: Room[] | undefined;
+  loading: boolean;
   setShowCreateRoomForm(show: boolean): void;
 }
 
@@ -27,7 +28,7 @@ export default function RoomsList(props: RoomsListProps): JSX.Element {
 
   return (
     <Container>
-      {!rooms && <Title>No rooms yet.</Title>}
+      {rooms && rooms.length === 0 && <Title>No rooms yet.</Title>}
       {rooms && (
         <RoomsContainer>
           {rooms?.map((room) => (
