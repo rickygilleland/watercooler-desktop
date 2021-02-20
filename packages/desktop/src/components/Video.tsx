@@ -16,7 +16,6 @@ import VideoPlayer from "./VideoPlayer";
 interface VideoProps {
   showPinToggle: boolean;
   showBeforeJoin: boolean;
-  videoSizes: VideoSizes;
   publisher: Publisher;
   localTimezone: string;
   currentTime: DateTime;
@@ -36,7 +35,6 @@ export default function Video(props: VideoProps): JSX.Element {
   const {
     showPinToggle,
     showBeforeJoin,
-    videoSizes,
     publisher,
     localTimezone,
     currentTime,
@@ -65,8 +63,6 @@ export default function Video(props: VideoProps): JSX.Element {
   }
 
   if (typeof publisher.stream != "undefined" && publisher.stream != null) {
-    const height = videoSizes.height;
-
     if (hasVideo === true && !videoLoading) {
       return (
         <div>

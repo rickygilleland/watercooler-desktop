@@ -123,7 +123,6 @@ export default function VideoList(props: VideoListProps): JSX.Element {
         <VideoItem gridRows={videoSizes.rows} gridColumns={videoSizes.columns}>
           <Video
             showPinToggle={showPinToggle}
-            videoSizes={videoSizes}
             publisher={publisherToShow}
             togglePinned={togglePinned}
             publishing={publishing}
@@ -157,7 +156,6 @@ export default function VideoList(props: VideoListProps): JSX.Element {
           >
             <Video
               showPinToggle={showPinToggle}
-              videoSizes={videoSizes}
               publisher={publisher}
               togglePinned={togglePinned}
               publishing={publishing}

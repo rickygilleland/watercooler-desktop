@@ -23,7 +23,6 @@ import {
   useInitializeJanus,
   useInitializeRoom,
   useOnlineListener,
-  useResizeListener,
   useToggleVideoAudioStatus,
 } from "../hooks/room";
 import { RouteComponentProps } from "react-router";
@@ -176,9 +175,7 @@ export default function Room(props: RoomProps): JSX.Element {
     members,
   );
 
-  const dimensions = useResizeListener();
   const videoSizes = useGetVideoSizes(
-    dimensions,
     showChatThread,
     publishersWithMembersData.length,
   );

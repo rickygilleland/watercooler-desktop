@@ -16,13 +16,6 @@ export interface Dimensions {
 }
 
 export interface VideoSizes {
-  height: number;
-  width: number;
-  display: string;
-  containerHeight: number;
-  threadContainerHeight: number;
-  pinnedHeight: number;
-  pinnedWidth: number;
   rows: number;
   columns: number;
 }
@@ -183,152 +176,59 @@ export const useGetAvailableScreensToShare = (
   return { availableScreensToShare, screenSourcesLoading };
 };
 
-export const useResizeListener = (): Dimensions => {
-  const [dimensions, setDimensions] = useState<Dimensions>({
-    width: window.innerWidth,
-    height: window.innerHeight / 2,
-  });
-
-  useEffect(() => {
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-    };
-  });
-
-  const handleResize = () => {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-
-    setDimensions({
-      width,
-      height,
-    });
-  };
-
-  return dimensions;
-};
-
 export const useGetVideoSizes = (
-  dimensions: Dimensions,
   showChatThread: boolean,
   publishersCount: number,
 ): VideoSizes => {
   const [videoSizes, setVideoSizes] = useState<VideoSizes>({
-    height: 0,
-    width: 0,
-    display: "row align-items-center justify-content-center h-100",
-    containerHeight: (window.innerHeight - 114) / 2,
-    threadContainerHeight: (window.innerHeight - 114) / 2,
-    pinnedHeight: 0,
-    pinnedWidth: 0,
     rows: 0,
     columns: 0,
   });
 
   useEffect(() => {
-    let width = dimensions.width;
-    let height = dimensions.height;
-    const maxWidth = dimensions.width;
-
     let rows = 1;
     let columns = 1;
 
     if (publishersCount > 0) {
       if (publishersCount >= 2) {
-        if (dimensions.width > 980) {
-          if (publishersCount > 2) {
-            rows = 2;
-          }
+        if (publishersCount > 2) {
+          rows = 2;
+        }
 
-          if (publishersCount >= 2 && publishersCount <= 4) {
-            columns = 2;
-          }
+        if (publishersCount >= 2 && publishersCount <= 4) {
+          columns = 2;
+        }
 
-          if (publishersCount > 4 && publishersCount <= 6) {
-            columns = 3;
-          }
+        if (publishersCount > 4 && publishersCount <= 6) {
+          columns = 3;
+        }
 
-          if (publishersCount > 6 && publishersCount <= 8) {
-            columns = 4;
-          }
+        if (publishersCount > 6 && publishersCount <= 8) {
+          columns = 4;
+        }
 
-          if (publishersCount > 8 && publishersCount <= 12) {
-            rows = 3;
-            columns = 4;
-          }
+        if (publishersCount > 8 && publishersCount <= 12) {
+          rows = 3;
+          columns = 4;
+        }
 
-          if (publishersCount > 12 && publishersCount <= 16) {
-            rows = 4;
-            columns = 4;
-          }
+        if (publishersCount > 12 && publishersCount <= 16) {
+          rows = 4;
+          columns = 4;
+        }
 
-          if (publishersCount > 16 && publishersCount <= 20) {
-            rows = 4;
-            columns = 5;
-          }
+        if (publishersCount > 16 && publishersCount <= 20) {
+          rows = 4;
+          columns = 5;
+        }
 
-          if (publishersCount > 20 && publishersCount <= 25) {
-            rows = 5;
-            columns = 5;
-          }
-        } else {
-          if (publishersCount == 2) {
-            rows = 2;
-          }
-
-          if (publishersCount > 2) {
-            columns = 2;
-            rows = 2;
-          }
-
-          if (publishersCount > 2 && publishersCount <= 4) {
-            rows = publishersCount;
-            columns = 1;
-          }
-
-          if (publishersCount > 4) {
-            rows = Math.floor(publishersCount / 2);
-            columns = 2;
-          }
+        if (publishersCount > 20 && publishersCount <= 25) {
+          rows = 5;
+          columns = 5;
         }
       }
 
-      const aspectRatio = 4 / 3;
-
-      height = Math.round(width / aspectRatio);
-
-      while (
-        height * rows > dimensions.height - 250 ||
-        width * columns > maxWidth - 100
-      ) {
-        width = width - 5;
-        height = Math.round(width / aspectRatio);
-      }
-
-      let pinnedWidth = dimensions.width - 25;
-      let pinnedHeight = Math.round(pinnedWidth / aspectRatio);
-
-      while (pinnedHeight > dimensions.height - 120) {
-        pinnedWidth -= 5;
-        pinnedHeight = Math.round(pinnedWidth / aspectRatio);
-      }
-
-      let display = "row align-items-center justify-content-center h-100";
-
-      if (dimensions.width < 1080) {
-        display = "row align-items-center justify-content-center h-100";
-      }
-
       setVideoSizes({
-        height: height,
-        width: width,
-        display: display,
-        containerHeight: dimensions.height - 75,
-        threadContainerHeight: showChatThread ? dimensions.height : 65,
-        pinnedHeight,
-        pinnedWidth,
         rows,
         columns,
       });
@@ -337,17 +237,10 @@ export const useGetVideoSizes = (
     }
 
     setVideoSizes({
-      width,
-      height,
-      display: "row align-items-center justify-content-center h-100",
-      containerHeight: dimensions.height - 75,
-      threadContainerHeight: showChatThread ? dimensions.height : 65,
-      pinnedHeight: height,
-      pinnedWidth: width,
       rows: 1,
       columns: 1,
     });
-  }, [dimensions, showChatThread, publishersCount]);
+  }, [showChatThread, publishersCount]);
 
   return videoSizes;
 };
