@@ -6,7 +6,6 @@ import {
   faPlus,
   faVideo,
 } from "@fortawesome/free-solid-svg-icons";
-import { ipcRenderer } from "electron";
 import Person, { Avatar, AvatarContainer } from "./Person";
 import React from "react";
 import styled from "styled-components";

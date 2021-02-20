@@ -1,7 +1,7 @@
 import { Button, Col, Image, Row } from "react-bootstrap";
 import { DateTime } from "luxon";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Publisher, VideoSizes, useRenderVideo } from "../hooks/room";
+import { Publisher, useRenderVideo } from "../hooks/room";
 import {
   faCircleNotch,
   faCompress,
