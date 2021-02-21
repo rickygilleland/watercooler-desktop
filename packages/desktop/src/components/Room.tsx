@@ -501,13 +501,11 @@ export default function Room(props: RoomProps): JSX.Element {
         return;
       }
 
-      /*const localStream = localVideoCanvas.captureStream(60);
+      const localStream = localVideoCanvas.captureStream(60);
 
       rawLocalStream
         .getAudioTracks()
-        .forEach((track) => localStream.addTrack(track));*/
-
-      const localStream = rawLocalStream;
+        .forEach((track) => localStream.addTrack(track));
 
       const speechEvents = hark(localStream);
 
@@ -621,8 +619,6 @@ export default function Room(props: RoomProps): JSX.Element {
     };
 
     localVideo.onplaying = async () => {
-      publishStream();
-
       const drawParams = {
         sourceX: 0,
         sourceY: 0,
@@ -637,7 +633,7 @@ export default function Room(props: RoomProps): JSX.Element {
       const ctx = localVideoCanvas.getContext("2d");
 
       const getNextFrame = async () => {
-        if (!publishingStarted || !videoStatus || !ctx) {
+        if (!publishingStarted || !ctx) {
           requestAnimationFrame(getNextFrame);
           return;
         }
@@ -654,6 +650,7 @@ export default function Room(props: RoomProps): JSX.Element {
       };
 
       getNextFrame();
+      publishStream();
     };
 
     setRawLocalStream(rawLocalStream);
@@ -667,6 +664,7 @@ export default function Room(props: RoomProps): JSX.Element {
     publishers,
     room?.channel_id,
     rootMediaHandle,
+    setHeartbeatInterval,
     settings.defaultDevices,
     speakingPublishers,
     streamerKey,

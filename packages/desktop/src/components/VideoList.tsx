@@ -153,6 +153,7 @@ export default function VideoList(props: VideoListProps): JSX.Element {
           <VideoItem
             gridRows={videoSizes.rows}
             gridColumns={videoSizes.columns}
+            key={publisher.id}
           >
             <Video
               showPinToggle={showPinToggle}
@@ -171,7 +172,6 @@ export default function VideoList(props: VideoListProps): JSX.Element {
                 publisher.id.includes("_screensharing") ? false : true
               }
               pinned={false}
-              key={publisher.id}
               isLocal={publisher.member?.id === user.id.toString()}
             ></Video>
           </VideoItem>
