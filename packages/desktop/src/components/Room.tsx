@@ -762,7 +762,7 @@ export default function Room(props: RoomProps): JSX.Element {
 
   useEffect(() => {
     return () => {
-      if (room?.video_enabled) {
+      if (room?.video_enabled && process.env.NODE_ENV !== "development") {
         ipcRenderer.invoke("update-main-window-width", {
           type: "sidebar",
         });
@@ -779,7 +779,11 @@ export default function Room(props: RoomProps): JSX.Element {
   }, [publishers]);
 
   useEffect(() => {
-    if (hasVideoPublishers && !windowIsExpanded) {
+    if (
+      hasVideoPublishers &&
+      !windowIsExpanded &&
+      process.env.NODE_ENV !== "development"
+    ) {
       ipcRenderer.invoke("update-main-window-width", {
         type: "full",
       });
@@ -787,7 +791,11 @@ export default function Room(props: RoomProps): JSX.Element {
       setWindowIsExpanded(true);
     }
 
-    if (!hasVideoPublishers && windowIsExpanded) {
+    if (
+      !hasVideoPublishers &&
+      windowIsExpanded &&
+      process.env.NODE_ENV !== "development"
+    ) {
       ipcRenderer.invoke("update-main-window-width", {
         type: "sidebar",
       });
