@@ -563,7 +563,7 @@ export const useCreateHeartbeatIntervals = () => {
     };
   }, [heartbeatInterval]);
 
-  return { heartbeatInterval, setHeartbeatInterval };
+  return { setHeartbeatInterval };
 };
 
 export const useRenderVideo = (source: MediaStream) => {

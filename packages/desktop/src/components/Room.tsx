@@ -112,10 +112,7 @@ export default function Room(props: RoomProps): JSX.Element {
     localVideo,
   } = useCreateVideoContainers();
 
-  const {
-    heartbeatInterval,
-    setHeartbeatInterval,
-  } = useCreateHeartbeatIntervals();
+  const { setHeartbeatInterval } = useCreateHeartbeatIntervals();
 
   const [speakingPublishers, setSpeakingPublishers] = useState<string[]>([]);
   const [localStream, setLocalStream] = useState<MediaStream | undefined>();
@@ -504,11 +501,13 @@ export default function Room(props: RoomProps): JSX.Element {
         return;
       }
 
-      const localStream = localVideoCanvas.captureStream(60);
+      /*const localStream = localVideoCanvas.captureStream(60);
 
       rawLocalStream
         .getAudioTracks()
-        .forEach((track) => localStream.addTrack(track));
+        .forEach((track) => localStream.addTrack(track));*/
+
+      const localStream = rawLocalStream;
 
       const speechEvents = hark(localStream);
 
@@ -586,6 +585,22 @@ export default function Room(props: RoomProps): JSX.Element {
 
           setPublishing(publishingStarted);
           setLocalStream(localStream);
+
+          const heartbeatInterval = setInterval(() => {
+            const dataMsg = {
+              type: "participant_status_update",
+              publisher_id: user.id,
+              video_status: videoStatus,
+              audio_status: audioStatus,
+              face_only_status: false,
+            };
+
+            videoRoomStreamHandle.data({
+              text: JSON.stringify(dataMsg),
+            });
+          }, 30000);
+
+          setHeartbeatInterval(heartbeatInterval);
 
           handleRemoteStreams();
         },
