@@ -1,0 +1,48 @@
+name: Build/release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest]
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+
+      - name: Install Node.js, NPM and Yarn
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.5
+
+      - name: Prepare for app notarization
+        if: startsWith(matrix.os, 'macos')
+        # Import Apple API key for app notarization on macOS
+        run: |
+          mkdir -p ~/private_keys/
+          echo '${{ secrets.mac_api_key }}' > ~/private_keys/AuthKey_${{ secrets.mac_api_key_id }}.p8
+
+      - name: Import Code-Signing Certificates
+        if: startsWith(matrix.os, 'macos')
+        uses: Apple-Actions/import-codesign-certs@v1
+        with:
+          p12-file-base64: ${{ secrets.MAC_CERTS }}
+          p12-password: ${{ secrets.MAC_CERTS_PASSWORD }}
+
+      - name: Build/release Electron app
+        uses: ./.github/actions/electron-build
+        with:
+          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
+        env:
+          # macOS notarization API key
+          MAC_API_KEY_ID: ${{ secrets.mac_api_key_id }}
+          MAC_API_KEY_ISSUER_ID: ${{ secrets.mac_api_key_issuer_id }}
+          APPLE_PROVIDER: ${{ secrets.APPLE_PROVIDER }}
+          GITHUB_TOKEN: ${{ secrets.github_token }}
