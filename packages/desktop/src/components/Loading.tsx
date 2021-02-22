@@ -6,27 +6,22 @@ import React, { useEffect } from "react";
 import styled from "styled-components";
 
 export default function Loading(props: PropsFromRedux): JSX.Element {
+  const { auth, getUserDetails, getOrganizations, push } = props;
   useEffect(() => {
-    if (!props.auth.isLoggedIn) {
-      props.push(Routes.Login);
+    if (!auth.isLoggedIn) {
+      push(Routes.Login);
       return;
     }
 
     const fetchAll = async () => {
-      const getUser = props.getUserDetails();
-      const getOrganization = props.getOrganizations();
-      const getOrganizationUser = props.getOrganizationUsers(
-        props.organization.id,
-      );
+      const getUser = getUserDetails();
+      const getOrganization = getOrganizations();
 
-      Promise.all([getUser, getOrganization, getOrganizationUser]).then(() => {
-        props.push(Routes.Home);
-      });
+      Promise.all([getUser, getOrganization]).then(() => push(Routes.Home));
     };
 
     fetchAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [auth.isLoggedIn, getOrganizations, getUserDetails, push]);
 
   return (
     <Container data-tid="container" fluid>

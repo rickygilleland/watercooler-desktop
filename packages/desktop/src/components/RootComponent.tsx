@@ -77,6 +77,16 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
   const [showCreateRoomForm, setShowCreateRoomForm] = useState(false);
 
   useEffect(() => {
+    const fetchOrganizationUsers = async () => {
+      await getOrganizationUsers(organization.id);
+    };
+
+    if (organization?.id !== undefined) {
+      fetchOrganizationUsers();
+    }
+  }, [getOrganizationUsers, organization?.id]);
+
+  useEffect(() => {
     nativeTheme.on("updated", () => {
       setIsLightMode(!nativeTheme.shouldUseDarkColors);
     });
@@ -107,6 +117,7 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
   }, [auth.authKey]);
 
   useEffect(() => {
+    if (user?.id === undefined) return;
     posthog.identify(user.id.toString());
     posthog.people.set({ email: user.email });
 
@@ -118,6 +129,8 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
   }, [user.id, user.email, organization.id]);
 
   useEffect(() => {
+    if (user?.timezone === undefined) return;
+
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     if (user.timezone != timezone) {
