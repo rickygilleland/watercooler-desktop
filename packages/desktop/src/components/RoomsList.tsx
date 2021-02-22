@@ -28,7 +28,7 @@ export default function RoomsList(props: RoomsListProps): JSX.Element {
               key={room.id}
               hasactiveusers={
                 room.active_users && room.active_users?.length > 0
-                  ? "true"
+                  ? "false"
                   : "false"
               }
               to={{
@@ -42,7 +42,7 @@ export default function RoomsList(props: RoomsListProps): JSX.Element {
 
                 <RoomTitle>{room.name}</RoomTitle>
               </RoomTitleContainer>
-              <ActiveUserAvatars>
+              {/*<ActiveUserAvatars>
                 {room.active_users?.map((activeUser) => (
                   <AvatarContainer key={activeUser.id}>
                     <Avatar src={activeUser.avatar_url} />
@@ -53,7 +53,7 @@ export default function RoomsList(props: RoomsListProps): JSX.Element {
                 {room.active_users?.map((activeUser) => (
                   <Person user={activeUser} key={activeUser.id} />
                 ))}
-              </ActiveUsers>
+                </ActiveUsers>*/}
             </RoomButtonContainer>
           ))}
         </RoomsContainer>
