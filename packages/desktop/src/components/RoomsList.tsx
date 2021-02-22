@@ -39,6 +39,7 @@ export default function RoomsList(props: RoomsListProps): JSX.Element {
                 <FontAwesomeIcon
                   icon={room.video_enabled ? faVideo : faMicrophoneAlt}
                 />
+
                 <RoomTitle>{room.name}</RoomTitle>
               </RoomTitleContainer>
               <ActiveUserAvatars>
@@ -86,6 +87,7 @@ const RoomsContainer = styled.div`
 
 const ActiveUserAvatars = styled.div`
   display: flex;
+  margin-left: auto;
 `;
 
 const ActiveUsers = styled.div`
@@ -94,14 +96,19 @@ const ActiveUsers = styled.div`
   font-size: 14px;
   font-weight: 500;
   opacity: 0;
-  transition: opacity 0.3s ease-in-out;
+  transition: none;
+  width: 0;
+`;
+
+const RoomTitle = styled.div`
+  font-size: 14px;
+  font-weight: 600;
 `;
 
 const RoomButtonContainer = styled(Link)<{
   hasactiveusers: string;
 }>`
   display: flex;
-  flex-direction: column;
   border: 1px solid rgb(255, 255, 255, 0.4);
   border-radius: 4px;
   margin: 12px 12px 12px 0;
@@ -112,16 +119,29 @@ const RoomButtonContainer = styled(Link)<{
   height: 50px;
   transition: width 0.3s ease-in-out;
   transition: border 0.3s ease-in-out;
-  transition: height 0.3s ease-in-out;
   color: #fff !important;
+
+  ${AvatarContainer} {
+    height: 25px;
+    width: 25px;
+  }
+
   &:hover {
     text-decoration: none;
     border: 1px solid #408af8;
     height: ${(props) =>
-      props.hasactiveusers === "true" ? "85px" : undefined};
+      props.hasactiveusers === "true" ? "auto" : undefined};
+    flex-direction: column;
+
+    ${AvatarContainer} {
+      width: 40px;
+      height: 40px;
+    }
 
     ${ActiveUsers} {
       opacity: 1;
+      transition: opacity 0.3s ease-in;
+      width: 100%;
     }
 
     ${ActiveUserAvatars} {
@@ -142,11 +162,6 @@ const RoomTitleContainer = styled.div`
   svg {
     margin-right: 6px;
   }
-`;
-
-const RoomTitle = styled.div`
-  font-size: 14px;
-  font-weight: 600;
 `;
 
 const NewRoomButton = styled.div`
