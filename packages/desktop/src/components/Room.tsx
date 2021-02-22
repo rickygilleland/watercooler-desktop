@@ -104,6 +104,9 @@ export default function Room(props: RoomProps): JSX.Element {
     false,
   );
 
+  const [newPublishers, setNewPublishers] = useState<Publisher[]>([]);
+  const [publishersToRemove, setPublishersToRemove] = useState<string[]>([]);
+
   //needed so the startPublishingStream(); effect doesn't run constantly
   const [startPublishingCalled, setStartPublishingCalled] = useState(false);
 
@@ -192,6 +195,36 @@ export default function Room(props: RoomProps): JSX.Element {
     publishersWithMembersData.length,
   );
 
+  const updatePublishers = (updatedPublishers: Publisher[]) => {
+    setNewPublishers(updatedPublishers);
+  };
+
+  useEffect(() => {
+    if (newPublishers.length > 0) {
+      const currentPublisherIds = publishers.map((publisher) => publisher.id);
+      const unqiueNewPublishers = newPublishers.filter(
+        (publisher) => !currentPublisherIds.includes(publisher.id),
+      );
+
+      setNewPublishers([]);
+      setPublishers([...publishers, ...unqiueNewPublishers]);
+    }
+  }, [newPublishers, publishers]);
+
+  const removePublisher = (publisherIdToRemove: string) => {
+    setPublishersToRemove([...publishersToRemove, publisherIdToRemove]);
+  };
+
+  useEffect(() => {
+    if (publishersToRemove.length > 0) {
+      const updatedPublishers = publishers.filter(
+        (publisher) => !publishersToRemove.includes(publisher.id),
+      );
+      setPublishersToRemove([]);
+      setPublishers(updatedPublishers);
+    }
+  }, [publishersToRemove, publishers]);
+
   const getVideoRoomStreamHandle = () => {
     if (!room) {
       return;
@@ -245,16 +278,14 @@ export default function Room(props: RoomProps): JSX.Element {
         if (msg.videoroom === "event") {
           //check if we have new publishers to subscribe to
           if (msg.publishers) {
-            setPublishers(msg.publishers);
+            updatePublishers(msg.publishers);
           }
 
           if (msg.leaving || msg.unpublished) {
             const msgToCheck = msg.leaving ?? msg.unpublished;
-
-            const updatedPublishers = publishers.filter(
-              (publisher) => publisher.id !== msgToCheck,
-            );
-            setPublishers(updatedPublishers);
+            if (msgToCheck) {
+              removePublisher(msgToCheck);
+            }
           }
         }
       },
