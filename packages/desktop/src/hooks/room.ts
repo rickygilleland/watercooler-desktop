@@ -41,7 +41,7 @@ export interface Publisher {
 
 export interface Member {
   id: number;
-  info: {
+  info?: {
     room_at_capacity: boolean;
     media_server: string;
     peer_uuid: string;
@@ -468,16 +468,16 @@ export const useBindPresenceChannelEvents = (
       ) {
         if (event == "pusher:subscription_succeeded") {
           setCurrentWebsocketUser(data.me);
-          if (data.me.info.room_at_capacity) {
+          if (data.me.info?.room_at_capacity) {
             setRoomAtCapacity(true);
             return;
           }
 
           setMembers(data.members);
-          setPeerUuid(data.me.info.peer_uuid);
-          setMediaServer(data.me.info.media_server);
-          setStreamerKey(data.me.info.streamer_key);
-          setRoomPin(data.me.info.room_pin);
+          setPeerUuid(data.me.info?.peer_uuid);
+          setMediaServer(data.me.info?.media_server);
+          setStreamerKey(data.me.info?.streamer_key);
+          setRoomPin(data.me.info?.room_pin);
         }
 
         if (event == "room.user.invited") {

@@ -149,7 +149,7 @@ export default function AddUserToRoomModal(
                   }}
                 >
                   {user.first_name} {user.last_name}{" "}
-                  {user.id.toString() === me.id && "(you)"}
+                  {user.id === me.id && "(you)"}
                 </p>
                 {addUserLoading && loadingUser === user.id && (
                   <Button size="sm" className="ml-auto" disabled>

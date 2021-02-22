@@ -17,15 +17,15 @@ export default function AudioList(props: AudioListProps): JSX.Element {
     <Container>
       {props.publishers.map((publisher) => (
         <AudioContainer key={publisher.id}>
-          {publisher.member?.info.avatar && (
+          {publisher.member?.info?.avatar && (
             <AvatarContainer>
               <Avatar
-                src={publisher.member?.info.avatar}
+                src={publisher.member?.info?.avatar}
                 hasBorder={props.speakingPublishers.includes(publisher.id)}
               />
             </AvatarContainer>
           )}
-          <Name>{`${publisher.member?.info.first_name} ${publisher.member?.info.last_name}`}</Name>
+          <Name>{`${publisher.member?.info?.first_name} ${publisher.member?.info?.last_name}`}</Name>
           <AudioPlayer
             user={props.user}
             stream={publisher.stream}

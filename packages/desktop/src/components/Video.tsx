@@ -83,7 +83,7 @@ export default function Video(props: VideoProps): JSX.Element {
             className="position-absolute overlay"
             style={{ top: 8, width: "100%" }}
           >
-            {publisher.member?.info.timezone != null &&
+            {publisher.member?.info?.timezone != null &&
               publisher.member?.info.timezone != localTimezone && (
                 <p
                   className="pl-2 mb-1 mt-1 font-weight-bolder"
@@ -149,8 +149,8 @@ export default function Video(props: VideoProps): JSX.Element {
                     }}
                   >
                     {publisher.id.includes("_screensharing")
-                      ? publisher.member?.info.first_name + "'s Screen"
-                      : publisher.member?.info.first_name}
+                      ? publisher.member?.info?.first_name + "'s Screen"
+                      : publisher.member?.info?.first_name}
 
                     {hasAudio ? (
                       <FontAwesomeIcon
@@ -223,8 +223,8 @@ export default function Video(props: VideoProps): JSX.Element {
             className="position-absolute overlay"
             style={{ top: 8, width: "100%" }}
           >
-            {publisher.member?.info.timezone != null &&
-              publisher.member?.info.timezone != localTimezone && (
+            {publisher.member?.info?.timezone != null &&
+              publisher.member?.info?.timezone != localTimezone && (
                 <p
                   className="pl-2 mb-1 mt-1 font-weight-bolder"
                   style={{ fontSize: "1.1rem" }}
@@ -252,7 +252,7 @@ export default function Video(props: VideoProps): JSX.Element {
           ></video>
           <div className="mx-auto align-self-center">
             <Image
-              src={publisher.member?.info.avatar}
+              src={publisher.member?.info?.avatar}
               style={{ maxHeight: 75, borderRadius: 15 }}
               fluid
             />
@@ -318,8 +318,8 @@ export default function Video(props: VideoProps): JSX.Element {
                     }}
                   >
                     {publisher.id.includes("_screensharing")
-                      ? publisher.member?.info.first_name + "'s Screen"
-                      : publisher.member?.info.first_name}
+                      ? publisher.member?.info?.first_name + "'s Screen"
+                      : publisher.member?.info?.first_name}
 
                     {hasAudio ? (
                       <FontAwesomeIcon
@@ -378,7 +378,7 @@ export default function Video(props: VideoProps): JSX.Element {
         className="position-absolute overlay"
         style={{ top: 8, width: "100%" }}
       >
-        {publisher.member?.info.timezone != null &&
+        {publisher.member?.info?.timezone != null &&
           publisher.member?.info.timezone != localTimezone && (
             <p
               className="pl-2 mb-1 mt-1 font-weight-bolder"
@@ -400,7 +400,7 @@ export default function Video(props: VideoProps): JSX.Element {
       </div>
       <div className="mx-auto align-self-center">
         <Image
-          src={publisher.member?.info.avatar}
+          src={publisher.member?.info?.avatar}
           style={{ maxHeight: 75, borderRadius: 15 }}
           fluid
         />
@@ -435,7 +435,7 @@ export default function Video(props: VideoProps): JSX.Element {
               padding: ".6rem",
             }}
           >
-            {publisher.member?.info.first_name}
+            {publisher.member?.info?.first_name}
           </span>
         </p>
       </div>
