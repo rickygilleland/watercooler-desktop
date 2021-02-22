@@ -645,7 +645,7 @@ export default function Room(props: RoomProps): JSX.Element {
             (publisher) => publisher.id === user.id.toString(),
           );
 
-          if (!isCurrentPublisher) {
+          if (!isCurrentPublisher && peerUuid) {
             setPublishers([
               ...publishers,
               {
@@ -654,7 +654,7 @@ export default function Room(props: RoomProps): JSX.Element {
                 id: user?.id.toString(),
                 stream: localStream,
                 active: true,
-                display: user?.id.toString(),
+                display: peerUuid,
                 member: currentWebsocketUser,
               },
             ]);
@@ -757,9 +757,9 @@ export default function Room(props: RoomProps): JSX.Element {
     audioStatus,
     backgroundBlurVideoCanvasCopy,
     currentWebsocketUser,
-    handleRemoteStreams,
     localVideo,
     localVideoCanvas,
+    peerUuid,
     publishers,
     rawLocalStream,
     setHeartbeatInterval,

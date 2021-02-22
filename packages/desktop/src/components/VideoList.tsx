@@ -148,6 +148,8 @@ export default function VideoList(props: VideoListProps): JSX.Element {
     );
   }
 
+  console.log("processed", processedPublishers);
+
   return (
     <VideoContainer gridRows={videoSizes.rows} gridColumns={videoSizes.columns}>
       {processedPublishers.map((publisher) => {
