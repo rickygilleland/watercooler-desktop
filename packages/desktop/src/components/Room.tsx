@@ -287,6 +287,48 @@ export default function Room(props: RoomProps): JSX.Element {
   };
 
   useEffect(() => {
+    const startStream = async () => {
+      let streamOptions;
+      /* TODO: Manually prompt for camera and microphone access on macos to handle it more gracefully - systemPreferences.getMediaAccessStatus(mediaType) */
+      if (
+        settings.defaultDevices != null &&
+        Object.keys(settings.defaultDevices).length !== 0
+      ) {
+        streamOptions = {
+          video: {
+            aspectRatio: 1.3333333333,
+            deviceId: settings.defaultDevices.videoInput,
+          },
+          audio: {
+            deviceId: settings.defaultDevices.audioInput,
+          },
+        };
+      } else {
+        streamOptions = {
+          video: {
+            aspectRatio: 1.3333333333,
+          },
+          audio: true,
+        };
+      }
+
+      const rawLocalStream = await navigator.mediaDevices.getUserMedia(
+        streamOptions,
+      );
+
+      setRawLocalStream(rawLocalStream);
+    };
+
+    startStream();
+
+    return () => {
+      if (rawLocalStream) {
+        rawLocalStream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  });
+
+  useEffect(() => {
     if (rootMediaHandleInitialized && videoRoomStreamHandle === undefined) {
       getVideoRoomStreamHandle();
     }
@@ -297,33 +339,6 @@ export default function Room(props: RoomProps): JSX.Element {
     setStartPublishingCalled(true);
 
     let publishingStarted = false;
-    let streamOptions;
-    /* TODO: Manually prompt for camera and microphone access on macos to handle it more gracefully - systemPreferences.getMediaAccessStatus(mediaType) */
-    if (
-      settings.defaultDevices != null &&
-      Object.keys(settings.defaultDevices).length !== 0
-    ) {
-      streamOptions = {
-        video: {
-          aspectRatio: 1.3333333333,
-          deviceId: settings.defaultDevices.videoInput,
-        },
-        audio: {
-          deviceId: settings.defaultDevices.audioInput,
-        },
-      };
-    } else {
-      streamOptions = {
-        video: {
-          aspectRatio: 1.3333333333,
-        },
-        audio: true,
-      };
-    }
-
-    const rawLocalStream = await navigator.mediaDevices.getUserMedia(
-      streamOptions,
-    );
 
     const handleRemoteStreams = () => {
       if (!user) {
@@ -512,7 +527,7 @@ export default function Room(props: RoomProps): JSX.Element {
     };
 
     const publishStream = async () => {
-      if (!user) {
+      if (!user || !rawLocalStream) {
         return;
       }
 
@@ -620,11 +635,13 @@ export default function Room(props: RoomProps): JSX.Element {
       });
     };
 
-    localVideo.srcObject = rawLocalStream;
-    localVideo.muted = true;
-    localVideo.autoplay = true;
-    localVideo.setAttribute("playsinline", "");
-    localVideo.play();
+    if (rawLocalStream) {
+      localVideo.srcObject = rawLocalStream;
+      localVideo.muted = true;
+      localVideo.autoplay = true;
+      localVideo.setAttribute("playsinline", "");
+      localVideo.play();
+    }
 
     localVideo.onloadedmetadata = () => {
       if (localVideo) {
@@ -698,24 +715,16 @@ export default function Room(props: RoomProps): JSX.Element {
     peerUuid,
     privateId,
     publishers,
+    rawLocalStream,
     room?.channel_id,
     rootMediaHandle,
     setHeartbeatInterval,
-    settings.defaultDevices,
     speakingPublishers,
     streamerKey,
     user,
     videoRoomStreamHandle,
     videoStatus,
   ]);
-
-  useEffect(() => {
-    return () => {
-      if (rawLocalStream) {
-        rawLocalStream.getTracks().forEach((track) => track.stop());
-      }
-    };
-  }, [rawLocalStream]);
 
   useEffect(() => {
     if (props.match.path === "/call/:roomSlug") {
