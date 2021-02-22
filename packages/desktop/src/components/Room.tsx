@@ -319,14 +319,16 @@ export default function Room(props: RoomProps): JSX.Element {
       setRawLocalStream(rawLocalStream);
     };
 
-    startStream();
+    if (!rawLocalStream) {
+      startStream();
+    }
 
     return () => {
       if (rawLocalStream) {
         rawLocalStream.getTracks().forEach((track) => track.stop());
       }
     };
-  });
+  }, [rawLocalStream, settings.defaultDevices]);
 
   useEffect(() => {
     if (rootMediaHandleInitialized && videoRoomStreamHandle === undefined) {
@@ -704,8 +706,6 @@ export default function Room(props: RoomProps): JSX.Element {
       getNextFrame();
       publishStream();
     };
-
-    setRawLocalStream(rawLocalStream);
   }, [
     audioStatus,
     backgroundBlurVideoCanvasCopy,
@@ -788,6 +788,7 @@ export default function Room(props: RoomProps): JSX.Element {
     if (
       rootMediaHandleInitialized &&
       joinedMediaHandle &&
+      rawLocalStream &&
       !startPublishingCalled
     ) {
       startPublishingStream();
@@ -797,6 +798,7 @@ export default function Room(props: RoomProps): JSX.Element {
     joinedMediaHandle,
     startPublishingCalled,
     startPublishingStream,
+    rawLocalStream,
   ]);
 
   useEffect(() => {
