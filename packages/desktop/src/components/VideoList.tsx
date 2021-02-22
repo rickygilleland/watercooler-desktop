@@ -120,7 +120,10 @@ const VideoContainer = styled.div<{
   display: grid;
   justify-content: center;
   align-items: center;
-  grid-template-columns: repeat(${(props) => props.gridColumns}, 1fr);
+  grid-template-columns: repeat(
+    ${(props) => props.gridColumns},
+    minmax(0, 1fr)
+  );
   grid-template-rows: max-content;
   height: calc(100vh - 120px);
   align-content: center;

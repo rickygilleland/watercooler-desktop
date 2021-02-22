@@ -213,10 +213,12 @@ export default function Video(props: VideoProps): JSX.Element {
     if (!audioLoading) {
       return (
         <div
-          className={`h-100 w-100 video-container shadow position-relative text-light ${classAppend}`}
+          className={`h-100 video-container shadow position-relative text-light ${classAppend}`}
           style={{
             backgroundColor: publisher.containerBackgroundColor,
             borderRadius: 25,
+            width: "100%",
+            maxWidth: "75%",
           }}
         >
           <div
