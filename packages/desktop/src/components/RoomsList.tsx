@@ -26,10 +26,10 @@ export default function RoomsList(props: RoomsListProps): JSX.Element {
           {rooms?.map((room) => (
             <RoomButtonContainer
               key={room.id}
-              hasActiveUsers={
+              hasactiveusers={
                 room.active_users && room.active_users?.length > 0
-                  ? true
-                  : false
+                  ? "true"
+                  : "false"
               }
               to={{
                 pathname: `/room/${room.slug}`,
@@ -98,7 +98,7 @@ const ActiveUsers = styled.div`
 `;
 
 const RoomButtonContainer = styled(Link)<{
-  hasActiveUsers: boolean;
+  hasactiveusers: string;
 }>`
   display: flex;
   flex-direction: column;
@@ -117,7 +117,8 @@ const RoomButtonContainer = styled(Link)<{
   &:hover {
     text-decoration: none;
     border: 1px solid #408af8;
-    height: ${(props) => (props.hasActiveUsers ? "85px" : undefined)};
+    height: ${(props) =>
+      props.hasactiveusers === "true" ? "85px" : undefined};
 
     ${ActiveUsers} {
       opacity: 1;
