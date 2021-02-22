@@ -65,26 +65,25 @@ export default function Video(props: VideoProps): JSX.Element {
   if (typeof publisher.stream != "undefined" && publisher.stream != null) {
     if (hasVideo === true && !videoLoading) {
       return (
-        <div>
+        <div
+          className={`video-container mx-auto position-relative text-light ${classAppend}`}
+          style={{
+            borderRadius: 25,
+          }}
+        >
+          <VideoPlayer
+            videoRef={videoRef}
+            isLocal={isLocal}
+            stream={publisher.stream}
+            publisher={publisher}
+            videoIsFaceOnly={videoIsFaceOnly}
+          />
           <div
-            className={`video-container mx-auto position-relative text-light ${classAppend}`}
-            style={{
-              borderRadius: 25,
-            }}
+            className="position-absolute overlay"
+            style={{ top: 8, width: "100%" }}
           >
-            <VideoPlayer
-              videoRef={videoRef}
-              isLocal={isLocal}
-              stream={publisher.stream}
-              publisher={publisher}
-              videoIsFaceOnly={videoIsFaceOnly}
-            />
-            <div
-              className="position-absolute overlay"
-              style={{ top: 8, width: "100%" }}
-            >
-              {publisher.member?.info.timezone != null &&
-              publisher.member?.info.timezone != localTimezone ? (
+            {publisher.member?.info.timezone != null &&
+              publisher.member?.info.timezone != localTimezone && (
                 <p
                   className="pl-2 mb-1 mt-1 font-weight-bolder"
                   style={{ fontSize: "1.1rem" }}
@@ -101,46 +100,15 @@ export default function Video(props: VideoProps): JSX.Element {
                       .toLocaleString(DateTime.TIME_SIMPLE)}
                   </span>
                 </p>
-              ) : (
-                ""
               )}
-            </div>
-            <div
-              className="position-absolute hide-overlay"
-              style={{ bottom: 8, width: "100%" }}
-            >
-              <Row>
-                <Col>
-                  {!hasAudio ? (
-                    <p
-                      className="pl-2 mb-1 mt-1 font-weight-bolder"
-                      style={{ fontSize: "1.1rem" }}
-                    >
-                      <span
-                        style={{
-                          backgroundColor: "rgb(18, 20, 34, .5)",
-                          borderRadius: 15,
-                          padding: ".6rem",
-                        }}
-                      >
-                        <FontAwesomeIcon
-                          style={{ color: "#f9426c", fontSize: ".95rem" }}
-                          icon={faMicrophoneSlash}
-                        />
-                      </span>
-                    </p>
-                  ) : (
-                    ""
-                  )}
-                </Col>
-              </Row>
-            </div>
-            <div
-              className="position-absolute overlay"
-              style={{ bottom: 8, width: "100%" }}
-            >
-              <Row>
-                <Col>
+          </div>
+          <div
+            className="position-absolute hide-overlay"
+            style={{ bottom: 8, width: "100%" }}
+          >
+            <Row>
+              <Col>
+                {!hasAudio && (
                   <p
                     className="pl-2 mb-1 mt-1 font-weight-bolder"
                     style={{ fontSize: "1.1rem" }}
@@ -152,34 +120,61 @@ export default function Video(props: VideoProps): JSX.Element {
                         padding: ".6rem",
                       }}
                     >
-                      {publisher.id.includes("_screensharing")
-                        ? publisher.member?.info.first_name + "'s Screen"
-                        : publisher.member?.info.first_name}
-
-                      {hasAudio ? (
-                        <FontAwesomeIcon
-                          style={{
-                            color: "#2eb97b",
-                            fontSize: ".95rem",
-                            marginLeft: ".35rem",
-                          }}
-                          icon={faMicrophone}
-                        />
-                      ) : (
-                        <FontAwesomeIcon
-                          style={{
-                            color: "#f9426c",
-                            fontSize: ".95rem",
-                            marginLeft: ".35rem",
-                          }}
-                          icon={faMicrophoneSlash}
-                        />
-                      )}
+                      <FontAwesomeIcon
+                        style={{ color: "#f9426c", fontSize: ".95rem" }}
+                        icon={faMicrophoneSlash}
+                      />
                     </span>
                   </p>
-                </Col>
-                <Col>
-                  {/*<p className="pr-2 mb-1 mt-1 font-weight-bolder text-right">
+                )}
+              </Col>
+            </Row>
+          </div>
+          <div
+            className="position-absolute overlay"
+            style={{ bottom: 8, width: "100%" }}
+          >
+            <Row>
+              <Col>
+                <p
+                  className="pl-2 mb-1 mt-1 font-weight-bolder"
+                  style={{ fontSize: "1.1rem" }}
+                >
+                  <span
+                    style={{
+                      backgroundColor: "rgb(18, 20, 34, .5)",
+                      borderRadius: 15,
+                      padding: ".6rem",
+                    }}
+                  >
+                    {publisher.id.includes("_screensharing")
+                      ? publisher.member?.info.first_name + "'s Screen"
+                      : publisher.member?.info.first_name}
+
+                    {hasAudio ? (
+                      <FontAwesomeIcon
+                        style={{
+                          color: "#2eb97b",
+                          fontSize: ".95rem",
+                          marginLeft: ".35rem",
+                        }}
+                        icon={faMicrophone}
+                      />
+                    ) : (
+                      <FontAwesomeIcon
+                        style={{
+                          color: "#f9426c",
+                          fontSize: ".95rem",
+                          marginLeft: ".35rem",
+                        }}
+                        icon={faMicrophoneSlash}
+                      />
+                    )}
+                  </span>
+                </p>
+              </Col>
+              <Col>
+                {/*<p className="pr-2 mb-1 mt-1 font-weight-bolder text-right">
                                         <span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>
                                             {hasAudio
                                                 ?
@@ -189,30 +184,26 @@ export default function Video(props: VideoProps): JSX.Element {
                                             }
                                         </span>
                                     </p>*/}
-                  {showPinToggle ? (
-                    pinned ? (
-                      <Button
-                        variant="dark"
-                        className="float-right mb-1 mr-2 toggle-pinned-btn border-0"
-                        onClick={() => togglePinned(publisher.id)}
-                      >
-                        <FontAwesomeIcon icon={faCompress} />
-                      </Button>
-                    ) : (
-                      <Button
-                        variant="dark"
-                        className="float-right mb-1 mr-2 toggle-pinned-btn border-0"
-                        onClick={() => togglePinned(publisher.id)}
-                      >
-                        <FontAwesomeIcon icon={faExpand} />
-                      </Button>
-                    )
+                {showPinToggle &&
+                  (pinned ? (
+                    <Button
+                      variant="dark"
+                      className="float-right mb-1 mr-2 toggle-pinned-btn border-0"
+                      onClick={() => togglePinned(publisher.id)}
+                    >
+                      <FontAwesomeIcon icon={faCompress} />
+                    </Button>
                   ) : (
-                    ""
-                  )}
-                </Col>
-              </Row>
-            </div>
+                    <Button
+                      variant="dark"
+                      className="float-right mb-1 mr-2 toggle-pinned-btn border-0"
+                      onClick={() => togglePinned(publisher.id)}
+                    >
+                      <FontAwesomeIcon icon={faExpand} />
+                    </Button>
+                  ))}
+              </Col>
+            </Row>
           </div>
         </div>
       );
@@ -220,20 +211,19 @@ export default function Video(props: VideoProps): JSX.Element {
 
     if (!audioLoading) {
       return (
-        <div>
+        <div
+          className={`video-container shadow mx-auto d-flex flex-column justify-content-center position-relative text-light ${classAppend}`}
+          style={{
+            backgroundColor: publisher.containerBackgroundColor,
+            borderRadius: 25,
+          }}
+        >
           <div
-            className={`video-container shadow mx-auto d-flex flex-column justify-content-center position-relative text-light ${classAppend}`}
-            style={{
-              backgroundColor: publisher.containerBackgroundColor,
-              borderRadius: 25,
-            }}
+            className="position-absolute overlay"
+            style={{ top: 8, width: "100%" }}
           >
-            <div
-              className="position-absolute overlay"
-              style={{ top: 8, width: "100%" }}
-            >
-              {publisher.member?.info.timezone != null &&
-              publisher.member?.info.timezone != localTimezone ? (
+            {publisher.member?.info.timezone != null &&
+              publisher.member?.info.timezone != localTimezone && (
                 <p
                   className="pl-2 mb-1 mt-1 font-weight-bolder"
                   style={{ fontSize: "1.1rem" }}
@@ -250,77 +240,44 @@ export default function Video(props: VideoProps): JSX.Element {
                       .toLocaleString(DateTime.TIME_SIMPLE)}
                   </span>
                 </p>
-              ) : (
-                ""
               )}
-            </div>
-            <video
-              autoPlay
-              muted={isLocal}
-              playsInline
-              ref={videoRef}
-              style={{ height: 0, width: 0 }}
-            ></video>
+          </div>
+          <video
+            autoPlay
+            muted={isLocal}
+            playsInline
+            ref={videoRef}
+            style={{ height: 0, width: 0 }}
+          ></video>
+          <div className="mx-auto align-self-center">
+            <Image
+              src={publisher.member?.info.avatar}
+              style={{ maxHeight: 75, borderRadius: 15 }}
+              fluid
+            />
+          </div>
+          {hasVideo && videoLoading && (
             <div className="mx-auto align-self-center">
-              <Image
-                src={publisher.member?.info.avatar}
-                style={{ maxHeight: 75, borderRadius: 15 }}
-                fluid
-              />
+              <p
+                className="font-weight-bolder text-center"
+                style={{ paddingTop: 8, fontSize: "1.2rem" }}
+              >
+                <FontAwesomeIcon
+                  style={{ color: "#f9426c" }}
+                  icon={faCircleNotch}
+                  spin
+                />{" "}
+                Loading Video...
+              </p>
             </div>
-            {hasVideo && videoLoading ? (
-              <div className="mx-auto align-self-center">
-                <p
-                  className="font-weight-bolder text-center"
-                  style={{ paddingTop: 8, fontSize: "1.2rem" }}
-                >
-                  <FontAwesomeIcon
-                    style={{ color: "#f9426c" }}
-                    icon={faCircleNotch}
-                    spin
-                  />{" "}
-                  Loading Video...
-                </p>
-              </div>
-            ) : (
-              ""
-            )}
-            <div
-              className="position-absolute hide-overlay"
-              style={{ bottom: 8, width: "100%" }}
-            >
-              <Row>
-                <Col>
-                  {!hasAudio ? (
-                    <p
-                      className="pl-2 mb-1 mt-1 font-weight-bolder"
-                      style={{ fontSize: "1.1rem" }}
-                    >
-                      <span
-                        style={{
-                          backgroundColor: "rgb(18, 20, 34, .5)",
-                          borderRadius: 15,
-                          padding: ".6rem",
-                        }}
-                      >
-                        <FontAwesomeIcon
-                          style={{ color: "#f9426c", fontSize: ".95rem" }}
-                          icon={faMicrophoneSlash}
-                        />
-                      </span>
-                    </p>
-                  ) : (
-                    ""
-                  )}
-                </Col>
-              </Row>
-            </div>
-            <div
-              className="position-absolute overlay"
-              style={{ bottom: 8, width: "100%" }}
-            >
-              <Row>
-                <Col>
+          )}
+          <div
+            className="position-absolute hide-overlay"
+            style={{ bottom: 8, width: "100%" }}
+          >
+            <Row>
+              <Col>
+                {!hasAudio && (
                   <p
                     className="pl-2 mb-1 mt-1 font-weight-bolder"
                     style={{ fontSize: "1.1rem" }}
@@ -332,34 +289,61 @@ export default function Video(props: VideoProps): JSX.Element {
                         padding: ".6rem",
                       }}
                     >
-                      {publisher.id.includes("_screensharing")
-                        ? publisher.member?.info.first_name + "'s Screen"
-                        : publisher.member?.info.first_name}
-
-                      {hasAudio ? (
-                        <FontAwesomeIcon
-                          style={{
-                            color: "#2eb97b",
-                            fontSize: ".95rem",
-                            marginLeft: ".35rem",
-                          }}
-                          icon={faMicrophone}
-                        />
-                      ) : (
-                        <FontAwesomeIcon
-                          style={{
-                            color: "#f9426c",
-                            fontSize: ".95rem",
-                            marginLeft: ".35rem",
-                          }}
-                          icon={faMicrophoneSlash}
-                        />
-                      )}
+                      <FontAwesomeIcon
+                        style={{ color: "#f9426c", fontSize: ".95rem" }}
+                        icon={faMicrophoneSlash}
+                      />
                     </span>
                   </p>
-                </Col>
-                <Col>
-                  {/*<p className="pr-2 mb-1 mt-1 font-weight-bolder text-right">
+                )}
+              </Col>
+            </Row>
+          </div>
+          <div
+            className="position-absolute overlay"
+            style={{ bottom: 8, width: "100%" }}
+          >
+            <Row>
+              <Col>
+                <p
+                  className="pl-2 mb-1 mt-1 font-weight-bolder"
+                  style={{ fontSize: "1.1rem" }}
+                >
+                  <span
+                    style={{
+                      backgroundColor: "rgb(18, 20, 34, .5)",
+                      borderRadius: 15,
+                      padding: ".6rem",
+                    }}
+                  >
+                    {publisher.id.includes("_screensharing")
+                      ? publisher.member?.info.first_name + "'s Screen"
+                      : publisher.member?.info.first_name}
+
+                    {hasAudio ? (
+                      <FontAwesomeIcon
+                        style={{
+                          color: "#2eb97b",
+                          fontSize: ".95rem",
+                          marginLeft: ".35rem",
+                        }}
+                        icon={faMicrophone}
+                      />
+                    ) : (
+                      <FontAwesomeIcon
+                        style={{
+                          color: "#f9426c",
+                          fontSize: ".95rem",
+                          marginLeft: ".35rem",
+                        }}
+                        icon={faMicrophoneSlash}
+                      />
+                    )}
+                  </span>
+                </p>
+              </Col>
+              <Col>
+                {/*<p className="pr-2 mb-1 mt-1 font-weight-bolder text-right">
                                         <span className="p-2 rounded" style={{backgroundColor:"rgb(18, 20, 34, .5)"}}>
                                             {hasAudio
                                                 ?
@@ -369,9 +353,8 @@ export default function Video(props: VideoProps): JSX.Element {
                                             }
                                         </span>
                                     </p>*/}
-                </Col>
-              </Row>
-            </div>
+              </Col>
+            </Row>
           </div>
         </div>
       );
@@ -383,20 +366,19 @@ export default function Video(props: VideoProps): JSX.Element {
   }
 
   return (
-    <div>
+    <div
+      className="video-container shadow mx-auto d-flex flex-column justify-content-center position-relative text-light"
+      style={{
+        backgroundColor: publisher.containerBackgroundColor,
+        borderRadius: 25,
+      }}
+    >
       <div
-        className="video-container shadow mx-auto d-flex flex-column justify-content-center position-relative text-light"
-        style={{
-          backgroundColor: publisher.containerBackgroundColor,
-          borderRadius: 25,
-        }}
+        className="position-absolute overlay"
+        style={{ top: 8, width: "100%" }}
       >
-        <div
-          className="position-absolute overlay"
-          style={{ top: 8, width: "100%" }}
-        >
-          {publisher.member?.info.timezone != null &&
-          publisher.member?.info.timezone != localTimezone ? (
+        {publisher.member?.info.timezone != null &&
+          publisher.member?.info.timezone != localTimezone && (
             <p
               className="pl-2 mb-1 mt-1 font-weight-bolder"
               style={{ fontSize: "1.1rem" }}
@@ -413,53 +395,48 @@ export default function Video(props: VideoProps): JSX.Element {
                   .toLocaleString(DateTime.TIME_SIMPLE)}
               </span>
             </p>
-          ) : (
-            ""
           )}
-        </div>
+      </div>
+      <div className="mx-auto align-self-center">
+        <Image
+          src={publisher.member?.info.avatar}
+          style={{ maxHeight: 75, borderRadius: 15 }}
+          fluid
+        />
+      </div>
+      {publishing && (
         <div className="mx-auto align-self-center">
-          <Image
-            src={publisher.member?.info.avatar}
-            style={{ maxHeight: 75, borderRadius: 15 }}
-            fluid
-          />
-        </div>
-        {publishing ? (
-          <div className="mx-auto align-self-center">
-            <p
-              className="font-weight-bolder text-center"
-              style={{ paddingTop: 8, fontSize: "1.2rem" }}
-            >
-              <FontAwesomeIcon
-                style={{ color: "#f9426c" }}
-                icon={faCircleNotch}
-                spin
-              />{" "}
-              Loading...
-            </p>
-          </div>
-        ) : (
-          ""
-        )}
-        <div
-          className="position-absolute overlay"
-          style={{ bottom: 8, width: "100%" }}
-        >
           <p
-            className="pl-2 mb-1 mt-1 font-weight-bolder"
-            style={{ fontSize: "1.1rem" }}
+            className="font-weight-bolder text-center"
+            style={{ paddingTop: 8, fontSize: "1.2rem" }}
           >
-            <span
-              style={{
-                backgroundColor: "rgb(18, 20, 34, .5)",
-                borderRadius: 15,
-                padding: ".6rem",
-              }}
-            >
-              {publisher.member?.info.first_name}
-            </span>
+            <FontAwesomeIcon
+              style={{ color: "#f9426c" }}
+              icon={faCircleNotch}
+              spin
+            />{" "}
+            Loading...
           </p>
         </div>
+      )}
+      <div
+        className="position-absolute overlay"
+        style={{ bottom: 8, width: "100%" }}
+      >
+        <p
+          className="pl-2 mb-1 mt-1 font-weight-bolder"
+          style={{ fontSize: "1.1rem" }}
+        >
+          <span
+            style={{
+              backgroundColor: "rgb(18, 20, 34, .5)",
+              borderRadius: 15,
+              padding: ".6rem",
+            }}
+          >
+            {publisher.member?.info.first_name}
+          </span>
+        </p>
       </div>
     </div>
   );
