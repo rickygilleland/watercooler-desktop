@@ -37,85 +37,14 @@ export default function VideoList(props: VideoListProps): JSX.Element {
   const [showPinToggle, setShowPinToggle] = useState(false);
 
   useEffect(() => {
-    if (processedPublishers.length != publishers.length) {
-      return setProcessedPublishers([...publishers]);
-    }
-
-    let shouldUpdate = false;
-
-    processedPublishers.forEach((processedPublisher) => {
-      publishers.forEach((publisher) => {
-        if (publisher.id == processedPublisher.id) {
-          shouldUpdate = processedPublisher.hasVideo != publisher.hasVideo;
-          shouldUpdate = processedPublisher.hasAudio != publisher.hasAudio;
-        }
-      });
-    });
-
-    if (shouldUpdate) {
-      setProcessedPublishers([...publishers]);
-    }
-  }, [processedPublishers, publishers]);
-
-  useEffect(() => {
     const pinnedPublisher = processedPublishers.find(
       (publisher) => publisher.id === pinnedPublisherId,
     );
     setPinnedPublisher(pinnedPublisher);
   }, [pinnedPublisherId, processedPublishers]);
 
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const checkVideoAudioStatus = (publisher: Publisher): any => {
-      let videoLoading = false;
-      let audioLoading = false;
-
-      if (typeof publisher.stream != "undefined" && publisher.stream != null) {
-        const tracks = publisher.stream.getTracks();
-
-        tracks.forEach(function (track) {
-          if (track.kind == "video") {
-            videoLoading = track.muted;
-          }
-
-          if (track.kind == "audio") {
-            audioLoading = track.muted;
-          }
-        });
-      }
-
-      const updatedPublishers = [...processedPublishers];
-
-      updatedPublishers.forEach((updatedPublisher) => {
-        if (updatedPublisher.id == publisher.id) {
-          updatedPublisher.videoLoading = videoLoading;
-          updatedPublisher.audioLoading = audioLoading;
-        }
-      });
-
-      setProcessedPublishers(updatedPublishers);
-
-      if (publisher.hasVideo && videoLoading) {
-        return requestAnimationFrame(checkVideoAudioStatus(publisher));
-      }
-    };
-
-    for (const publisher of processedPublishers) {
-      if (
-        typeof publisher.videoLoading === undefined ||
-        typeof publisher.audioLoading === undefined
-      ) {
-        checkVideoAudioStatus(publisher);
-      }
-    }
-  }, [processedPublishers]);
-
-  useEffect(() => {
-    setShowPinToggle(Boolean(processedPublishers.length > 1));
-  }, [processedPublishers.length]);
-
   if (pinnedPublisher || showPinToggle) {
-    const publisherToShow = pinnedPublisher ?? processedPublishers[0];
+    const publisherToShow = pinnedPublisher ?? publishers[0];
 
     return (
       <VideoContainer
@@ -148,11 +77,9 @@ export default function VideoList(props: VideoListProps): JSX.Element {
     );
   }
 
-  console.log("processed", processedPublishers);
-
   return (
     <VideoContainer gridRows={videoSizes.rows} gridColumns={videoSizes.columns}>
-      {processedPublishers.map((publisher) => {
+      {publishers.map((publisher) => {
         return (
           <VideoItem
             gridRows={videoSizes.rows}

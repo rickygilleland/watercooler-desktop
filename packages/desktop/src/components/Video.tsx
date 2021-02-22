@@ -210,8 +210,6 @@ export default function Video(props: VideoProps): JSX.Element {
       );
     }
 
-    console.log("LOADING?", audioLoading, publisher);
-
     if (!audioLoading) {
       return (
         <div

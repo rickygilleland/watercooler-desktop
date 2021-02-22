@@ -472,7 +472,7 @@ export default function Room(props: RoomProps): JSX.Element {
           }
 
           const updatedPublishers = publishers.map((publisher) => {
-            if (publisher.member?.id === dataMsg.publisher_id) {
+            if (publisher.member?.id.toString() === dataMsg.publisher_id) {
               if (dataMsg.type === "audio_toggled") {
                 publisher.hasAudio = dataMsg.audio_status;
               }
