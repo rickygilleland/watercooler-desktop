@@ -1113,6 +1113,7 @@ const Header = styled.div`
   border-bottom: 1.5px solid rgb(255, 255, 255, 0.3);
   user-select: none;
   margin-top: 10px;
+  margin-bottom: 15px;
 `;
 
 const HeaderContent = styled.div`
