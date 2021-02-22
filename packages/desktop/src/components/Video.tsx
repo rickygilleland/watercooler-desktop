@@ -66,7 +66,7 @@ export default function Video(props: VideoProps): JSX.Element {
     if (hasVideo === true && !videoLoading) {
       return (
         <div
-          className={`video-container mx-auto position-relative text-light ${classAppend}`}
+          className={`video-container mx-auto position-relative text-light`}
           style={{
             borderRadius: 25,
           }}
@@ -77,6 +77,7 @@ export default function Video(props: VideoProps): JSX.Element {
             stream={publisher.stream}
             publisher={publisher}
             videoIsFaceOnly={videoIsFaceOnly}
+            speaking={speaking}
           />
           <div
             className="position-absolute overlay"

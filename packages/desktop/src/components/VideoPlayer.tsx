@@ -7,6 +7,7 @@ interface VideoPlayerProps {
   publisher: Publisher;
   isLocal: boolean;
   videoIsFaceOnly: boolean;
+  speaking: boolean;
 }
 
 export default function VideoPlayer(props: VideoPlayerProps): JSX.Element {
@@ -22,8 +23,12 @@ export default function VideoPlayer(props: VideoPlayerProps): JSX.Element {
       className += " border-radius-round";
     }
 
+    if (props.speaking) {
+      className += " speaking-border";
+    }
+
     setClassName(className);
-  }, [props.publisher.id, props.videoIsFaceOnly]);
+  }, [props.publisher.id, props.videoIsFaceOnly, props.speaking]);
 
   return (
     <video

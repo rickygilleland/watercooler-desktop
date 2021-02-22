@@ -12,6 +12,7 @@ interface VideoListProps {
   videoSizes: VideoSizes;
   togglePinned(publisherId: string): void;
   pinnedPublisherId: string | undefined;
+  speakingPublishers: string[];
 }
 
 export default function VideoList(props: VideoListProps): JSX.Element {
@@ -22,6 +23,7 @@ export default function VideoList(props: VideoListProps): JSX.Element {
     videoSizes,
     togglePinned,
     pinnedPublisherId,
+    speakingPublishers,
   } = props;
 
   const currentTime = useGetCurrentTime(props.user.timezone);
@@ -126,7 +128,7 @@ export default function VideoList(props: VideoListProps): JSX.Element {
             publisher={publisherToShow}
             togglePinned={togglePinned}
             publishing={publishing}
-            speaking={Boolean(publisherToShow.speaking)}
+            speaking={speakingPublishers.includes(publisherToShow.id)}
             currentTime={currentTime}
             localTimezone={user.timezone}
             hasVideo={publisherToShow.hasVideo}
@@ -160,7 +162,7 @@ export default function VideoList(props: VideoListProps): JSX.Element {
               publisher={publisher}
               togglePinned={togglePinned}
               publishing={publishing}
-              speaking={Boolean(publisher.speaking)}
+              speaking={speakingPublishers.includes(publisher.id)}
               currentTime={currentTime}
               localTimezone={user.timezone}
               hasVideo={publisher.hasVideo}

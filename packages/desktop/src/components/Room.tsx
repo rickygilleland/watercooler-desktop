@@ -1062,6 +1062,7 @@ export default function Room(props: RoomProps): JSX.Element {
                 setPinnedPublisherIdId(publisherId)
               }
               pinnedPublisherId={pinnedPublisherId}
+              speakingPublishers={speakingPublishers}
             ></VideoList>
           )}
         {!loading &&
