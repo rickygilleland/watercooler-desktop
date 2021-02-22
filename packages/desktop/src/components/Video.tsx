@@ -9,9 +9,9 @@ import {
   faMicrophone,
   faMicrophoneSlash,
 } from "@fortawesome/free-solid-svg-icons";
-
 import React from "react";
 import VideoPlayer from "./VideoPlayer";
+import styled from "styled-components";
 
 interface VideoProps {
   showPinToggle: boolean;
@@ -213,7 +213,7 @@ export default function Video(props: VideoProps): JSX.Element {
     if (!audioLoading) {
       return (
         <div
-          className={`video-container shadow mx-auto d-flex flex-column justify-content-center position-relative text-light ${classAppend}`}
+          className={`h-100 w-100 video-container shadow position-relative text-light ${classAppend}`}
           style={{
             backgroundColor: publisher.containerBackgroundColor,
             borderRadius: 25,
@@ -250,13 +250,18 @@ export default function Video(props: VideoProps): JSX.Element {
             ref={videoRef}
             style={{ height: 0, width: 0 }}
           ></video>
-          <div className="mx-auto align-self-center">
+          <AvatarContainer>
             <Image
               src={publisher.member?.info?.avatar}
-              style={{ maxHeight: 75, borderRadius: 15 }}
+              style={{
+                width: 75,
+                height: 75,
+                borderRadius: "50%",
+                objectFit: "cover",
+              }}
               fluid
             />
-          </div>
+          </AvatarContainer>
           {hasVideo && videoLoading && (
             <div className="mx-auto align-self-center">
               <p
@@ -442,3 +447,10 @@ export default function Video(props: VideoProps): JSX.Element {
     </div>
   );
 }
+
+const AvatarContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+`;
