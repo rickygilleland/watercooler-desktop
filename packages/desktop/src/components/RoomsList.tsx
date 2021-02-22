@@ -44,14 +44,14 @@ export default function RoomsList(props: RoomsListProps): JSX.Element {
               </RoomTitleContainer>
               <ActiveUserAvatars>
                 {room.active_users?.map((activeUser) => (
-                  <AvatarContainer>
+                  <AvatarContainer key={activeUser.id}>
                     <Avatar src={activeUser.avatar_url} />
                   </AvatarContainer>
                 ))}
               </ActiveUserAvatars>
               <ActiveUsers>
                 {room.active_users?.map((activeUser) => (
-                  <Person user={activeUser} />
+                  <Person user={activeUser} key={activeUser.id} />
                 ))}
               </ActiveUsers>
             </RoomButtonContainer>
