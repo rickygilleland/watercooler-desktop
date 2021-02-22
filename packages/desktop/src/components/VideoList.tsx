@@ -133,6 +133,7 @@ const VideoItem = styled.div<{
   margin: 0 auto;
   height: 100%;
   width: 100%;
+  display: flex;
   video {
     max-width: 95vw;
     max-height: calc((100vh - 120px) / ${(props) => props.gridRows});

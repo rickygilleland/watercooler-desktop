@@ -21,7 +21,8 @@ export default function AudioList(props: AudioListProps): JSX.Element {
             <AvatarContainer>
               <Avatar
                 src={publisher.member?.info?.avatar}
-                hasBorder={props.speakingPublishers.includes(publisher.id)}
+                hasGreenBorder={props.speakingPublishers.includes(publisher.id)}
+                hasRedBorder={!publisher.hasAudio}
               />
             </AvatarContainer>
           )}

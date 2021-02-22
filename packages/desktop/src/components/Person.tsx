@@ -60,16 +60,20 @@ export const AvatarContainer = styled.div`
 `;
 
 export const Avatar = styled.img<{
-  hasBorder?: boolean;
+  hasGreenBorder?: boolean;
+  hasRedBorder?: boolean;
 }>`
   border-radius: 50%;
   width: 100%;
   height: 100%;
   object-fit: cover;
   border: ${(props) =>
-    props.hasBorder
+    props.hasGreenBorder
       ? "2px solid rgb(51, 255, 119, .95)"
+      : props.hasRedBorder
+      ? "2px solid #f9426c"
       : "2px solid transparent"};
+
   transition: border 0.3s ease-in-out;
 `;
 
