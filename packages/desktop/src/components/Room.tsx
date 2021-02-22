@@ -133,10 +133,10 @@ export default function Room(props: RoomProps): JSX.Element {
   const [bodyPixWorker, setBodyPixWorker] = useState<any>();
 
   useEffect(() => {
-    if (!room?.video_enabled && videoStatus) {
+    if (room && !room.video_enabled && videoStatus) {
       setVideoStatus(false);
     }
-  }, [room?.video_enabled, videoStatus]);
+  }, [room, videoStatus]);
 
   useEffect(() => {
     const startWorker = async () => {

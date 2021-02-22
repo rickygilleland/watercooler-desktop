@@ -24,6 +24,8 @@ interface MainProps extends PropsFromRedux, RouteComponentProps {
   setShowInviteUsersModal(show: boolean): void;
   setShowCreateRoomForm(show: boolean): void;
   showCreateRoomForm: boolean;
+  setShowManageCameraModal(show: boolean): void;
+  setShowRoomSettingsModal(show: boolean): void;
 }
 
 enum Tab {
@@ -45,6 +47,8 @@ export default function Main(props: MainProps): JSX.Element {
     createRoomSuccess,
     lastCreatedRoomSlug,
     createRoom,
+    setShowManageCameraModal,
+    setShowRoomSettingsModal,
   } = props;
 
   const [rooms, setRooms] = useState<Room[] | undefined>(activeTeam?.rooms);
@@ -121,7 +125,11 @@ export default function Main(props: MainProps): JSX.Element {
         />
       )}
       {activeTab === Tab.UserSettings && (
-        <UserSettings handleUserLogout={props.handleUserLogout} />
+        <UserSettings
+          handleUserLogout={props.handleUserLogout}
+          setShowRoomSettingsModal={setShowRoomSettingsModal}
+          setShowManageCameraModal={setShowManageCameraModal}
+        />
       )}
     </Container>
   );

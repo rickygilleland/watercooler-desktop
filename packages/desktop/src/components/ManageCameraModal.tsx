@@ -102,7 +102,7 @@ export default function ManageCameraModal(
         </Button>
       </Modal.Header>
       <Modal.Body>
-        {typeof settings.devices.videoInputs != "undefined" ? (
+        {typeof settings.devices.videoInputs != "undefined" && (
           <Form onSubmit={handleSubmit}>
             <Form.Label>Set your Video Input:</Form.Label>
             <Form.Control
@@ -129,30 +129,19 @@ export default function ManageCameraModal(
               ))}
             </Form.Control>
 
-            <p
-              className="mt-3 mb-0 pb-0 text-muted"
-              style={{ fontSize: ".8rem" }}
-            >
-              <i>Note:</i> If you're already connected to a room, you will need
-              to re-join for your new video input or audio input settings to
-              take effect.
-            </p>
-
-            <Form.Label className="pt-3">Background Blur Amount</Form.Label>
+            {/*<Form.Label className="pt-3">Background Blur Amount</Form.Label>
             <Form.Control
               type="range"
               className="mb-3"
               name="backgroundBlurAmount"
               value={backgroundBlurAmount}
               onChange={handleBackgroundBlurAmountChange}
-            />
+              />*/}
 
             <Button className="mt-3" variant="primary" type="submit">
               Update Camera Settings
             </Button>
           </Form>
-        ) : (
-          ""
         )}
       </Modal.Body>
     </Modal>

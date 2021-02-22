@@ -10,18 +10,36 @@ import styled from "styled-components";
 
 interface UserSettingsProps {
   handleUserLogout(): void;
+  setShowManageCameraModal(show: boolean): void;
+  setShowRoomSettingsModal(show: boolean): void;
 }
 
 export default function UserSettings(props: UserSettingsProps): JSX.Element {
-  const { handleUserLogout } = props;
+  const {
+    handleUserLogout,
+    setShowManageCameraModal,
+    setShowRoomSettingsModal,
+  } = props;
 
   return (
     <Container>
       <FormContainer>
-        <Button variant="primary" className="my-3" size="lg" block>
+        <Button
+          variant="primary"
+          className="my-3"
+          size="lg"
+          block
+          onClick={() => setShowManageCameraModal(true)}
+        >
           <FontAwesomeIcon icon={faCamera} /> Camera Settings
         </Button>
-        <Button variant="primary" className="my-3" size="lg" block>
+        <Button
+          variant="primary"
+          className="my-3"
+          size="lg"
+          block
+          onClick={() => setShowRoomSettingsModal(true)}
+        >
           <FontAwesomeIcon icon={faDoorOpen} /> Room Settings
         </Button>
 

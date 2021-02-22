@@ -310,6 +310,8 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
                   setShowInviteUsersModal={setShowInviteUsersModal}
                   showCreateRoomForm={showCreateRoomForm}
                   setShowCreateRoomForm={setShowCreateRoomForm}
+                  setShowManageCameraModal={setShowManageCameraModal}
+                  setShowRoomSettingsModal={setShowRoomSettingsModal}
                 />
               </ErrorBoundary>
             )}

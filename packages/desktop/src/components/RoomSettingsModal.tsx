@@ -93,7 +93,7 @@ export default function RoomSettingsModal(
             style={{ marginTop: "1.9rem" }}
           />
 
-          <Form.Check
+          {/*<Form.Check
             type="switch"
             id="background_blur_switch"
             name="backgroundBlur"
@@ -109,7 +109,7 @@ export default function RoomSettingsModal(
           <p className="text-muted small">
             Enabling this feature may cause performance issues on lower-end
             computers and is not guaranteed to hide private information.
-          </p>
+          </p>*/}
         </Form>
       </Modal.Body>
     </Modal>
