@@ -202,12 +202,12 @@ export default function Room(props: RoomProps): JSX.Element {
   useEffect(() => {
     if (newPublishers.length > 0) {
       const currentPublisherIds = publishers.map((publisher) => publisher.id);
-      const unqiueNewPublishers = newPublishers.filter(
+      const uniqueNewPublishers = newPublishers.filter(
         (publisher) => !currentPublisherIds.includes(publisher.id),
       );
 
       setNewPublishers([]);
-      setPublishers([...publishers, ...unqiueNewPublishers]);
+      setPublishers([...publishers, ...uniqueNewPublishers]);
     }
   }, [newPublishers, publishers]);
 
@@ -275,12 +275,11 @@ export default function Room(props: RoomProps): JSX.Element {
           setJoinedMediaHandle(true);
         }
 
-        if (msg.videoroom === "event") {
-          //check if we have new publishers to subscribe to
-          if (msg.publishers) {
-            updatePublishers(msg.publishers);
-          }
+        if (msg.publishers) {
+          updatePublishers(msg.publishers);
+        }
 
+        if (msg.videoroom === "event") {
           if (msg.leaving || msg.unpublished) {
             const msgToCheck = msg.leaving ?? msg.unpublished;
             if (msgToCheck) {
@@ -646,8 +645,8 @@ export default function Room(props: RoomProps): JSX.Element {
           );
 
           if (!isCurrentPublisher && peerUuid) {
-            setPublishers([
-              ...publishers,
+            setNewPublishers([
+              ...newPublishers,
               {
                 hasVideo: videoStatus,
                 hasAudio: audioStatus,
