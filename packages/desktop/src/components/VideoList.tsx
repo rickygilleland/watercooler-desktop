@@ -191,7 +191,8 @@ const VideoContainer = styled.div<{
   align-items: center;
   grid-template-columns: repeat(${(props) => props.gridColumns}, 1fr);
   grid-template-rows: max-content;
-  height: 100%;
+  height: calc(100vh - 120px);
+  align-content: center;
 `;
 
 const VideoItem = styled.div<{
