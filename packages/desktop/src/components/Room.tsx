@@ -27,6 +27,7 @@ import {
 } from "../hooks/room";
 import { RouteComponentProps } from "react-router";
 import { Routes } from "./RootComponent";
+import { Thread, Transfer, Worker, spawn } from "threads";
 import {
   faArrowLeft,
   faCircleNotch,
@@ -47,6 +48,8 @@ import ScreenSharingModal from "./ScreenSharingModal";
 import VideoList from "./VideoList";
 import hark from "hark";
 import styled from "styled-components";
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const bodyPix = require("@tensorflow-models/body-pix");
 
 interface RoomProps extends PropsFromRedux, RouteComponentProps {
   pusherInstance: Pusher | undefined;
@@ -126,11 +129,23 @@ export default function Room(props: RoomProps): JSX.Element {
     user.id,
   );
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [bodyPixWorker, setBodyPixWorker] = useState<any>();
+
   useEffect(() => {
     if (!room?.video_enabled && videoStatus) {
       setVideoStatus(false);
     }
   }, [room?.video_enabled, videoStatus]);
+
+  useEffect(() => {
+    const startWorker = async () => {
+      const bodyPixWorker = await spawn(new Worker("../workers/bodyPix"));
+      setBodyPixWorker(bodyPixWorker);
+    };
+
+    startWorker();
+  }, []);
 
   const {
     availableScreensToShare,
@@ -630,20 +645,40 @@ export default function Room(props: RoomProps): JSX.Element {
         destinationHeight: 0,
         sourceNoseScore: 0,
       };
-      const ctx = localVideoCanvas.getContext("2d");
+      localVideoCanvas.width = localVideo.width;
+      localVideoCanvas.height = localVideo.height;
+
+      const mainCtx = localVideoCanvas.getContext("2d");
+      const ctxCopy = backgroundBlurVideoCanvasCopy.getContext("2d");
 
       const getNextFrame = async () => {
-        if (!publishingStarted || !ctx) {
+        if (!publishingStarted || !ctxCopy || !mainCtx) {
           requestAnimationFrame(getNextFrame);
           return;
         }
 
-        localVideoCanvas.width = localVideo.width;
-        localVideoCanvas.height = localVideo.height;
+        /*ctxCopy.drawImage(localVideo, 0, 0);
+        const backgroundBlurFrame = ctxCopy.getImageData(
+          0,
+          0,
+          localVideo.width,
+          localVideo.height,
+        );*/
 
-        ///background blur logic will go here with segmentation coords -- bodyPix.drawBokehEffect and refetch again
+        //bodyPixWorker(backgroundBlurFrame);
 
-        ctx.drawImage(localVideo, 0, 0);
+        mainCtx.drawImage(localVideo, 0, 0);
+
+        /*if (personSegmentation !== undefined) {
+          bodyPix.drawBokehEffect(
+            localVideoCanvas,
+            localVideo,
+            personSegmentation,
+            15,
+            10,
+            true,
+          );
+        }*/
 
         requestAnimationFrame(getNextFrame);
         return;
@@ -656,6 +691,7 @@ export default function Room(props: RoomProps): JSX.Element {
     setRawLocalStream(rawLocalStream);
   }, [
     audioStatus,
+    backgroundBlurVideoCanvasCopy,
     currentWebsocketUser,
     localVideo,
     localVideoCanvas,

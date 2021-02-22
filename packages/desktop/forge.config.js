@@ -14,7 +14,12 @@ module.exports = {
       appleApiIssuer: process.env.MAC_API_KEY_ISSUER_ID,
     },
     appBundleId: "com.blab.app",
-    asar: true,
+    asar: {
+      unpack: [
+        "dist/renderer/*.bundle.worker.js",
+        "dist/renderer/*.bundle.worker.js.map",
+      ],
+    },
   },
   makers: [
     {
