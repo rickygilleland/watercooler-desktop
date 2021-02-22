@@ -41,7 +41,7 @@ export interface Publisher {
 
 export interface Member {
   id: number;
-  info?: {
+  info: {
     room_at_capacity: boolean;
     media_server: string;
     peer_uuid: string;
@@ -414,7 +414,10 @@ export const useAddMemberDataToPublishers = (
 
       each(members, function (member) {
         if (member.peer_uuid == publisher.display) {
-          publisher.member = member;
+          publisher.member = {
+            id: member.id,
+            info: member,
+          };
         }
       });
 
