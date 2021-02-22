@@ -40,7 +40,7 @@ export interface Publisher {
 }
 
 export interface Member {
-  id: string;
+  id: number;
   info: {
     room_at_capacity: boolean;
     media_server: string;
@@ -51,6 +51,7 @@ export interface Member {
     first_name?: string;
     last_name?: string;
     avatar?: string;
+    number_of_publishers?: number;
   };
 }
 

@@ -141,7 +141,7 @@ export default function VideoList(props: VideoListProps): JSX.Element {
             }
             pinned={true}
             key={publisherToShow.id}
-            isLocal={publisherToShow.member?.id == user.id.toString()}
+            isLocal={publisherToShow.member?.id == user.id}
           ></Video>
         </VideoItem>
       </VideoContainer>
@@ -174,7 +174,7 @@ export default function VideoList(props: VideoListProps): JSX.Element {
                 publisher.id.includes("_screensharing") ? false : true
               }
               pinned={false}
-              isLocal={publisher.member?.id === user.id.toString()}
+              isLocal={publisher.member?.id === user.id}
             ></Video>
           </VideoItem>
         );
