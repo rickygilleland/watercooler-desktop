@@ -32,7 +32,7 @@ export default function VideoPlayer(props: VideoPlayerProps): JSX.Element {
       muted={props.isLocal}
       playsInline={true}
       className={className}
-      style={{ height: "100%", width: "100%", borderRadius: 25 }}
+      style={{ borderRadius: 25 }}
     ></video>
   );
 }

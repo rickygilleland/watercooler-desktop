@@ -198,8 +198,9 @@ const VideoItem = styled.div<{
   gridRows: number;
   gridColumns: number;
 }>`
+  margin: 0 auto;
   video {
-    width: auto;
+    max-width: 95vw;
     max-height: calc((100vh - 120px) / ${(props) => props.gridRows});
   }
 `;
