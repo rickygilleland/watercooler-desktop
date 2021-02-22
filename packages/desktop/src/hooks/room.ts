@@ -340,6 +340,9 @@ export const useToggleVideoAudioStatus = (
       return;
     }
 
+    const videoStatusUpdated = localPublisher.hasVideo !== videoStatus;
+    const audioStatusUpdated = localPublisher.hasAudio !== audioStatus;
+
     localStream
       .getVideoTracks()
       .forEach((track) => (track.enabled = videoStatus));
@@ -357,21 +360,25 @@ export const useToggleVideoAudioStatus = (
 
     setPublishers(updatedPublishers);
 
-    videoRoomStreamHandle.data({
-      text: JSON.stringify({
-        type: "video_toggled",
-        publisher_id: userId,
-        video_status: videoStatus,
-      }),
-    });
+    if (videoStatusUpdated) {
+      videoRoomStreamHandle.data({
+        text: JSON.stringify({
+          type: "video_toggled",
+          publisher_id: userId,
+          video_status: videoStatus,
+        }),
+      });
+    }
 
-    videoRoomStreamHandle.data({
-      text: JSON.stringify({
-        type: "audio_toggled",
-        publisher_id: userId,
-        audio_status: audioStatus,
-      }),
-    });
+    if (audioStatusUpdated) {
+      videoRoomStreamHandle.data({
+        text: JSON.stringify({
+          type: "audio_toggled",
+          publisher_id: userId,
+          audio_status: audioStatus,
+        }),
+      });
+    }
   }, [
     videoStatus,
     audioStatus,
