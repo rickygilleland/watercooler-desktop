@@ -46,6 +46,7 @@ const Container = styled.div`
 const AudioContainer = styled.div`
   display: flex;
   align-items: center;
+  margin-top: 12px;
 `;
 
 const Name = styled.div`
