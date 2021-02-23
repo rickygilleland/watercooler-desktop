@@ -758,6 +758,7 @@ export default function Room(props: RoomProps): JSX.Element {
     currentWebsocketUser,
     localVideo,
     localVideoCanvas,
+    newPublishers,
     peerUuid,
     publishers,
     rawLocalStream,
