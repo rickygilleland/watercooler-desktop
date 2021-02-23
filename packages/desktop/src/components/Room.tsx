@@ -870,8 +870,8 @@ export default function Room(props: RoomProps): JSX.Element {
       (publisher) => !publisher.hasVideo,
     );
 
-    setHasVideoPublishers(Boolean(hasVideoPublishers.length > 0));
     setHasAudioPublishers(Boolean(hasAudioPublishers.length > 0));
+    setHasVideoPublishers(Boolean(hasVideoPublishers.length > 0));
   }, [publishers]);
 
   useEffect(() => {
@@ -1032,7 +1032,8 @@ export default function Room(props: RoomProps): JSX.Element {
           >
             {!loading &&
               !roomAtCapacity &&
-              publishersWithMembersData.length > 0 && (
+              publishersWithMembersData.length > 0 &&
+              hasAudioPublishers && (
                 <AudioList
                   publishers={publishersWithMembersData}
                   publishing={publishing}
@@ -1046,7 +1047,10 @@ export default function Room(props: RoomProps): JSX.Element {
             !roomAtCapacity &&
             publishersWithMembersData.length > 0 &&
             hasVideoPublishers && (
-              <VideoContainer hasVideoPublishers={hasVideoPublishers}>
+              <VideoContainer
+                hasVideoPublishers={hasVideoPublishers}
+                hasAudioPublishers={hasAudioPublishers}
+              >
                 <VideoList
                   videoSizes={videoSizes}
                   publishers={publishersWithMembersData}
@@ -1144,7 +1148,8 @@ const AudioContainer = styled.div<{
     props.hasVideoPublishers && props.hasAudioPublishers
       ? "2px solid rgb(0, 0, 0, 0.15)"
       : undefined};
-  padding-right: ${(props) => (props.hasVideoPublishers ? "24px" : undefined)};
+  padding-right: ${(props) =>
+    props.hasVideoPublishers && props.hasAudioPublishers ? "24px" : undefined};
   align-content: center;
   align-items: center;
   width: ${(props) => (props.hasVideoPublishers ? undefined : "100%")};
@@ -1152,8 +1157,10 @@ const AudioContainer = styled.div<{
 
 const VideoContainer = styled.div<{
   hasVideoPublishers: boolean;
+  hasAudioPublishers: boolean;
 }>`
   justify-content: center;
   width: 100%;
-  padding: 24px;
+  padding: ${(props) =>
+    props.hasVideoPublishers && props.hasAudioPublishers ? "24px" : undefined};
 `;

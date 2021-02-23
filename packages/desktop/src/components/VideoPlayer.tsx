@@ -1,6 +1,7 @@
 import { Publisher } from "../hooks/room";
 import React, { useEffect, useState } from "react";
 import ReactPlayer from "react-player";
+import styled from "styled-components";
 
 interface VideoPlayerProps {
   stream: MediaStream;
@@ -31,7 +32,7 @@ export default function VideoPlayer(props: VideoPlayerProps): JSX.Element {
   }, [props.publisher.id, props.videoIsFaceOnly, props.speaking]);
 
   return (
-    <ReactPlayer
+    <Player
       url={props.stream}
       controls={false}
       muted={props.isLocal}
@@ -39,8 +40,14 @@ export default function VideoPlayer(props: VideoPlayerProps): JSX.Element {
       style={{ borderRadius: 25 }}
       playing={true}
       playsinline={true}
-      width="100%"
-      height="100%"
+      width="auto"
+      height="auto"
     />
   );
 }
+
+const Player = styled(ReactPlayer)`
+  transform: rotateY(180deg);
+  border-radius: 25px;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+`;
