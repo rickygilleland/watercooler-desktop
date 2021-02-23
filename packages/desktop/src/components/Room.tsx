@@ -141,14 +141,14 @@ export default function Room(props: RoomProps): JSX.Element {
     }
   }, [room, videoStatus]);
 
-  useEffect(() => {
+  /*useEffect(() => {
     const startWorker = async () => {
       const bodyPixWorker = await spawn(new Worker("../workers/bodyPix"));
       setBodyPixWorker(bodyPixWorker);
     };
 
     startWorker();
-  }, []);
+  }, []);*/
 
   const {
     availableScreensToShare,
