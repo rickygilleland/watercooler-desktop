@@ -72,7 +72,6 @@ export default function Video(props: VideoProps): JSX.Element {
           }}
         >
           <VideoPlayer
-            videoRef={videoRef}
             isLocal={isLocal}
             stream={publisher.stream}
             publisher={publisher}

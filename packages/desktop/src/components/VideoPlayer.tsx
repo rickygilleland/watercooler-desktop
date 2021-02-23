@@ -1,8 +1,8 @@
 import { Publisher } from "../hooks/room";
 import React, { useEffect, useState } from "react";
+import ReactPlayer from "react-player";
 
 interface VideoPlayerProps {
-  videoRef: React.RefObject<HTMLVideoElement>;
   stream: MediaStream;
   publisher: Publisher;
   isLocal: boolean;
@@ -31,13 +31,16 @@ export default function VideoPlayer(props: VideoPlayerProps): JSX.Element {
   }, [props.publisher.id, props.videoIsFaceOnly, props.speaking]);
 
   return (
-    <video
-      autoPlay={true}
-      ref={props.videoRef}
+    <ReactPlayer
+      url={props.stream}
+      controls={false}
       muted={props.isLocal}
-      playsInline={true}
       className={className}
       style={{ borderRadius: 25 }}
-    ></video>
+      playing={true}
+      playsinline={true}
+      width="100%"
+      height="100%"
+    />
   );
 }
