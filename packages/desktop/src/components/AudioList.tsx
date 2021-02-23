@@ -10,10 +10,11 @@ interface AudioListProps {
   user: User;
   publishers: Publisher[];
   speakingPublishers: string[];
+  hasVideoPublishers: boolean;
 }
 
 export default function AudioList(props: AudioListProps): JSX.Element {
-  const { publishers } = props;
+  const { publishers, hasVideoPublishers } = props;
   const [audioOnlyPublishers, setAudioOnlyPublishers] = useState<Publisher[]>(
     [],
   );
@@ -27,7 +28,7 @@ export default function AudioList(props: AudioListProps): JSX.Element {
   }, [publishers]);
 
   return (
-    <Container>
+    <Container hasVideoPublishers={hasVideoPublishers}>
       {audioOnlyPublishers.map((publisher) => (
         <AudioContainer key={publisher.id}>
           {publisher.member?.info?.avatar && (
@@ -51,17 +52,22 @@ export default function AudioList(props: AudioListProps): JSX.Element {
   );
 }
 
-const Container = styled.div`
+const Container = styled.div<{
+  hasVideoPublishers: boolean;
+}>`
   display: flex;
-  flex-direction: column;
+  flex-direction: ${(props) => (props.hasVideoPublishers ? "column" : "row")};
   margin-top: 8px;
+  width: 100%;
+  justify-content: center;
 `;
 
 const AudioContainer = styled.div`
   display: flex;
   align-items: center;
-  flex-direction: column;
   margin-top: 12px;
+  flex-direction: column;
+  padding: 16px;
 
   ${AvatarContainer} {
     margin-right: 0;

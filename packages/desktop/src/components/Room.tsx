@@ -124,6 +124,7 @@ export default function Room(props: RoomProps): JSX.Element {
   const [localStream, setLocalStream] = useState<MediaStream | undefined>();
 
   const [hasVideoPublishers, setHasVideoPublishers] = useState(false);
+  const [hasAudioPublishers, setHasAudioPublishers] = useState(false);
 
   const { room, presenceChannel, setPresenceChannel } = useInitializeRoom(
     roomSlug,
@@ -865,7 +866,12 @@ export default function Room(props: RoomProps): JSX.Element {
       (publisher) => publisher.hasVideo,
     );
 
+    const hasAudioPublishers = publishers.filter(
+      (publisher) => !publisher.hasVideo,
+    );
+
     setHasVideoPublishers(Boolean(hasVideoPublishers.length > 0));
+    setHasAudioPublishers(Boolean(hasAudioPublishers.length > 0));
   }, [publishers]);
 
   useEffect(() => {
@@ -1019,32 +1025,43 @@ export default function Room(props: RoomProps): JSX.Element {
             />
           </LoadingContainer>
         )}
-        {!loading &&
-          !roomAtCapacity &&
-          publishersWithMembersData.length > 0 && (
-            <AudioList
-              publishers={publishersWithMembersData}
-              publishing={publishing}
-              speakingPublishers={speakingPublishers}
-              user={user}
-            ></AudioList>
-          )}
-        {!loading &&
-          !roomAtCapacity &&
-          publishersWithMembersData.length > 0 &&
-          hasVideoPublishers && (
-            <VideoList
-              videoSizes={videoSizes}
-              publishers={publishersWithMembersData}
-              publishing={publishing}
-              user={user}
-              togglePinned={(publisherId: string) =>
-                setPinnedPublisherIdId(publisherId)
-              }
-              pinnedPublisherId={pinnedPublisherId}
-              speakingPublishers={speakingPublishers}
-            ></VideoList>
-          )}
+        <Stage>
+          <AudioContainer
+            hasAudioPublishers={hasAudioPublishers}
+            hasVideoPublishers={hasVideoPublishers}
+          >
+            {!loading &&
+              !roomAtCapacity &&
+              publishersWithMembersData.length > 0 && (
+                <AudioList
+                  publishers={publishersWithMembersData}
+                  publishing={publishing}
+                  speakingPublishers={speakingPublishers}
+                  hasVideoPublishers={hasVideoPublishers}
+                  user={user}
+                ></AudioList>
+              )}
+          </AudioContainer>
+          {!loading &&
+            !roomAtCapacity &&
+            publishersWithMembersData.length > 0 &&
+            hasVideoPublishers && (
+              <VideoContainer hasVideoPublishers={hasVideoPublishers}>
+                <VideoList
+                  videoSizes={videoSizes}
+                  publishers={publishersWithMembersData}
+                  publishing={publishing}
+                  user={user}
+                  togglePinned={(publisherId: string) =>
+                    setPinnedPublisherIdId(publisherId)
+                  }
+                  pinnedPublisherId={pinnedPublisherId}
+                  speakingPublishers={speakingPublishers}
+                ></VideoList>
+              </VideoContainer>
+            )}
+        </Stage>
+
         {!loading && roomAtCapacity && (
           <React.Fragment>
             <h1 className="text-center mt-5">Oops!</h1>
@@ -1113,4 +1130,30 @@ const Title = styled.div`
   margin-left: 12px;
   font-weight: 600;
   color: #fff;
+`;
+
+const Stage = styled.div`
+  display: flex;
+`;
+
+const AudioContainer = styled.div<{
+  hasVideoPublishers: boolean;
+  hasAudioPublishers: boolean;
+}>`
+  border-right: ${(props) =>
+    props.hasVideoPublishers && props.hasAudioPublishers
+      ? "2px solid rgb(0, 0, 0, 0.15)"
+      : undefined};
+  padding-right: ${(props) => (props.hasVideoPublishers ? "24px" : undefined)};
+  align-content: center;
+  align-items: center;
+  width: ${(props) => (props.hasVideoPublishers ? undefined : "100%")};
+`;
+
+const VideoContainer = styled.div<{
+  hasVideoPublishers: boolean;
+}>`
+  justify-content: center;
+  width: 100%;
+  padding: 24px;
 `;
