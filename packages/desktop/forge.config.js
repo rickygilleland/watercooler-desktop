@@ -16,8 +16,8 @@ module.exports = {
     appBundleId: "com.blab.app",
     asar: {
       unpack: [
-        "dist/renderer/*.bundle.worker.js",
-        "dist/renderer/*.bundle.worker.js.map",
+        "dist/main/0.bundle.worker.js",
+        "dist/main/0.bundle.worker.js.map",
       ],
     },
   },
