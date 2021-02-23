@@ -40,8 +40,8 @@ export default function VideoPlayer(props: VideoPlayerProps): JSX.Element {
       style={{ borderRadius: 25 }}
       playing={true}
       playsinline={true}
-      width="100%"
-      height="100%"
+      width="auto"
+      height="auto"
     />
   );
 }
