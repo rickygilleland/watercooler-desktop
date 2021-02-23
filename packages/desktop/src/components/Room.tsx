@@ -870,8 +870,8 @@ export default function Room(props: RoomProps): JSX.Element {
       (publisher) => !publisher.hasVideo,
     );
 
-    setHasVideoPublishers(Boolean(hasVideoPublishers.length > 0));
     setHasAudioPublishers(Boolean(hasAudioPublishers.length > 0));
+    setHasVideoPublishers(Boolean(hasVideoPublishers.length > 0));
   }, [publishers]);
 
   useEffect(() => {
@@ -1032,7 +1032,8 @@ export default function Room(props: RoomProps): JSX.Element {
           >
             {!loading &&
               !roomAtCapacity &&
-              publishersWithMembersData.length > 0 && (
+              publishersWithMembersData.length > 0 &&
+              hasAudioPublishers && (
                 <AudioList
                   publishers={publishersWithMembersData}
                   publishing={publishing}

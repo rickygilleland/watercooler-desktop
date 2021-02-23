@@ -34,11 +34,9 @@ interface VideoProps {
 export default function Video(props: VideoProps): JSX.Element {
   const {
     showPinToggle,
-    showBeforeJoin,
     publisher,
     localTimezone,
     currentTime,
-    publishing,
     speaking,
     hasVideo,
     videoLoading,
@@ -197,83 +195,5 @@ export default function Video(props: VideoProps): JSX.Element {
     }
   }
 
-  if (showBeforeJoin == false) {
-    return <React.Fragment></React.Fragment>;
-  }
-
-  return (
-    <div
-      className="video-container shadow mx-auto d-flex flex-column justify-content-center position-relative text-light"
-      style={{
-        backgroundColor: publisher.containerBackgroundColor,
-        borderRadius: 25,
-      }}
-    >
-      <div
-        className="position-absolute overlay"
-        style={{ top: 8, width: "100%" }}
-      >
-        {publisher.member?.info?.timezone != null &&
-          publisher.member?.info.timezone != localTimezone && (
-            <p
-              className="pl-2 mb-1 mt-1 font-weight-bolder"
-              style={{ fontSize: "1.1rem" }}
-            >
-              <span
-                style={{
-                  backgroundColor: "rgb(18, 20, 34, .5)",
-                  borderRadius: 15,
-                  padding: ".6rem",
-                }}
-              >
-                {currentTime
-                  .setZone(publisher.member.info.timezone)
-                  .toLocaleString(DateTime.TIME_SIMPLE)}
-              </span>
-            </p>
-          )}
-      </div>
-      <div className="mx-auto align-self-center">
-        <Image
-          src={publisher.member?.info?.avatar}
-          style={{ maxHeight: 75, borderRadius: 15 }}
-          fluid
-        />
-      </div>
-      {publishing && (
-        <div className="mx-auto align-self-center">
-          <p
-            className="font-weight-bolder text-center"
-            style={{ paddingTop: 8, fontSize: "1.2rem" }}
-          >
-            <FontAwesomeIcon
-              style={{ color: "#f9426c" }}
-              icon={faCircleNotch}
-              spin
-            />{" "}
-            Loading...
-          </p>
-        </div>
-      )}
-      <div
-        className="position-absolute overlay"
-        style={{ bottom: 8, width: "100%" }}
-      >
-        <p
-          className="pl-2 mb-1 mt-1 font-weight-bolder"
-          style={{ fontSize: "1.1rem" }}
-        >
-          <span
-            style={{
-              backgroundColor: "rgb(18, 20, 34, .5)",
-              borderRadius: 15,
-              padding: ".6rem",
-            }}
-          >
-            {publisher.member?.info?.first_name}
-          </span>
-        </p>
-      </div>
-    </div>
-  );
+  return <React.Fragment></React.Fragment>;
 }
