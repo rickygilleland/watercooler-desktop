@@ -2,7 +2,7 @@ import { Avatar, AvatarContainer } from "./Person";
 import { Publisher } from "../hooks/room";
 import { User } from "../store/types/user";
 import AudioPlayer from "./AudioPlayer";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 
 interface AudioListProps {
@@ -13,9 +13,22 @@ interface AudioListProps {
 }
 
 export default function AudioList(props: AudioListProps): JSX.Element {
+  const { publishers } = props;
+  const [audioOnlyPublishers, setAudioOnlyPublishers] = useState<Publisher[]>(
+    [],
+  );
+
+  useEffect(() => {
+    const audioOnlyPublishers = publishers.filter(
+      (publisher) => !publisher.hasVideo,
+    );
+
+    setAudioOnlyPublishers(audioOnlyPublishers);
+  }, [publishers]);
+
   return (
     <Container>
-      {props.publishers.map((publisher) => (
+      {audioOnlyPublishers.map((publisher) => (
         <AudioContainer key={publisher.id}>
           {publisher.member?.info?.avatar && (
             <AvatarContainer>
@@ -26,7 +39,7 @@ export default function AudioList(props: AudioListProps): JSX.Element {
               />
             </AvatarContainer>
           )}
-          <Name>{`${publisher.member?.info?.first_name} ${publisher.member?.info?.last_name}`}</Name>
+          <Name>{publisher.member?.info?.first_name}</Name>
           <AudioPlayer
             user={props.user}
             stream={publisher.stream}
@@ -47,11 +60,23 @@ const Container = styled.div`
 const AudioContainer = styled.div`
   display: flex;
   align-items: center;
+  flex-direction: column;
   margin-top: 12px;
+
+  ${AvatarContainer} {
+    margin-right: 0;
+    height: 65px;
+    width: 65px;
+  }
+
+  ${Avatar} {
+    border-radius: 15px;
+  }
 `;
 
 const Name = styled.div`
   font-size: 14px;
   font-weight: 600;
   color: #fff;
+  justify-self: center;
 `;

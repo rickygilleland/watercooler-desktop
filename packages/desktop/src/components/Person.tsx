@@ -72,7 +72,7 @@ export const Avatar = styled.img<{
       ? "2px solid rgb(51, 255, 119, .95)"
       : props.hasRedBorder
       ? "2px solid #f9426c"
-      : "2px solid transparent"};
+      : "2px solid rgb(0, 0, 0, .15)"};
 
   transition: border 0.3s ease-in-out;
 `;

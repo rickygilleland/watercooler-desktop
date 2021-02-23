@@ -192,7 +192,7 @@ export default function Room(props: RoomProps): JSX.Element {
 
   const videoSizes = useGetVideoSizes(
     showChatThread,
-    publishersWithMembersData.length,
+    publishersWithMembersData,
   );
 
   const updatePublishers = (updatedPublishers: Publisher[]) => {
@@ -1021,6 +1021,16 @@ export default function Room(props: RoomProps): JSX.Element {
         )}
         {!loading &&
           !roomAtCapacity &&
+          publishersWithMembersData.length > 0 && (
+            <AudioList
+              publishers={publishersWithMembersData}
+              publishing={publishing}
+              speakingPublishers={speakingPublishers}
+              user={user}
+            ></AudioList>
+          )}
+        {!loading &&
+          !roomAtCapacity &&
           publishersWithMembersData.length > 0 &&
           hasVideoPublishers && (
             <VideoList
@@ -1034,17 +1044,6 @@ export default function Room(props: RoomProps): JSX.Element {
               pinnedPublisherId={pinnedPublisherId}
               speakingPublishers={speakingPublishers}
             ></VideoList>
-          )}
-        {!loading &&
-          !roomAtCapacity &&
-          publishersWithMembersData.length > 0 &&
-          !hasVideoPublishers && (
-            <AudioList
-              publishers={publishersWithMembersData}
-              publishing={publishing}
-              speakingPublishers={speakingPublishers}
-              user={user}
-            ></AudioList>
           )}
         {!loading && roomAtCapacity && (
           <React.Fragment>

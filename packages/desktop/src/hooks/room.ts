@@ -179,7 +179,7 @@ export const useGetAvailableScreensToShare = (
 
 export const useGetVideoSizes = (
   showChatThread: boolean,
-  publishersCount: number,
+  publishers: Publisher[],
 ): VideoSizes => {
   const [videoSizes, setVideoSizes] = useState<VideoSizes>({
     rows: 0,
@@ -187,6 +187,9 @@ export const useGetVideoSizes = (
   });
 
   useEffect(() => {
+    const publishersCount = publishers.filter((publisher) => publisher.hasVideo)
+      .length;
+
     let rows = 1;
     let columns = 1;
 
@@ -241,7 +244,7 @@ export const useGetVideoSizes = (
       rows: 1,
       columns: 1,
     });
-  }, [showChatThread, publishersCount]);
+  }, [showChatThread, publishers]);
 
   return videoSizes;
 };

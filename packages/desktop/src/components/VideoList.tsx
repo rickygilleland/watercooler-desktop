@@ -36,6 +36,18 @@ export default function VideoList(props: VideoListProps): JSX.Element {
   >();
   const [showPinToggle, setShowPinToggle] = useState(false);
 
+  const [videoOnlyPublishers, setVideoOnlyPublishers] = useState<Publisher[]>(
+    [],
+  );
+
+  useEffect(() => {
+    const videoOnlyPublishers = publishers.filter(
+      (publisher) => publisher.hasVideo,
+    );
+
+    setVideoOnlyPublishers(videoOnlyPublishers);
+  }, [publishers]);
+
   useEffect(() => {
     const pinnedPublisher = processedPublishers.find(
       (publisher) => publisher.id === pinnedPublisherId,
@@ -44,7 +56,7 @@ export default function VideoList(props: VideoListProps): JSX.Element {
   }, [pinnedPublisherId, processedPublishers]);
 
   if (pinnedPublisher || showPinToggle) {
-    const publisherToShow = pinnedPublisher ?? publishers[0];
+    const publisherToShow = pinnedPublisher ?? videoOnlyPublishers[0];
 
     return (
       <VideoContainer
@@ -79,7 +91,7 @@ export default function VideoList(props: VideoListProps): JSX.Element {
 
   return (
     <VideoContainer gridRows={videoSizes.rows} gridColumns={videoSizes.columns}>
-      {publishers.map((publisher) => {
+      {videoOnlyPublishers.map((publisher) => {
         return (
           <VideoItem
             gridRows={videoSizes.rows}
