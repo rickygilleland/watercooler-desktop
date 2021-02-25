@@ -1,5 +1,6 @@
 import "@tensorflow/tfjs-backend-cpu";
 import "@tensorflow/tfjs-backend-webgl";
+import * as tf from "@tensorflow/tfjs-core";
 import { BlazeFaceModel, load } from "@tensorflow-models/blazeface";
 import { LibraryItem } from "../store/types/library";
 import { Message } from "../store/types/message";
@@ -10,6 +11,7 @@ import { Team } from "../store/types/organization";
 import { Thread } from "../store/types/thread";
 import { User } from "../store/types/user";
 import { each } from "lodash";
+import { setWasmPaths } from "@tensorflow/tfjs-backend-wasm";
 import EnsureLoggedInContainer from "../containers/EnsureLoggedInContainer";
 import ErrorBoundary from "./ErrorBoundary";
 import InviteUsersModal from "./InviteUsersModal";
@@ -21,6 +23,9 @@ import React, { useEffect, useState } from "react";
 import RoomPage from "../containers/RoomPage";
 import RoomSettingsModal from "./RoomSettingsModal";
 import posthog from "posthog-js";
+//import wasmPath from "../../node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm";
+//import wasmSimdPath from "../../node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-simd.wasm";
+//import wasmSimdThreadedPath from "../../node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-threaded-simd.wasm";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { nativeTheme } = require("electron").remote;
 
@@ -82,6 +87,18 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
   const [blazeModel, setBlazeModel] = useState<BlazeFaceModel | undefined>();
   useEffect(() => {
     const loadNet = async () => {
+      setWasmPaths({
+        "tfjs-backend-wasm.wasm":
+          "https://blab.sfo2.cdn.digitaloceanspaces.com/tfjs-backend-wasm.wasm",
+        "tfjs-backend-wasm-simd.wasm":
+          "https://blab.sfo2.cdn.digitaloceanspaces.com/tfjs-backend-wasm-simd.wasm",
+        "tfjs-backend-wasm-threaded-simd.wasm":
+          "https://blab.sfo2.cdn.digitaloceanspaces.com/tfjs-backend-wasm-threaded-simd.wasm",
+      });
+      await tf.setBackend("wasm");
+
+      console.log("TUCKER", tf.getBackend());
+
       const net = await load({
         maxFaces: 1,
       });

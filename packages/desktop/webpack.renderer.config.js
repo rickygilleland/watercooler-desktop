@@ -16,7 +16,8 @@ rules.push({
 });
 
 rules.push({
-  test: /\.wasm$/i,
+  test: /\.wasm$/,
+  type: "javascript/auto",
   use: [
     {
       loader: "file-loader",

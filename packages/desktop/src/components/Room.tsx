@@ -832,8 +832,8 @@ export default function Room(props: RoomProps): JSX.Element {
           ];
 
           if (
-            Math.abs(updatedBoundingBox[0] - latestBoundingBox[0]) > 2 ||
-            Math.abs(updatedBoundingBox[1] - latestBoundingBox[1]) > 2
+            Math.abs(updatedBoundingBox[0] - latestBoundingBox[0]) > 2.5 ||
+            Math.abs(updatedBoundingBox[1] - latestBoundingBox[1]) > 2.5
           ) {
             latestBoundingBox = updatedBoundingBox;
           }
