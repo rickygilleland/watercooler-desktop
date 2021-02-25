@@ -1,3 +1,6 @@
+import "@tensorflow/tfjs-backend-cpu";
+import "@tensorflow/tfjs-backend-webgl";
+import { BlazeFaceModel, load } from "@tensorflow-models/blazeface";
 import { LibraryItem } from "../store/types/library";
 import { Message } from "../store/types/message";
 import { PropsFromRedux } from "../containers/RootContainer";
@@ -75,6 +78,19 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
   const [activeTeam, setActiveTeam] = useState<Team>();
 
   const [showCreateRoomForm, setShowCreateRoomForm] = useState(false);
+
+  const [blazeModel, setBlazeModel] = useState<BlazeFaceModel | undefined>();
+  useEffect(() => {
+    const loadNet = async () => {
+      const net = await load({
+        maxFaces: 1,
+      });
+
+      setBlazeModel(net);
+    };
+
+    loadNet();
+  }, []);
 
   useEffect(() => {
     const fetchOrganizationUsers = async () => {
@@ -306,6 +322,7 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
                   key={routeProps.match.params.roomSlug}
                   isLightMode={isLightMode}
                   roomSlug={routeProps.match.params.roomSlug}
+                  blazeModel={blazeModel}
                 />
               </ErrorBoundary>
             )}

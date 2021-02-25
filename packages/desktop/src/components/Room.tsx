@@ -1,7 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-import "@tensorflow/tfjs-backend-cpu";
-import "@tensorflow/tfjs-backend-webgl";
-import { BlazeFaceModel, load } from "@tensorflow-models/blazeface";
+import { BlazeFaceModel } from "@tensorflow-models/blazeface";
 import { Button, Container, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PropsFromRedux } from "../containers/RoomPage";
@@ -33,9 +30,7 @@ import {
   faVideo,
   faVideoSlash,
 } from "@fortawesome/free-solid-svg-icons";
-
 import { ipcRenderer } from "electron";
-
 import AddUserToRoomModal from "./AddUserToRoomModal";
 import AudioList from "./AudioList";
 import Pusher, { Channel } from "pusher-js";
@@ -50,6 +45,7 @@ interface RoomProps extends PropsFromRedux, RouteComponentProps {
   userPrivateNotificationChannel: Channel | undefined;
   isLightMode: boolean;
   roomSlug: string | undefined;
+  blazeModel: BlazeFaceModel | undefined;
 }
 
 export default function Room(props: RoomProps): JSX.Element {
@@ -64,6 +60,7 @@ export default function Room(props: RoomProps): JSX.Element {
     roomLoading,
     addUserLoading,
     addUserToRoom,
+    blazeModel,
   } = props;
 
   const [isCall, setIsCall] = useState(false);
@@ -105,24 +102,10 @@ export default function Room(props: RoomProps): JSX.Element {
   const [startPublishingCalled, setStartPublishingCalled] = useState(false);
   const [mounted, setMounted] = useState(true);
 
-  const [blazeModel, setBlazeModel] = useState<BlazeFaceModel | undefined>();
-
   useEffect(() => {
     return () => {
       setMounted(false);
     };
-  }, []);
-
-  useEffect(() => {
-    const loadNet = async () => {
-      const net = await load({
-        maxFaces: 1,
-      });
-
-      setBlazeModel(net);
-    };
-
-    loadNet();
   }, []);
 
   const {
