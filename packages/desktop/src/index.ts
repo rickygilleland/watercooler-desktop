@@ -21,6 +21,9 @@ const contextMenu = require("electron-context-menu");
 if (require("electron-squirrel-startup")) app.quit();
 const isDevMode = Boolean(process.execPath.match(/[\\/]electron/));
 
+let currentWindowPosition = [0, 0];
+let currentContentSize = [350, 520];
+
 let mainWindow: Electron.BrowserWindow;
 
 if (!isDevMode) {
@@ -120,7 +123,7 @@ const createWindow = () => {
       titleBarStyle: "hidden",
       vibrancy: "sidebar",
       transparent: true, //necessary for vibrancy fix on macos
-      backgroundColor: "#80FFFFFF", //necessary for vibrancy fix on macos
+      backgroundColor: process.platform === "darwin" ? "#80FFFFFF" : "#212529",
       width: 350,
       height: 520,
       minWidth: 350,
@@ -144,7 +147,7 @@ const createWindow = () => {
       titleBarStyle: "hidden",
       vibrancy: "sidebar",
       transparent: true, //necessary for vibrancy fix on macos
-      backgroundColor: "#80FFFFFF", //necessary for vibrancy fix on macos
+      backgroundColor: process.platform === "darwin" ? "#80FFFFFF" : "#212529",
       width: 350,
       height: 520,
       minWidth: 350,
@@ -370,6 +373,67 @@ const createWindow = () => {
     require("electron").shell.openExternal(url);
   });
 
+  ipcMain.handle(
+    "start-video-room",
+    async (
+      _event,
+      args: {
+        inRoom: boolean;
+      },
+    ) => {
+      if (args.inRoom) {
+        currentWindowPosition = mainWindow.getPosition();
+        currentContentSize = mainWindow.getSize();
+
+        mainWindow.on("blur", () => {
+          mainWindow.setVibrancy(null);
+          mainWindow.setVisibleOnAllWorkspaces(true);
+          mainWindow.setAlwaysOnTop(true, "floating");
+          mainWindow.setOpacity(0.75);
+          mainWindow.setHasShadow(false);
+          mainWindow.center();
+
+          const currentPosition = mainWindow.getPosition();
+
+          mainWindow.setPosition(currentPosition[0], 0, true);
+          mainWindow.setMinimumSize(100, 100);
+          mainWindow.setSize(600, 200, true);
+
+          mainWindow.setBackgroundColor("#00000000");
+        });
+
+        mainWindow.on("focus", () => {
+          mainWindow.setVibrancy("sidebar");
+          mainWindow.setVisibleOnAllWorkspaces(false);
+          mainWindow.setAlwaysOnTop(false);
+          mainWindow.setOpacity(1);
+          mainWindow.setHasShadow(true);
+
+          mainWindow.setPosition(
+            currentWindowPosition[0],
+            currentWindowPosition[1],
+            true,
+          );
+
+          mainWindow.setSize(
+            currentContentSize[0],
+            currentContentSize[1],
+            true,
+          );
+
+          mainWindow.setBackgroundColor(
+            process.platform === "darwin" ? "#80FFFFFF" : "#212529",
+          );
+
+          mainWindow.setMinimumSize(350, 520);
+        });
+      } else {
+        mainWindow.removeAllListeners("blur");
+        mainWindow.removeAllListeners("focus");
+      }
+    },
+  );
+
   mainWindow.on("closed", () => {
     const allWindows = BrowserWindow.getAllWindows();
 
@@ -415,6 +479,7 @@ if (process.platform == "darwin") {
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
   createWindow();
+  currentWindowPosition = mainWindow.getPosition();
 });
 
 // Quit when all windows are closed.

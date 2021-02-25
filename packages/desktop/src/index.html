@@ -15,8 +15,14 @@
     <link href="https://blab.to/css/app.css" rel="stylesheet" />
   </head>
   <style>
+    @media (max-height: 250px) {
+      .window-title,
+      .window-controls-container {
+        display: none !important;
+      }
+    }
     body {
-      background-color: rgb(33, 37, 41, 0.6) !important;
+      background-color: transparent !important;
     }
     .dark-mode,
     .dark-mode > .btn > .svg-inline--fa,

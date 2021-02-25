@@ -755,6 +755,16 @@ export default function Room(props: RoomProps): JSX.Element {
     videoRoomStreamHandle,
     videoStatus,
   ]);
+  /*
+  useEffect(() => {
+    ipcRenderer.invoke("start-video-room", {
+      inRoom: true,
+    });
+
+    return () => {
+      ipcRenderer.invoke("start-video-room", { inRoom: false });
+    };
+  }, []);*/
 
   const [startStreamCalled, setStartStreamCalled] = useState(false);
 
@@ -840,8 +850,6 @@ export default function Room(props: RoomProps): JSX.Element {
           ) {
             latestBoundingBox = updatedBoundingBox;
           }
-
-          console.log("TUCKER", latestBoundingBox);
         }
       }, 50);
 
@@ -1212,6 +1220,10 @@ const Header = styled.div`
   user-select: none;
   margin-top: 10px;
   margin-bottom: 15px;
+
+  @media (max-height: 250px) {
+    display: none;
+  }
 `;
 
 const HeaderContent = styled.div`
