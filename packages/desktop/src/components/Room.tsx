@@ -831,12 +831,17 @@ export default function Room(props: RoomProps): JSX.Element {
             avgBoundingBoxRadius * 2,
           ];
 
+          if (updatedBoundingBox[0] > 230) updatedBoundingBox[0] = 230;
+          if (updatedBoundingBox[0] < 0) updatedBoundingBox[0] = 0;
+
           if (
             Math.abs(updatedBoundingBox[0] - latestBoundingBox[0]) > 2.5 ||
             Math.abs(updatedBoundingBox[1] - latestBoundingBox[1]) > 2.5
           ) {
             latestBoundingBox = updatedBoundingBox;
           }
+
+          console.log("TUCKER", latestBoundingBox);
         }
       }, 50);
 
