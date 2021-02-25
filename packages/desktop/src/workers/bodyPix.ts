@@ -21,10 +21,9 @@ bodyPix
     net = model;
   });*/
 
-expose(async function renderCanvas(
+const renderCanvas = async (
   backgroundBlurFrame: ImageData,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-): Promise<any> {
+): Promise<unknown> => {
   const net = await bodyPix.load({
     architecture: "MobileNetV1",
     outputStride: 16,
@@ -44,4 +43,7 @@ expose(async function renderCanvas(
   } catch (error) {
     //
   }
-});
+};
+
+export type RenderCanvas = typeof renderCanvas;
+expose(renderCanvas);

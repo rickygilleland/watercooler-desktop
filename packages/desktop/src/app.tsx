@@ -16,13 +16,29 @@ import posthog from "posthog-js";
 
 let path = window.location.href;
 path = path.substring(path.lastIndexOf("#") + 1);
+let titlebar: Titlebar | undefined;
 
 if (path != "/screensharing_controls") {
-  new Titlebar({
+  titlebar = new Titlebar({
     backgroundColor: Color.fromHex("#121422"),
     overflow: "hidden",
   });
 }
+
+window.addEventListener("resize", () => {
+  if (path === "/screensharing_controls") return;
+  if (window.innerHeight < 300 && titlebar) {
+    titlebar.dispose();
+    titlebar = undefined;
+  }
+
+  if (window.innerHeight > 300 && !titlebar) {
+    titlebar = new Titlebar({
+      backgroundColor: Color.fromHex("#121422"),
+      overflow: "hidden",
+    });
+  }
+});
 
 const isDevMode = Boolean(process.execPath.match(/[\\/]electron/));
 

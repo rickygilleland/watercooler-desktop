@@ -139,6 +139,13 @@ const VideoContainer = styled.div<{
   grid-template-rows: max-content;
   height: calc(100vh - 120px);
   align-content: center;
+
+  @media (max-height: 250px) {
+    height: 100vh;
+    .shadow {
+      box-shadow: none !important;
+    }
+  }
 `;
 
 const VideoItem = styled.div<{
@@ -152,6 +159,10 @@ const VideoItem = styled.div<{
   video {
     max-width: 95vw;
     max-height: calc((100vh - 120px) / ${(props) => props.gridRows});
+
+    @media (max-height: 250px) {
+      max-height: 100vh;
+    }
   }
 `;
 

@@ -65,6 +65,27 @@ export interface CanvasElement extends HTMLCanvasElement {
   captureStream(frameRate?: number): MediaStream;
 }
 
+interface VideoFrameMetadata {
+  presentationTime: DOMHighResTimeStamp;
+  expectedDisplayTime: DOMHighResTimeStamp;
+  width: number;
+  height: number;
+  mediaTime: number;
+  presentedFrames: number;
+  processingDuration?: number;
+  captureTime?: DOMHighResTimeStamp;
+  receiveTime?: DOMHighResTimeStamp;
+  rtpTimestamp?: number;
+}
+type VideoFrameRequestCallbackId = number;
+interface VideoElement extends HTMLVideoElement {
+  requestVideoFrameCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    callback: (now: DOMHighResTimeStamp, metadata: VideoFrameMetadata) => any,
+  ): VideoFrameRequestCallbackId;
+  cancelVideoFrameCallback(handle: VideoFrameRequestCallbackId): void;
+}
+
 export const useInitializeRoom = (
   roomSlug: string | undefined,
   teams: Team[],
@@ -535,8 +556,8 @@ export const useCreateVideoContainers = () => {
   const [backgroundBlurVideoCanvasCopy] = useState<CanvasElement>(
     <CanvasElement>document.createElement("canvas"),
   );
-  const [localVideo] = useState<HTMLVideoElement>(
-    document.createElement("video"),
+  const [localVideo] = useState<VideoElement>(
+    <VideoElement>document.createElement("video"),
   );
 
   useEffect(() => {

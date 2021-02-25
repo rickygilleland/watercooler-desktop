@@ -1,13 +1,5 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-import "@tensorflow/tfjs-backend-cpu";
-import "@tensorflow/tfjs-backend-webgl";
-import {
-  Button,
-  Container,
-  Dropdown,
-  OverlayTrigger,
-  Tooltip,
-} from "react-bootstrap";
+import { BlazeFaceModel } from "@tensorflow-models/blazeface";
+import { Button, Container, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PropsFromRedux } from "../containers/RoomPage";
 import {
@@ -27,17 +19,16 @@ import {
 } from "../hooks/room";
 import { RouteComponentProps } from "react-router";
 import { Routes } from "./RootComponent";
-import { Thread, Transfer, Worker, spawn } from "threads";
+import { THROW, getBoundingCircle, mix } from "../workers/videoCroppingHelpers";
+import { VideoCropping } from "../workers/videoCropping";
 import {
   faArrowLeft,
   faCircleNotch,
-  faDesktop,
   faLock,
   faMicrophone,
   faMicrophoneSlash,
   faVideo,
   faVideoSlash,
-  faWindowMaximize,
 } from "@fortawesome/free-solid-svg-icons";
 import { ipcRenderer } from "electron";
 import AddUserToRoomModal from "./AddUserToRoomModal";
@@ -46,16 +37,15 @@ import Pusher, { Channel } from "pusher-js";
 import React, { useCallback, useEffect, useState } from "react";
 import ScreenSharingModal from "./ScreenSharingModal";
 import VideoList from "./VideoList";
-import hark from "hark";
+import hark, { Harker } from "hark";
 import styled from "styled-components";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const bodyPix = require("@tensorflow-models/body-pix");
 
 interface RoomProps extends PropsFromRedux, RouteComponentProps {
   pusherInstance: Pusher | undefined;
   userPrivateNotificationChannel: Channel | undefined;
   isLightMode: boolean;
   roomSlug: string | undefined;
+  blazeModel: BlazeFaceModel | undefined;
 }
 
 export default function Room(props: RoomProps): JSX.Element {
@@ -70,6 +60,7 @@ export default function Room(props: RoomProps): JSX.Element {
     roomLoading,
     addUserLoading,
     addUserToRoom,
+    blazeModel,
   } = props;
 
   const [isCall, setIsCall] = useState(false);
@@ -109,6 +100,13 @@ export default function Room(props: RoomProps): JSX.Element {
 
   //needed so the startPublishingStream(); effect doesn't run constantly
   const [startPublishingCalled, setStartPublishingCalled] = useState(false);
+  const [mounted, setMounted] = useState(true);
+
+  useEffect(() => {
+    return () => {
+      setMounted(false);
+    };
+  }, []);
 
   const {
     localVideoContainer,
@@ -120,8 +118,13 @@ export default function Room(props: RoomProps): JSX.Element {
 
   const { setHeartbeatInterval } = useCreateHeartbeatIntervals();
 
+  const [speechEventsListener, setSpeechEventsListener] = useState<
+    Harker | undefined
+  >();
   const [speakingPublishers, setSpeakingPublishers] = useState<string[]>([]);
-  const [localStream, setLocalStream] = useState<MediaStream | undefined>();
+  const [streamToPublish, setStreamToPublish] = useState<
+    MediaStream | undefined
+  >();
 
   const [hasVideoPublishers, setHasVideoPublishers] = useState(false);
   const [hasAudioPublishers, setHasAudioPublishers] = useState(false);
@@ -133,14 +136,37 @@ export default function Room(props: RoomProps): JSX.Element {
     user.id,
   );
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [bodyPixWorker, setBodyPixWorker] = useState<any>();
+  const [videoCroppingWorker, setVideoCroppingWorker] = useState<
+    VideoCropping | undefined
+  >();
+  const [videoCroppingInterval, setVideoCroppingInterval] = useState<
+    NodeJS.Timeout | undefined
+  >();
 
   useEffect(() => {
     if (room && !room.video_enabled && videoStatus) {
       setVideoStatus(false);
     }
   }, [room, videoStatus]);
+
+  /*useEffect(() => {
+    const startVideoCroppingWorker = async () => {
+      const videoCroppingWorker = await spawn<VideoCropping>(
+        new Worker("../workers/videoCropping"),
+      );
+      setVideoCroppingWorker(videoCroppingWorker);
+    };
+
+    startVideoCroppingWorker();
+  }, []);*/
+
+  useEffect(() => {
+    return () => {
+      if (videoCroppingInterval) {
+        clearInterval(videoCroppingInterval);
+      }
+    };
+  }, [videoCroppingInterval]);
 
   /*useEffect(() => {
     const startWorker = async () => {
@@ -177,7 +203,7 @@ export default function Room(props: RoomProps): JSX.Element {
   );
 
   useToggleVideoAudioStatus(
-    localStream,
+    streamToPublish,
     videoStatus,
     audioStatus,
     publishers,
@@ -317,6 +343,16 @@ export default function Room(props: RoomProps): JSX.Element {
     });
   };
 
+  const networkOnline = useOnlineListener();
+  useEffect(() => {
+    if (networkOnline) {
+      reconnectNetworkConnections();
+    } else {
+      disconnectNetworkConnections();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [networkOnline]);
+
   useEffect(() => {
     const startStream = async () => {
       let streamOptions;
@@ -350,16 +386,25 @@ export default function Room(props: RoomProps): JSX.Element {
       setRawLocalStream(rawLocalStream);
     };
 
-    if (!rawLocalStream) {
+    const stopStream = () => {
+      if (!rawLocalStream) return;
+      rawLocalStream.getTracks().forEach((track) => track.stop());
+    };
+
+    if (!rawLocalStream && networkOnline) {
       startStream();
+    }
+
+    if (rawLocalStream && !networkOnline) {
+      stopStream();
     }
 
     return () => {
       if (rawLocalStream) {
-        rawLocalStream.getTracks().forEach((track) => track.stop());
+        stopStream();
       }
     };
-  }, [rawLocalStream, settings.defaultDevices]);
+  }, [rawLocalStream, settings.defaultDevices, networkOnline]);
 
   const handleRemoteStreams = useCallback(() => {
     if (!user) {
@@ -572,125 +617,180 @@ export default function Room(props: RoomProps): JSX.Element {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rootMediaHandleInitialized, videoRoomStreamHandle]);
 
+  useEffect(() => {
+    if (
+      !streamToPublish ||
+      speechEventsListener ||
+      videoRoomStreamHandle === undefined
+    )
+      return;
+    const speechEvents = hark(streamToPublish);
+
+    speechEvents.on("speaking", function () {
+      setSpeakingPublishers([
+        ...new Set([...speakingPublishers, user.id.toString()]),
+      ]);
+
+      const dataMsg = {
+        type: "started_speaking",
+        publisher_id: user.id,
+      };
+
+      videoRoomStreamHandle.data({
+        text: JSON.stringify(dataMsg),
+      });
+    });
+
+    speechEvents.on("stopped_speaking", function () {
+      const dataMsg = {
+        type: "stopped_speaking",
+        publisher_id: user.id,
+      };
+
+      videoRoomStreamHandle.data({
+        text: JSON.stringify(dataMsg),
+      });
+
+      const updatedSpeakingPublishers = speakingPublishers.filter(
+        (speakingId) => speakingId !== user.id.toString(),
+      );
+      setSpeakingPublishers(updatedSpeakingPublishers);
+    });
+
+    setSpeechEventsListener(speechEvents);
+  }, [
+    speakingPublishers,
+    streamToPublish,
+    user.id,
+    videoRoomStreamHandle,
+    speechEventsListener,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      if (speechEventsListener) {
+        speechEventsListener.stop();
+      }
+    };
+  }, [speechEventsListener]);
+
   const startPublishingStream = useCallback(async () => {
     setStartPublishingCalled(true);
 
     let publishingStarted = false;
 
-    const publishStream = async () => {
-      if (!user || !rawLocalStream) {
-        return;
-      }
+    if (!user || !streamToPublish) {
+      return;
+    }
 
-      const localStream = localVideoCanvas.captureStream(60);
-
-      rawLocalStream
-        .getAudioTracks()
-        .forEach((track) => localStream.addTrack(track));
-
-      const speechEvents = hark(localStream);
-
-      speechEvents.on("speaking", function () {
-        setSpeakingPublishers([
-          ...new Set([...speakingPublishers, user.id.toString()]),
-        ]);
-
-        const dataMsg = {
-          type: "started_speaking",
-          publisher_id: user.id,
-        };
-
-        videoRoomStreamHandle.data({
-          text: JSON.stringify(dataMsg),
-        });
-      });
-
-      speechEvents.on("stopped_speaking", function () {
-        const dataMsg = {
-          type: "stopped_speaking",
-          publisher_id: user.id,
-        };
-
-        videoRoomStreamHandle.data({
-          text: JSON.stringify(dataMsg),
-        });
-
-        const updatedSpeakingPublishers = speakingPublishers.filter(
-          (speakingId) => speakingId !== user.id.toString(),
-        );
-        setSpeakingPublishers(updatedSpeakingPublishers);
-      });
-
-      //publish our feed
-      videoRoomStreamHandle.createOffer({
-        stream: localStream,
-        media: {
-          audioRecv: false,
-          videoRecv: false,
-          audioSend: true,
-          videoSend: true,
+    //publish our feed
+    videoRoomStreamHandle.createOffer({
+      stream: streamToPublish,
+      media: {
+        audioRecv: false,
+        videoRecv: false,
+        audioSend: true,
+        videoSend: true,
+        data: true,
+      },
+      success: function (jsep: string) {
+        const request = {
+          request: "publish",
+          audio: true,
+          video: true,
           data: true,
-        },
-        success: function (jsep: string) {
-          const request = {
-            request: "publish",
-            audio: true,
-            video: true,
-            data: true,
+        };
+
+        videoRoomStreamHandle.send({ message: request, jsep: jsep });
+
+        const isCurrentPublisher = publishers.find(
+          (publisher) => publisher.id === user.id.toString(),
+        );
+
+        if (!isCurrentPublisher && peerUuid) {
+          setNewPublishers([
+            ...newPublishers,
+            {
+              hasVideo: videoStatus,
+              hasAudio: audioStatus,
+              id: user?.id.toString(),
+              stream: streamToPublish,
+              active: true,
+              display: peerUuid,
+              member: currentWebsocketUser,
+            },
+          ]);
+        }
+
+        publishingStarted = true;
+
+        setPublishing(publishingStarted);
+
+        const heartbeatInterval = setInterval(() => {
+          const dataMsg = {
+            type: "participant_status_update",
+            publisher_id: user.id,
+            video_status: videoStatus,
+            audio_status: audioStatus,
+            face_only_status: false,
           };
 
-          videoRoomStreamHandle.send({ message: request, jsep: jsep });
+          videoRoomStreamHandle.data({
+            text: JSON.stringify(dataMsg),
+          });
+        }, 30000);
 
-          const isCurrentPublisher = publishers.find(
-            (publisher) => publisher.id === user.id.toString(),
-          );
+        setHeartbeatInterval(heartbeatInterval);
+      },
+    });
+  }, [
+    audioStatus,
+    currentWebsocketUser,
+    newPublishers,
+    peerUuid,
+    publishers,
+    setHeartbeatInterval,
+    streamToPublish,
+    user,
+    videoRoomStreamHandle,
+    videoStatus,
+  ]);
 
-          if (!isCurrentPublisher && peerUuid) {
-            setNewPublishers([
-              ...newPublishers,
-              {
-                hasVideo: videoStatus,
-                hasAudio: audioStatus,
-                id: user?.id.toString(),
-                stream: localStream,
-                active: true,
-                display: peerUuid,
-                member: currentWebsocketUser,
-              },
-            ]);
-          }
+  useEffect(() => {
+    ipcRenderer.invoke("start-video-room", {
+      inRoom: true,
+    });
 
-          publishingStarted = true;
-
-          setPublishing(publishingStarted);
-          setLocalStream(localStream);
-
-          const heartbeatInterval = setInterval(() => {
-            const dataMsg = {
-              type: "participant_status_update",
-              publisher_id: user.id,
-              video_status: videoStatus,
-              audio_status: audioStatus,
-              face_only_status: false,
-            };
-
-            videoRoomStreamHandle.data({
-              text: JSON.stringify(dataMsg),
-            });
-          }, 30000);
-
-          setHeartbeatInterval(heartbeatInterval);
-        },
-      });
+    return () => {
+      ipcRenderer.invoke("start-video-room", { inRoom: false });
     };
+  }, []);
 
-    if (rawLocalStream) {
-      localVideo.srcObject = rawLocalStream;
-      localVideo.muted = true;
-      localVideo.autoplay = true;
-      localVideo.setAttribute("playsinline", "");
-      localVideo.play();
-    }
+  const [startStreamCalled, setStartStreamCalled] = useState(false);
+
+  useEffect(() => {
+    if (
+      !rawLocalStream ||
+      startStreamCalled ||
+      !localVideoCanvas ||
+      !localVideo ||
+      !blazeModel
+    )
+      return;
+
+    setStartStreamCalled(true);
+
+    const streamToPublish = localVideoCanvas.captureStream(60);
+
+    rawLocalStream
+      .getAudioTracks()
+      .forEach((track) => streamToPublish.addTrack(track));
+
+    localVideo.srcObject = rawLocalStream;
+    localVideo.muted = true;
+    localVideo.autoplay = true;
+    localVideo.setAttribute("playsinline", "");
+    localVideo.play();
 
     localVideo.onloadedmetadata = () => {
       if (localVideo) {
@@ -700,74 +800,97 @@ export default function Room(props: RoomProps): JSX.Element {
     };
 
     localVideo.onplaying = async () => {
-      const drawParams = {
-        sourceX: 0,
-        sourceY: 0,
-        sourceWidth: 0,
-        sourceHeight: 0,
-        destinationX: 0,
-        destinationY: 0,
-        destinationWidth: 0,
-        destinationHeight: 0,
-        sourceNoseScore: 0,
-      };
-      localVideoCanvas.width = localVideo.width;
-      localVideoCanvas.height = localVideo.height;
+      const avgBoundingBoxCenter = [0, 0];
+      let avgBoundingBoxRadius = 50;
+      let latestBoundingBox = [0, 0, 50, 50];
+
+      localVideoCanvas.width = 400;
+      localVideoCanvas.height = 400;
 
       const mainCtx = localVideoCanvas.getContext("2d");
-      const ctxCopy = backgroundBlurVideoCanvasCopy.getContext("2d");
+
+      const videoCroppingInterval = setInterval(async () => {
+        const prediction = await blazeModel.estimateFaces(localVideo, false);
+
+        if (prediction.length > 0 && prediction[0].landmarks) {
+          const {
+            boundingCircleCenter,
+            boundingCircleRadius,
+          } = getBoundingCircle(prediction[0]);
+
+          avgBoundingBoxCenter[0] = mix(
+            THROW,
+            avgBoundingBoxCenter[0],
+            boundingCircleCenter[0],
+          );
+          avgBoundingBoxCenter[1] = mix(
+            THROW,
+            avgBoundingBoxCenter[1],
+            boundingCircleCenter[1],
+          );
+          avgBoundingBoxRadius = mix(
+            THROW,
+            avgBoundingBoxRadius,
+            boundingCircleRadius,
+          );
+
+          const updatedBoundingBox = [
+            avgBoundingBoxCenter[0] - avgBoundingBoxRadius,
+            avgBoundingBoxCenter[1] - avgBoundingBoxRadius,
+            avgBoundingBoxRadius * 2,
+            avgBoundingBoxRadius * 2,
+          ];
+
+          if (updatedBoundingBox[0] > 230) updatedBoundingBox[0] = 230;
+          if (updatedBoundingBox[0] < 0) updatedBoundingBox[0] = 0;
+
+          if (
+            Math.abs(updatedBoundingBox[0] - latestBoundingBox[0]) > 2.5 ||
+            Math.abs(updatedBoundingBox[1] - latestBoundingBox[1]) > 2.5
+          ) {
+            latestBoundingBox = updatedBoundingBox;
+          }
+        }
+      }, 50);
+
+      setVideoCroppingInterval(videoCroppingInterval);
 
       const getNextFrame = async () => {
-        if (!publishingStarted || !ctxCopy || !mainCtx) {
-          requestAnimationFrame(getNextFrame);
+        if (!mainCtx) {
+          localVideo.requestVideoFrameCallback(getNextFrame);
           return;
         }
 
-        /*ctxCopy.drawImage(localVideo, 0, 0);
-        const backgroundBlurFrame = ctxCopy.getImageData(
+        mainCtx.fillStyle = "rgba(0, 0, 0, 1)";
+        mainCtx.fillRect(0, 0, 400, 400);
+
+        mainCtx.drawImage(
+          localVideo,
+          latestBoundingBox[0],
+          latestBoundingBox[1],
+          latestBoundingBox[2],
+          latestBoundingBox[3],
           0,
           0,
-          localVideo.width,
-          localVideo.height,
-        );*/
+          400,
+          400,
+        );
 
-        //bodyPixWorker(backgroundBlurFrame);
-
-        mainCtx.drawImage(localVideo, 0, 0);
-
-        /*if (personSegmentation !== undefined) {
-          bodyPix.drawBokehEffect(
-            localVideoCanvas,
-            localVideo,
-            personSegmentation,
-            15,
-            10,
-            true,
-          );
-        }*/
-
-        requestAnimationFrame(getNextFrame);
+        localVideo.requestVideoFrameCallback(getNextFrame);
         return;
       };
 
       getNextFrame();
-      publishStream();
+      setStreamToPublish(streamToPublish);
     };
   }, [
-    audioStatus,
-    backgroundBlurVideoCanvasCopy,
-    currentWebsocketUser,
+    rawLocalStream,
     localVideo,
     localVideoCanvas,
-    newPublishers,
-    peerUuid,
-    publishers,
-    rawLocalStream,
-    setHeartbeatInterval,
-    speakingPublishers,
-    user,
-    videoRoomStreamHandle,
-    videoStatus,
+    backgroundBlurVideoCanvasCopy,
+    videoCroppingWorker,
+    startStreamCalled,
+    blazeModel,
   ]);
 
   useEffect(() => {
@@ -775,16 +898,6 @@ export default function Room(props: RoomProps): JSX.Element {
       setIsCall(true);
     }
   }, [props.match.path]);
-
-  const networkOnline = useOnlineListener();
-  useEffect(() => {
-    if (networkOnline) {
-      reconnectNetworkConnections();
-    } else {
-      disconnectNetworkConnections();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [networkOnline]);
 
   const reconnectNetworkConnections = useCallback(() => {
     if (!room?.channel_id || !pusherInstance) {
@@ -833,6 +946,7 @@ export default function Room(props: RoomProps): JSX.Element {
       rootMediaHandleInitialized &&
       joinedMediaHandle &&
       rawLocalStream &&
+      streamToPublish &&
       !startPublishingCalled
     ) {
       startPublishingStream();
@@ -843,6 +957,7 @@ export default function Room(props: RoomProps): JSX.Element {
     startPublishingCalled,
     startPublishingStream,
     rawLocalStream,
+    streamToPublish,
   ]);
 
   useEffect(() => {
@@ -1105,6 +1220,10 @@ const Header = styled.div`
   user-select: none;
   margin-top: 10px;
   margin-bottom: 15px;
+
+  @media (max-height: 250px) {
+    display: none;
+  }
 `;
 
 const HeaderContent = styled.div`
