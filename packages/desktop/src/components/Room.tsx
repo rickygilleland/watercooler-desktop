@@ -819,7 +819,7 @@ export default function Room(props: RoomProps): JSX.Element {
       const videoCroppingInterval = setInterval(async () => {
         const prediction = await blazeModel.estimateFaces(localVideo, false);
 
-        if (prediction && prediction[0].landmarks) {
+        if (prediction.length > 0 && prediction[0].landmarks) {
           const {
             boundingCircleCenter,
             boundingCircleRadius,
@@ -849,8 +849,8 @@ export default function Room(props: RoomProps): JSX.Element {
           ];
 
           if (
-            Math.abs(updatedBoundingBox[0] - latestBoundingBox[0]) > 10 ||
-            Math.abs(updatedBoundingBox[1] - latestBoundingBox[1]) > 10
+            Math.abs(updatedBoundingBox[0] - latestBoundingBox[0]) > 2 ||
+            Math.abs(updatedBoundingBox[1] - latestBoundingBox[1]) > 2
           ) {
             latestBoundingBox = updatedBoundingBox;
           }
