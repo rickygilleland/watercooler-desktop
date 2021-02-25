@@ -392,14 +392,14 @@ const createWindow = () => {
           mainWindow.setOpacity(0.75);
           mainWindow.setHasShadow(false);
           mainWindow.center();
-
           const currentPosition = mainWindow.getPosition();
 
-          mainWindow.setPosition(currentPosition[0], 0, true);
+          mainWindow.setPosition(currentPosition[0] + 5 - 90, 0, true);
           mainWindow.setMinimumSize(100, 100);
-          mainWindow.setSize(600, 200, true);
+          mainWindow.setSize(600, 125, true);
 
           mainWindow.setBackgroundColor("#00000000");
+          mainWindow.setIgnoreMouseEvents(true);
         });
 
         mainWindow.on("focus", () => {
@@ -426,6 +426,7 @@ const createWindow = () => {
           );
 
           mainWindow.setMinimumSize(350, 520);
+          mainWindow.setIgnoreMouseEvents(false);
         });
       } else {
         mainWindow.removeAllListeners("blur");
