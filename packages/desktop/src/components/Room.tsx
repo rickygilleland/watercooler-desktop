@@ -857,7 +857,7 @@ export default function Room(props: RoomProps): JSX.Element {
             latestBoundingBox = updatedBoundingBox;
           }
         }
-      }, 100);
+      }, 50);
 
       setVideoCroppingInterval(videoCroppingInterval);
 
