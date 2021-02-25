@@ -776,8 +776,6 @@ export default function Room(props: RoomProps): JSX.Element {
   const [startStreamCalled, setStartStreamCalled] = useState(false);
 
   useEffect(() => {
-    //move all of the stream creation logic here, then only call start publishing
-    //stream once it's ready
     if (
       !rawLocalStream ||
       startStreamCalled ||
@@ -862,9 +860,8 @@ export default function Room(props: RoomProps): JSX.Element {
       setVideoCroppingInterval(videoCroppingInterval);
 
       const getNextFrame = async () => {
-        if (!mounted) return;
         if (!mainCtx) {
-          requestAnimationFrame(getNextFrame);
+          localVideo.requestVideoFrameCallback(getNextFrame);
           return;
         }
 
@@ -883,7 +880,7 @@ export default function Room(props: RoomProps): JSX.Element {
           400,
         );
 
-        requestAnimationFrame(getNextFrame);
+        localVideo.requestVideoFrameCallback(getNextFrame);
         return;
       };
 
@@ -896,7 +893,6 @@ export default function Room(props: RoomProps): JSX.Element {
     localVideoCanvas,
     backgroundBlurVideoCanvasCopy,
     videoCroppingWorker,
-    mounted,
     startStreamCalled,
     blazeModel,
   ]);

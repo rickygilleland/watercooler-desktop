@@ -35,15 +35,10 @@ const videoCropping = {
   async getCoordinates(frame: HTMLVideoElement) {
     try {
       const facePrediction = await net.estimateFaces(frame, false);
-
-      console.log("TUCKER WORKER", facePrediction);
-      console.log("TUCKER WORKER 2", frame);
-      console.log("TUCKER WORKER 3", net);
-
       return facePrediction;
       //return new Observable(personSegmentation);
     } catch (error) {
-      console.log("TUCKER ERROR", error);
+      //
     }
   },
 };
