@@ -395,12 +395,12 @@ const createWindow = () => {
           mainWindow.setAlwaysOnTop(true, "floating");
           mainWindow.setOpacity(0.75);
           mainWindow.setHasShadow(false);
+          mainWindow.setMinimumSize(100, 100);
+          mainWindow.setSize(600, 125, true);
           mainWindow.center();
           const currentPosition = mainWindow.getPosition();
 
           mainWindow.setPosition(currentPosition[0] + 5 - 90, 0, true);
-          mainWindow.setMinimumSize(100, 100);
-          mainWindow.setSize(600, 125, true);
 
           mainWindow.setBackgroundColor("#00000000");
           mainWindow.setIgnoreMouseEvents(true);
