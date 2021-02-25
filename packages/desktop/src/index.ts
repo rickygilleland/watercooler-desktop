@@ -393,7 +393,7 @@ const createWindow = () => {
           mainWindow.setVibrancy(null);
           mainWindow.setVisibleOnAllWorkspaces(true);
           mainWindow.setAlwaysOnTop(true, "floating");
-          mainWindow.setOpacity(0.75);
+          mainWindow.setOpacity(0.82);
           mainWindow.setHasShadow(false);
           mainWindow.setMinimumSize(100, 100);
           mainWindow.setSize(600, 125, true);
