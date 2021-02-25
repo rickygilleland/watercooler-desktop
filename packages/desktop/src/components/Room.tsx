@@ -1257,6 +1257,12 @@ const Title = styled.div`
 
 const Stage = styled.div`
   display: flex;
+
+  @media (max-height: 250px) {
+    &:hover {
+      opacity: 0.15;
+    }
+  }
 `;
 
 const AudioContainer = styled.div<{

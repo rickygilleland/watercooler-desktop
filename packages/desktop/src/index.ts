@@ -193,6 +193,7 @@ const createWindow = () => {
       const height = args.type === "full" ? 600 : 520;
 
       mainWindow.setContentSize(width, height, true);
+      mainWindow.center();
     },
   );
 
