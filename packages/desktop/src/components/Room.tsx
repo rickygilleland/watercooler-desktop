@@ -1257,6 +1257,12 @@ const Title = styled.div`
 
 const Stage = styled.div`
   display: flex;
+
+  @media (max-height: 250px) {
+    &:hover {
+      opacity: 0.15;
+    }
+  }
 `;
 
 const AudioContainer = styled.div<{
@@ -1272,6 +1278,10 @@ const AudioContainer = styled.div<{
   align-content: center;
   align-items: center;
   width: ${(props) => (props.hasVideoPublishers ? undefined : "100%")};
+
+  @media (max-height: 250px) {
+    border-right: none;
+  }
 `;
 
 const VideoContainer = styled.div<{

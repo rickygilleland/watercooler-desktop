@@ -69,6 +69,10 @@ const AudioContainer = styled.div`
   flex-direction: column;
   padding: 16px;
 
+  @media (max-height: 250px) {
+    margin-top: 0;
+  }
+
   ${AvatarContainer} {
     margin-right: 0;
     height: 65px;
