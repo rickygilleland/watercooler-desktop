@@ -192,7 +192,7 @@ const createWindow = () => {
       const width = args.type === "full" ? 1100 : 350;
       const height = args.type === "full" ? 600 : 520;
 
-      mainWindow.setContentSize(width, height, true);
+      mainWindow.setContentSize(width, height, false);
       mainWindow.center();
     },
   );
@@ -387,21 +387,21 @@ const createWindow = () => {
       },
     ) => {
       if (args.inRoom) {
-        currentWindowPosition = mainWindow.getPosition();
-        currentContentSize = mainWindow.getSize();
-
         mainWindow.on("blur", () => {
+          currentWindowPosition = mainWindow.getPosition();
+          currentContentSize = mainWindow.getSize();
+
           mainWindow.setVibrancy(null);
           mainWindow.setVisibleOnAllWorkspaces(true);
           mainWindow.setAlwaysOnTop(true, "floating");
           mainWindow.setOpacity(0.82);
           mainWindow.setHasShadow(false);
           mainWindow.setMinimumSize(100, 100);
-          mainWindow.setSize(600, 125, true);
+          mainWindow.setSize(600, 125, false);
           mainWindow.center();
           const currentPosition = mainWindow.getPosition();
 
-          mainWindow.setPosition(currentPosition[0] + 5 - 90, 0, true);
+          mainWindow.setPosition(currentPosition[0] - 90, 5, false);
 
           mainWindow.setBackgroundColor("#00000000");
           mainWindow.setIgnoreMouseEvents(true);
@@ -417,13 +417,13 @@ const createWindow = () => {
           mainWindow.setPosition(
             currentWindowPosition[0],
             currentWindowPosition[1],
-            true,
+            false,
           );
 
           mainWindow.setSize(
             currentContentSize[0],
             currentContentSize[1],
-            true,
+            false,
           );
 
           mainWindow.setBackgroundColor(

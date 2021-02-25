@@ -1278,6 +1278,10 @@ const AudioContainer = styled.div<{
   align-content: center;
   align-items: center;
   width: ${(props) => (props.hasVideoPublishers ? undefined : "100%")};
+
+  @media (max-height: 250px) {
+    border-right: none;
+  }
 `;
 
 const VideoContainer = styled.div<{
