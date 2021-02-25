@@ -813,8 +813,8 @@ export default function Room(props: RoomProps): JSX.Element {
       let avgBoundingBoxRadius = 50;
       let latestBoundingBox = [0, 0, 50, 50];
 
-      localVideoCanvas.width = localVideo.width;
-      localVideoCanvas.height = localVideo.height;
+      localVideoCanvas.width = 400;
+      localVideoCanvas.height = 400;
 
       const mainCtx = localVideoCanvas.getContext("2d");
 
