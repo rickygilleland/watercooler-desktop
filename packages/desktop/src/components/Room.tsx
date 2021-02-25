@@ -1,12 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 import "@tensorflow/tfjs-backend-cpu";
 import "@tensorflow/tfjs-backend-webgl";
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import {
-  BlazeFaceModel,
-  NormalizedFace,
-  load,
-} from "@tensorflow-models/blazeface";
+import { BlazeFaceModel, load } from "@tensorflow-models/blazeface";
 import { Button, Container, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PropsFromRedux } from "../containers/RoomPage";
@@ -27,19 +22,20 @@ import {
 } from "../hooks/room";
 import { RouteComponentProps } from "react-router";
 import { Routes } from "./RootComponent";
+import { THROW, getBoundingCircle, mix } from "../workers/videoCroppingHelpers";
 import { VideoCropping } from "../workers/videoCropping";
 import {
   faArrowLeft,
   faCircleNotch,
-  faDesktop,
   faLock,
   faMicrophone,
   faMicrophoneSlash,
   faVideo,
   faVideoSlash,
-  faWindowMaximize,
 } from "@fortawesome/free-solid-svg-icons";
+
 import { ipcRenderer } from "electron";
+
 import AddUserToRoomModal from "./AddUserToRoomModal";
 import AudioList from "./AudioList";
 import Pusher, { Channel } from "pusher-js";
@@ -48,7 +44,6 @@ import ScreenSharingModal from "./ScreenSharingModal";
 import VideoList from "./VideoList";
 import hark, { Harker } from "hark";
 import styled from "styled-components";
-import type { RenderCanvas } from "../workers/bodyPix";
 
 interface RoomProps extends PropsFromRedux, RouteComponentProps {
   pusherInstance: Pusher | undefined;
@@ -814,26 +809,55 @@ export default function Room(props: RoomProps): JSX.Element {
     };
 
     localVideo.onplaying = async () => {
-      const drawParams = {
-        sourceX: 0,
-        sourceY: 0,
-        sourceWidth: 0,
-        sourceHeight: 0,
-        destinationX: 0,
-        destinationY: 0,
-        destinationWidth: 0,
-        destinationHeight: 0,
-        sourceNoseScore: 0,
-      };
+      const avgBoundingBoxCenter = [0, 0];
+      let avgBoundingBoxRadius = 50;
+      let latestBoundingBox = [0, 0, 50, 50];
+
       localVideoCanvas.width = localVideo.width;
       localVideoCanvas.height = localVideo.height;
 
       const mainCtx = localVideoCanvas.getContext("2d");
-      let coords: NormalizedFace[];
 
       const videoCroppingInterval = setInterval(async () => {
-        coords = await blazeModel.estimateFaces(localVideo, false);
-      }, 200);
+        const prediction = await blazeModel.estimateFaces(localVideo, false);
+
+        if (prediction && prediction[0].landmarks) {
+          const {
+            boundingCircleCenter,
+            boundingCircleRadius,
+          } = getBoundingCircle(prediction[0]);
+
+          avgBoundingBoxCenter[0] = mix(
+            THROW,
+            avgBoundingBoxCenter[0],
+            boundingCircleCenter[0],
+          );
+          avgBoundingBoxCenter[1] = mix(
+            THROW,
+            avgBoundingBoxCenter[1],
+            boundingCircleCenter[1],
+          );
+          avgBoundingBoxRadius = mix(
+            THROW,
+            avgBoundingBoxRadius,
+            boundingCircleRadius,
+          );
+
+          const updatedBoundingBox = [
+            avgBoundingBoxCenter[0] - avgBoundingBoxRadius,
+            avgBoundingBoxCenter[1] - avgBoundingBoxRadius,
+            avgBoundingBoxRadius * 2,
+            avgBoundingBoxRadius * 2,
+          ];
+
+          if (
+            Math.abs(updatedBoundingBox[0] - latestBoundingBox[0]) > 10 ||
+            Math.abs(updatedBoundingBox[1] - latestBoundingBox[1]) > 10
+          ) {
+            latestBoundingBox = updatedBoundingBox;
+          }
+        }
+      }, 100);
 
       setVideoCroppingInterval(videoCroppingInterval);
 
@@ -844,11 +868,20 @@ export default function Room(props: RoomProps): JSX.Element {
           return;
         }
 
-        if (coords) {
-          console.log("TUCKER SSSS", coords);
-        }
+        mainCtx.fillStyle = "rgba(0, 0, 0, 1)";
+        mainCtx.fillRect(0, 0, 400, 400);
 
-        mainCtx.drawImage(localVideo, 0, 0);
+        mainCtx.drawImage(
+          localVideo,
+          latestBoundingBox[0],
+          latestBoundingBox[1],
+          latestBoundingBox[2],
+          latestBoundingBox[3],
+          0,
+          0,
+          400,
+          400,
+        );
 
         requestAnimationFrame(getNextFrame);
         return;
