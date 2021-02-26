@@ -511,7 +511,7 @@ export default function Room(props: RoomProps): JSX.Element {
 
           if (
             dataMsg.type === "initial_video_audio_status_response" &&
-            dataMsg.requesting_publisher_id !== user.id
+            dataMsg.requesting_publisher_id !== user.id.toString()
           ) {
             return;
           }
