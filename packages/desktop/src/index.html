@@ -59,7 +59,6 @@
     }
     video {
       border-radius: 25px;
-      box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
     }
     .video-flip {
       transform: rotateY(180deg);
@@ -174,7 +173,12 @@
     .stage-container:hover .hide-overlay {
       display: none !important;
     }
-    .speaking-border {
+    video {
+      border: 2px solid transparent;
+      transition: border 0.3s ease-in-out;
+    }
+    .speaking-border video {
+      border: 2px solid rgb(51, 255, 119, 0.95);
       box-shadow: 0 0 0 0.25rem #3ecf8e, 0 0.5rem 1rem #3ecf8e !important ;
     }
     .hover-focus:hover,

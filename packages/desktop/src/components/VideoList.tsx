@@ -145,9 +145,6 @@ const VideoContainer = styled.div<{
 
   @media (max-height: 250px) {
     height: 100vh;
-    .shadow {
-      box-shadow: none !important;
-    }
   }
 `;
 const VideoItem = styled.div<{

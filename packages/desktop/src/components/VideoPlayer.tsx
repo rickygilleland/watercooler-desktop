@@ -12,10 +12,10 @@ interface VideoPlayerProps {
 }
 
 export default function VideoPlayer(props: VideoPlayerProps): JSX.Element {
-  const [className, setClassName] = useState("shadow");
+  const [className, setClassName] = useState("");
 
   useEffect(() => {
-    let className = "shadow";
+    let className = "";
     if (!props.publisher.id.includes("_screensharing")) {
       className += " video-flip";
     }
@@ -24,30 +24,44 @@ export default function VideoPlayer(props: VideoPlayerProps): JSX.Element {
       className += " border-radius-round";
     }
 
-    if (props.speaking) {
-      className += " speaking-border";
-    }
-
     setClassName(className);
-  }, [props.publisher.id, props.videoIsFaceOnly, props.speaking]);
+  }, [props.publisher.id, props.videoIsFaceOnly]);
 
   return (
-    <Player
-      url={props.stream}
-      controls={false}
-      muted={props.isLocal}
-      className={className}
-      style={{ borderRadius: 25 }}
-      playing={true}
-      playsinline={true}
-      width="auto"
-      height="auto"
-    />
+    <PlayerWrapper hasGreenBorder={props.speaking}>
+      <Player
+        url={props.stream}
+        controls={false}
+        muted={props.isLocal}
+        className={className}
+        style={{ borderRadius: 25 }}
+        playing={true}
+        playsinline={true}
+        width="auto"
+        height="auto"
+      />
+    </PlayerWrapper>
   );
 }
 
+export const PlayerWrapper = styled.div<{
+  hasGreenBorder?: boolean;
+  hasRedBorder?: boolean;
+}>`
+  border-radius: 25px;
+
+  video {
+    border: ${(props) =>
+      props.hasGreenBorder
+        ? "2px solid rgb(51, 255, 119, .95)"
+        : props.hasRedBorder
+        ? "2px solid #f9426c"
+        : "2px solid rgb(0, 0, 0, .15)"};
+
+    transition: border 0.3s ease-in-out;
+  }
+`;
+
 const Player = styled(ReactPlayer)`
   transform: rotateY(180deg);
-  border-radius: 25px;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 `;
