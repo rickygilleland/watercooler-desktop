@@ -12,10 +12,10 @@ interface VideoPlayerProps {
 }
 
 export default function VideoPlayer(props: VideoPlayerProps): JSX.Element {
-  const [className, setClassName] = useState("shadow");
+  const [className, setClassName] = useState("");
 
   useEffect(() => {
-    let className = "shadow";
+    let className = "";
     if (!props.publisher.id.includes("_screensharing")) {
       className += " video-flip";
     }
@@ -49,5 +49,4 @@ export default function VideoPlayer(props: VideoPlayerProps): JSX.Element {
 const Player = styled(ReactPlayer)`
   transform: rotateY(180deg);
   border-radius: 25px;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 `;
