@@ -23,7 +23,7 @@ if (require("electron-squirrel-startup")) app.quit();
 const isDevMode = Boolean(process.execPath.match(/[\\/]electron/));
 
 let currentWindowPosition = [0, 0];
-let currentContentSize = [350, 520];
+const currentContentSize = [350, 520];
 
 let mainWindow: Electron.BrowserWindow;
 
@@ -192,8 +192,12 @@ const createWindow = () => {
       const width = args.type === "full" ? 1100 : 350;
       const height = args.type === "full" ? 600 : 520;
 
-      mainWindow.setContentSize(width, height, false);
-      mainWindow.center();
+      if (args.type === "full") {
+        mainWindow.maximize();
+      } else {
+        mainWindow.setContentSize(width, height, false);
+        mainWindow.center();
+      }
     },
   );
 
@@ -388,13 +392,10 @@ const createWindow = () => {
     ) => {
       if (args.inRoom) {
         mainWindow.on("blur", () => {
-          currentWindowPosition = mainWindow.getPosition();
-          currentContentSize = mainWindow.getSize();
-
           mainWindow.setVibrancy(null);
           mainWindow.setVisibleOnAllWorkspaces(true);
           mainWindow.setAlwaysOnTop(true, "floating");
-          mainWindow.setOpacity(0.82);
+          mainWindow.setOpacity(0.75);
           mainWindow.setHasShadow(false);
           mainWindow.setMinimumSize(100, 100);
           mainWindow.setSize(600, 125, false);
@@ -413,18 +414,8 @@ const createWindow = () => {
           mainWindow.setAlwaysOnTop(false);
           mainWindow.setOpacity(1);
           mainWindow.setHasShadow(true);
-
-          mainWindow.setPosition(
-            currentWindowPosition[0],
-            currentWindowPosition[1],
-            false,
-          );
-
-          mainWindow.setSize(
-            currentContentSize[0],
-            currentContentSize[1],
-            false,
-          );
+          mainWindow.center();
+          mainWindow.maximize();
 
           mainWindow.setBackgroundColor(
             process.platform === "darwin" ? "#80FFFFFF" : "#212529",

@@ -758,13 +758,15 @@ export default function Room(props: RoomProps): JSX.Element {
 
   useEffect(() => {
     ipcRenderer.invoke("start-video-room", {
-      inRoom: true,
+      inRoom: hasVideoPublishers,
     });
+  }, [hasVideoPublishers]);
 
+  useEffect(() => {
     return () => {
       ipcRenderer.invoke("start-video-room", { inRoom: false });
     };
-  }, []);
+  });
 
   const [startStreamCalled, setStartStreamCalled] = useState(false);
 
@@ -1281,6 +1283,7 @@ const AudioContainer = styled.div<{
 
   @media (max-height: 250px) {
     border-right: none;
+    display: none;
   }
 `;
 
