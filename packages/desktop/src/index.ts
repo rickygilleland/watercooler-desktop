@@ -401,7 +401,6 @@ const createWindow = () => {
         inRoom: boolean;
       },
     ) => {
-      console.log("start-video-room called", args);
       if (args.inRoom) {
         mainWindow.on("blur", () => {
           mainWindow.setVibrancy(null);

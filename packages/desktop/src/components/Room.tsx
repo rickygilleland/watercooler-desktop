@@ -847,13 +847,15 @@ export default function Room(props: RoomProps): JSX.Element {
           if (updatedBoundingBox[0] < 0) updatedBoundingBox[0] = 0;
 
           if (
-            Math.abs(updatedBoundingBox[0] - latestBoundingBox[0]) > 2.5 ||
-            Math.abs(updatedBoundingBox[1] - latestBoundingBox[1]) > 2.5
+            Math.abs(updatedBoundingBox[0] - latestBoundingBox[0]) > 3 ||
+            Math.abs(updatedBoundingBox[1] - latestBoundingBox[1]) > 3 ||
+            Math.abs(updatedBoundingBox[2] - latestBoundingBox[2]) > 5 ||
+            Math.abs(updatedBoundingBox[3] - latestBoundingBox[3]) > 5
           ) {
             latestBoundingBox = updatedBoundingBox;
           }
         }
-      }, 50);
+      }, 35);
 
       setVideoCroppingInterval(videoCroppingInterval);
 

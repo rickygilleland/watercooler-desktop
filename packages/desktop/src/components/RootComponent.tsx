@@ -97,8 +97,6 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
       });
       await tf.setBackend("wasm");
 
-      console.log("TUCKER", tf.getBackend());
-
       const net = await load({
         maxFaces: 1,
       });
