@@ -1,7 +1,7 @@
 {
   "name": "@blab/desktop",
   "productName": "blab",
-  "version": "2.1.0",
+  "version": "2.1.2",
   "description": "Voice first communication for teams",
   "main": ".webpack/main",
   "scripts": {

@@ -2,6 +2,7 @@ import {
   BrowserWindow,
   Menu,
   Notification,
+  Rectangle,
   app,
   autoUpdater,
   dialog,
@@ -22,8 +23,8 @@ const contextMenu = require("electron-context-menu");
 if (require("electron-squirrel-startup")) app.quit();
 const isDevMode = Boolean(process.execPath.match(/[\\/]electron/));
 
-let currentWindowPosition = [0, 0];
-let currentContentSize = [350, 520];
+const currentWindowPosition = [0, 0];
+const currentContentSize = [350, 520];
 
 let mainWindow: Electron.BrowserWindow;
 
@@ -378,6 +379,20 @@ const createWindow = () => {
     require("electron").shell.openExternal(url);
   });
 
+  let currentWindowWidth = 1100;
+  let currentWindowHeight = 600;
+
+  mainWindow.on("will-resize", (_event, newBounds) => {
+    currentWindowWidth = newBounds.width;
+    currentWindowHeight = newBounds.height;
+  });
+
+  let currentWindowPosition: Rectangle | undefined;
+
+  mainWindow.on("will-move", (_event, newBounds) => {
+    currentWindowPosition = newBounds;
+  });
+
   ipcMain.handle(
     "start-video-room",
     async (
@@ -388,13 +403,10 @@ const createWindow = () => {
     ) => {
       if (args.inRoom) {
         mainWindow.on("blur", () => {
-          currentWindowPosition = mainWindow.getPosition();
-          currentContentSize = mainWindow.getSize();
-
           mainWindow.setVibrancy(null);
           mainWindow.setVisibleOnAllWorkspaces(true);
           mainWindow.setAlwaysOnTop(true, "floating");
-          mainWindow.setOpacity(0.82);
+          mainWindow.setOpacity(0.75);
           mainWindow.setHasShadow(false);
           mainWindow.setMinimumSize(100, 100);
           mainWindow.setSize(600, 125, false);
@@ -414,17 +426,20 @@ const createWindow = () => {
           mainWindow.setOpacity(1);
           mainWindow.setHasShadow(true);
 
-          mainWindow.setPosition(
-            currentWindowPosition[0],
-            currentWindowPosition[1],
+          mainWindow.setContentSize(
+            currentWindowWidth,
+            currentWindowHeight,
             false,
           );
 
-          mainWindow.setSize(
-            currentContentSize[0],
-            currentContentSize[1],
-            false,
-          );
+          if (currentWindowPosition) {
+            mainWindow.setPosition(
+              currentWindowPosition.x,
+              currentWindowPosition.y,
+            );
+          } else {
+            mainWindow.center();
+          }
 
           mainWindow.setBackgroundColor(
             process.platform === "darwin" ? "#80FFFFFF" : "#212529",
@@ -436,6 +451,7 @@ const createWindow = () => {
       } else {
         mainWindow.removeAllListeners("blur");
         mainWindow.removeAllListeners("focus");
+        mainWindow.removeAllListeners("hide");
       }
     },
   );
@@ -469,11 +485,11 @@ app.commandLine.appendSwitch(
   "WebRTC-SupportVP9SVC/EnabledByFlag_2SL3TL/",
 );
 app.commandLine.appendSwitch("webrtc-max-cpu-consumption-percentage", "100");
-app.commandLine.appendSwitch("enable-precise-memory-info");
 app.commandLine.appendSwitch("enable-gpu-rasterization");
 app.commandLine.appendSwitch("enable-native-gpu-memory-buffers");
 app.commandLine.appendSwitch("enable-accelerated-video");
 app.commandLine.appendSwitch("ignore-gpu-blacklist");
+app.commandLine.appendSwitch("enable-features", "WebAssemblySimd");
 
 if (process.platform == "darwin") {
   app.commandLine.appendSwitch("enable-oop-rasterization");
@@ -485,7 +501,6 @@ if (process.platform == "darwin") {
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
   createWindow();
-  currentWindowPosition = mainWindow.getPosition();
 });
 
 // Quit when all windows are closed.
