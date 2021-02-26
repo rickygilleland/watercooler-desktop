@@ -766,7 +766,7 @@ export default function Room(props: RoomProps): JSX.Element {
     return () => {
       ipcRenderer.invoke("start-video-room", { inRoom: false });
     };
-  });
+  }, []);
 
   const [startStreamCalled, setStartStreamCalled] = useState(false);
 

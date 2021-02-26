@@ -2,6 +2,7 @@ import {
   BrowserWindow,
   Menu,
   Notification,
+  Rectangle,
   app,
   autoUpdater,
   dialog,
@@ -22,7 +23,7 @@ const contextMenu = require("electron-context-menu");
 if (require("electron-squirrel-startup")) app.quit();
 const isDevMode = Boolean(process.execPath.match(/[\\/]electron/));
 
-let currentWindowPosition = [0, 0];
+const currentWindowPosition = [0, 0];
 const currentContentSize = [350, 520];
 
 let mainWindow: Electron.BrowserWindow;
@@ -192,12 +193,8 @@ const createWindow = () => {
       const width = args.type === "full" ? 1100 : 350;
       const height = args.type === "full" ? 600 : 520;
 
-      if (args.type === "full") {
-        mainWindow.maximize();
-      } else {
-        mainWindow.setContentSize(width, height, false);
-        mainWindow.center();
-      }
+      mainWindow.setContentSize(width, height, false);
+      mainWindow.center();
     },
   );
 
@@ -382,6 +379,20 @@ const createWindow = () => {
     require("electron").shell.openExternal(url);
   });
 
+  let currentWindowWidth = 1100;
+  let currentWindowHeight = 600;
+
+  mainWindow.on("will-resize", (_event, newBounds) => {
+    currentWindowWidth = newBounds.width;
+    currentWindowHeight = newBounds.height;
+  });
+
+  let currentWindowPosition: Rectangle | undefined;
+
+  mainWindow.on("will-move", (_event, newBounds) => {
+    currentWindowPosition = newBounds;
+  });
+
   ipcMain.handle(
     "start-video-room",
     async (
@@ -390,6 +401,7 @@ const createWindow = () => {
         inRoom: boolean;
       },
     ) => {
+      console.log("start-video-room called", args);
       if (args.inRoom) {
         mainWindow.on("blur", () => {
           mainWindow.setVibrancy(null);
@@ -414,8 +426,21 @@ const createWindow = () => {
           mainWindow.setAlwaysOnTop(false);
           mainWindow.setOpacity(1);
           mainWindow.setHasShadow(true);
-          mainWindow.center();
-          mainWindow.maximize();
+
+          mainWindow.setContentSize(
+            currentWindowWidth,
+            currentWindowHeight,
+            false,
+          );
+
+          if (currentWindowPosition) {
+            mainWindow.setPosition(
+              currentWindowPosition.x,
+              currentWindowPosition.y,
+            );
+          } else {
+            mainWindow.center();
+          }
 
           mainWindow.setBackgroundColor(
             process.platform === "darwin" ? "#80FFFFFF" : "#212529",
@@ -427,6 +452,7 @@ const createWindow = () => {
       } else {
         mainWindow.removeAllListeners("blur");
         mainWindow.removeAllListeners("focus");
+        mainWindow.removeAllListeners("hide");
       }
     },
   );
@@ -476,7 +502,6 @@ if (process.platform == "darwin") {
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
   createWindow();
-  currentWindowPosition = mainWindow.getPosition();
 });
 
 // Quit when all windows are closed.
