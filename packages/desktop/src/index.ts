@@ -485,11 +485,11 @@ app.commandLine.appendSwitch(
   "WebRTC-SupportVP9SVC/EnabledByFlag_2SL3TL/",
 );
 app.commandLine.appendSwitch("webrtc-max-cpu-consumption-percentage", "100");
-app.commandLine.appendSwitch("enable-precise-memory-info");
 app.commandLine.appendSwitch("enable-gpu-rasterization");
 app.commandLine.appendSwitch("enable-native-gpu-memory-buffers");
 app.commandLine.appendSwitch("enable-accelerated-video");
 app.commandLine.appendSwitch("ignore-gpu-blacklist");
+app.commandLine.appendSwitch("enable-features", "WebAssemblySimd");
 
 if (process.platform == "darwin") {
   app.commandLine.appendSwitch("enable-oop-rasterization");
