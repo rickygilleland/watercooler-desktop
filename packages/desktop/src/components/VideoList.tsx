@@ -170,7 +170,7 @@ const VideoItem = styled.div<{
     max-height: calc((100vh - 120px) / ${(props) => props.gridRows});
 
     @media (max-height: 250px) {
-      max-height: 100vh;
+      max-height: 95vh;
     }
   }
 `;
