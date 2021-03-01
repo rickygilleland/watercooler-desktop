@@ -25,11 +25,6 @@ rules.push({
   ],
 });
 
-rules.push({
-  test: /\.worker\.ts$/,
-  use: ["workerize-loader"],
-});
-
 module.exports = {
   module: {
     rules,
