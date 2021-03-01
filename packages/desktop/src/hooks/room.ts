@@ -18,6 +18,8 @@ export interface Dimensions {
 export interface VideoSizes {
   rows: number;
   columns: number;
+  height: number;
+  width: number;
 }
 
 export interface Publisher {
@@ -205,11 +207,40 @@ export const useGetVideoSizes = (
   const [videoSizes, setVideoSizes] = useState<VideoSizes>({
     rows: 0,
     columns: 0,
+    width: window.innerWidth,
+    height: window.innerHeight,
   });
+
+  const [dimensions, setDimensions] = useState<Dimensions>({
+    width: window.innerWidth,
+    height: window.innerHeight / 2,
+  });
+
+  useEffect(() => {
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  const handleResize = () => {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+
+    setDimensions({
+      width,
+      height,
+    });
+  };
 
   useEffect(() => {
     const publishersCount = publishers.filter((publisher) => publisher.hasVideo)
       .length;
+
+    let width = dimensions.width;
+    let height = dimensions.height;
+    const maxWidth = dimensions.width;
 
     let rows = 1;
     let columns = 1;
@@ -253,9 +284,18 @@ export const useGetVideoSizes = (
         }
       }
 
+      while (
+        height * rows > dimensions.height - 250 ||
+        width * columns > maxWidth - 100
+      ) {
+        width = width - 5;
+        height = Math.round(width);
+      }
       setVideoSizes({
         rows,
         columns,
+        width,
+        height,
       });
 
       return;
@@ -264,8 +304,10 @@ export const useGetVideoSizes = (
     setVideoSizes({
       rows: 1,
       columns: 1,
+      width,
+      height,
     });
-  }, [showChatThread, publishers]);
+  }, [showChatThread, publishers, dimensions]);
 
   return videoSizes;
 };

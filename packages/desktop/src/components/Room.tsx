@@ -363,7 +363,6 @@ export default function Room(props: RoomProps): JSX.Element {
       ) {
         streamOptions = {
           video: {
-            aspectRatio: 1.3333333333,
             deviceId: settings.defaultDevices.videoInput,
           },
           audio: {
@@ -372,9 +371,7 @@ export default function Room(props: RoomProps): JSX.Element {
         };
       } else {
         streamOptions = {
-          video: {
-            aspectRatio: 1.3333333333,
-          },
+          video: true,
           audio: true,
         };
       }

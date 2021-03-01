@@ -409,7 +409,7 @@ const createWindow = () => {
           mainWindow.setOpacity(0.68);
           mainWindow.setHasShadow(false);
           mainWindow.setMinimumSize(100, 100);
-          mainWindow.setSize(600, 125, false);
+          mainWindow.setSize(600, 100, false);
           mainWindow.center();
           const currentPosition = mainWindow.getPosition();
 

@@ -63,7 +63,12 @@ export default function VideoList(props: VideoListProps): JSX.Element {
         gridRows={videoSizes.rows}
         gridColumns={videoSizes.columns}
       >
-        <VideoItem gridRows={videoSizes.rows} gridColumns={videoSizes.columns}>
+        <VideoItem
+          gridRows={videoSizes.rows}
+          gridColumns={videoSizes.columns}
+          itemHeight={videoSizes.height}
+          itemWidth={videoSizes.width}
+        >
           <Video
             showPinToggle={showPinToggle}
             publisher={publisherToShow}
@@ -96,6 +101,8 @@ export default function VideoList(props: VideoListProps): JSX.Element {
           <VideoItem
             gridRows={videoSizes.rows}
             gridColumns={videoSizes.columns}
+            itemHeight={videoSizes.height}
+            itemWidth={videoSizes.width}
             key={publisher.id}
           >
             <Video
@@ -150,17 +157,20 @@ const VideoContainer = styled.div<{
 const VideoItem = styled.div<{
   gridRows: number;
   gridColumns: number;
+  itemWidth: number;
+  itemHeight: number;
 }>`
   margin: 0 auto;
   display: flex;
   overflow: hidden;
   min-width: 0;
+  width: ${(props) => props.itemWidth};
   video {
     max-width: 95vw;
     max-height: calc((100vh - 120px) / ${(props) => props.gridRows});
 
     @media (max-height: 250px) {
-      max-height: 100vh;
+      max-height: 95vh;
     }
   }
 `;
