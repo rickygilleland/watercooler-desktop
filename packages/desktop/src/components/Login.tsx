@@ -1,12 +1,12 @@
-import { Alert, Button, Card, Form } from "react-bootstrap";
+import { Alert, Button, Card, Form, FormControl } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PropsFromRedux } from "../containers/LoginPage";
 import { RouteComponentProps } from "react-router";
 import { Routes } from "./RootComponent";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
+import { ipcRenderer } from "electron";
 import React from "react";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { ipcRenderer } = require("electron");
+import styled from "styled-components";
 
 interface State {
   username: string;
@@ -90,11 +90,11 @@ export default class Login extends React.Component<LoginProps, State> {
   }
 
   handleUsernameChange(event: React.ChangeEvent<HTMLInputElement>): void {
-    this.setState({ username: event.target.value });
+    this.setState({ username: event.target.value, missingUsername: false });
   }
 
   handlePasswordChange(event: React.ChangeEvent<HTMLInputElement>): void {
-    this.setState({ password: event.target.value });
+    this.setState({ password: event.target.value, missingPassword: false });
   }
 
   handleSubmit(event: React.MouseEvent): void {
@@ -144,98 +144,134 @@ export default class Login extends React.Component<LoginProps, State> {
     } = this.state;
 
     return (
-      <React.Fragment>
-        <div>
-          <Card className="mt-5 shadow-sm mx-auto" body>
-            <h1 className="h2 text-center mt-3 mb-3 font-weight-bolder">
-              Sign in to Blab
-            </h1>
+      <Container>
+        <Title>Blab</Title>
 
-            {loginError && (
-              <Alert variant="danger" className="text-center">
-                Oops! The login code you entered was incorrect, has already been
-                used, or is expired.
-              </Alert>
-            )}
+        <Form>
+          <StyledInput
+            type={loginCodeRequested ? "hidden" : "text"}
+            placeholder="eleanor@yourworkemail.com"
+            value={username}
+            error={missingUsername}
+            onChange={this.handleUsernameChange}
+            size="lg"
+          />
 
-            {codeError && (
-              <Alert variant="danger" className="text-center">
-                Oops! We couldn't find an account under that email address.
-              </Alert>
-            )}
+          {loginCodeRequested && (
+            <React.Fragment>
+              <Form.Label>Login Code</Form.Label>
+              <StyledInput
+                name="password"
+                type="text"
+                placeholder="Code"
+                value={password}
+                onChange={this.handlePasswordChange}
+                size="lg"
+                className="ph-no-capture"
+                error={missingPassword}
+              />
+            </React.Fragment>
+          )}
 
-            {loginCodeRequested && !codeError && !loginError && (
-              <Alert variant="success" className="text-center">
-                We sent a temporary login code to {username}. Enter the
-                temporary code below to sign in.
-              </Alert>
-            )}
-
-            {missingUsername && (
-              <Alert variant="danger" className="text-center">
-                Oops! You forgot to enter your email address.
-              </Alert>
-            )}
-
+          <ErrorContainer>
+            {missingUsername && <Error>Enter your email</Error>}
             {missingPassword && (
-              <Alert variant="danger" className="text-center">
-                Oops! You forgot to enter your password.
-              </Alert>
+              <Error>Enter the login code we emailed to you</Error>
             )}
-
-            <Form>
-              <Form.Group controlId="formBasicEmail">
-                <Form.Control
-                  type={loginCodeRequested ? "hidden" : "text"}
-                  placeholder="eleanor@yourworkemail.com"
-                  value={username}
-                  onChange={this.handleUsernameChange}
-                  size="lg"
-                />
-              </Form.Group>
-
-              {loginCodeRequested && (
-                <Form.Group controlId="formBasicPassword">
-                  <Form.Label>Login Code</Form.Label>
-                  <Form.Control
-                    name="password"
-                    type="text"
-                    placeholder="Code"
-                    value={password}
-                    onChange={this.handlePasswordChange}
-                    size="lg"
-                    className="ph-no-capture"
-                  />
-                </Form.Group>
+            {(loginError || codeError) && loginCodeRequested && (
+              <Error>
+                The login code you entered was incorrect, already used, or is
+                expired
+              </Error>
+            )}
+            {(loginError || codeError) && !loginCodeRequested && (
+              <Error>We couldn't log you in with that email</Error>
+            )}
+            {loginCodeRequested &&
+              !codeError &&
+              !loginError &&
+              !auth.loading && (
+                <Success>
+                  Enter the temporary code we sent to {username}
+                </Success>
               )}
+          </ErrorContainer>
 
-              <Button
-                variant="primary"
-                className="btn-block btn-lg mt-4"
-                type="submit"
-                disabled={auth.loading}
-                onClick={this.handleSubmit}
-              >
-                {auth.loading && <FontAwesomeIcon icon={faCircleNotch} spin />}
-                {loginCodeRequested ? "Log In" : "Continue"}
-              </Button>
-            </Form>
-            {loginCodeRequested && (
-              <>
-                <hr />
-                <Button
-                  variant="secondary"
-                  className="btn-block btn-lg mt-4"
-                  type="submit"
-                  onClick={this.requestNewCode}
-                >
-                  Request a New Code
-                </Button>
-              </>
+          <Button
+            variant="dark"
+            className="btn-block btn-lg"
+            type="submit"
+            disabled={auth.loading}
+            onClick={this.handleSubmit}
+          >
+            {auth.loading && (
+              <FontAwesomeIcon
+                icon={faCircleNotch}
+                spin
+                style={{ marginRight: 4 }}
+              />
             )}
-          </Card>
-        </div>
-      </React.Fragment>
+            {loginCodeRequested ? "Log In" : "Continue"}
+          </Button>
+        </Form>
+        {loginCodeRequested && (
+          <>
+            <hr />
+            <Button
+              variant="outline-secondary"
+              className="btn"
+              style={{ width: "80%", margin: "0 auto" }}
+              type="submit"
+              onClick={this.requestNewCode}
+            >
+              Request a New Code
+            </Button>
+          </>
+        )}
+      </Container>
     );
   }
 }
+
+const Container = styled(Card)`
+  background-color: transparent;
+  padding: 24px;
+  color: #fff;
+`;
+
+const Title = styled.div`
+  font-size: 32px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 28px;
+`;
+
+export const StyledInput = styled(FormControl)<{
+  error: boolean;
+}>`
+  background-color: transparent;
+  border: 2px solid
+    ${(props) => (props.error ? "#f9426c" : "rgb(255, 255, 255, 0.2)")};
+  color: #fff;
+
+  &:focus,
+  &:active {
+    background-color: transparent;
+    color: #fff;
+    box-shadow: none;
+    border-color: rgb(255, 255, 255, 0.1);
+  }
+`;
+
+const ErrorContainer = styled.div`
+  min-height: 24px;
+  margin: 10px 0;
+`;
+
+const Error = styled.div`
+  color: #f9426c;
+`;
+
+const Success = styled.div`
+  color: rgb(51, 255, 119, 0.95);
+`;

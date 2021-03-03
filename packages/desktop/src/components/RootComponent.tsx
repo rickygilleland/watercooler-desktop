@@ -11,6 +11,7 @@ import { Team } from "../store/types/organization";
 import { Thread } from "../store/types/thread";
 import { User } from "../store/types/user";
 import { each } from "lodash";
+import { ipcRenderer } from "electron";
 import { setWasmPaths } from "@tensorflow/tfjs-backend-wasm";
 import EnsureLoggedInContainer from "../containers/EnsureLoggedInContainer";
 import ErrorBoundary from "./ErrorBoundary";
@@ -23,11 +24,6 @@ import React, { useEffect, useState } from "react";
 import RoomPage from "../containers/RoomPage";
 import RoomSettingsModal from "./RoomSettingsModal";
 import posthog from "posthog-js";
-//import wasmPath from "../../node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm.wasm";
-//import wasmSimdPath from "../../node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-simd.wasm";
-//import wasmSimdThreadedPath from "../../node_modules/@tensorflow/tfjs-backend-wasm/dist/tfjs-backend-wasm-threaded-simd.wasm";
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { nativeTheme } = require("electron").remote;
 
 export enum Routes {
   Home = "/home",
@@ -118,10 +114,6 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
   }, [getOrganizationUsers, organization?.id]);
 
   useEffect(() => {
-    nativeTheme.on("updated", () => {
-      setIsLightMode(!nativeTheme.shouldUseDarkColors);
-    });
-
     const pusherInstance = new Pusher("3eb4f9d419966b6e1e0b", {
       forceTLS: true,
       wsHost: "blab.to",
@@ -148,15 +140,19 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
   }, [auth.authKey]);
 
   useEffect(() => {
+    const getVersion = async () => {
+      const appVersion = await ipcRenderer.invoke("get-version");
+
+      posthog.register({
+        organization_id: organization.id,
+        version: appVersion,
+      });
+    };
+
     if (user?.id === undefined) return;
     posthog.identify(user.id.toString());
     posthog.people.set({ email: user.email });
-
-    posthog.register({
-      organization_id: organization.id,
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      version: require("electron").remote.app.getVersion(),
-    });
+    getVersion();
   }, [user.id, user.email, organization.id]);
 
   useEffect(() => {

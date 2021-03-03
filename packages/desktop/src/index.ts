@@ -7,7 +7,6 @@ import {
   autoUpdater,
   dialog,
   ipcMain,
-  nativeTheme,
   powerMonitor,
   screen,
   systemPreferences,
@@ -22,9 +21,6 @@ declare let MAIN_WINDOW_WEBPACK_ENTRY: any;
 const contextMenu = require("electron-context-menu");
 if (require("electron-squirrel-startup")) app.quit();
 const isDevMode = Boolean(process.execPath.match(/[\\/]electron/));
-
-const currentWindowPosition = [0, 0];
-const currentContentSize = [350, 520];
 
 let mainWindow: Electron.BrowserWindow;
 
@@ -123,20 +119,19 @@ const createWindow = () => {
 
     mainWindow = new BrowserWindow({
       titleBarStyle: "hidden",
-      vibrancy: "sidebar",
-      transparent: true, //necessary for vibrancy fix on macos
-      backgroundColor: process.platform === "darwin" ? "#80FFFFFF" : "#212529",
+      backgroundColor: "#1b1b1b",
       width: 350,
       height: 520,
       minWidth: 350,
       minHeight: 520,
       frame: false,
+      transparent: true,
       webPreferences: {
         nodeIntegration: true,
+        contextIsolation: false,
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
         devTools: false,
         backgroundThrottling: false,
-        enableRemoteModule: true,
       },
     });
 
@@ -147,19 +142,18 @@ const createWindow = () => {
     // Create the browser window.
     mainWindow = new BrowserWindow({
       titleBarStyle: "hidden",
-      vibrancy: "sidebar",
-      transparent: true, //necessary for vibrancy fix on macos
-      backgroundColor: process.platform === "darwin" ? "#80FFFFFF" : "#212529",
+      backgroundColor: "#1b1b1b",
       width: 350,
       height: 520,
       minWidth: 350,
       minHeight: 520,
       frame: false,
+      transparent: true,
       webPreferences: {
         nodeIntegration: true,
+        contextIsolation: false,
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
         backgroundThrottling: false,
-        enableRemoteModule: true,
       },
     });
 
@@ -179,8 +173,9 @@ const createWindow = () => {
     mainWindow.webContents.send("power_update", "lock-screen");
   });
 
-  //force dark mode
-  nativeTheme.themeSource = "dark";
+  ipcMain.handle("get-version", () => {
+    return app.getVersion();
+  });
 
   ipcMain.handle(
     "update-main-window-width",
@@ -403,8 +398,7 @@ const createWindow = () => {
     ) => {
       if (args.inRoom) {
         mainWindow.on("blur", () => {
-          mainWindow.setVibrancy(null);
-          mainWindow.setVisibleOnAllWorkspaces(true);
+          mainWindow.setBackgroundColor("#00000000");
           mainWindow.setAlwaysOnTop(true, "floating");
           mainWindow.setOpacity(0.68);
           mainWindow.setHasShadow(false);
@@ -414,13 +408,11 @@ const createWindow = () => {
           const currentPosition = mainWindow.getPosition();
 
           mainWindow.setPosition(currentPosition[0] - 90, 5, false);
-
-          mainWindow.setBackgroundColor("#00000000");
           mainWindow.setIgnoreMouseEvents(true);
+          mainWindow.setVisibleOnAllWorkspaces(true);
         });
 
         mainWindow.on("focus", () => {
-          mainWindow.setVibrancy("sidebar");
           mainWindow.setVisibleOnAllWorkspaces(false);
           mainWindow.setAlwaysOnTop(false);
           mainWindow.setOpacity(1);
@@ -441,9 +433,7 @@ const createWindow = () => {
             mainWindow.center();
           }
 
-          mainWindow.setBackgroundColor(
-            process.platform === "darwin" ? "#80FFFFFF" : "#212529",
-          );
+          mainWindow.setBackgroundColor("#1b1b1b");
 
           mainWindow.setMinimumSize(350, 520);
           mainWindow.setIgnoreMouseEvents(false);
