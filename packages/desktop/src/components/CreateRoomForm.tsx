@@ -1,7 +1,21 @@
 import { Billing } from "../store/types/organization";
-import { Col, Form, OverlayTrigger, Row, Tooltip } from "react-bootstrap";
+import {
+  Col,
+  Form,
+  FormControl,
+  OverlayTrigger,
+  Row,
+  Tooltip,
+} from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faCircleNotch } from "@fortawesome/free-solid-svg-icons";
+import {
+  faArrowLeft,
+  faCircleNotch,
+  faLock,
+  faLockOpen,
+  faMicrophoneAlt,
+  faVideo,
+} from "@fortawesome/free-solid-svg-icons";
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 
@@ -59,7 +73,7 @@ export default function CreateRoomForm(
 
       <FormContainer onSubmit={handleSubmit}>
         <Form.Label>Name</Form.Label>
-        <Form.Control
+        <StyledInput
           type="text"
           value={name}
           onChange={handleNameChange}
@@ -68,10 +82,11 @@ export default function CreateRoomForm(
         />
         <Row>
           <Col xs="9">
-            <Form.Label>Voice Only</Form.Label>
+            <Form.Label>
+              Voice Only <Icon icon={audioOnly ? faMicrophoneAlt : faVideo} />
+            </Form.Label>
             <p className="text-muted" style={{ fontSize: ".8rem" }}>
-              Let your voice lead the conversation, or enable video for face to
-              face conversations.
+              Video will always be off in voice only rooms.
             </p>
           </Col>
           <Col className="text-right">
@@ -113,7 +128,9 @@ export default function CreateRoomForm(
         </Row>
         <Row>
           <Col xs="9">
-            <Form.Label>Private</Form.Label>
+            <Form.Label>
+              Private <Icon icon={isPrivate ? faLock : faLockOpen} />
+            </Form.Label>
             <p className="text-muted" style={{ fontSize: ".8rem" }}>
               Private rooms can only be viewed or joined by invitation.
             </p>
@@ -203,5 +220,26 @@ const SubmitButton = styled.div`
 
   &:hover {
     background-color: rgb(40, 199, 93, 0.65);
+  }
+`;
+
+const Icon = styled(FontAwesomeIcon)`
+  opacity: 0.6;
+  font-size: 13px;
+  margin-left: 4px;
+`;
+
+const StyledInput = styled(FormControl)`
+  background-color: transparent;
+  border: none;
+  border-bottom: 1px solid #fff;
+  border-radius: 0;
+  color: #fff;
+
+  &:focus,
+  &:active {
+    background-color: transparent;
+    outline: none !important;
+    color: #fff;
   }
 `;

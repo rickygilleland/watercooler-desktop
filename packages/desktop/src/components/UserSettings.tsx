@@ -24,32 +24,28 @@ export default function UserSettings(props: UserSettingsProps): JSX.Element {
   return (
     <Container>
       <FormContainer>
-        <Button
-          variant="primary"
+        <StyledButton
+          variant="dark"
           className="my-3"
           size="lg"
           block
           onClick={() => setShowManageCameraModal(true)}
         >
           <FontAwesomeIcon icon={faCamera} /> Camera Settings
-        </Button>
-        <Button
-          variant="primary"
+        </StyledButton>
+        <StyledButton
+          variant="dark"
           className="my-3"
           size="lg"
           block
           onClick={() => setShowRoomSettingsModal(true)}
         >
           <FontAwesomeIcon icon={faDoorOpen} /> Room Settings
-        </Button>
+        </StyledButton>
 
-        <Button
-          variant="danger"
-          className="mt-3"
-          onClick={() => handleUserLogout()}
-        >
+        <LogoutButton variant="danger" onClick={() => handleUserLogout()}>
           <FontAwesomeIcon icon={faSignOutAlt} /> Sign Out
-        </Button>
+        </LogoutButton>
       </FormContainer>
     </Container>
   );
@@ -62,7 +58,20 @@ const Container = styled.div`
 `;
 
 const FormContainer = styled.div`
-  height: calc(100vh - 140px);
+  height: calc(100vh - 90px);
   overflow: auto;
   padding: 12px;
+  display: flex;
+  flex-direction: column;
+`;
+
+const StyledButton = styled(Button)`
+  border: 1px solid rgb(255, 255, 255, 0.4);
+  background-color: transparent;
+  padding: 16px;
+  font-size: 16px;
+`;
+
+const LogoutButton = styled(Button)`
+  margin-top: auto !important;
 `;
