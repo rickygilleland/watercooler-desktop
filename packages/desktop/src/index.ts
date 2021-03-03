@@ -7,7 +7,6 @@ import {
   autoUpdater,
   dialog,
   ipcMain,
-  nativeTheme,
   powerMonitor,
   screen,
   systemPreferences,

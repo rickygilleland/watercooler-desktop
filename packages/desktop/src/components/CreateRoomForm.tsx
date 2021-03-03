@@ -1,13 +1,7 @@
 import { Billing } from "../store/types/organization";
-import {
-  Col,
-  Form,
-  FormControl,
-  OverlayTrigger,
-  Row,
-  Tooltip,
-} from "react-bootstrap";
+import { Col, Form, OverlayTrigger, Row, Tooltip } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { StyledInput } from "./Login";
 import {
   faArrowLeft,
   faCircleNotch,
@@ -227,19 +221,4 @@ const Icon = styled(FontAwesomeIcon)`
   opacity: 0.6;
   font-size: 13px;
   margin-left: 4px;
-`;
-
-const StyledInput = styled(FormControl)`
-  background-color: transparent;
-  border: none;
-  border-bottom: 1px solid #fff;
-  border-radius: 0;
-  color: #fff;
-
-  &:focus,
-  &:active {
-    background-color: transparent;
-    outline: none !important;
-    color: #fff;
-  }
 `;

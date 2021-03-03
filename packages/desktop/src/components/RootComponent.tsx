@@ -11,7 +11,7 @@ import { Team } from "../store/types/organization";
 import { Thread } from "../store/types/thread";
 import { User } from "../store/types/user";
 import { each } from "lodash";
-import { ipcRenderer } from "electron/renderer";
+import { ipcRenderer } from "electron";
 import { setWasmPaths } from "@tensorflow/tfjs-backend-wasm";
 import EnsureLoggedInContainer from "../containers/EnsureLoggedInContainer";
 import ErrorBoundary from "./ErrorBoundary";
@@ -114,10 +114,6 @@ export default function RootComponent(props: PropsFromRedux): JSX.Element {
   }, [getOrganizationUsers, organization?.id]);
 
   useEffect(() => {
-    nativeTheme.on("updated", () => {
-      setIsLightMode(!nativeTheme.shouldUseDarkColors);
-    });
-
     const pusherInstance = new Pusher("3eb4f9d419966b6e1e0b", {
       forceTLS: true,
       wsHost: "blab.to",
