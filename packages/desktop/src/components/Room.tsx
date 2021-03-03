@@ -696,6 +696,7 @@ export default function Room(props: RoomProps): JSX.Element {
           audio: true,
           video: true,
           data: true,
+          videocodec: "vp9",
         };
 
         videoRoomStreamHandle.send({ message: request, jsep: jsep });
