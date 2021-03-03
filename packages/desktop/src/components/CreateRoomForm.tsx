@@ -10,7 +10,7 @@ interface CreateRoomFormProps {
   billing: Billing;
   createRoomSuccess: boolean;
   lastCreatedRoomSlug: string | null;
-  handleSubmit(name: string, videoEnabled: boolean, isPrivate: boolean): void;
+  handleSubmit(name: string, audioOnly: boolean, isPrivate: boolean): void;
   push(location: string): void;
   onHide(): void;
 }
@@ -20,7 +20,7 @@ export default function CreateRoomForm(
 ): JSX.Element {
   const { createRoomSuccess, onHide } = props;
   const [name, setName] = useState("");
-  const [videoEnabled, setVideoEnabled] = useState(false);
+  const [audioOnly, setAudioOnly] = useState(true);
   const [isPrivate, setIsPrivate] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -29,7 +29,7 @@ export default function CreateRoomForm(
   };
 
   const handleVideoEnabledChange = () => {
-    setVideoEnabled(videoEnabled ? false : true);
+    setAudioOnly(audioOnly ? false : true);
   };
 
   const handleIsPrivateChanged = () => {
@@ -38,7 +38,7 @@ export default function CreateRoomForm(
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    props.handleSubmit(name, videoEnabled, isPrivate);
+    props.handleSubmit(name, !audioOnly, isPrivate);
     setSubmitted(true);
   };
 
@@ -68,10 +68,10 @@ export default function CreateRoomForm(
         />
         <Row>
           <Col xs="9">
-            <Form.Label>Enable Video</Form.Label>
+            <Form.Label>Voice Only</Form.Label>
             <p className="text-muted" style={{ fontSize: ".8rem" }}>
-              We recommend setting the rooms to audio only unless you'll be
-              using it for face to face meetings.
+              Let your voice lead the conversation, or enable video for face to
+              face conversations.
             </p>
           </Col>
           <Col className="text-right">
@@ -88,7 +88,7 @@ export default function CreateRoomForm(
                     type="switch"
                     id="video_enabled_switch"
                     name="video_enabled"
-                    checked={videoEnabled}
+                    checked={audioOnly}
                     label=""
                     size={100}
                     onChange={handleVideoEnabledChange}
@@ -102,7 +102,7 @@ export default function CreateRoomForm(
                 type="switch"
                 id="video_enabled_switch"
                 name="video_enabled"
-                checked={videoEnabled}
+                checked={audioOnly}
                 label=""
                 size={100}
                 onChange={handleVideoEnabledChange}
