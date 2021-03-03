@@ -177,8 +177,9 @@ const createWindow = () => {
     mainWindow.webContents.send("power_update", "lock-screen");
   });
 
-  //force dark mode
-  nativeTheme.themeSource = "dark";
+  ipcMain.handle("get-version", () => {
+    return app.getVersion();
+  });
 
   ipcMain.handle(
     "update-main-window-width",

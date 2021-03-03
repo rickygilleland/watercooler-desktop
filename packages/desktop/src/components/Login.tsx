@@ -148,7 +148,7 @@ export default class Login extends React.Component<LoginProps, State> {
         <div>
           <Card className="mt-5 shadow-sm mx-auto" body>
             <h1 className="h2 text-center mt-3 mb-3 font-weight-bolder">
-              Sign in to Blab
+              Blab
             </h1>
 
             {loginError && (
