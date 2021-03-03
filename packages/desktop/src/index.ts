@@ -22,9 +22,6 @@ const contextMenu = require("electron-context-menu");
 if (require("electron-squirrel-startup")) app.quit();
 const isDevMode = Boolean(process.execPath.match(/[\\/]electron/));
 
-const currentWindowPosition = [0, 0];
-const currentContentSize = [350, 520];
-
 let mainWindow: Electron.BrowserWindow;
 
 if (!isDevMode) {
@@ -131,10 +128,10 @@ const createWindow = () => {
       transparent: true,
       webPreferences: {
         nodeIntegration: true,
+        contextIsolation: false,
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
         devTools: false,
         backgroundThrottling: false,
-        enableRemoteModule: true,
       },
     });
 
@@ -154,9 +151,9 @@ const createWindow = () => {
       transparent: true,
       webPreferences: {
         nodeIntegration: true,
+        contextIsolation: false,
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
         backgroundThrottling: false,
-        enableRemoteModule: true,
       },
     });
 
