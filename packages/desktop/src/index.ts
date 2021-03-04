@@ -119,13 +119,14 @@ const createWindow = () => {
 
     mainWindow = new BrowserWindow({
       titleBarStyle: "hidden",
-      backgroundColor: "#1b1b1b",
+      vibrancy: "sidebar",
+      transparent: true, //necessary for vibrancy fix on macos
+      backgroundColor: process.platform === "darwin" ? "#80FFFFFF" : "#1b1b1b",
       width: 350,
       height: 520,
       minWidth: 350,
       minHeight: 520,
       frame: false,
-      transparent: true,
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
@@ -143,13 +144,14 @@ const createWindow = () => {
     // Create the browser window.
     mainWindow = new BrowserWindow({
       titleBarStyle: "hidden",
-      backgroundColor: "#1b1b1b",
+      vibrancy: "sidebar",
+      transparent: true, //necessary for vibrancy fix on macos
+      backgroundColor: process.platform === "darwin" ? "#80FFFFFF" : "#1b1b1b",
       width: 350,
       height: 520,
       minWidth: 350,
       minHeight: 520,
       frame: false,
-      transparent: true,
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
@@ -400,6 +402,7 @@ const createWindow = () => {
     ) => {
       if (args.inRoom) {
         mainWindow.on("blur", () => {
+          mainWindow.setVibrancy(null);
           mainWindow.setBackgroundColor("#00000000");
           mainWindow.setAlwaysOnTop(true, "floating");
           mainWindow.setOpacity(0.68);
@@ -415,6 +418,7 @@ const createWindow = () => {
         });
 
         mainWindow.on("focus", () => {
+          mainWindow.setVibrancy("sidebar");
           mainWindow.setVisibleOnAllWorkspaces(false);
           mainWindow.setAlwaysOnTop(false);
           mainWindow.setOpacity(1);
@@ -435,7 +439,9 @@ const createWindow = () => {
             mainWindow.center();
           }
 
-          mainWindow.setBackgroundColor("#1b1b1b");
+          mainWindow.setBackgroundColor(
+            process.platform === "darwin" ? "#80FFFFFF" : "#1b1b1b",
+          );
 
           mainWindow.setMinimumSize(350, 520);
           mainWindow.setIgnoreMouseEvents(false);
