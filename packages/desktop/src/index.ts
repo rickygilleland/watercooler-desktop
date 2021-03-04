@@ -132,6 +132,7 @@ const createWindow = () => {
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
         devTools: false,
         backgroundThrottling: false,
+        enableRemoteModule: true,
       },
     });
 
@@ -154,6 +155,7 @@ const createWindow = () => {
         contextIsolation: false,
         preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
         backgroundThrottling: false,
+        enableRemoteModule: true,
       },
     });
 
