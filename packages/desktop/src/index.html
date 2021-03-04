@@ -161,17 +161,19 @@
     .overlay {
       display: none;
     }
-    .video-container:hover > .overlay {
-      display: block;
-    }
-    .stage-container:hover .overlay {
-      display: block;
-    }
-    .stage-container:hover > .hide-overlay {
-      display: none !important;
-    }
-    .stage-container:hover .hide-overlay {
-      display: none !important;
+    @media (min-height: 300px) {
+      .video-container:hover > .overlay {
+        display: block;
+      }
+      .stage-container:hover .overlay {
+        display: block;
+      }
+      .stage-container:hover > .hide-overlay {
+        display: none !important;
+      }
+      .stage-container:hover .hide-overlay {
+        display: none !important;
+      }
     }
     video {
       border: 2px solid transparent;
