@@ -1,10 +1,10 @@
-import { Container } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { PropsFromRedux } from "../containers/MagicLoginPage";
 import { RouteComponentProps } from "react-router";
 import { Routes } from "./RootComponent";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
 import React, { useEffect } from "react";
+import styled from "styled-components";
 
 interface MagicLoginProps extends PropsFromRedux, RouteComponentProps {}
 
@@ -28,15 +28,30 @@ export default function MagicLogin(props: MagicLoginProps): JSX.Element {
   }, [props.loginCode]);
 
   return (
-    <Container data-tid="container" fluid>
-      <h1 className="text-center mt-5">Logging you in...</h1>
-
-      <FontAwesomeIcon
-        icon={faCircleNotch}
-        className="mt-3"
-        style={{ fontSize: "2.4rem", color: "#6772ef" }}
-        spin
-      />
+    <Container>
+      <Title>Logging you in...</Title>
+      <LoadingSpinner icon={faCircleNotch} spin />
     </Container>
   );
 }
+
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const Title = styled.div`
+  font-size: 32px;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 20px;
+  margin-top: 62px;
+  color: #fff;
+`;
+
+const LoadingSpinner = styled(FontAwesomeIcon)`
+  margin: 0 auto;
+  font-size: 2rem;
+  color: #6772ef;
+`;

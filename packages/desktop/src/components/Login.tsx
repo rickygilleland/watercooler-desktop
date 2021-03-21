@@ -4,7 +4,7 @@ import { PropsFromRedux } from "../containers/LoginPage";
 import { RouteComponentProps } from "react-router";
 import { Routes } from "./RootComponent";
 import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
-import { ipcRenderer } from "electron";
+import { ipcRenderer, shell } from "electron";
 import React from "react";
 import styled from "styled-components";
 
@@ -35,10 +35,7 @@ export default class Login extends React.Component<LoginProps, State> {
       loading: false,
     };
 
-    this.handleUsernameChange = this.handleUsernameChange.bind(this);
-    this.handlePasswordChange = this.handlePasswordChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-    this.requestNewCode = this.requestNewCode.bind(this);
   }
 
   componentDidMount(): void {
@@ -49,10 +46,10 @@ export default class Login extends React.Component<LoginProps, State> {
     }
 
     ipcRenderer.on("url_update", (event, arg) => {
-      const pushUrl = arg.slice(13);
+      const pushUrl = arg.slice(6);
 
       if (pushUrl.includes("magic")) {
-        push(arg.slice(13));
+        push(pushUrl);
       }
     });
   }
@@ -89,145 +86,27 @@ export default class Login extends React.Component<LoginProps, State> {
     ipcRenderer.removeAllListeners("url_update");
   }
 
-  handleUsernameChange(event: React.ChangeEvent<HTMLInputElement>): void {
-    this.setState({ username: event.target.value, missingUsername: false });
-  }
-
-  handlePasswordChange(event: React.ChangeEvent<HTMLInputElement>): void {
-    this.setState({ password: event.target.value, missingPassword: false });
-  }
-
   handleSubmit(event: React.MouseEvent): void {
     event.preventDefault();
-    const { requestLoginCode, authenticateUser } = this.props;
-    const { loginCodeRequested, username, password } = this.state;
 
-    if (username == "") {
-      return this.setState({ missingUsername: true, missingPassword: false });
-    }
-
-    if (loginCodeRequested == true) {
-      if (password == "") {
-        return this.setState({ missingUsername: false, missingPassword: true });
-      }
-
-      this.setState({ missingUsername: false, missingPassword: false });
-
-      authenticateUser(username, password.trim());
-      return;
-    }
-
-    requestLoginCode(username);
-  }
-
-  requestNewCode(): void {
-    const { requestLoginCode } = this.props;
-    const { username } = this.state;
-
-    if (username == "") {
-      return this.setState({ missingUsername: true, missingPassword: false });
-    }
-
-    requestLoginCode(username);
+    shell.openExternal("https://blab.to/magic/app");
   }
 
   render(): JSX.Element {
-    const { auth } = this.props;
-    const {
-      loginCodeRequested,
-      loginError,
-      codeError,
-      missingUsername,
-      missingPassword,
-      username,
-      password,
-    } = this.state;
-
     return (
       <Container>
         <Title>Blab</Title>
+        <SubTitle>
+          Voice first communication for the next generation of work
+        </SubTitle>
 
-        <Form>
-          <StyledInput
-            type={loginCodeRequested ? "hidden" : "text"}
-            placeholder="eleanor@yourworkemail.com"
-            value={username}
-            error={missingUsername}
-            onChange={this.handleUsernameChange}
-            size="lg"
-          />
-
-          {loginCodeRequested && (
-            <React.Fragment>
-              <Form.Label>Login Code</Form.Label>
-              <StyledInput
-                name="password"
-                type="text"
-                placeholder="Code"
-                value={password}
-                onChange={this.handlePasswordChange}
-                size="lg"
-                className="ph-no-capture"
-                error={missingPassword}
-              />
-            </React.Fragment>
-          )}
-
-          <ErrorContainer>
-            {missingUsername && <Error>Enter your email</Error>}
-            {missingPassword && (
-              <Error>Enter the login code we emailed to you</Error>
-            )}
-            {(loginError || codeError) && loginCodeRequested && (
-              <Error>
-                The login code you entered was incorrect, already used, or is
-                expired
-              </Error>
-            )}
-            {(loginError || codeError) && !loginCodeRequested && (
-              <Error>We couldn't log you in with that email</Error>
-            )}
-            {loginCodeRequested &&
-              !codeError &&
-              !loginError &&
-              !auth.loading && (
-                <Success>
-                  Enter the temporary code we sent to {username}
-                </Success>
-              )}
-          </ErrorContainer>
-
-          <Button
-            variant="dark"
-            className="btn-block btn-lg"
-            type="submit"
-            disabled={auth.loading}
-            onClick={this.handleSubmit}
-          >
-            {auth.loading && (
-              <FontAwesomeIcon
-                icon={faCircleNotch}
-                spin
-                style={{ marginRight: 4 }}
-              />
-            )}
-            {loginCodeRequested ? "Log In" : "Continue"}
-          </Button>
-        </Form>
-        {loginCodeRequested && (
-          <>
-            <hr />
-            <Button
-              variant="outline-secondary"
-              className="btn"
-              style={{ width: "80%", margin: "0 auto" }}
-              type="submit"
-              onClick={this.requestNewCode}
-            >
-              Request a New Code
-            </Button>
-          </>
-        )}
+        <LoginButton className="btn-block btn-lg" onClick={this.handleSubmit}>
+          Sign In to Blab
+        </LoginButton>
+        <Description>
+          We'll open your web browser to sign in and bring you back here
+          afterwards.
+        </Description>
       </Container>
     );
   }
@@ -237,13 +116,31 @@ const Container = styled(Card)`
   background-color: transparent;
   padding: 24px;
   color: #fff;
+  height: 100vh;
 `;
 
 const Title = styled.div`
   font-size: 32px;
   font-weight: 700;
   text-align: center;
-  margin-bottom: 28px;
+  margin-top: 32px;
+  margin-bottom: 8px;
+`;
+
+const SubTitle = styled.div`
+  text-align: center;
+  margin-bottom: 24px;
+  font-size: 16px;
+  font-weight: 600;
+`;
+
+const LoginButton = styled(Button)`
+  background-color: rgb(40, 199, 93, 0.95) !important;
+  border-color: transparent !important;
+
+  &:hover {
+    background-color: rgb(40, 199, 93, 0.65);
+  }
 `;
 
 export const StyledInput = styled(FormControl)<{
@@ -263,15 +160,8 @@ export const StyledInput = styled(FormControl)<{
   }
 `;
 
-const ErrorContainer = styled.div`
-  min-height: 24px;
-  margin: 10px 0;
-`;
-
-const Error = styled.div`
-  color: #f9426c;
-`;
-
-const Success = styled.div`
-  color: rgb(51, 255, 119, 0.95);
+const Description = styled.div`
+  font-weight: 500;
+  margin-top: 20px;
+  color: rgb(255, 255, 255, 0.7);
 `;
